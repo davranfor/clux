@@ -191,33 +191,6 @@ const char *json_string(const json *node)
     return node->value.string;
 }
 
-int json_integer(const json *node)
-{
-    if ((node == NULL) || (node->type == JSON_STRING))
-    {
-        return 0;
-    }
-    return (int)node->value.number;
-}
-
-unsigned int json_real(const json *node)
-{
-    if ((node == NULL) || (node->type == JSON_STRING))
-    {
-        return 0;
-    }
-    return (unsigned int)node->value.number;
-}
-
-double json_double(const json *node)
-{
-    if ((node == NULL) || (node->type == JSON_STRING))
-    {
-        return 0.0;
-    }
-    return node->value.number;
-}
-
 double json_number(const json *node)
 {
     if ((node == NULL) || (node->type == JSON_STRING))

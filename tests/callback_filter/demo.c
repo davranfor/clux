@@ -30,13 +30,13 @@ int main(void)
     root = json_new_array(NULL);
     tail = json_push_front(root, json_new_string(NULL, "foo"));   // Not computed
     tail = json_push_after(tail, json_new_integer(NULL, -39));
-    tail = json_push_after(tail, json_new_real(NULL, 42));
+    tail = json_push_after(tail, json_new_integer(NULL, 42));
     tail = json_push_after(tail, json_new_string(NULL, "bar"));   // Not computed
     tail = json_push_after(tail, json_new_object(NULL));          // Not computed
     tail = json_push_after(tail, json_new_number(NULL, 0));
     tail = json_push_after(tail, json_new_string(NULL, "10000")); // Not computed
     tail = json_push_after(tail, json_new_format(NULL, "%d", 1)); // Not computed
-    tail = json_push_after(tail, json_new_double(NULL, 0.14));
+    tail = json_push_after(tail, json_new_number(NULL, 0.14));
     tail = json_push_after(tail, json_new_boolean(NULL, 1));      // Not computed
     tail = json_push_after(tail, json_new_null(NULL));            // Stop here
     tail = json_push_after(tail, json_new_integer(NULL, 100));

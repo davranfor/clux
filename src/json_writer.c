@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <math.h>
 #include "json_private.h"
 
 static char *copy_string(const char *str)
@@ -129,19 +130,9 @@ json *json_new_string(const char *name, const char *value)
     return new_string(name, copy_string(value));
 }
 
-json *json_new_integer(const char *name, int value)
+json *json_new_integer(const char *name, double value)
 {
-    return new_number(JSON_INTEGER, name, (double)value);
-}
-
-json *json_new_real(const char *name, unsigned int value)
-{
-    return new_number(JSON_INTEGER, name, (double)value);
-}
-
-json *json_new_double(const char *name, double value)
-{
-    return new_number(JSON_NUMBER, name, value);
+    return new_number(JSON_INTEGER, name, trunc(value));
 }
 
 json *json_new_number(const char *name, double value)
@@ -231,31 +222,13 @@ json *json_set_string(json *node, const char *value)
     return set_string(node, copy_string(value));
 }
 
-json *json_set_integer(json *node, int value)
+json *json_set_integer(json *node, double value)
 {
     if (!json_is_scalar(node))
     {
         return NULL;
     }
-    return set_number(node, JSON_INTEGER, (double)value);
-}
-
-json *json_set_real(json *node, unsigned int value)
-{
-    if (!json_is_scalar(node))
-    {
-        return NULL;
-    }
-    return set_number(node, JSON_INTEGER, (double)value);
-}
-
-json *json_set_double(json *node, double value)
-{
-    if (!json_is_scalar(node))
-    {
-        return NULL;
-    }
-    return set_number(node, JSON_NUMBER, value);
+    return set_number(node, JSON_INTEGER, trunc(value));
 }
 
 json *json_set_number(json *node, double value)
