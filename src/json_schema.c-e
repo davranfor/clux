@@ -353,7 +353,7 @@ static int test_additional_properties(const json *node, const json *rule)
 
 static int test_min_properties(const json *node, const json *rule)
 {
-    if (!json_is_unsigned(rule))
+    if (!json_is_real(rule))
     {
         return SCHEMA_ERROR;
     }
@@ -366,7 +366,7 @@ static int test_min_properties(const json *node, const json *rule)
 
 static int test_max_properties(const json *node, const json *rule)
 {
-    if (!json_is_unsigned(rule))
+    if (!json_is_real(rule))
     {
         return SCHEMA_ERROR;
     }
@@ -420,7 +420,7 @@ static int test_additional_items(const json *node, const json *rule)
 
 static int test_min_items(const json *node, const json *rule)
 {
-    if (!json_is_unsigned(rule))
+    if (!json_is_real(rule))
     {
         return SCHEMA_ERROR;
     }
@@ -433,7 +433,7 @@ static int test_min_items(const json *node, const json *rule)
 
 static int test_max_items(const json *node, const json *rule)
 {
-    if (!json_is_unsigned(rule))
+    if (!json_is_real(rule))
     {
         return SCHEMA_ERROR;
     }
@@ -459,7 +459,7 @@ static int test_unique_items(const json *node, const json *rule)
 
 static int test_min_length(const json *node, const json *rule)
 {
-    if (!json_is_unsigned(rule))
+    if (!json_is_real(rule))
     {
         return SCHEMA_ERROR;
     }
@@ -472,7 +472,7 @@ static int test_min_length(const json *node, const json *rule)
 
 static int test_max_length(const json *node, const json *rule)
 {
-    if (!json_is_unsigned(rule))
+    if (!json_is_real(rule))
     {
         return SCHEMA_ERROR;
     }

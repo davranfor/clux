@@ -33,7 +33,7 @@ static int (*func_array[])(const json *) =
     json_is_array,
     json_is_string,
     json_is_integer,
-    json_is_unsigned,
+    json_is_real,
     json_is_double,
     json_is_number,
     json_is_boolean,
@@ -260,7 +260,7 @@ int json_is_integer(const json *node)
         && (node->type == JSON_INTEGER);
 }
 
-int json_is_unsigned(const json *node)
+int json_is_real(const json *node)
 {
     return (node != NULL)
         && (node->type == JSON_INTEGER)
