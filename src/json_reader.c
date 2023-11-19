@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 #include <assert.h>
 #include "json_private.h"
 #include "json_unicode.h"
@@ -189,6 +190,15 @@ const char *json_string(const json *node)
         return "";
     }
     return node->value.string;
+}
+
+double json_integer(const json *node)
+{
+    if ((node == NULL) || (node->type == JSON_STRING))
+    {
+        return 0.0;
+    }
+    return trunc(node->value.number);
 }
 
 double json_number(const json *node)

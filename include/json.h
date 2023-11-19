@@ -129,6 +129,7 @@ const char *json_typeof_name(const json *);
 const char *json_key(const json *);
 const char *json_name(const json *);
 const char *json_string(const json *);
+double json_integer(const json *);
 double json_number(const json *);
 int json_boolean(const json *);
 int json_is(const json *, enum json_query);
