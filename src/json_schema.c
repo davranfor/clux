@@ -126,7 +126,7 @@ static int test_not(const json *node, const json *rule)
 static int test_all_of(const json *node, const json *rule)
 {
     (void)node;
-    return json_is(rule, arrayOfOptionalObjects)
+    return json_is(rule, "array of optional objects")
         ? SCHEMA_ALL_OF
         : SCHEMA_ERROR;
 }
@@ -134,7 +134,7 @@ static int test_all_of(const json *node, const json *rule)
 static int test_any_of(const json *node, const json *rule)
 {
     (void)node;
-    return json_is(rule, arrayOfOptionalObjects)
+    return json_is(rule, "array of optional objects")
         ? SCHEMA_ANY_OF
         : SCHEMA_ERROR;
 }
@@ -142,7 +142,7 @@ static int test_any_of(const json *node, const json *rule)
 static int test_one_of(const json *node, const json *rule)
 {
     (void)node;
-    return json_is(rule, arrayOfOptionalObjects)
+    return json_is(rule, "array of optional objects")
         ? SCHEMA_ONE_OF
         : SCHEMA_ERROR;
 }
@@ -194,7 +194,7 @@ static int test_type(const json *node, const json *rule)
             return SCHEMA_ERROR;
         }
     }
-    else if (json_is(rule, arrayOfOptionalStrings))
+    else if (json_is(rule, "array of optional strings"))
     {
         for (rule = json_child(rule); rule != NULL; rule = json_next(rule))
         {
@@ -262,7 +262,7 @@ static int find_required(const json *node, const json *rule)
 
 static int test_required(const json *node, const json *rule)
 {
-    if (json_is(rule, arrayOfOptionalStrings))
+    if (json_is(rule, "array of optional strings"))
     {
         if (json_is_object(node))
         {
@@ -284,7 +284,7 @@ static int test_dependent_required(const json *node, const json *rule)
 
     for (rule = json_child(rule); rule != NULL; rule = json_next(rule))
     {
-        if (!json_is(rule, arrayOfOptionalStrings))
+        if (!json_is(rule, "array of optional strings"))
         {
             return SCHEMA_ERROR;
         }
@@ -302,7 +302,7 @@ static int test_dependent_required(const json *node, const json *rule)
 static int test_dependent_schemas(const json *node, const json *rule)
 {
     (void)node;
-    return json_is(rule, objectOfOptionalObjects)
+    return json_is(rule, "object of optional objects")
         ? SCHEMA_DEPENDENT_SCHEMAS
         : SCHEMA_ERROR;
 }
@@ -310,7 +310,7 @@ static int test_dependent_schemas(const json *node, const json *rule)
 static int test_properties(const json *node, const json *rule)
 {
     (void)node;
-    return json_is(rule, objectOfOptionalObjects)
+    return json_is(rule, "object of optional objects")
         ? SCHEMA_PROPERTIES
         : SCHEMA_ERROR;
 }
@@ -318,7 +318,7 @@ static int test_properties(const json *node, const json *rule)
 static int test_pattern_properties(const json *node, const json *rule)
 {
     (void)node;
-    return json_is(rule, objectOfOptionalObjects)
+    return json_is(rule, "object of optional objects")
         ? SCHEMA_PATTERN_PROPERTIES
         : SCHEMA_ERROR;
 }
@@ -337,7 +337,7 @@ static int test_additional_properties(const json *node, const json *rule)
     {
         const json *properties = json_find(json_parent(rule), "properties");
 
-        if (json_is(properties, objectOfOptionalObjects))
+        if (json_is(properties, "object of optional objects"))
         {
             for (node = json_child(node); node != NULL; node = json_next(node))
             {
@@ -389,7 +389,7 @@ static int test_items(const json *node, const json *rule)
     {
         return SCHEMA_ITEMS;
     }
-    if (json_is(rule, arrayOfOptionalObjects))
+    if (json_is(rule, "array of optional objects"))
     {
         return SCHEMA_TUPLES;
     }
@@ -410,7 +410,7 @@ static int test_additional_items(const json *node, const json *rule)
     {
         const json *items = json_find(json_parent(rule), "items");
 
-        if (json_is(items, arrayOfOptionalObjects))
+        if (json_is(items, "array of optional objects"))
         {
             return json_size(node) <= json_size(items);
         }
@@ -452,7 +452,7 @@ static int test_unique_items(const json *node, const json *rule)
     }
     if (json_is_true(rule) && json_is_array(node))
     {
-        return json_is(node, arrayOfUniqueItems);
+        return json_is(node, "array of unique optional items");
     }
     return SCHEMA_VALID;
 }
@@ -789,7 +789,7 @@ static int validate(json_schema *schema,
                 const json *next = json_child(rule);
                 int count = 0;
 
-                if (json_is(properties, objectOfOptionalObjects))
+                if (json_is(properties, "object of optional objects"))
                 {
                     while (item != NULL)
                     {
@@ -832,7 +832,7 @@ static int validate(json_schema *schema,
                 {
                     const json *items = json_find(json_parent(rule), "items");
 
-                    if (json_is(items, arrayOfOptionalObjects))
+                    if (json_is(items, "array of optional objects"))
                     {
                         item = json_at(node, json_size(items));
                     }

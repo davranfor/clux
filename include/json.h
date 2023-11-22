@@ -27,87 +27,6 @@ enum json_encode
     JSON_ASCII,
 };
 
-enum json_query
-{
-    objectOfItems,
-    objectOfIterables,
-    objectOfScalars,
-    objectOfObjects,
-    objectOfArrays,
-    objectOfStrings,
-    objectOfIntegers,
-    objectOfUnsigneds,
-    objectOfDoubles,
-    objectOfNumbers,
-    objectOfBooleans,
-    objectOfNulls,
-
-    arrayOfItems,
-    arrayOfIterables,
-    arrayOfScalars,
-    arrayOfObjects,
-    arrayOfArrays,
-    arrayOfStrings,
-    arrayOfIntegers,
-    arrayOfUnsigneds,
-    arrayOfDoubles,
-    arrayOfNumbers,
-    arrayOfBooleans,
-    arrayOfNulls,
-
-    objectOfOptionalItems,
-    objectOfOptionalIterables,
-    objectOfOptionalScalars,
-    objectOfOptionalObjects,
-    objectOfOptionalArrays,
-    objectOfOptionalStrings,
-    objectOfOptionalIntegers,
-    objectOfOptionalUnsigneds,
-    objectOfOptionalDoubles,
-    objectOfOptionalNumbers,
-    objectOfOptionalBooleans,
-    objectOfOptionalNulls,
-
-    arrayOfOptionalItems,
-    arrayOfOptionalIterables,
-    arrayOfOptionalScalars,
-    arrayOfOptionalObjects,
-    arrayOfOptionalArrays,
-    arrayOfOptionalStrings,
-    arrayOfOptionalIntegers,
-    arrayOfOptionalUnsigneds,
-    arrayOfOptionalDoubles,
-    arrayOfOptionalNumbers,
-    arrayOfOptionalBooleans,
-    arrayOfOptionalNulls,
-
-    objectOfUniqueItems,
-    objectOfUniqueIterables,
-    objectOfUniqueScalars,
-    objectOfUniqueObjects,
-    objectOfUniqueArrays,
-    objectOfUniqueStrings,
-    objectOfUniqueIntegers,
-    objectOfUniqueUnsigneds,
-    objectOfUniqueDoubles,
-    objectOfUniqueNumbers,
-    objectOfUniqueBooleans,
-    objectOfUniqueNulls,
-
-    arrayOfUniqueItems,
-    arrayOfUniqueIterables,
-    arrayOfUniqueScalars,
-    arrayOfUniqueObjects,
-    arrayOfUniqueArrays,
-    arrayOfUniqueStrings,
-    arrayOfUniqueIntegers,
-    arrayOfUniqueUnsigneds,
-    arrayOfUniqueDoubles,
-    arrayOfUniqueNumbers,
-    arrayOfUniqueBooleans,
-    arrayOfUniqueNulls,
-};
-
 typedef struct json json;
 typedef struct {int line, column;} json_error;
 typedef int (*json_walk_callback)(const json *, int, void *);
@@ -132,7 +51,6 @@ const char *json_string(const json *);
 double json_integer(const json *);
 double json_number(const json *);
 int json_boolean(const json *);
-int json_is(const json *, enum json_query);
 int json_is_any(const json *);
 int json_is_iterable(const json *);
 int json_is_scalar(const json *);
@@ -217,6 +135,10 @@ json *json_pointer(const json *, const char *);
 json *json_swap(json *, json *);
 void json_sort(json *, json_sort_callback);
 void json_reverse(json *);
+// ============================================================================
+// Query
+// ============================================================================
+int json_is(const json *, const char *);
 
 #endif
 
