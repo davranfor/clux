@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "json_private.h"
-#include "json_unicode.h"
 
 #define MAX_TOKENS 5
 
