@@ -42,21 +42,14 @@ struct word
 
 static size_t set_words(struct word *words, const char *text)
 {
+    const char *spc = " \t\r\n\f\v";
     size_t size = 0;
 
-    for (size_t iter = 0; iter <= MAX_WORDS; iter++) 
+    for (size_t word = 0; word <= MAX_WORDS; word++) 
     {
-        const char *start;
+        const char *start = text + strspn(text, spc);
 
-        while (is_space(*text))
-        {
-            text++;
-        }
-        start = text;
-        while (!is_space(*text) && (*text != '\0'))
-        {
-            text++;
-        }
+        text = start + strcspn(start, spc);
         if (text == start)
         {
             return size;
@@ -79,8 +72,8 @@ struct query
 
 static int compare(struct word *word, const char *text)
 {
-    return (strncmp(text, word->string, word->length) == 0)
-        && (strlen(text) == word->length);
+    return !strncmp(text, word->string, word->length)
+        && !text[word->length];
 }
 
 static int set_func(struct query *query, struct word *word, int id)
@@ -98,7 +91,7 @@ static int set_func(struct query *query, struct word *word, int id)
     return 0;    
 }
 
-static int set_prop(struct query *query, struct word *word)
+static int set_flag(struct query *query, struct word *word)
 {
     if (compare(word, "optional"))
     {
@@ -134,12 +127,12 @@ static int set_query(struct query *query, struct word *words, size_t size)
                 && set_func(query, &words[2], 1);    
         case 4:
             return set_func(query, &words[0], 0)
-                && set_prop(query, &words[2])
+                && set_flag(query, &words[2])
                 && set_func(query, &words[3], 1);    
         case 5:
             return set_func(query, &words[0], 0)
-                && set_prop(query, &words[2])
-                && set_prop(query, &words[3])
+                && set_flag(query, &words[2])
+                && set_flag(query, &words[3])
                 && set_func(query, &words[4], 1);    
         default:
             return 0;
