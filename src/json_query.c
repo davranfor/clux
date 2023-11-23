@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include "json_private.h"
 
