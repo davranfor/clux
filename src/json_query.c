@@ -9,16 +9,16 @@
 #include "json_private.h"
 #include "json_unicode.h"
 
-#define MAX_WORDS 5
+#define MAX_TOKENS 5
 
 typedef int (*func_callback)(const json *);
 
 struct
 {
-    const char *word[2];
+    const char *text[2];
     func_callback func;
 }
-static map[] =
+static const map[] =
 {
     {{"item",     "items"    }, json_is_any     },
     {{"iterable", "iterables"}, json_is_iterable},
@@ -34,30 +34,30 @@ static map[] =
     {{"null",     "nulls"    }, json_is_null    },
 };
 
-struct word
+struct token
 {
     const char *string;
     size_t length;
 };
 
-static size_t set_words(struct word *words, const char *text)
+static size_t set_tokens(struct token *tokens, const char *text)
 {
-    const char *spc = " \t\r\n\f\v";
+    const char *spaces = " \t\r\n\f\v";
     size_t size = 0;
 
-    for (size_t word = 0; word <= MAX_WORDS; word++) 
+    for (size_t token = 0; token <= MAX_TOKENS; token++) 
     {
-        const char *start = text + strspn(text, spc);
+        const char *start = text + strspn(text, spaces);
 
-        text = start + strcspn(start, spc);
+        text = start + strcspn(start, spaces);
         if (text == start)
         {
             return size;
         }
-        if (size < MAX_WORDS)
+        if (size < MAX_TOKENS)
         {
-            words[size].string = start;
-            words[size].length = (size_t)(text - start);
+            tokens[size].string = start;
+            tokens[size].length = (size_t)(text - start);
             size++;
         }
     }
@@ -70,19 +70,19 @@ struct query
     int optional, unique;
 };
 
-static int compare(struct word *word, const char *text)
+static int compare(struct token *token, const char *text)
 {
-    return !strncmp(text, word->string, word->length)
-        && !text[word->length];
+    return !strncmp(text, token->string, token->length)
+        && !text[token->length];
 }
 
-static int set_func(struct query *query, struct word *word, int id)
+static int set_func(struct query *query, struct token *token, int id)
 {
-    size_t size = sizeof map / sizeof map[0];
+    size_t words = sizeof map / sizeof map[0];
 
-    for (size_t iter = 0; iter < size; iter++)
+    for (size_t iter = 0; iter < words; iter++)
     {
-        if (compare(word, map[iter].word[id]))
+        if (compare(token, map[iter].text[id]))
         {
             query->func[id] = map[iter].func;
             return 1;
@@ -91,9 +91,9 @@ static int set_func(struct query *query, struct word *word, int id)
     return 0;    
 }
 
-static int set_flag(struct query *query, struct word *word)
+static int set_flag(struct query *query, struct token *token)
 {
-    if (compare(word, "optional"))
+    if (compare(token, "optional"))
     {
         if (query->optional == 0)
         {
@@ -101,7 +101,7 @@ static int set_flag(struct query *query, struct word *word)
             return 1;
         }
     }
-    else if (compare(word, "unique"))
+    else if (compare(token, "unique"))
     {
         if (query->unique == 0)
         {
@@ -112,28 +112,28 @@ static int set_flag(struct query *query, struct word *word)
     return 0;    
 }
 
-static int set_query(struct query *query, struct word *words, size_t size)
+static int set_query(struct query *query, struct token *tokens, size_t size)
 {
-    if ((size > 2) && !compare(&words[1], "of"))
+    if ((size > 2) && !compare(&tokens[1], "of"))
     {
         return 0;
     }
     switch (size)
     {
         case 1:
-            return set_func(query, &words[0], 0);
+            return set_func(query, &tokens[0], 0);
         case 3:
-            return set_func(query, &words[0], 0)
-                && set_func(query, &words[2], 1);    
+            return set_func(query, &tokens[0], 0)
+                && set_func(query, &tokens[2], 1);    
         case 4:
-            return set_func(query, &words[0], 0)
-                && set_flag(query, &words[2])
-                && set_func(query, &words[3], 1);    
+            return set_func(query, &tokens[0], 0)
+                && set_flag(query, &tokens[2])
+                && set_func(query, &tokens[3], 1);    
         case 5:
-            return set_func(query, &words[0], 0)
-                && set_flag(query, &words[2])
-                && set_flag(query, &words[3])
-                && set_func(query, &words[4], 1);    
+            return set_func(query, &tokens[0], 0)
+                && set_flag(query, &tokens[2])
+                && set_flag(query, &tokens[3])
+                && set_func(query, &tokens[4], 1);    
         default:
             return 0;
     }
@@ -173,11 +173,11 @@ int json_is(const json *node, const char *text)
         return 0;
     }
 
-    struct word words[MAX_WORDS] = {0};
-    size_t size = set_words(words, text);
+    struct token tokens[MAX_TOKENS] = {0};
+    size_t size = set_tokens(tokens, text);
     struct query query = {0};
 
-    if (!set_query(&query, words, size))
+    if (!set_query(&query, tokens, size))
     {
         return 0;
     }
