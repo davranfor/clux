@@ -11,12 +11,12 @@
 
 typedef int (*func_callback)(const json *);
 
-struct
+static const struct
 {
     const char *text[2];
     func_callback func;
 }
-static const map[] =
+map[] =
 {
     {{"iterable", "iterables"}, json_is_iterable},
     {{"object",   "objects"  }, json_is_object  },

@@ -47,10 +47,6 @@ static size_t buffer_next_size(size_t size)
     size |= size >> 4;
     size |= size >> 8;
     size |= size >> 16;
-    if ((size_t)-1 > 0xFFFFFFFF)
-    {
-        size |= size >> 32;
-    }
     size++;
     return size;
 }
