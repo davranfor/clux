@@ -18,7 +18,6 @@ struct
 }
 static const map[] =
 {
-    {{"item",     "items"    }, json_is_any     },
     {{"iterable", "iterables"}, json_is_iterable},
     {{"object",   "objects"  }, json_is_object  },
     {{"array",    "arrays"   }, json_is_array   },
@@ -30,6 +29,7 @@ static const map[] =
     {{"number",   "numbers"  }, json_is_number  },
     {{"boolean",  "booleans" }, json_is_boolean },
     {{"null",     "nulls"    }, json_is_null    },
+    {{"item",     "items"    }, json_is_any     },
 };
 
 struct token
@@ -184,17 +184,11 @@ int json_is(const json *node, const char *text)
 
     if (rc && query.func[1])
     {
-        if (json_is_scalar(node))
-        {
-            return 0;
-        }
-        if (node->child == NULL)
-        {
-            return query.optional;
-        }
-        return query.unique
-            ? is_unique(node->child, query.func[1]) 
-            : is_common(node->child, query.func[1]); 
+        return node->child
+            ? query.unique
+                ? is_unique(node->child, query.func[1]) 
+                : is_common(node->child, query.func[1])
+            : query.optional && json_is_iterable(node);
     }
     return rc;
 }
