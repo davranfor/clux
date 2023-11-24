@@ -9,12 +9,10 @@
 
 #define MAX_TOKENS 5
 
-typedef int (*func_callback)(const json *);
-
 static const struct
 {
     const char *text[2];
-    func_callback func;
+    int (*func)(const json *);
 }
 map[] =
 {
@@ -64,7 +62,7 @@ static size_t set_tokens(struct token *tokens, const char *text)
 
 struct query
 {
-    func_callback func[2];
+    int (*func[2])(const json *);
     int optional, unique;
 };
 
@@ -137,7 +135,7 @@ static int set_query(struct query *query, struct token *tokens, size_t size)
     }
 }
 
-static int is_common(const json *node, func_callback func)
+static int is_common(const json *node, int (*func)(const json *))
 {
     while (func(node) != 0)
     {
@@ -146,7 +144,7 @@ static int is_common(const json *node, func_callback func)
     return node == NULL;
 }
 
-static int is_unique(const json *node, func_callback func)
+static int is_unique(const json *node, int (*func)(const json *))
 {
     const json *head = node;
 
