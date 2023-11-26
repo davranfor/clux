@@ -41,7 +41,7 @@ static size_t set_tokens(struct token *tokens, const char *text)
     const char *spaces = " \t\r\n\f\v";
     size_t size = 0;
 
-    for (size_t token = 0; token <= MAX_TOKENS; token++) 
+    for (size_t token = 0; token <= MAX_TOKENS; token++)
     {
         const char *start = text + strspn(text, spaces);
 
@@ -72,9 +72,10 @@ static int compare(struct token *token, const char *text)
         && !text[token->length];
 }
 
-static int set_func(struct query *query, struct token *token, int id)
+static int set_func(struct query *query, struct token *token)
 {
     size_t words = sizeof map / sizeof map[0];
+    int id = query->func[0] == NULL ? 0 : 1;
 
     for (size_t iter = 0; iter < words; iter++)
     {
@@ -84,7 +85,7 @@ static int set_func(struct query *query, struct token *token, int id)
             return 1;
         }
     }
-    return 0;    
+    return 0;
 }
 
 static int set_flag(struct query *query, struct token *token)
@@ -114,8 +115,8 @@ static int set_query(struct query *query, struct token *tokens, size_t size)
     {
         return 0;
     }
-    return ((size > 0) && set_func(query, &tokens[0], 0))
-        && ((size < 2) || set_func(query, &tokens[size - 1], 1))
+    return ((size > 0) && set_func(query, &tokens[0]))
+        && ((size < 2) || set_func(query, &tokens[size - 1]))
         && ((size < 4) || set_flag(query, &tokens[2]))
         && ((size < 5) || set_flag(query, &tokens[3]));
 }
@@ -169,7 +170,7 @@ int json_is(const json *node, const char *text)
     {
         return node->child
             ? query.unique
-                ? is_unique(node->child, query.func[1]) 
+                ? is_unique(node->child, query.func[1])
                 : is_common(node->child, query.func[1])
             : query.optional && json_is_iterable(node);
     }
