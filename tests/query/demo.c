@@ -32,23 +32,22 @@ static void query(json *node[], size_t size)
 
 int main(void)
 {
-    json *root, *tail = NULL;
+    json *root = json_new_array(NULL);
 
-    root = json_new_array(NULL);
     for (int i = 0; i < 3; i++)
     {
-        tail = json_push_fast(root, tail, json_new_integer(NULL, i));
+        json_push_back(root, json_new_integer(NULL, i));
     }
 
-    json *node[] = {json_child(root), root};
+    json *node[] = {root, json_child(root)};
     enum {size = sizeof node / sizeof node[0]};
 
     query(node, size);
-    json_set_integer(node[0], 1);
+    json_set_integer(node[1], 1);
     query(node, size);
-    json_set_string(node[0], "zero");
+    json_set_string(node[1], "zero");
     query(node, size);
-    while ((node[0] = json_delete(node[0])));
+    while ((node[1] = json_delete(node[1])));
     query(node, size);
     json_free(root);
     return 0;
