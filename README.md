@@ -4,6 +4,7 @@
 ```
 make
 sudo make install
+ldconfig # on linux
 ```
 
 ## Test examples
