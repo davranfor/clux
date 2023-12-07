@@ -90,21 +90,15 @@ static int set_func(struct query *query, struct token *token)
 
 static int set_flag(struct query *query, struct token *token)
 {
-    if (compare(token, "optional"))
+    if ((query->optional == 0) && compare(token, "optional"))
     {
-        if (query->optional == 0)
-        {
-            query->optional = 1;
-            return 1;
-        }
+        query->optional = 1;
+        return 1;
     }
-    else if (compare(token, "unique"))
+    if ((query->unique == 0) && compare(token, "unique"))
     {
-        if (query->unique == 0)
-        {
-            query->unique = 1;
-            return 1;
-        }
+        query->unique = 1;
+        return 1;
     }
     return 0;    
 }
