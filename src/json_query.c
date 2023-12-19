@@ -105,14 +105,11 @@ static int set_flag(struct query *query, struct token *token)
 
 static int set_query(struct query *query, struct token *tokens, size_t size)
 {
-    if ((size > 1) && !compare(&tokens[1], "of"))
-    {
-        return 0;
-    }
     return ((size > 0) && set_func(query, &tokens[0]))
-        && ((size < 2) || set_func(query, &tokens[size - 1]))
+        && ((size < 2) || compare(&tokens[1], "of"))
         && ((size < 4) || set_flag(query, &tokens[2]))
-        && ((size < 5) || set_flag(query, &tokens[3]));
+        && ((size < 5) || set_flag(query, &tokens[3]))
+        && ((size < 2) || set_func(query, &tokens[size - 1]));
 }
 
 static int is_common(const json *node, int (*func)(const json *))

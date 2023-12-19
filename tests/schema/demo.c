@@ -58,7 +58,7 @@ static void message(FILE *file, const char *title, const json *node)
  */
 static int on_event(const json *target, const json *schema, int event, void *data)
 {
-    const char **path = (const char **)data;
+    const char **path = data;
     const char *msg[] =
     {
         "Warning. Unknown schema rule",
