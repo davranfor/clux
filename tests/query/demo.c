@@ -8,7 +8,6 @@
 
 static int test_query(const json *node, int depth, void *data)
 {
-    (void)depth;
     (void)data;
 
     const char *query[] =

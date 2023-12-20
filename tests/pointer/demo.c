@@ -18,7 +18,7 @@ int main(void)
     const char *str = "{\"data\": [0, 1, 2], \"a~b\": 10, \"a/b\": 20}";
     json *node = json_parse(str, NULL);
 
-    json_print(node);
+    print(node, "");        // self
     print(node, "/");       // root
     print(node, "/data");   // object
     print(node, "/data/1"); // array
