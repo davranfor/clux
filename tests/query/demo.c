@@ -6,8 +6,11 @@
 
 #include <clux/json.h>
 
-static void query(json *node[], size_t size)
+static int test_query(const json *node, int depth, void *data)
 {
+    (void)depth;
+    (void)data;
+
     const char *query[] =
     {
         "string",
@@ -18,37 +21,31 @@ static void query(json *node[], size_t size)
         "array of optional unique integers",
     };
 
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < sizeof query / sizeof query[0]; i++)
     {
-        for (size_t j = 0; j < sizeof query / sizeof query[0]; j++)
-        {
-            printf("Query '%s' for node: '", query[j]);
-            json_write(node[i], 0, stdout);
-            printf("' is %s\n", json_is(node[i], query[j]) ? "true" : "false");
-        }
-        printf("----------------------------------------------------------\n");
+        printf("Query '%s' for '", query[i]);
+        json_write(node, 0, stdout);
+        printf("' is %s\n", json_is(node, query[i]) ? "true" : "false");
     }
+    printf("\n");
+    return depth == 0; // Only root and first child
 }
 
 int main(void)
 {
     json *root = json_new_array(NULL);
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 2; i++)
     {
         json_push_back(root, json_new_integer(NULL, i));
     }
-
-    json *node[] = {root, json_child(root)};
-    enum {size = sizeof node / sizeof node[0]};
-
-    query(node, size);
-    json_set_integer(node[1], 1);
-    query(node, size);
-    json_set_string(node[1], "zero");
-    query(node, size);
-    while ((node[1] = json_delete(node[1])));
-    query(node, size);
+    json_walk(root, test_query, NULL);
+    json_set_integer(json_child(root), 1);
+    json_walk(root, test_query, NULL);
+    json_set_string(json_child(root), "zero");
+    json_walk(root, test_query, NULL);
+    while (json_delete(json_child(root)));
+    json_walk(root, test_query, NULL);
     json_free(root);
     return 0;
 }
