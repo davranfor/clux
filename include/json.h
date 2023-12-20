@@ -96,6 +96,8 @@ json *json_new_number(const char *, double);
 json *json_new_boolean(const char *, int);
 json *json_new_null(const char *);
 json *json_set_name(json *, const char *);
+json *json_set_object(json *);
+json *json_set_array(json *);
 json *json_set_format(json *, const char *, ...);
 json *json_set_string(json *, const char *);
 json *json_set_integer(json *, double);

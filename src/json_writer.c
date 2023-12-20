@@ -170,16 +170,29 @@ json *json_set_name(json *node, const char *name)
 
 /* set helpers */
 
+static void set_empty(json *node)
+{
+    switch (node->type)
+    {
+        case JSON_OBJECT:
+        case JSON_ARRAY:
+            while (json_delete(node->child));
+            return;
+        case JSON_STRING:
+            free(node->value.string);
+            return;
+        default:
+            return;
+    }
+}
+
 static json *set_string(json *node, char *value)
 {
     if (value == NULL)
     {
         return NULL;
     }
-    if (node->type == JSON_STRING)
-    {
-        free(node->value.string);
-    }
+    set_empty(node);
     node->type = JSON_STRING;
     node->value.string = value;
     return node;
@@ -187,18 +200,33 @@ static json *set_string(json *node, char *value)
 
 static json *set_number(json *node, enum json_type type, double value)
 {
-    if (node->type == JSON_STRING)
-    {
-        free(node->value.string);
-    }
+    set_empty(node);
     node->type = type;
     node->value.number = value;
     return node;
 }
 
+json *json_set_object(json *node)
+{
+    if (node == NULL)
+    {
+        return NULL;
+    }
+    return set_number(node, JSON_OBJECT, 0);
+}
+
+json *json_set_array(json *node)
+{
+    if (node == NULL)
+    {
+        return NULL;
+    }
+    return set_number(node, JSON_ARRAY, 0);
+}
+
 json *json_set_format(json *node, const char *fmt, ...)
 {
-    if (!json_is_scalar(node) || (fmt == NULL))
+    if ((node == NULL) || (fmt == NULL))
     {
         return NULL;
     }
@@ -215,7 +243,7 @@ json *json_set_format(json *node, const char *fmt, ...)
 
 json *json_set_string(json *node, const char *value)
 {
-    if (!json_is_scalar(node) || (value == NULL))
+    if ((node == NULL) || (value == NULL))
     {
         return NULL;
     }
@@ -224,7 +252,7 @@ json *json_set_string(json *node, const char *value)
 
 json *json_set_integer(json *node, double value)
 {
-    if (!json_is_scalar(node))
+    if (node == NULL)
     {
         return NULL;
     }
@@ -233,7 +261,7 @@ json *json_set_integer(json *node, double value)
 
 json *json_set_number(json *node, double value)
 {
-    if (!json_is_scalar(node))
+    if (node == NULL)
     {
         return NULL;
     }
@@ -242,7 +270,7 @@ json *json_set_number(json *node, double value)
 
 json *json_set_boolean(json *node, int value)
 {
-    if (!json_is_scalar(node))
+    if (node == NULL)
     {
         return NULL;
     }
@@ -251,7 +279,7 @@ json *json_set_boolean(json *node, int value)
 
 json *json_set_null(json *node)
 {
-    if (!json_is_scalar(node))
+    if (node == NULL)
     {
         return NULL;
     }
