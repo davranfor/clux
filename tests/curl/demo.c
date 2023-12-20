@@ -59,6 +59,7 @@ int main(void)
     struct data data = {0};
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
+    atexit(curl_global_cleanup);
 
     struct curl_slist *headers = NULL;
 
@@ -71,13 +72,15 @@ int main(void)
     if (curl == NULL)
     {
         perror("curl_easy_init");
-        goto cleanup;
+        exit(EXIT_FAILURE);
     }
+    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
 
+    int rc = EXIT_SUCCESS;
     char url[128];
 
     for (int i = 1; i <= 10; i++)
@@ -87,7 +90,8 @@ int main(void)
         if (curl_easy_perform(curl) != CURLE_OK)
         {
             perror("curl_easy_perform");
-            goto cleanup;
+            rc = EXIT_FAILURE;
+            break;
         }
         
         json_error error;
@@ -104,11 +108,9 @@ int main(void)
         }
         data.length = 0;
     }
-cleanup:
     free(data.text);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
-    curl_global_cleanup();
-    return 0;
+    return rc;
 }
 
