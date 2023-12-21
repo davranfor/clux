@@ -152,25 +152,25 @@ static char *new_string(const char *str, const char *end)
 static char *set_name(json *node, const char *left, const char *right)
 {
     assert(right > left);
-    if ((*left++ != '"') || (*right != '"'))
+    if ((*left++ == '"') && (*right == '"'))
     {
-        return NULL;
+        node->name = new_string(left, right);
+        return node->name;
     }
-    node->name = new_string(left, right);
-    return node->name;
+    return NULL;
 }
 
 static int try_set_string(json *node, const char *left, const char *right)
 {
-    if ((*left++ != '"') || (*right != '"'))
+    if ((*left++ == '"') && (*right == '"'))
     {
-        return 0;
+        if ((node->value.string = new_string(left, right)))
+        {
+            node->type = JSON_STRING;
+            return 1;
+        }
     }
-    if ((node->value.string = new_string(left, right)))
-    {
-        node->type = JSON_STRING;
-    }
-    return 1;
+    return 0;
 }
 
 static int try_set_number(json *node, const char *left, const char *right)
@@ -247,14 +247,11 @@ static int set_value(json *node, const char *left, const char *right)
 {
     assert(right > left);
     assert(node->type == JSON_UNDEFINED);
-
-    int success = try_set_string(node, left, right)
-               || try_set_true  (node, left, right)
-               || try_set_false (node, left, right)
-               || try_set_null  (node, left, right)
-               || try_set_number(node, left, right);
-
-    return success && (node->type != JSON_UNDEFINED);
+    return try_set_string(node, left, right)
+        || try_set_true  (node, left, right)
+        || try_set_false (node, left, right)
+        || try_set_null  (node, left, right)
+        || try_set_number(node, left, right);
 }
 
 static json *create_node(void)
