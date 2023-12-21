@@ -49,8 +49,7 @@ int to_mbs(const char *str, char *buf)
 {
     char hex[5] = "";
 
-    /* Copy UCN skipping the initial "u" */
-    memcpy(hex, str + 1, 4);
+    memcpy(hex, str, 4);
 
     unsigned codepoint = (unsigned)strtoul(hex, NULL, 16);
 

@@ -131,7 +131,7 @@ static char *new_string(const char *str, const char *end)
         {
             if (str[1] == 'u')
             {
-                ptr += to_mbs(str + 1, ptr);
+                ptr += to_mbs(str + 2, ptr);
                 str += 6;
             }
             else
@@ -198,17 +198,15 @@ static int try_set_number(json *node, const char *left, const char *right)
         return 0;
     }
     /* Valid number */
-    node->value.number = number;
-    while (left < right)
+    if (left + strspn(left, "0123456789") > right)
     {
-        if (!is_digit(*left))
-        {
-            node->type = JSON_NUMBER;
-            return 1;
-        }
-        left++;
+        node->type = JSON_INTEGER;
     }
-    node->type = JSON_INTEGER;
+    else
+    {
+        node->type = JSON_NUMBER;
+    }
+    node->value.number = number;
     return 1;
 }
 
