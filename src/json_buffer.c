@@ -376,6 +376,13 @@ int json_write(const json *node, int indent, FILE *file)
     return rc;
 }
 
+int json_write_file(const json *node, const char *path)
+{
+    FILE *file = fopen(path, "w");
+
+    return json_write(node, 2, file);
+}
+
 int json_print(const json *node)
 {
     return json_write(node, 2, stdout);
