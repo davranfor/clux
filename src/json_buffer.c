@@ -356,14 +356,14 @@ char *json_indent(const json *node, int indent)
     return text;
 }
 
-int json_write(const json *node, int indent, FILE *file)
+int json_write(const json *node, FILE *file)
 {
     if (file == NULL)
     {
         return 0;
     }
 
-    char *str = json_indent(node, indent);
+    char *str = json_indent(node, 2);
 
     if (str == NULL)
     {
@@ -399,7 +399,7 @@ int json_write_file(const json *node, const char *path)
 
 int json_print(const json *node)
 {
-    return json_write(node, 2, stdout);
+    return json_write(node, stdout);
 }
 
 static int buffer_write_path(json_buffer *buffer, const json *node)

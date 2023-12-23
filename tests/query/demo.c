@@ -4,6 +4,7 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdlib.h>
 #include <clux/json.h>
 
 static int test_query(const json *node, int depth, void *data)
@@ -22,9 +23,11 @@ static int test_query(const json *node, int depth, void *data)
 
     for (size_t i = 0; i < sizeof query / sizeof query[0]; i++)
     {
-        printf("Query '%s' for '", query[i]);
-        json_write(node, 0, stdout);
-        printf("' is %s\n", json_is(node, query[i]) ? "true" : "false");
+        char *test = json_is(node, query[i]) ? "is" : "is not";
+        char *text = json_encode(node);
+        
+        printf("%s %s '%s'\n", text, test, query[i]);
+        free(text);
     }
     printf("\n");
     return depth == 0; // Only root and first child
