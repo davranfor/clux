@@ -376,7 +376,7 @@ int json_write(const json *node, int indent, FILE *file)
     return rc;
 }
 
-int json_write_file(const json *node, int indent, const char *path)
+int json_write_file(const json *node, const char *path)
 {
     FILE *file = fopen(path, "w");
 
@@ -386,7 +386,7 @@ int json_write_file(const json *node, int indent, const char *path)
     }
 
     int rc = 0;
-    char *str = json_indent(node, indent);
+    char *str = json_indent(node, 2);
 
     if (str != NULL)
     {

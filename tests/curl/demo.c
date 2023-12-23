@@ -97,15 +97,14 @@ int main(void)
         json_error error;
         json *node = json_parse(data.text, &error);
 
-        if (node != NULL)
-        {
-            json_print(node);
-            json_free(node);
-        }
-        else
+        if (node == NULL)
         {
             json_print_error(&error);
+            rc = EXIT_FAILURE;
+            break;
         }
+        json_print(node);
+        json_free(node);
         data.length = 0;
     }
     free(data.text);
