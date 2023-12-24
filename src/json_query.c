@@ -66,13 +66,13 @@ struct query
     int optional, unique;
 };
 
-static int compare(struct token *token, const char *text)
+static int compare(const struct token *token, const char *text)
 {
     return !strncmp(text, token->string, token->length)
         && !text[token->length];
 }
 
-static int set_func(struct query *query, struct token *token)
+static int set_func(struct query *query, const struct token *token)
 {
     size_t words = sizeof map / sizeof map[0];
     int id = query->func[0] == NULL ? 0 : 1;
@@ -88,7 +88,7 @@ static int set_func(struct query *query, struct token *token)
     return 0;
 }
 
-static int set_flag(struct query *query, struct token *token)
+static int set_flag(struct query *query, const struct token *token)
 {
     if ((query->optional == 0) && compare(token, "optional"))
     {
@@ -103,7 +103,8 @@ static int set_flag(struct query *query, struct token *token)
     return 0;    
 }
 
-static int set_query(struct query *query, struct token *tokens, size_t size)
+static int set_query(struct query *query, const struct token *tokens,
+    size_t size)
 {
     return ((size > 0) && set_func(query, &tokens[0]))
         && ((size < 2) || compare(&tokens[1], "of"))

@@ -48,9 +48,8 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
         data->text = temp;
         data->size = size;
     }
-    memcpy(data->text + data->length, text, length);
+    ((char *)memcpy(data->text + data->length, text, length))[length] = '\0';
     data->length += length;
-    data->text[data->length] = '\0';
     return length;
 }
 
@@ -76,7 +75,7 @@ int main(void)
     }
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&data);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
 
