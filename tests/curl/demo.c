@@ -31,6 +31,7 @@ struct data
     char *text;
 };
 
+// cppcheck-suppress constParameterCallback
 static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
 {
     struct data *data = stream;
