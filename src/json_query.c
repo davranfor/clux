@@ -62,8 +62,8 @@ static size_t set_tokens(struct token *tokens, const char *text)
 
 struct query
 {
-    int (*func[2])(const json *);
     int iterable, optional, unique;
+    int (*func[2])(const json *);
 };
 
 static int compare(const struct token *token, const char *text)
@@ -90,15 +90,15 @@ static int set_func(struct query *query, const struct token *token)
 
 static int set_flag(struct query *query, const struct token *token)
 {
-    if (query->iterable == 0)
+    if (!query->iterable)
     {
         return compare(token, "of") && (query->iterable = 1);
     }
-    if ((query->optional == 0) && compare(token, "optional"))
+    if (!query->optional && compare(token, "optional"))
     {
         return (query->optional = 1);
     }
-    if ((query->unique == 0) && compare(token, "unique"))
+    if (!query->unique && compare(token, "unique"))
     {
         return (query->unique = 1);
     }
