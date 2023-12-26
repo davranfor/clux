@@ -13,8 +13,10 @@ static int test_query(const json *node, int depth, void *data)
 
     const char *query[] =
     {
+        "scalar",
         "string",
         "integer",
+        "array of scalars",
         "array of strings",
         "array of integers",
         "array of unique integers",

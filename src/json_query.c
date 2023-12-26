@@ -63,7 +63,7 @@ static size_t set_tokens(struct token *tokens, const char *text)
 struct query
 {
     int (*func[2])(const json *);
-    int optional, unique;
+    int iterable, optional, unique;
 };
 
 static int compare(const struct token *token, const char *text)
@@ -90,15 +90,17 @@ static int set_func(struct query *query, const struct token *token)
 
 static int set_flag(struct query *query, const struct token *token)
 {
+    if (query->iterable == 0)
+    {
+        return compare(token, "of") && (query->iterable = 1);
+    }
     if ((query->optional == 0) && compare(token, "optional"))
     {
-        query->optional = 1;
-        return 1;
+        return (query->optional = 1);
     }
     if ((query->unique == 0) && compare(token, "unique"))
     {
-        query->unique = 1;
-        return 1;
+        return (query->unique = 1);
     }
     return 0;    
 }
@@ -107,7 +109,7 @@ static int set_query(struct query *query, const struct token *tokens,
     size_t size)
 {
     return ((size > 0) && set_func(query, &tokens[0]))
-        && ((size < 2) || compare(&tokens[1], "of"))
+        && ((size < 2) || set_flag(query, &tokens[1]))
         && ((size < 4) || set_flag(query, &tokens[2]))
         && ((size < 5) || set_flag(query, &tokens[3]))
         && ((size < 2) || set_func(query, &tokens[size - 1]));
@@ -158,7 +160,7 @@ int json_is(const json *node, const char *text)
 
     int rc = query.func[0](node);
 
-    if (rc && query.func[1])
+    if (rc && query.iterable)
     {
         return node->child
             ? query.unique
