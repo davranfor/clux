@@ -72,7 +72,7 @@ static int compare(const struct token *token, const char *text)
         && !text[token->length];
 }
 
-static int set_func(struct query *query, const struct token *token)
+static int set_function(struct query *query, const struct token *token)
 {
     size_t words = sizeof map / sizeof map[0];
     int id = query->func[0] == NULL ? 0 : 1;
@@ -88,7 +88,12 @@ static int set_func(struct query *query, const struct token *token)
     return 0;
 }
 
-static int set_flag(struct query *query, const struct token *token)
+static int set_unique(struct query *query, const struct token *token)
+{
+    return compare(token, "unique") && (query->unique = 1);
+}
+
+static int set_iterable(struct query *query, const struct token *token)
 {
     if (!query->iterable)
     {
@@ -108,14 +113,19 @@ static int set_flag(struct query *query, const struct token *token)
 static int set_query(struct query *query, const struct token *tokens,
     size_t size)
 {
-    return ((size > 0) && set_func(query, &tokens[0]))
-        && ((size < 2) || set_flag(query, &tokens[1]))
-        && ((size < 4) || set_flag(query, &tokens[2]))
-        && ((size < 5) || set_flag(query, &tokens[3]))
-        && ((size < 2) || set_func(query, &tokens[size - 1]));
+    if (size == 2)
+    {
+        return set_unique(query, &tokens[0])
+          && set_function(query, &tokens[1]);
+    }
+    return ((size > 0) && set_function(query, &tokens[0]))
+        && ((size < 2) || set_iterable(query, &tokens[1]))
+        && ((size < 4) || set_iterable(query, &tokens[2]))
+        && ((size < 5) || set_iterable(query, &tokens[3]))
+        && ((size < 2) || set_function(query, &tokens[size - 1]));
 }
 
-static int is_common(const json *node, int (*func)(const json *))
+static int is_simple(const json *node, int (*func)(const json *))
 {
     while (func(node) != 0)
     {
@@ -157,17 +167,45 @@ int json_is(const json *node, const char *text)
     {
         return 0;
     }
-
-    int rc = query.func[0](node);
-
-    if (rc && query.iterable)
+    if (!query.func[0](node))
+    {
+        return 0;
+    }
+    if (query.iterable)
     {
         return node->child
             ? query.unique
                 ? is_unique(node->child, query.func[1])
-                : is_common(node->child, query.func[1])
+                : is_simple(node->child, query.func[1])
             : query.optional && json_is_iterable(node);
     }
-    return rc;
+    else if (query.unique)
+    {
+        return json_is_unique(node);
+    }
+    return 1;
+}
+
+int json_is_unique(const json *node)
+{
+    if (node == NULL)
+    {
+        return 0;
+    }
+    for (const json *item = node->prev; item != NULL; item = item->prev)
+    {
+        if (json_equal(node, item))
+        {
+            return 0;
+        }
+    }
+    for (const json *item = node->next; item != NULL; item = item->next)
+    {
+        if (json_equal(node, item))
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 

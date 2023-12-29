@@ -16,6 +16,7 @@ static int test_query(const json *node, int depth, void *data)
         "scalar",
         "string",
         "integer",
+        "unique item",
         "array of scalars",
         "array of strings",
         "array of integers",

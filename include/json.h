@@ -142,6 +142,7 @@ void json_reverse(json *);
 // Query
 // ============================================================================
 int json_is(const json *, const char *);
+int json_is_unique(const json *);
 
 #endif
 
