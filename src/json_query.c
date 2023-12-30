@@ -88,17 +88,13 @@ static int set_function(struct query *query, const struct token *token)
     return 0;
 }
 
-static int set_unique(struct query *query, const struct token *token)
-{
-    return compare(token, "unique") && (query->unique = 1);
-}
-
 static int set_iterable(struct query *query, const struct token *token)
 {
-    if (!query->iterable)
-    {
-        return compare(token, "of") && (query->iterable = 1);
-    }
+    return compare(token, "of") && (query->iterable = 1);
+}
+
+static int set_settings(struct query *query, const struct token *token)
+{
     if (!query->optional && compare(token, "optional"))
     {
         return (query->optional = 1);
@@ -110,18 +106,34 @@ static int set_iterable(struct query *query, const struct token *token)
     return 0;    
 }
 
+static int set_unique(struct query *query, const struct token *token)
+{
+    return compare(token, "unique") && (query->unique = 1);
+}
+
 static int set_query(struct query *query, const struct token *tokens,
     size_t size)
 {
+    /* Unique type test: "unique integer" */
     if (size == 2)
     {
         return set_unique(query, &tokens[0])
           && set_function(query, &tokens[1]);
     }
+    /**
+     * - Type test:
+     *   "integer"
+     * - Iterable type test:
+     *   "array of integers"
+     *   "array of unique integers"
+     *   "array of optional integers"
+     *   "array of optional unique integers"
+     *   "array of unique optional integers"
+     */
     return ((size > 0) && set_function(query, &tokens[0]))
         && ((size < 2) || set_iterable(query, &tokens[1]))
-        && ((size < 4) || set_iterable(query, &tokens[2]))
-        && ((size < 5) || set_iterable(query, &tokens[3]))
+        && ((size < 4) || set_settings(query, &tokens[2]))
+        && ((size < 5) || set_settings(query, &tokens[3]))
         && ((size < 2) || set_function(query, &tokens[size - 1]));
 }
 
@@ -152,6 +164,27 @@ static int is_unique(const json *node, int (*func)(const json *))
     return node == NULL;
 }
 
+static int run_query(struct query *query, const json *node)
+{
+    if (!query->func[0](node))
+    {
+        return 0;
+    }
+    if (query->iterable)
+    {
+        return node->child
+            ? query->unique
+                ? is_unique(node->child, query->func[1])
+                : is_simple(node->child, query->func[1])
+            : query->optional && json_is_iterable(node);
+    }
+    else if (query->unique)
+    {
+        return json_is_unique(node);
+    }
+    return 1;
+}
+
 int json_is(const json *node, const char *text)
 {
     if ((node == NULL) || (text == NULL))
@@ -163,27 +196,8 @@ int json_is(const json *node, const char *text)
     size_t size = set_tokens(tokens, text);
     struct query query = {0};
 
-    if (!set_query(&query, tokens, size))
-    {
-        return 0;
-    }
-    if (!query.func[0](node))
-    {
-        return 0;
-    }
-    if (query.iterable)
-    {
-        return node->child
-            ? query.unique
-                ? is_unique(node->child, query.func[1])
-                : is_simple(node->child, query.func[1])
-            : query.optional && json_is_iterable(node);
-    }
-    else if (query.unique)
-    {
-        return json_is_unique(node);
-    }
-    return 1;
+    return set_query(&query, tokens, size)
+        && run_query(&query, node);
 }
 
 int json_is_unique(const json *node)
