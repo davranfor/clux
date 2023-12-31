@@ -168,11 +168,7 @@ static int has_unique_childs(const json *node, int (*func)(const json *))
 
 static int run_query(struct query *query, const json *node)
 {
-    if (!query->func[0](node))
-    {
-        return 0;
-    }
-    if (query->unique && !json_is_unique(node))
+    if (!query->func[0](node) || (query->unique && !json_is_unique(node)))
     {
         return 0;
     }
