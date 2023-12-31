@@ -164,7 +164,8 @@ static int try_set_string(json *node, const char *left, const char *right)
 {
     if ((*left++ == '"') && (*right == '"'))
     {
-        if ((node->value.string = new_string(left, right)))
+        node->value.string = new_string(left, right);
+        if (node->value.string != NULL)
         {
             node->type = JSON_STRING;
             return 1;
@@ -309,12 +310,12 @@ static const char *parse(json *node, const char *left)
         {
             case '{':
             case '[':
-                /* Commas between groups are required: [[] []] */
+                /* Commas between iterables are required: [[] []] */
                 if (node->type != JSON_UNDEFINED)
                 {
                     return left;
                 }
-                /* Contents before groups are not allowed: 1[] */
+                /* Contents before iterables are not allowed: 1[] */
                 if (left != token)
                 {
                     return left;
@@ -381,7 +382,7 @@ static const char *parse(json *node, const char *left)
                 {
                     if (left == token)
                     {
-                        /* Remove empty group: {} or [] */
+                        /* Remove empty iterable: {} or [] */
                         if ((node->prev == NULL) && (node->name == NULL))
                         {
                             node = delete_child(node->parent);

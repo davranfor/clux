@@ -7,8 +7,6 @@
 #include <string.h>
 #include "json_private.h"
 
-#define MAX_TOKENS 5
-
 static const struct
 {
     const char *text[2];
@@ -35,6 +33,8 @@ struct token
     const char *string;
     size_t length;
 };
+
+enum {MAX_TOKENS = 5};
 
 static size_t set_tokens(struct token *tokens, const char *text)
 {

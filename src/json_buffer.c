@@ -56,12 +56,9 @@ static json_buffer *buffer_write_sized(json_buffer *buffer, const char *text,
 {
     size_t size = buffer->length + length + 1;
 
-    if (size > buffer->size)
+    if ((size > buffer->size) && !buffer_resize(buffer, buffer_next_size(size)))
     {
-        if (!buffer_resize(buffer, buffer_next_size(size)))
-        {
-            return NULL;
-        }
+        return NULL;
     }
     memcpy(buffer->text + buffer->length, text, length + 1);
     buffer->length += length;
@@ -78,12 +75,9 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
     size_t length = (size_t)snprintf(NULL, 0, "%.0f", value);
     size_t size = buffer->length + length + 1;
 
-    if (size > buffer->size)
+    if ((size > buffer->size) && !buffer_resize(buffer, buffer_next_size(size)))
     {
-        if (!buffer_resize(buffer, buffer_next_size(size)))
-        {
-            return NULL;
-        }
+        return NULL;
     }
     snprintf(buffer->text + buffer->length, length + 1, "%.0f", value);
     buffer->length += length;
@@ -95,12 +89,9 @@ static json_buffer *buffer_write_number(json_buffer *buffer, double value)
     size_t length = (size_t)snprintf(NULL, 0, "%.*g", DBL_DECIMAL_DIG, value);
     size_t size = buffer->length + length + 1;
 
-    if (size > buffer->size)
+    if ((size > buffer->size) && !buffer_resize(buffer, buffer_next_size(size)))
     {
-        if (!buffer_resize(buffer, buffer_next_size(size)))
-        {
-            return NULL;
-        }
+        return NULL;
     }
     snprintf(buffer->text + buffer->length, length + 1,
              "%.*g", DBL_DECIMAL_DIG, value);
