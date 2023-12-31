@@ -449,13 +449,14 @@ char *json_path(const json *node)
 
 char *json_quote(const char *str)
 {
-    json_buffer buffer = {NULL, 0, 0};
-    char *text = NULL;
-
     if (str == NULL)
     {
         return NULL;
     }
+
+    json_buffer buffer = {NULL, 0, 0};
+    char *text = NULL;
+
     if (buffer_quote(&buffer, str))
     {
         text = buffer.text;

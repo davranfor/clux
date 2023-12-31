@@ -22,6 +22,7 @@ static int test_query(const json *node, int depth, void *data)
         "array of integers",
         "array of unique integers",
         "array of optional unique integers",
+        "unique array of optional unique integers",
     };
 
     for (size_t i = 0; i < sizeof query / sizeof query[0]; i++)
