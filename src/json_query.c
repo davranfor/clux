@@ -141,6 +141,7 @@ static int set_query(struct query *query, const struct token *tokens,
 
 static int has_simple_childs(const json *node, int (*func)(const json *))
 {
+    node = node->head;
     while (func(node) != 0)
     {
         node = node->next;
@@ -150,8 +151,10 @@ static int has_simple_childs(const json *node, int (*func)(const json *))
 
 static int has_unique_childs(const json *node, int (*func)(const json *))
 {
-    const json *head = node;
 
+    const json *head = node->head;
+
+    node = head;
     while (func(node) != 0)
     {
         for (const json *item = head; item != node; item = item->next)
@@ -174,10 +177,10 @@ static int run_query(struct query *query, const json *node)
     }
     if (query->iterable)
     {
-        return node->child
+        return node->head
             ? query->childs.unique
-                ? has_unique_childs(node->child, query->func[1])
-                : has_simple_childs(node->child, query->func[1])
+                ? has_unique_childs(node, query->func[1])
+                : has_simple_childs(node, query->func[1])
             : query->childs.optional && json_is_iterable(node);
     }
     return 1;

@@ -209,7 +209,7 @@ static int buffer_loop_start(json_buffer *buffer, const json *node,
             CHECK(buffer_print(buffer, node));
             break;
     }
-    if (node->child == NULL)
+    if (node->head == NULL)
     {
         switch (node->type)
         {
@@ -237,7 +237,7 @@ static int buffer_loop_start(json_buffer *buffer, const json *node,
 static int buffer_loop_end(json_buffer *buffer, const json *node,
     int depth, int nested, int indent)
 {
-    if (node->child != NULL)
+    if (node->head != NULL)
     {
         for (int i = 0; i < (depth + nested) * indent; i++)
         {
@@ -278,9 +278,9 @@ static int buffer_loop(json_buffer *buffer, const json *node, int indent)
     while (node != NULL)
     {
         CHECK(buffer_loop_start(buffer, node, depth, nested, indent));
-        if (node->child != NULL)
+        if (node->head != NULL)
         {
-            node = node->child;
+            node = node->head;
             depth++;
         }
         else if ((depth > 0) && (node->next != NULL))

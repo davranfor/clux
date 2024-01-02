@@ -17,7 +17,7 @@ union json_value
 
 struct json
 {
-    json *parent, *child, *prev, *next, *tail;
+    json *parent, *head, *prev, *next, *tail;
     char *name;
     union json_value value;
     enum json_type type;

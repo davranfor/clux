@@ -42,7 +42,7 @@ static int compare(const char *name, const char *path, const char *end)
 
 static json *get_by_name(const json *root, const char *path, const char *end)
 {
-    for (json *node = root->child; node != NULL; node = node->next)
+    for (json *node = root->head; node != NULL; node = node->next)
     {
         assert(node->name != NULL);
         if (compare(node->name, path, end))
@@ -62,7 +62,7 @@ static json *get_by_item(const json *root, const char *path, const char *end)
 
     unsigned long item = strtoul(path, NULL, 10);
 
-    for (json *node = root->child; node != NULL; node = node->next)
+    for (json *node = root->head; node != NULL; node = node->next)
     {
         if (item-- == 0)
         {

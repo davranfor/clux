@@ -176,7 +176,7 @@ static void set_empty(json *node)
     {
         case JSON_OBJECT:
         case JSON_ARRAY:
-            while (json_delete(node->child));
+            while (json_delete(node->head));
             node->tail = NULL;
             return;
         case JSON_STRING:
@@ -306,17 +306,17 @@ json *json_push_front(json *parent, json *child)
     {
         return NULL;
     }
-    if (parent->child == NULL)
+    if (parent->head == NULL)
     {
         parent->tail = child;
     }
     else
     {
-        child->next = parent->child;
-        parent->child->prev = child;
+        child->next = parent->head;
+        parent->head->prev = child;
     }
     child->parent = parent;
-    parent->child = child;
+    parent->head = child;
     return child;
 }
 
@@ -326,9 +326,9 @@ json *json_push_back(json *parent, json *child)
     {
         return NULL;
     }
-    if (parent->child == NULL)
+    if (parent->head == NULL)
     {
-        parent->child = child;
+        parent->head = child;
     }
     else
     {
@@ -348,9 +348,9 @@ json *json_push_before(json *where, json *child)
     {
         return NULL;
     }
-    if (parent->child == where)
+    if (parent->head == where)
     {
-        parent->child = child;
+        parent->head = child;
     }
     else
     {
@@ -392,14 +392,14 @@ json *json_push_at(json *parent, json *child, size_t item)
     {
         return NULL;
     }
-    if (parent->child == NULL)
+    if (parent->head == NULL)
     {
-        parent->child = child;
+        parent->head = child;
         parent->tail = child;
     }
     else
     {
-        json *node = parent->child;
+        json *node = parent->head;
 
         while ((node != NULL) && (item > 0))
         {
@@ -414,9 +414,9 @@ json *json_push_at(json *parent, json *child, size_t item)
         }
         else
         {
-            if (parent->child == node)
+            if (parent->head == node)
             {
-                parent->child = child;
+                parent->head = child;
             }
             if (node->prev != NULL)
             {
@@ -439,9 +439,9 @@ json *json_pop(json *child)
     {
         return NULL;
     }
-    if (parent->child == child)
+    if (parent->head == child)
     {
-        parent->child = child->next;
+        parent->head = child->next;
     }
     else
     {
@@ -469,7 +469,7 @@ json *json_pop_front(json *parent)
     {
         return NULL;
     }
-    parent->child = child->next;
+    parent->head = child->next;
     if (parent->tail == child)
     {
         parent->tail = NULL;
@@ -492,9 +492,9 @@ json *json_pop_back(json *parent)
         return NULL;
     }
     parent->tail = child->prev;
-    if (parent->child == child)
+    if (parent->head == child)
     {
-        parent->child = NULL;
+        parent->head = NULL;
     }
     else
     {
@@ -518,9 +518,9 @@ json *json_pop_at(json *parent, size_t item)
     {
         return NULL;
     }
-    if (parent->child == child)
+    if (parent->head == child)
     {
-        parent->child = child->next;
+        parent->head = child->next;
     }
     else 
     {
@@ -547,9 +547,9 @@ json *json_delete(json *node)
 
     if (parent != NULL)
     {
-        if (parent->child == node)
+        if (parent->head == node)
         {
-            parent->child = node->next;
+            parent->head = node->next;
         }
         else
         {
@@ -579,8 +579,8 @@ void json_free(json *node)
 
     while (node != parent)
     {
-        next = node->child;
-        node->child = NULL;
+        next = node->head;
+        node->head = NULL;
         if (next == NULL)
         {
             if (node->next != NULL)

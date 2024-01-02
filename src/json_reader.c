@@ -250,7 +250,7 @@ json *json_child(const json *node)
     {
         return NULL;
     }
-    return node->child;
+    return node->head;
 }
 
 /* Same as json_child (counterpart of json_tail) */
@@ -260,7 +260,7 @@ json *json_head(const json *node)
     {
         return NULL;
     }
-    return node->child;
+    return node->head;
 }
 
 json *json_prev(const json *node)
@@ -297,7 +297,7 @@ json *json_at(const json *root, size_t index)
     {
         return NULL;
     }
-    for (json *node = root->child; node != NULL; node = node->next)
+    for (json *node = root->head; node != NULL; node = node->next)
     {
         if (index-- == 0)
         {
@@ -314,7 +314,7 @@ json *json_find(const json *root, const char *name)
     {
         return NULL;
     }
-    for (json *node = root->child; node != NULL; node = node->next)
+    for (json *node = root->head; node != NULL; node = node->next)
     {
         assert(node->name != NULL);
         if (strcmp(node->name, name) == 0)
@@ -391,7 +391,7 @@ size_t json_size(const json *node)
 
     size_t size = 0;
 
-    for (node = node->child; node != NULL; node = node->next)
+    for (node = node->head; node != NULL; node = node->next)
     {
         size++;
     }
@@ -466,7 +466,7 @@ static int equal(const json *a, const json *b, int depth)
     {
         return 0;
     }
-    if ((a->child == NULL) ^ (b->child == NULL))
+    if ((a->head == NULL) ^ (b->head == NULL))
     {
         return 0;
     }
@@ -514,10 +514,10 @@ int json_equal(const json *a, const json *b)
 
     while (equal(a, b, depth))
     {
-        if (a->child != NULL)
+        if (a->head != NULL)
         {
-            a = a->child;
-            b = b->child;
+            a = a->head;
+            b = b->head;
             depth++;
         }
         else if ((depth > 0) && (a->next != NULL))
@@ -563,9 +563,9 @@ int json_walk(const json *node, json_walk_callback callback, void *data)
         {
             return result;
         }
-        if (node->child != NULL)
+        if (node->head != NULL)
         {
-            node = node->child;
+            node = node->head;
             depth++;
         }
         else if ((depth > 0) && (node->next != NULL))
