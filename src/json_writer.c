@@ -569,9 +569,9 @@ json *json_delete(json *node)
             next = node->next;
         }
         node->parent = NULL;
+        node->prev = NULL;
+        node->next = NULL;
     }
-    node->prev = NULL;
-    node->next = NULL;
     json_free(node);
     return next;
 }

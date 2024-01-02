@@ -12,12 +12,11 @@ int main(void)
 {
     srand((unsigned)time(NULL));
 
-    json *root, *tail = NULL;
+    json *root = json_new_array(NULL);
 
-    root = json_new_array(NULL);
     for (int i = 0; i < 25; i++)
     {
-        tail = json_push_fast(root, tail, json_new_integer(NULL, rand() % 100));
+        json_push_back(root, json_new_integer(NULL, rand() % 100));
     }
     puts("Unsorted:");
     json_print(root);

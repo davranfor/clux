@@ -10,11 +10,9 @@ int main(void)
 {
     json *root = json_new_array(NULL);
 
-    for (size_t i = 0; i < 2; i++)
+    for (int i = 0; i < 25; i++)
     {
-//        json_push_back(root, json_new_integer(NULL, i));
-        json_push_at(root, json_new_integer(NULL, i), i);
-
+        json_push_back(root, json_new_integer(NULL, i));
     }
     json_print(root);
 
