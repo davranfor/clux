@@ -49,30 +49,30 @@ int main(void)
         switch (rand() % 9)
         {
             case 0:
-                node = json_push_front(root, json_new_number(NULL, number));
+                node = json_push_front(root, json_new_integer(NULL, number));
                 print("json_push_front", node, none, number);
                 break;
             case 1:
-                node = json_push_back(root, json_new_number(NULL, number));
+                node = json_push_back(root, json_new_integer(NULL, number));
                 print("json_push_back", node, none, number);
                 break;
             case 2:
                 if ((node = json_at(root, offset)))
                 {
-                    json_push_before(node, json_new_number(NULL, number));
+                    json_push_before(node, json_new_integer(NULL, number));
                 }
                 print("json_push_before", node, offset, number);
                 break;
             case 3:
                 if ((node = json_at(root, offset)))
                 {
-                    json_push_after(node, json_new_number(NULL, number));
+                    json_push_after(node, json_new_integer(NULL, number));
                 }
                 print("json_push_after", node, offset, number);
                 break;
             case 4:
                 /* If offset is out of bounds it acts like json_push_back() */
-                node = json_push_at(root, json_new_number(NULL, number), offset);
+                node = json_push_at(root, json_new_integer(NULL, number), offset);
                 print("json_push_at", node, offset, number);
                 break;
             case 5:

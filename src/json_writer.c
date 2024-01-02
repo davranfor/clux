@@ -401,7 +401,7 @@ json *json_push_at(json *parent, json *child, size_t item)
     {
         json *node = parent->child;
 
-        while ((item > 0) && (node != NULL))
+        while ((node != NULL) && (item > 0))
         {
             node = node->next;
             item--;
@@ -509,11 +509,7 @@ json *json_pop_at(json *parent, size_t item)
 {
     json *child = json_child(parent);
 
-    if (child == NULL)
-    {
-        return NULL;
-    }
-    while ((item > 0) && (child != NULL))
+    while ((child != NULL) && (item > 0))
     {
         child = child->next;
         item--;
