@@ -306,14 +306,14 @@ json *json_push_front(json *parent, json *child)
     {
         return NULL;
     }
-    if (parent->child != NULL)
+    if (parent->child == NULL)
     {
-        child->next = parent->child;
-        parent->child->prev = child;
+        parent->tail = child;
     }
     else
     {
-        parent->tail = child;
+        child->next = parent->child;
+        parent->child->prev = child;
     }
     child->parent = parent;
     parent->child = child;
@@ -326,14 +326,14 @@ json *json_push_back(json *parent, json *child)
     {
         return NULL;
     }
-    if (parent->child != NULL)
+    if (parent->child == NULL)
     {
-        child->prev = parent->tail;
-        parent->tail->next = child;
+        parent->child = child;
     }
     else
     {
-        parent->child = child;
+        child->prev = parent->tail;
+        parent->tail->next = child;
     }
     child->parent = parent;
     parent->tail = child;
