@@ -446,7 +446,6 @@ json *json_pop(json *child)
     else
     {
         child->prev->next = child->next;
-        child->prev = NULL;
     }
     if (parent->tail == child)
     {
@@ -455,9 +454,10 @@ json *json_pop(json *child)
     else
     {
         child->next->prev = child->prev;
-        child->next = NULL; 
     }
     child->parent = NULL;
+    child->prev = NULL;
+    child->next = NULL; 
     return child;
 }
 
@@ -529,7 +529,6 @@ json *json_pop_at(json *parent, size_t item)
     else 
     {
         child->prev->next = child->next;
-        child->prev = NULL;
     }
     if (parent->tail == child)
     {
@@ -538,9 +537,10 @@ json *json_pop_at(json *parent, size_t item)
     else
     {
         child->next->prev = child->prev;
-        child->next = NULL;
     }
     child->parent = NULL;
+    child->prev = NULL;
+    child->next = NULL;
     return child;
 }
 
@@ -558,7 +558,6 @@ json *json_delete(json *node)
         else
         {
             node->prev->next = node->next;
-            node->prev = NULL;
         }
         if (parent->tail == node)
         {
@@ -568,10 +567,11 @@ json *json_delete(json *node)
         {
             node->next->prev = node->prev;
             next = node->next;
-            node->next = NULL;
         }
         node->parent = NULL;
     }
+    node->prev = NULL;
+    node->next = NULL;
     json_free(node);
     return next;
 }
