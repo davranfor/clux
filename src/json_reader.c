@@ -510,11 +510,15 @@ int json_equal(const json *a, const json *b)
         return 0;
     }
 
-    int depth = 0;
+    int depth = 0, proc = 1;
 
-    while (equal(a, b, depth))
+    while ((a != NULL) && (b != NULL))
     {
-        if (a->head != NULL)
+        if ((proc == 1) && !equal(a, b, depth))
+        {
+           return 0;
+        }
+        if ((proc == 1) && (a->head != NULL))
         {
             a = a->head;
             b = b->head;
@@ -524,24 +528,17 @@ int json_equal(const json *a, const json *b)
         {
             a = a->next;
             b = b->next;
+            proc = 1;
+        }
+        else if (depth-- > 0)
+        {
+            a = a->parent;
+            b = b->parent;
+            proc = 0;
         }
         else
         {
-            while (depth-- > 0)
-            {
-                a = a->parent;
-                b = b->parent;
-                if (a->next != NULL)
-                {
-                    a = a->next;
-                    b = b->next;
-                    break;
-                }
-            }
-            if (depth <= 0)
-            {
-                return 1;
-            }
+            return 1;
         }
     }
     return 0;
@@ -553,17 +550,20 @@ int json_equal(const json *a, const json *b)
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
-    int depth = 0;
+    int depth = 0, proc = 1;
 
     while (node != NULL)
     {
-        int result = callback(node, depth, data);
-
-        if (result <= 0)
+        if (proc == 1)
         {
-            return result;
+            int rc = callback(node, depth, data);
+
+            if (rc <= 0)
+            {
+                return rc;
+            }
         }
-        if (node->head != NULL)
+        if ((proc == 1) && (node->head != NULL))
         {
             node = node->head;
             depth++;
@@ -571,22 +571,16 @@ int json_walk(const json *node, json_walk_callback callback, void *data)
         else if ((depth > 0) && (node->next != NULL))
         {
             node = node->next;
+            proc = 1;
+        }
+        else if (depth-- > 0)
+        {
+            node = node->parent;
+            proc = 0;
         }
         else
         {
-            while (depth-- > 0)
-            {
-                node = node->parent;
-                if (node->next != NULL)
-                {
-                    node = node->next;
-                    break;
-                }
-            }
-            if (depth <= 0)
-            {
-                break;
-            }
+            break;
         }
     }
     return 1;

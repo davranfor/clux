@@ -269,7 +269,7 @@ static int buffer_loop_end(json_buffer *buffer, const json *node,
 static int buffer_loop(json_buffer *buffer, const json *node, int indent)
 {
     int nested = json_key(node) != NULL;
-    int depth = 0;
+    int depth = 0, proc = 1;
 
     if (nested)
     {
@@ -277,8 +277,11 @@ static int buffer_loop(json_buffer *buffer, const json *node, int indent)
     }
     while (node != NULL)
     {
-        CHECK(buffer_loop_start(buffer, node, depth, nested, indent));
-        if (node->head != NULL)
+        if (proc == 1)
+        {
+            CHECK(buffer_loop_start(buffer, node, depth, nested, indent));
+        }
+        if ((proc == 1) && (node->head != NULL))
         {
             node = node->head;
             depth++;
@@ -286,23 +289,17 @@ static int buffer_loop(json_buffer *buffer, const json *node, int indent)
         else if ((depth > 0) && (node->next != NULL))
         {
             node = node->next;
+            proc = 1;
+        }
+        else if (depth-- > 0)
+        {
+            node = node->parent;
+            CHECK(buffer_loop_end(buffer, node, depth, nested, indent));
+            proc = 0;
         }
         else
         {
-            while (depth-- > 0)
-            {
-                node = node->parent;
-                CHECK(buffer_loop_end(buffer, node, depth, nested, indent));
-                if (node->next != NULL)
-                {
-                    node = node->next;
-                    break;
-                }
-            }
-            if (depth <= 0)
-            {
-                break;
-            }
+            break;
         }
     }
     if (nested)
