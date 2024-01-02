@@ -151,7 +151,6 @@ static int has_simple_childs(const json *node, int (*func)(const json *))
 
 static int has_unique_childs(const json *node, int (*func)(const json *))
 {
-
     const json *head = node->head;
 
     node = head;
