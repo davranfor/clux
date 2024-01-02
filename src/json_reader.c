@@ -281,18 +281,13 @@ json *json_next(const json *node)
     return node->next;
 }
 
-json *json_tail(const json *root)
+json *json_tail(const json *node)
 {
-    json *node = NULL;
-
-    if ((root != NULL) && (node = root->child))
+    if (node == NULL)
     {
-        while (node->next != NULL)
-        {
-            node = node->next;
-        }
+        return NULL;
     }
-    return node;
+    return node->tail;
 }
 
 /* Locates a child by index */

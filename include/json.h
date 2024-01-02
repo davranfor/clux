@@ -104,7 +104,6 @@ json *json_set_integer(json *, double);
 json *json_set_number(json *, double);
 json *json_set_boolean(json *, int);
 json *json_set_null(json *);
-json *json_push_fast(json *, json *, json *);
 json *json_push_front(json *, json *);
 json *json_push_back(json *, json *);
 json *json_push_before(json *, json *);
@@ -135,7 +134,6 @@ json *json_pointer(const json *, const char *);
 // ============================================================================
 // Sort
 // ============================================================================
-json *json_swap(json *, json *);
 void json_sort(json *, json_sort_callback);
 void json_reverse(json *);
 // ============================================================================

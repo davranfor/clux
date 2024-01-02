@@ -6,28 +6,6 @@
 
 #include "json_private.h"
 
-/**
- *  Swap a and b contents
- *  Returns a on success, NULL otherwise
- */
-json *json_swap(json *a, json *b)
-{
-    if ((a == NULL) || (b == NULL))
-    {
-        return NULL;
-    }
-    if ((a->parent || b->parent) && (!a->name != !b->name))
-    {
-        return NULL;
-    }
-
-    const json a_ = {.child = a->child, .name = a->name, .value = a->value};
-
-    a->child = b->child; a->name = b->name; a->value = b->value;
-    b->child = a_.child; b->name = a_.name; b->value = a_.value;
-    return a;
-}
-
 static json *split(json *top)
 {
     json *fast = top;
@@ -86,13 +64,13 @@ void json_sort(json *root, json_sort_callback callback)
         json *node = sort(root->child, callback);
 
         root->child = node;
-        // Reconnect nodes
         node->prev = NULL;
         while (node->next != NULL)
         {
             node->next->prev = node;
             node = node->next;
         }
+        root->tail = node;
     }
 }
 
@@ -111,6 +89,7 @@ void json_reverse(json *root)
         }
         if (prev != NULL)
         {
+            root->tail = root->child;
             root->child = prev->prev;
         }
     }

@@ -102,7 +102,7 @@ int main(void)
     puts("");
     if (json_push_front(json_new_object(NULL), root))
     {
-        json_push_after(root, json_new_number("size", json_size(root)));
+        json_push_after(root, json_new_integer("size", json_size(root)));
         root = json_parent(root);
         json_print(root);
     }

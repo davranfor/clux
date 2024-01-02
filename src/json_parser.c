@@ -270,6 +270,7 @@ static json *create_child(json *parent)
     {
         child->parent = parent;
         parent->child = child;
+        parent->tail = child;
     }
     return child;
 }
@@ -278,6 +279,7 @@ static json *delete_child(json *parent)
 {
     free(parent->child);
     parent->child = NULL;
+    parent->tail = NULL;
     return parent;
 }
 
@@ -288,6 +290,7 @@ static json *create_next(json *node)
     if (next != NULL)
     {
         next->parent = node->parent;
+        next->parent->tail = next;
         next->prev = node;
         node->next = next;
     }

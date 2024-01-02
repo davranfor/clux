@@ -8,13 +8,13 @@
 
 int main(void)
 {
-    json *root, *tail = NULL;
+    json *root = json_new_array(NULL);
 
-    root = json_new_array(NULL);
-    for (int i = 0; i < 25; i++)
+    for (size_t i = 0; i < 2; i++)
     {
-        // Push element at the end of the array. O(1) time complexity
-        tail = json_push_fast(root, tail, json_new_integer(NULL, i));
+//        json_push_back(root, json_new_integer(NULL, i));
+        json_push_at(root, json_new_integer(NULL, i), i);
+
     }
     json_print(root);
 
