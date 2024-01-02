@@ -141,11 +141,7 @@ static int set_query(struct query *query, const struct token *tokens,
 
 static int has_simple_childs(const json *node, int (*func)(const json *))
 {
-    node = node->head;
-    while (func(node) != 0)
-    {
-        node = node->next;
-    }
+    for (node = node->head; func(node) != 0; node = node->next);
     return node == NULL;
 }
 
@@ -153,8 +149,7 @@ static int has_unique_childs(const json *node, int (*func)(const json *))
 {
     const json *head = node->head;
 
-    node = head;
-    while (func(node) != 0)
+    for (node = head; func(node) != 0; node = node->next)
     {
         for (const json *item = head; item != node; item = item->next)
         {
@@ -163,7 +158,6 @@ static int has_unique_childs(const json *node, int (*func)(const json *))
                 return 0;
             }
         }
-        node = node->next;
     }
     return node == NULL;
 }
