@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <math.h>
 #include <assert.h>
+#include <math.h>
 #include "json_private.h"
 #include "json_unicode.h"
 
@@ -253,7 +253,6 @@ json *json_child(const json *node)
     return node->head;
 }
 
-/* Same as json_child (counterpart of json_tail) */
 json *json_head(const json *node)
 {
     if (node == NULL)
@@ -546,7 +545,7 @@ int json_equal(const json *a, const json *b)
 
 /**
  * Sends all nodes to a callback func providing depth and user-data
- * Exit when all nodes are read or func returns a values <= 0
+ * Exit when all nodes are read or func returns <= 0
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {

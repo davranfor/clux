@@ -11,7 +11,7 @@
 #include "json_unicode.h"
 
 /* return 0 if buffer_resize() fails */
-#define CHECK(expr) do { if (!(expr)) return 0; } while(0)
+#define CHECK(expr) do { if (!(expr)) return 0; } while (0)
 
 static enum json_encode encode = JSON_UTF8;
 

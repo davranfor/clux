@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <math.h>
 #include <errno.h>
+#include <math.h>
 #include "json_private.h"
 #include "json_unicode.h"
 
