@@ -461,21 +461,9 @@ int json_compare(const json *a, const json *b)
 /* json_equal helper */
 static int equal(const json *a, const json *b, int depth)
 {
-    if (a->type != b->type)
-    {
-        return 0;
-    }
-    if ((a->head == NULL) ^ (b->head == NULL))
-    {
-        return 0;
-    }
     if (depth > 0)
     {
-        if ((a->next == NULL) ^ (b->next == NULL))
-        {
-            return 0;
-        }
-        if ((a->name == NULL) ^ (b->name == NULL))
+        if ((a->name == NULL) != (b->name == NULL))
         {
             return 0;
         }
@@ -483,6 +471,10 @@ static int equal(const json *a, const json *b, int depth)
         {
             return 0;
         }
+    }
+    if (a->type != b->type)
+    {
+        return 0;
     }
     if (a->type == JSON_STRING)
     {
@@ -500,13 +492,9 @@ static int equal(const json *a, const json *b, int depth)
  */
 int json_equal(const json *a, const json *b)
 {
-    if ((a == NULL) & (b == NULL))
+    if ((a == NULL) && (b == NULL))
     {
         return 1;
-    }
-    if ((a == NULL) ^ (b == NULL))
-    {
-        return 0;
     }
 
     int depth = 0, proc = 1;
@@ -545,7 +533,7 @@ int json_equal(const json *a, const json *b)
 
 /**
  * Sends all nodes to a callback func providing depth and user-data
- * Exit when all nodes are read or func returns <= 0
+ * Exit when all nodes are read or callback returns <= 0
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
