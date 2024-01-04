@@ -451,9 +451,8 @@ int json_compare(const json *a, const json *b)
     if (a->type != JSON_STRING)
     {
         return
-            a->value.number > b->value.number ? +1 :
             a->value.number < b->value.number ? -1 :
-            0;
+            a->value.number > b->value.number;
     }
     return strcmp(a->value.string, b->value.string);
 }
@@ -476,14 +475,9 @@ static int equal(const json *a, const json *b, int depth)
     {
         return 0;
     }
-    if (a->type == JSON_STRING)
-    {
-        return !strcmp(a->value.string, b->value.string);
-    }
-    else
-    {
-        return a->value.number == b->value.number;
-    }
+    return a->type != JSON_STRING
+         ? a->value.number == b->value.number
+         : strcmp(a->value.string, b->value.string) == 0;
 }
 
 /**
