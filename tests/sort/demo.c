@@ -21,7 +21,7 @@ int main(void)
     puts("Unsorted:");
     json_print(root);
     puts("Sorted:");
-    json_sort(root, json_asc);
+    json_sort(root, JSON_SORT_BY_VALUE_ASC);
     json_print(root);
     puts("Reversed:");
     json_reverse(root);
