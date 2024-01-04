@@ -134,6 +134,8 @@ json *json_pointer(const json *, const char *);
 // ============================================================================
 // Sort
 // ============================================================================
+int json_asc(const json *, const json *);
+int json_desc(const json *, const json *);
 void json_sort(json *, json_sort_callback);
 void json_reverse(json *);
 // ============================================================================

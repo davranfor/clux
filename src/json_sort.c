@@ -4,7 +4,38 @@
  *  \copyright GNU Public License.
  */
 
+#include <string.h>
 #include "json_private.h"
+
+int json_asc(const json *a, const json *b)
+{
+    if (a->type != b->type)
+    {
+        return a->type > b->type ? +1 : -1;
+    }
+    if (a->type != JSON_STRING)
+    {
+        return
+            a->value.number < b->value.number ? -1 :
+            a->value.number > b->value.number;
+    }
+    return strcmp(a->value.string, b->value.string);
+}
+
+int json_desc(const json *a, const json *b)
+{
+    if (a->type != b->type)
+    {
+        return b->type > a->type ? +1 : -1;
+    }
+    if (a->type != JSON_STRING)
+    {
+        return
+            b->value.number < a->value.number ? -1 :
+            b->value.number > a->value.number;
+    }
+    return strcmp(b->value.string, a->value.string);
+}
 
 static json *split(json *top)
 {
