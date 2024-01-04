@@ -15,7 +15,7 @@ int JSON_SORT_BY_KEY_ASC(const json *a, const json *b)
     }
     if ((a->name != NULL) || (b->name != NULL))
     {
-        return a->name != NULL ? +1 : -1;
+        return a->name != NULL ? 1 : -1;
     }
     return 0;
 }
@@ -28,7 +28,7 @@ int JSON_SORT_BY_KEY_DESC(const json *a, const json *b)
     }
     if ((a->name != NULL) || (b->name != NULL))
     {
-        return a->name != NULL ? -1 : +1;
+        return b->name != NULL ? 1 : -1;
     }
     return 0;
 }
@@ -37,7 +37,7 @@ int JSON_SORT_BY_VALUE_ASC(const json *a, const json *b)
 {
     if (a->type != b->type)
     {
-        return a->type > b->type ? +1 : -1;
+        return a->type > b->type ? 1 : -1;
     }
     if (a->type != JSON_STRING)
     {
@@ -52,7 +52,7 @@ int JSON_SORT_BY_VALUE_DESC(const json *a, const json *b)
 {
     if (a->type != b->type)
     {
-        return b->type > a->type ? +1 : -1;
+        return b->type > a->type ? 1 : -1;
     }
     if (a->type != JSON_STRING)
     {
