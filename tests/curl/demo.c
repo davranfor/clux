@@ -87,9 +87,12 @@ int main(void)
     {
         snprintf(url, sizeof url, "https://jsonplaceholder.typicode.com/todos/%d", i);
         curl_easy_setopt(curl, CURLOPT_URL, url);
-        if (curl_easy_perform(curl) != CURLE_OK)
+
+        int res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK)
         {
-            perror("curl_easy_perform");
+            fprintf(stderr, "curl_easy_perform: %s\n", curl_easy_strerror(res));
             rc = EXIT_FAILURE;
             break;
         }
