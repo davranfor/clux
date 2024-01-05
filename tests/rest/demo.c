@@ -33,7 +33,7 @@ Run the server:
 
 json-server --watch db.json
 
-Test the server on the browser: http://localhost:3000/posts/1
+Test the server on the browser: http://localhost:3000
 
 More info: https://www.npmjs.com/package/json-server?activeTab=readme 
 */
