@@ -156,11 +156,11 @@ int main(void)
     {
         int method = (i == 10) ? ALL : rand() % ALL;
         int id = rand() % 9 + 1;
-        char str[128];
+        char fields[128];
 
-        snprintf(str, sizeof str, "{\"id\": %d, \"name\": \"Item #%d\"}", id, id);
+        snprintf(fields, sizeof fields, "{\"id\": %d,\"name\": \"Item #%d\"}", id, id);
 
-        int res = perform(curl, method, id, str);
+        int res = perform(curl, method, id, fields);
 
         if (res != CURLE_OK)
         {
