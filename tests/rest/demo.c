@@ -84,8 +84,10 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
     return length;
 }
 
-static int perform(CURL *curl, enum method method, int id, const char *fields)
+static int perform(CURL *curl, enum method method,
+    const char *param, int id, const char *fields)
 {
+    const char *host = "http://localhost:3000";
     char url[128];
 
     switch (method)
@@ -93,29 +95,29 @@ static int perform(CURL *curl, enum method method, int id, const char *fields)
         case GET:
             printf("GET:%d\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            snprintf(url, sizeof url, "http://localhost:3000/users/%d", id);
+            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
             break;
         case POST:
             printf("POST:%s\n", fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
-            snprintf(url, sizeof url, "http://localhost:3000/users");
+            snprintf(url, sizeof url, "%s/%s", host, param);
             break;
         case PUT:
             printf("PUT:%s\n", fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
-            snprintf(url, sizeof url, "http://localhost:3000/users/%d", id);
+            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
             break;
         case DELETE:
             printf("DELETE:%d\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            snprintf(url, sizeof url, "http://localhost:3000/users/%d", id);
+            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
             break;
         case ALL:
             printf("ALL:\n");
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            snprintf(url, sizeof url, "http://localhost:3000/users");
+            snprintf(url, sizeof url, "%s/%s", host, param);
             break;
         default:
             return -1;
@@ -155,12 +157,14 @@ int main(void)
     for (int i = 0; i <= 10; i++)
     {
         int method = (i == 10) ? ALL : rand() % ALL;
+        const char *param = "users";
         int id = rand() % 9 + 1;
         char fields[128];
 
-        snprintf(fields, sizeof fields, "{\"id\": %d,\"name\": \"Item #%d\"}", id, id);
+        snprintf(fields, sizeof fields,
+                "{\"id\": %d, \"name\": \"user%d\"}", id, id);
 
-        int res = perform(curl, method, id, fields);
+        int res = perform(curl, method, param, id, fields);
 
         if (res != CURLE_OK)
         {
