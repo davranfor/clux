@@ -51,6 +51,7 @@ enum method
     GET,
     POST,
     PUT,
+    PATCH,
     DELETE,
     ALL 
 };
@@ -106,6 +107,12 @@ static int perform(CURL *curl, enum method method,
         case PUT:
             printf("PUT:%s\n", fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
+            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
+            break;
+        case PATCH:
+            printf("PATCH:%s\n", fields);
+            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
             snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
             break;
