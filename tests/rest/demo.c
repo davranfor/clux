@@ -126,6 +126,12 @@ static int perform(CURL *curl, enum method method,
     return curl_easy_perform(curl);
 }
 
+static void print_error(char *error)
+{
+    error[strcspn(error, "\n")] = 0;
+    puts(error);
+}
+
 int main(void)
 {
     struct data data = {0};
@@ -162,7 +168,7 @@ int main(void)
         char fields[128];
 
         snprintf(fields, sizeof fields,
-                "{\"id\": %d, \"name\": \"user%d\"}", id, id);
+                "{\"id\":%d,\"name\":\"user%d\"}", id, id);
 
         int res = perform(curl, method, param, id, fields);
 
@@ -178,14 +184,13 @@ int main(void)
 
         if (node == NULL)
         {
-            if (strncmp(data.text, "Error:", 6) == 0)
+            if (strncmp(data.text, "Error:", 6))
             {
-                data.text[strcspn(data.text, "\n")] = '\0';
-                puts(data.text);
+                json_print_error(&error);
             }
             else
             {
-                json_print_error(&error);
+                print_error(data.text);
             }
         }
         json_print(node);
