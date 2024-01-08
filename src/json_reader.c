@@ -491,15 +491,15 @@ int json_equal(const json *a, const json *b)
         return 1;
     }
 
-    int depth = 0, proc = 1;
+    int depth = 0, flag = 1;
 
     while ((a != NULL) && (b != NULL))
     {
-        if ((proc == 1) && !equal(a, b, depth))
+        if ((flag == 1) && !equal(a, b, depth))
         {
            return 0;
         }
-        if ((proc == 1) && (a->head != NULL))
+        if ((flag == 1) && (a->head != NULL))
         {
             a = a->head;
             b = b->head;
@@ -509,13 +509,13 @@ int json_equal(const json *a, const json *b)
         {
             a = a->next;
             b = b->next;
-            proc = 1;
+            flag = 1;
         }
         else if (depth-- > 0)
         {
             a = a->parent;
             b = b->parent;
-            proc = 0;
+            flag = 0;
         }
         else
         {
@@ -531,11 +531,11 @@ int json_equal(const json *a, const json *b)
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
-    int depth = 0, proc = 1;
+    int depth = 0, flag = 1;
 
     while (node != NULL)
     {
-        if (proc == 1)
+        if (flag == 1)
         {
             int rc = callback(node, depth, data);
 
@@ -544,7 +544,7 @@ int json_walk(const json *node, json_walk_callback callback, void *data)
                 return rc;
             }
         }
-        if ((proc == 1) && (node->head != NULL))
+        if ((flag == 1) && (node->head != NULL))
         {
             node = node->head;
             depth++;
@@ -552,12 +552,12 @@ int json_walk(const json *node, json_walk_callback callback, void *data)
         else if ((depth > 0) && (node->next != NULL))
         {
             node = node->next;
-            proc = 1;
+            flag = 1;
         }
         else if (depth-- > 0)
         {
             node = node->parent;
-            proc = 0;
+            flag = 0;
         }
         else
         {

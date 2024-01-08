@@ -418,7 +418,7 @@ json *json_push_at(json *parent, json *child, size_t item)
             {
                 parent->head = child;
             }
-            if (node->prev != NULL)
+            else
             {
                 child->prev = node->prev;
                 node->prev->next = child;
