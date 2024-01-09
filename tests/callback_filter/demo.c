@@ -10,13 +10,13 @@
  * json_walk() callback function
  *
  * Return:
- * <= 0 to stop traversing
- *  > 0 to continue
+ *  0 to stop traversing
+ * !0 to continue
  */
 static int sum_numbers_until_null(const json *node, int depth, void *data)
 {
     (void)depth;
-    if (json_is_number(node)) // Returns true for integer and double
+    if (json_is_number(node))
     {
         *(double *)data += json_number(node);
     }
