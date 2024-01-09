@@ -18,24 +18,19 @@ brew install curl
 Compile and run with:
 CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo && ./demo
 
-If you need a json server for testing: 
-
+To install a minimal json server for testing: 
 npm install -g json-server
 
 Create a json file (i.e. db.json):
-
 {
   "users": [
   ]
 }
 
 Run the server:
-
 json-server --watch db.json
 
 Test the server on the browser: http://localhost:3000
-
-More info: https://www.npmjs.com/package/json-server?activeTab=readme 
 */
 
 #include <stdio.h>

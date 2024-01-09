@@ -41,13 +41,13 @@ static char *buffer_resize(json_buffer *buffer, size_t size)
 
 static size_t buffer_next_size(size_t size)
 {
-    size--;
+    size -= 1;
     size |= size >> 1;
     size |= size >> 2;
     size |= size >> 4;
     size |= size >> 8;
     size |= size >> 16;
-    size++;
+    size += 1;
     return size;
 }
 
