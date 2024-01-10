@@ -1,8 +1,8 @@
 {
-    "title": "JSON test",
-    "version": 0.0,
-    "width": 1600,
-    "height": 900,
+    "title": "gtk-json",
+    "version": "0.1",
+    "width": 800,
+    "height": 600,
     "prefer-dark-theme": true
 }
 

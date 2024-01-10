@@ -10,10 +10,6 @@ json *parse_file(const char *path)
         fprintf(stderr, "%s\n", path);
         json_print_error(&error);
     }
-    else
-    {
-        json_print(node);
-    }
     return node;
 }
 
