@@ -83,7 +83,7 @@ const char *json_string(const json *node)
 {
     if ((node == NULL) || (node->type != JSON_STRING))
     {
-        return "";
+        return NULL;
     }
     return node->value.string;
 }

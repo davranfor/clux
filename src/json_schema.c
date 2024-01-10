@@ -587,7 +587,7 @@ static const json *handle_ref(json_schema *schema,
 {
     const char *ref = json_string(rule);
     
-    if (ref[0] != '#')
+    if ((ref == NULL) || (*ref != '#'))
     {
         raise_error(schema, node, rule);
     }
