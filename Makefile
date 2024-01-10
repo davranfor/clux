@@ -54,5 +54,5 @@ uninstall:
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(TARGET)
-	find . -name "demo" -exec rm -f {} +
+	find . \( -name "*.o" -o -name "demo" \) -exec rm -f {} +
 
