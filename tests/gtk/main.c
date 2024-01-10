@@ -108,9 +108,9 @@ static GActionEntry app_entries[] =
 
 static void app_create_menu_bar(GtkApplication *app, GtkWidget *window)
 {
-	GMenu *menu = g_menu_new();
+    GMenu *menu = g_menu_new();
 
-	g_menu_append(menu, "About", "app.about");
+    g_menu_append(menu, "About", "app.about");
     g_menu_append(menu, "Quit", "app.quit");
 
     GtkWidget *menu_button = gtk_menu_button_new();
