@@ -29,35 +29,35 @@ make && ./demo
 
 static const json *app_data;
 
-static const char *app_title(void)
+static const char *app_get_title(void)
 {
     const char *title = json_string(json_find(app_data, "title"));
 
     return title != NULL ? title : APP_DEFAULT_TITLE;
 }
 
-static const char *app_version(void)
+static const char *app_get_version(void)
 {
     const char *version = json_string(json_find(app_data, "version"));
 
     return version != NULL ? version : APP_DEFAULT_VERSION;
 }
 
-static int app_width(void)
+static int app_get_width(void)
 {
     int width = (int)json_integer(json_find(app_data, "width"));
 
     return width > 0 ? width : APP_DEFAULT_WIDTH;
 }
 
-static int app_height(void)
+static int app_get_height(void)
 {
     int height = (int)json_integer(json_find(app_data, "height"));
 
     return height > 0 ? height : APP_DEFAULT_HEIGHT;
 }
 
-static int app_prefer_dark_theme(void)
+static int app_get_prefer_dark_theme(void)
 {
     return json_is_true(json_find(app_data, "prefer-dark-theme"));
 }
@@ -79,8 +79,9 @@ static void app_about(GSimpleAction *action, GVariant *parameter, gpointer app)
     (void)parameter;
     (void)app;
 
-    const char *title = app_title();
-    const char *version = app_version();
+    const char *title = app_get_title();
+    const char *version = app_get_version();
+
     char detail[32];
 
     snprintf(detail, sizeof detail, "Version: %s", version);
@@ -157,16 +158,14 @@ static void app_activate(GtkApplication *app, gpointer user_data)
 {
     app_data = user_data;
 
-    if (app_prefer_dark_theme())
-    {
-        g_object_set(gtk_settings_get_default(),
-            "gtk-application-prefer-dark-theme", true, NULL);
-    }
+    g_object_set(gtk_settings_get_default(),
+        "gtk-application-prefer-dark-theme", app_get_prefer_dark_theme(), NULL);
 
     GtkWidget *window = gtk_application_window_new(app);
 
-    gtk_window_set_title(GTK_WINDOW(window), app_title());
-    gtk_window_set_default_size(GTK_WINDOW(window), app_width(), app_height());
+    gtk_window_set_title(GTK_WINDOW(window), app_get_title());
+    gtk_window_set_default_size(GTK_WINDOW(window),
+        app_get_width(), app_get_height());
     gtk_window_set_resizable(GTK_WINDOW(window), false);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_window_destroy), NULL);
 
