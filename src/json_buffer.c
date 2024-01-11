@@ -341,42 +341,37 @@ char *json_indent(const json *node, int indent)
 
 int json_write(const json *node, FILE *file)
 {
-    if (file == NULL)
+    int rc = 0;
+
+    if (file != NULL)
     {
-        return 0;
+        char *str = json_indent(node, 2);
+
+        if (str != NULL)
+        {
+            rc = fputs(str, file) != EOF;
+            free(str);
+        }
     }
-
-    char *str = json_indent(node, 2);
-
-    if (str == NULL)
-    {
-        return 0;
-    }
-
-    int rc = fputs(str, file) != EOF;
-
-    free(str);
     return rc;
 }
 
 int json_write_file(const json *node, const char *path)
 {
-    FILE *file = fopen(path, "w");
-
-    if (file == NULL)
-    {
-        return 0;
-    }
-
+    FILE *file;
     int rc = 0;
-    char *str = json_indent(node, 2);
 
-    if (str != NULL)
+    if ((path != NULL) && (file = fopen(path, "w")))
     {
-        rc = fputs(str, file) != EOF;
-        free(str);
+        char *str = json_indent(node, 2);
+
+        if (str != NULL)
+        {
+            rc = fputs(str, file) != EOF;
+            free(str);
+        }
+        fclose(file);
     }
-    fclose(file);
     return rc;
 }
 
