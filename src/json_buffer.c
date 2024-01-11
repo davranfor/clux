@@ -10,7 +10,7 @@
 #include "json_private.h"
 #include "json_unicode.h"
 
-/* return 0 if buffer_resize() fails */
+/* return 0 if buffer_realloc() fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
 
 static enum json_encode encode = JSON_UTF8;
@@ -27,7 +27,7 @@ void json_set_encode(enum json_encode value)
 
 typedef struct { char *text; size_t length, size; } json_buffer;
 
-static char *buffer_resize(json_buffer *buffer, size_t size)
+static char *buffer_realloc(json_buffer *buffer, size_t size)
 {
     char *text = realloc(buffer->text, size);
 
@@ -51,15 +51,21 @@ static size_t buffer_next_size(size_t size)
     return size;
 }
 
-static json_buffer *buffer_write_sized(json_buffer *buffer, const char *text,
-    size_t length)
+static char *buffer_resize(json_buffer *buffer, size_t length)
 {
     size_t size = buffer->length + length + 1;
 
-    if ((size > buffer->size) && !buffer_resize(buffer, buffer_next_size(size)))
+    if (size > buffer->size)
     {
-        return NULL;
+        return buffer_realloc(buffer, buffer_next_size(size));
     }
+    return buffer->text;
+}
+
+static json_buffer *buffer_write_sized(json_buffer *buffer, const char *text,
+    size_t length)
+{
+    CHECK(buffer_resize(buffer, length));
     memcpy(buffer->text + buffer->length, text, length + 1);
     buffer->length += length;
     return buffer;
@@ -73,12 +79,8 @@ static json_buffer *buffer_write(json_buffer *buffer, const char *text)
 static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 {
     size_t length = (size_t)snprintf(NULL, 0, "%.0f", value);
-    size_t size = buffer->length + length + 1;
 
-    if ((size > buffer->size) && !buffer_resize(buffer, buffer_next_size(size)))
-    {
-        return NULL;
-    }
+    CHECK(buffer_resize(buffer, length));
     snprintf(buffer->text + buffer->length, length + 1, "%.0f", value);
     buffer->length += length;
     return buffer;
@@ -87,12 +89,8 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 static json_buffer *buffer_write_number(json_buffer *buffer, double value)
 {
     size_t length = (size_t)snprintf(NULL, 0, "%.*g", DBL_DECIMAL_DIG, value);
-    size_t size = buffer->length + length + 1;
 
-    if ((size > buffer->size) && !buffer_resize(buffer, buffer_next_size(size)))
-    {
-        return NULL;
-    }
+    CHECK(buffer_resize(buffer, length));
     snprintf(buffer->text + buffer->length, length + 1,
              "%.*g", DBL_DECIMAL_DIG, value);
 
