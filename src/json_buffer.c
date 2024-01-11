@@ -407,15 +407,17 @@ static int buffer_write_path(json_buffer *buffer, const json *node)
 
 static int buffer_path(json_buffer *buffer, const json *node)
 {
-    if (node == NULL)
+    while (node != NULL)
     {
-        return 1;
+        size_t length = buffer->length;
+
+        CHECK(buffer_write_path(buffer, node));
+        string_reverse(buffer->text + length, buffer->length - length);
+        length = buffer->length;
+        node = node->parent;
     }
-    if (!buffer_path(buffer, node->parent))
-    {
-        return 0;
-    }
-    return buffer_write_path(buffer, node);
+    string_reverse(buffer->text, buffer->length);
+    return 1;
 }
 
 char *json_path(const json *node)

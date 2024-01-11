@@ -9,6 +9,7 @@
 #include <string.h>
 #include "json_unicode.h"
 
+/* Check whether a character is an escape code */ 
 int is_esc(const char *str)
 {
     char c = *str;
@@ -122,5 +123,21 @@ int to_ucn(const char *str, char *buf)
     }
     snprintf(buf, sizeof("\\u0123"), "\\u%04x", ucn);
     return length;
+}
+
+/* Reverse bytes in a string given a length */ 
+void string_reverse(char *str, size_t length)
+{
+    if (length <= 1)
+    {
+        return;
+    }
+    for (size_t i = 0, j = length - 1; i < j; i++, j--)
+    {
+        char c = str[i];
+
+        str[i] = str[j];
+        str[j] = c;
+    }
 }
 

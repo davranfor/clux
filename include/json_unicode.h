@@ -55,5 +55,7 @@ int to_esc(const char *, char *);
 int to_mbs(const char *, char *);
 int to_ucn(const char *, char *);
 
+void string_reverse(char *, size_t);
+
 #endif
 
