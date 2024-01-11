@@ -95,14 +95,11 @@ static json_buffer *buffer_write_number(json_buffer *buffer, double value)
              "%.*g", DBL_DECIMAL_DIG, value);
 
     /* Dot followed by trailing zeros are removed when %g is used */
-    size_t end = strspn(buffer->text + buffer->length, "-0123456789");
+    int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 
     buffer->length += length;
-    if (end == length)
-    {
-        return buffer_write(buffer, ".0");
-    }
-    return buffer;
+    /* Write the fractional part if applicable */
+    return done ? buffer : buffer_write(buffer, ".0");
 }
 
 static int buffer_parse(json_buffer *buffer, const char *str)
