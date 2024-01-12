@@ -80,6 +80,7 @@ json *json_find_next(const json *, const char *);
 size_t json_length(const json *);
 size_t json_size(const json *);
 size_t json_offset(const json *);
+size_t json_height(const json *);
 size_t json_depth(const json *);
 int json_compare(const json *, const json *);
 int json_equal(const json *, const json *);

@@ -414,6 +414,26 @@ size_t json_offset(const json *node)
     return offset;
 }
 
+/* json_height helper */
+static int tree_height(const json *node, int depth, void *height)
+{
+    (void)node;
+    if (depth > *(int *)height)
+    {
+        *(int *)height = depth;
+    }
+    return 1;
+}
+
+/* Number of edges from the leaf node to the passed node */
+size_t json_height(const json *node)
+{
+    int height = 0;
+
+    json_walk(node, tree_height, &height);
+    return (size_t)height;
+}
+
 /* Number of edges from the root node to the passed node */
 size_t json_depth(const json *node)
 {
