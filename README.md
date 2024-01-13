@@ -1,4 +1,4 @@
-# clux - Ligtweight json and json-schema library for C
+# clux - json and json-schema library for C
 
 ## Compile and install
 ```
