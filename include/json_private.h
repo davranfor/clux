@@ -21,6 +21,7 @@ struct json
     char *name;
     union json_value value;
     enum json_type type;
+    unsigned size;
 };
 
 #endif

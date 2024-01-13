@@ -207,6 +207,7 @@ int json_is_null(const json *node)
  * gets 'const json *node' as argument and returns the same node.
  * For example calling 'x = json_pointer(node, "");'
  * returns the same node that was passed.
+ * Use it with care.
  */
 json *json_self(const json *node)
 {
@@ -292,7 +293,7 @@ json *json_tail(const json *node)
 /* Locates a child by index */
 json *json_at(const json *root, size_t index)
 {
-    if (root == NULL)
+    if ((root == NULL) || (index >= root->size))
     {
         return NULL;
     }
@@ -387,14 +388,7 @@ size_t json_size(const json *node)
     {
         return 0;
     }
-
-    size_t size = 0;
-
-    for (node = node->head; node != NULL; node = node->next)
-    {
-        size++;
-    }
-    return size;
+    return node->size;
 }
 
 /* Position of the node into an interable */
