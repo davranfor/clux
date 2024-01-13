@@ -470,7 +470,7 @@ json *json_pop(json *child)
 
 json *json_pop_front(json *parent)
 {
-    json *child = json_child(parent);
+    json *child = json_head(parent);
 
     if (child == NULL)
     {
