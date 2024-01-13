@@ -108,7 +108,7 @@ static json *sort(json *top, json_sort_callback callback)
 
 void json_sort(json *root, json_sort_callback callback)
 {
-    if ((root != NULL) && (root->head != NULL))
+    if ((root != NULL) && (root->size > 1))
     {
         json *node = sort(root->head, callback);
 
@@ -125,9 +125,10 @@ void json_sort(json *root, json_sort_callback callback)
 
 void json_reverse(json *root)
 {
-    if ((root != NULL) && (root->head != NULL))
+    if ((root != NULL) && (root->size > 1))
     {
-        json *node = root->head, *prev = NULL;
+        json *node = root->head;
+        json *prev = NULL;
 
         while (node != NULL)
         {
@@ -136,11 +137,8 @@ void json_reverse(json *root)
             node->next = prev;
             node = node->prev;
         }
-        if (prev != NULL)
-        {
-            root->tail = root->head;
-            root->head = prev->prev;
-        }
+        root->tail = root->head;
+        root->head = prev->prev;
     }
 }
 
