@@ -214,7 +214,7 @@ static int test_type(const json *node, const json *rule)
 
         /* 'integer' must validate if type is 'number' */
         return (mask & (1u << type))
-           || ((mask & (1u << JSON_NUMBER)) && (type == JSON_INTEGER));
+           || ((mask & (1u << JSON_DOUBLE)) && (type == JSON_INTEGER));
     }
     return SCHEMA_VALID;
 }
@@ -592,6 +592,7 @@ static const json *handle_ref(json_schema *schema,
         raise_error(schema, node, rule);
     }
 
+    // Suppress cppcheck error checking NULL (raise_error takes care of that)
     // cppcheck-suppress nullPointerRedundantCheck
     const json *next = ref[1] ? json_pointer(rule, ref + 1) : schema->root;
 

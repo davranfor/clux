@@ -205,7 +205,7 @@ static int try_set_number(json *node, const char *left, const char *right)
     }
     else
     {
-        node->type = JSON_NUMBER;
+        node->type = JSON_DOUBLE;
     }
     node->value.number = number;
     return 1;

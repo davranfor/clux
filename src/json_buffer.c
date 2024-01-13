@@ -86,7 +86,7 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
     return buffer;
 }
 
-static json_buffer *buffer_write_number(json_buffer *buffer, double value)
+static json_buffer *buffer_write_double(json_buffer *buffer, double value)
 {
     size_t length = (size_t)snprintf(NULL, 0, "%.*g", DBL_DECIMAL_DIG, value);
 
@@ -166,8 +166,8 @@ static int buffer_print(json_buffer *buffer, const json *node)
         case JSON_INTEGER:
             CHECK(buffer_write_integer(buffer, node->value.number));
             return 1;
-        case JSON_NUMBER:
-            CHECK(buffer_write_number(buffer, node->value.number));
+        case JSON_DOUBLE:
+            CHECK(buffer_write_double(buffer, node->value.number));
             return 1;
         case JSON_BOOLEAN:
             CHECK(buffer_write(buffer, node->value.number != 0 ? "true" : "false"));

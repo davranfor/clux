@@ -79,6 +79,15 @@ double json_integer(const json *node)
     return trunc(node->value.number);
 }
 
+double json_double(const json *node)
+{
+    if ((node == NULL) || (node->type == JSON_STRING))
+    {
+        return 0.0;
+    }
+    return node->value.number;
+}
+
 double json_number(const json *node)
 {
     if ((node == NULL) || (node->type == JSON_STRING))
@@ -148,13 +157,13 @@ int json_is_unsigned(const json *node)
 int json_is_double(const json *node)
 {
     return (node != NULL)
-        && (node->type == JSON_NUMBER);
+        && (node->type == JSON_DOUBLE);
 }
 
 int json_is_number(const json *node)
 {
     return (node != NULL)
-       && ((node->type == JSON_INTEGER) || (node->type == JSON_NUMBER));
+       && ((node->type == JSON_INTEGER) || (node->type == JSON_DOUBLE));
 }
 
 int json_is_boolean(const json *node)
