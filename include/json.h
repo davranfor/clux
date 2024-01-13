@@ -42,9 +42,7 @@ void json_print_error(const json_error *);
 // Reader
 // ============================================================================
 enum json_type json_type(const json *);
-enum json_type json_typeof(const json *);
 const char *json_type_name(const json *);
-const char *json_typeof_name(const json *);
 const char *json_key(const json *);
 const char *json_name(const json *);
 const char *json_string(const json *);

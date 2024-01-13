@@ -413,7 +413,6 @@ static int buffer_path(json_buffer *buffer, const json *node)
 
         CHECK(buffer_write_path(buffer, node));
         string_reverse(buffer->text + length, buffer->length - length);
-        length = buffer->length;
         node = node->parent;
     }
     string_reverse(buffer->text, buffer->length);

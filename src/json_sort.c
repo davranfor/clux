@@ -127,8 +127,7 @@ void json_reverse(json *root)
 {
     if ((root != NULL) && (root->size > 1))
     {
-        json *node = root->head;
-        json *prev = NULL;
+        json *node = root->head, *prev;
 
         while (node != NULL)
         {

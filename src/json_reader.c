@@ -33,27 +33,9 @@ enum json_type json_type(const json *node)
     return node->type;
 }
 
-/**
- * As required by the standard:
- * Returns JSON_NUMBER for JSON_INTEGER
- */
-enum json_type json_typeof(const json *node)
-{
-    if (node == NULL)
-    {
-        return JSON_UNDEFINED;
-    }
-    return node->type == JSON_INTEGER ? JSON_NUMBER : node->type;
-}
-
 const char *json_type_name(const json *node)
 {
     return type_name[json_type(node)];
-}
-
-const char *json_typeof_name(const json *node)
-{
-    return type_name[json_typeof(node)];
 }
 
 /**

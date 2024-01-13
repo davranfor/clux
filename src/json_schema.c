@@ -592,6 +592,7 @@ static const json *handle_ref(json_schema *schema,
         raise_error(schema, node, rule);
     }
 
+    // cppcheck-suppress nullPointerRedundantCheck
     const json *next = ref[1] ? json_pointer(rule, ref + 1) : schema->root;
 
     if (!json_is_object(next))
