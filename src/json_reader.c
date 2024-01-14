@@ -5,7 +5,6 @@
  */
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -175,19 +174,17 @@ int json_is_null(const json *node)
 }
 
 /**
- * Silence compiler.
  * Useful to return a non constant 'json *node' when a function
  * gets 'const json *node' as argument and returns the same node.
  * For example calling 'x = json_pointer(node, "");'
  * returns the same node that was passed.
  * Use it with care.
  */
-json *json_self(const json *node)
-{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
+json *json_self(const json *node)
+{
     return (json *)node;
-#pragma GCC diagnostic pop
 }
 
 json *json_root(const json *node)
@@ -200,11 +197,9 @@ json *json_root(const json *node)
     {
         node = node->parent;
     }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
     return (json *)node;
-#pragma GCC diagnostic pop
 }
+#pragma GCC diagnostic pop
 
 json *json_parent(const json *node)
 {
