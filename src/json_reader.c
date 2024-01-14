@@ -458,7 +458,7 @@ static int equal(const json *a, const json *b, int depth)
             return 0;
         }
     }
-    if (a->type != b->type)
+    if ((a->type != b->type) || (a->size != b->size))
     {
         return 0;
     }
