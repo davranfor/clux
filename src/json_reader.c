@@ -182,11 +182,12 @@ int json_is_null(const json *node)
  * returns the same node that was passed.
  * Use it with care.
  */
-#define self(node) ((void *)(uintptr_t)(const void *)node)
-
 json *json_self(const json *node)
 {
-    return self(node);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    return (json *)node;
+#pragma GCC diagnostic pop
 }
 
 json *json_root(const json *node)
@@ -199,7 +200,10 @@ json *json_root(const json *node)
     {
         node = node->parent;
     }
-    return self(node);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    return (json *)node;
+#pragma GCC diagnostic pop
 }
 
 json *json_parent(const json *node)

@@ -262,21 +262,21 @@ static json *create_node(void)
 
 /* parse() helpers - node must exist */
 
-static json *create_child(json *parent)
+static json *create_head(json *parent)
 {
-    json *child = calloc(1, sizeof(struct json));
+    json *head = calloc(1, sizeof(struct json));
 
-    if (child != NULL)
+    if (head != NULL)
     {
-        child->parent = parent;
-        parent->head = child;
-        parent->tail = child;
+        head->parent = parent;
+        parent->head = head;
+        parent->tail = head;
         parent->size = 1;
     }
-    return child;
+    return head;
 }
 
-static json *delete_child(json *parent)
+static json *delete_head(json *parent)
 {
     free(parent->head);
     parent->head = NULL;
@@ -332,7 +332,7 @@ static const char *parse(json *node, const char *left)
                     return token;
                 }
                 node->type = token_type(*token);
-                node = create_child(node);
+                node = create_head(node);
                 break;
             case ':':
                 if (left == token)
@@ -391,7 +391,7 @@ static const char *parse(json *node, const char *left)
                         /* Remove empty iterable: {} or [] */
                         if ((node->prev == NULL) && (node->name == NULL))
                         {
-                            node = delete_child(node->parent);
+                            node = delete_head(node->parent);
                             break;
                         }
                         return left;
