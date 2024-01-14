@@ -33,7 +33,7 @@ map[] =
     {{"string",   "strings"  }, json_is_string  },
     {{"integer",  "integers" }, json_is_integer },
     {{"unsigned", "unsigneds"}, json_is_unsigned},
-    {{"double",   "doubles"  }, json_is_double  },
+    {{"real",     "reals"    }, json_is_real    },
     {{"number",   "numbers"  }, json_is_number  },
     {{"boolean",  "booleans" }, json_is_boolean },
     {{"null",     "nulls"    }, json_is_null    },

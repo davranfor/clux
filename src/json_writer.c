@@ -135,9 +135,9 @@ json *json_new_integer(const char *name, double value)
     return new_number(JSON_INTEGER, name, trunc(value));
 }
 
-json *json_new_double(const char *name, double value)
+json *json_new_real(const char *name, double value)
 {
-    return new_number(JSON_DOUBLE, name, value);
+    return new_number(JSON_REAL, name, value);
 }
 
 json *json_new_boolean(const char *name, int value)
@@ -261,13 +261,13 @@ json *json_set_integer(json *node, double value)
     return set_number(node, JSON_INTEGER, trunc(value));
 }
 
-json *json_set_double(json *node, double value)
+json *json_set_real(json *node, double value)
 {
     if (node == NULL)
     {
         return NULL;
     }
-    return set_number(node, JSON_DOUBLE, value);
+    return set_number(node, JSON_REAL, value);
 }
 
 json *json_set_boolean(json *node, int value)

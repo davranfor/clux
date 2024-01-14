@@ -19,7 +19,7 @@ static const char *type_name[] =
     "Array",
     "String",
     "Integer",
-    "Number",
+    "Real",
     "Boolean",
     "Null",
 };
@@ -68,24 +68,6 @@ const char *json_string(const json *node)
         return NULL;
     }
     return node->value.string;
-}
-
-double json_integer(const json *node)
-{
-    if ((node == NULL) || (node->type == JSON_STRING))
-    {
-        return 0.0;
-    }
-    return trunc(node->value.number);
-}
-
-double json_double(const json *node)
-{
-    if ((node == NULL) || (node->type == JSON_STRING))
-    {
-        return 0.0;
-    }
-    return node->value.number;
 }
 
 double json_number(const json *node)
@@ -154,16 +136,16 @@ int json_is_unsigned(const json *node)
         && (node->value.number >= 0);
 }
 
-int json_is_double(const json *node)
+int json_is_real(const json *node)
 {
     return (node != NULL)
-        && (node->type == JSON_DOUBLE);
+        && (node->type == JSON_REAL);
 }
 
 int json_is_number(const json *node)
 {
     return (node != NULL)
-       && ((node->type == JSON_INTEGER) || (node->type == JSON_DOUBLE));
+       && ((node->type == JSON_INTEGER) || (node->type == JSON_REAL));
 }
 
 int json_is_boolean(const json *node)

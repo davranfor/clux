@@ -16,7 +16,7 @@ enum json_type
     JSON_ARRAY,
     JSON_STRING,
     JSON_INTEGER,
-    JSON_DOUBLE,
+    JSON_REAL,
     JSON_BOOLEAN,
     JSON_NULL,
 };
@@ -46,8 +46,6 @@ const char *json_type_name(const json *);
 const char *json_key(const json *);
 const char *json_name(const json *);
 const char *json_string(const json *);
-double json_integer(const json *);
-double json_double(const json *);
 double json_number(const json *);
 int json_boolean(const json *);
 int json_is_any(const json *);
@@ -58,7 +56,7 @@ int json_is_array(const json *);
 int json_is_string(const json *);
 int json_is_integer(const json *);
 int json_is_unsigned(const json *);
-int json_is_double(const json *);
+int json_is_real(const json *);
 int json_is_number(const json *);
 int json_is_boolean(const json *);
 int json_is_true(const json *);
@@ -92,7 +90,7 @@ json *json_new_array(const char *);
 json *json_new_format(const char *, const char *, ...);
 json *json_new_string(const char *, const char *);
 json *json_new_integer(const char *, double);
-json *json_new_double(const char *, double);
+json *json_new_real(const char *, double);
 json *json_new_boolean(const char *, int);
 json *json_new_null(const char *);
 json *json_set_name(json *, const char *);
@@ -101,7 +99,7 @@ json *json_set_array(json *);
 json *json_set_format(json *, const char *, ...);
 json *json_set_string(json *, const char *);
 json *json_set_integer(json *, double);
-json *json_set_double(json *, double);
+json *json_set_real(json *, double);
 json *json_set_boolean(json *, int);
 json *json_set_null(json *);
 json *json_push_front(json *, json *);
