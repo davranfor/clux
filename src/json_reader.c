@@ -182,11 +182,11 @@ int json_is_null(const json *node)
  * returns the same node that was passed.
  * Use it with care.
  */
+#define self(node) ((void *)(uintptr_t)(const void *)node)
+
 json *json_self(const json *node)
 {
-    uintptr_t cast = (uintptr_t)(const void *)node;
-
-    return (void *)cast;
+    return self(node);
 }
 
 json *json_root(const json *node)
@@ -195,18 +195,11 @@ json *json_root(const json *node)
     {
         return NULL;
     }
-
-    json *root = node->parent;
-
-    if (root == NULL)
+    while (node->parent != NULL)
     {
-        return json_self(node);
+        node = node->parent;
     }
-    while (root->parent != NULL)
-    {
-        root = root->parent;
-    }
-    return root;
+    return self(node);
 }
 
 json *json_parent(const json *node)
