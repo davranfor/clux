@@ -13,7 +13,6 @@
 #if DBL_DECIMAL_DIG
 #define DEC_DIG DBL_DECIMAL_DIG
 #else
-#warning "heyy"
 #define DEC_DIG (DBL_DIG + 2)
 #endif
 
