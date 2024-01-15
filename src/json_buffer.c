@@ -10,7 +10,7 @@
 #include "json_private.h"
 #include "json_unicode.h"
 
-#if DBL_DECIMAL_DIG
+#ifdef DBL_DECIMAL_DIG
 #define DEC_DIG DBL_DECIMAL_DIG
 #else
 #define DEC_DIG (DBL_DIG + 2)

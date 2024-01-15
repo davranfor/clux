@@ -9,7 +9,7 @@
 #include <string.h>
 #include "json_unicode.h"
 
-/* Check whether a character is an escape code */ 
+/* Check whether a char is an escape code */ 
 int is_esc(const char *str)
 {
     char c = *str;
@@ -18,14 +18,14 @@ int is_esc(const char *str)
         || (c == 'b')  || (c == 'f') || (c == 'n') || (c == 'r') || (c == 't');
 }
 
-/* Check whether a character is an "Universal character name" */
+/* Check wether a sequence of chars is an "Universal character name" */
 int is_ucn(const char *str)
 {
-    return ((*str++) == 'u')
-        && is_xdigit(*str++)
-        && is_xdigit(*str++)
-        && is_xdigit(*str++)
-        && is_xdigit(*str);
+    return (('u') == str[0])
+        && is_xdigit(str[1])
+        && is_xdigit(str[2])
+        && is_xdigit(str[3])
+        && is_xdigit(str[4]);
 }
 
 /* Converts char to escape sequence */
@@ -125,7 +125,7 @@ int to_ucn(const char *str, char *buf)
     return length;
 }
 
-/* Reverse bytes in a string given a length */ 
+/* Reverse chars of a string given a length */ 
 void string_reverse(char *str, size_t length)
 {
     if (length <= 1)
