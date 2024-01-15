@@ -391,21 +391,18 @@ static int buffer_write_path(json_buffer *buffer, const json *node)
     {
         CHECK(buffer_write(buffer, "$"));
     }
+    else if (node->name != NULL)
+    {
+        CHECK(buffer_write(buffer, "[\""));
+        CHECK(buffer_parse(buffer, node->name));
+        CHECK(buffer_write(buffer, "\"]"));
+    }
     else
     {
-        if (node->name != NULL)
-        {
-            CHECK(buffer_write(buffer, "[\""));
-            CHECK(buffer_parse(buffer, node->name));
-            CHECK(buffer_write(buffer, "\"]"));
-        }
-        if (node->parent->type == JSON_ARRAY)
-        {
-            char str[16];
+        char str[16];
 
-            snprintf(str, sizeof str, "[%zu]", json_offset(node));
-            CHECK(buffer_write(buffer, str));
-        }
+        snprintf(str, sizeof str, "[%zu]", json_offset(node));
+        CHECK(buffer_write(buffer, str));
     }
     return 1;
 }
