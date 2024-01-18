@@ -77,7 +77,6 @@ static void app_about(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
     (void)action;
     (void)parameter;
-    (void)app;
 
     const char *title = app_get_title();
     const char *version = app_get_version();

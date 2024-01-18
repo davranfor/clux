@@ -75,7 +75,7 @@ static size_t set_tokens(struct token *tokens, const char *text)
 struct query
 {
     int unique, iterable;
-    struct {int optional, unique;} childs;
+    struct { int optional, unique; } childs;
     int (*func[2])(const json *);
 };
 
