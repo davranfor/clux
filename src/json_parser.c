@@ -45,7 +45,7 @@ static const char *scan_quoted(const char *str)
                 str += 2;
                 continue;
             }
-            if (is_ucn(str + 1))
+            if (is_ues(str + 1))
             {
                 str += 6;
                 continue;

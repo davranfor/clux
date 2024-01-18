@@ -18,8 +18,8 @@ int is_esc(const char *str)
         || (c == 'b')  || (c == 'f') || (c == 'n') || (c == 'r') || (c == 't');
 }
 
-/* Check wether a sequence of chars is an "Universal character name" */
-int is_ucn(const char *str)
+/* Check wether a sequence of chars is an unicode escape sequence */
+int is_ues(const char *str)
 {
     return (('u') == str[0])
         && is_xdigit(str[1])
@@ -43,7 +43,7 @@ int to_esc(const char *str, char *buf)
 }
 
 /**
- * Converts UCN to multibyte sequence
+ * Converts unicode escape sequence to multibyte sequence
  * Returns the length of the multibyte in bytes
  */
 int to_mbs(const char *str, char *buf)
@@ -75,12 +75,12 @@ int to_mbs(const char *str, char *buf)
 }
 
 /**
- * Converts multibyte sequence to UCN
+ * Converts multibyte sequence to unicode escape sequence
  * Returns the length of the multibyte in bytes
  */
-int to_ucn(const char *str, char *buf)
+int to_ues(const char *str, char *buf)
 {
-    int ucn = str[0];
+    int ues = str[0];
     int length = 1;
 
     if ((str[0] & 0x80) == 0)
@@ -91,7 +91,7 @@ int to_ucn(const char *str, char *buf)
     {
         if (str[1] != '\0')
         {
-            ucn = ((str[0] & 0x1f) << 6)
+            ues = ((str[0] & 0x1f) << 6)
                 | ((str[1] & 0x3f) << 0);
             length = 2;
         }
@@ -100,7 +100,7 @@ int to_ucn(const char *str, char *buf)
     {
         if ((str[1] != '\0') && (str[2] != '\0'))
         {
-            ucn = ((str[0] & 0x0f) << 12)
+            ues = ((str[0] & 0x0f) << 12)
                 | ((str[1] & 0x3f) << 6)
                 | ((str[2] & 0x3f) << 0);
             length = 3;
@@ -111,17 +111,17 @@ int to_ucn(const char *str, char *buf)
         if ((str[1] != '\0') && (str[2] != '\0') && (str[3] != '\0'))
         {
             /*
-            JSON UCNs are restricted to 3 bytes so it can not be represented as
-            ucn = ((str[0] & 0x07) << 18)
+            UES are restricted to 3 bytes and can not be represented as
+            ues = ((str[0] & 0x07) << 18)
                 | ((str[1] & 0x3f) << 12)
                 | ((str[2] & 0x3f) << 6)
                 | ((str[3] & 0x3f) << 0);
             */
-            ucn = 0xfffd; // Replacement character �
+            ues = 0xfffd; // Replacement character �
             length = 4;
         }
     }
-    snprintf(buf, sizeof("\\u0123"), "\\u%04x", ucn);
+    snprintf(buf, sizeof("\\u0123"), "\\u%04x", ues);
     return length;
 }
 

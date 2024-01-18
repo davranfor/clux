@@ -135,11 +135,11 @@ static int buffer_parse(json_buffer *buffer, const char *str)
         }
         else if (is_cntrl(*str) || ((encode == JSON_ASCII) && !is_ascii(*str)))
         {
-            char ucn[sizeof("\\u0123")] = "";
-            int length = to_ucn(str, ucn);
+            char ues[sizeof("\\u0123")] = "";
+            int length = to_ues(str, ues);
 
             CHECK(buffer_write_sized(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_write_sized(buffer, ucn, 6));
+            CHECK(buffer_write_sized(buffer, ues, 6));
             str += length;
             ptr = str;
         }
