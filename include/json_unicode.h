@@ -49,6 +49,8 @@ static inline int is_space(int c)
     return (c == ' ') || (c == '\n') || (c == '\r') || (c == '\t');
 }
 
+size_t special_chars(const char *);
+
 int is_esc(const char *);
 int is_ues(const char *);
 int to_esc(const char *, char *);

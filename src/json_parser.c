@@ -38,21 +38,16 @@ static const char *scan_quoted(const char *str)
 {
     while ((*str != '"') && !is_cntrl(*str))
     {
-        if (*str == '\\')
+        if (*str++ == '\\')
         {
-            if (is_esc(str + 1))
+            size_t size = special_chars(str);
+
+            if (size == 0)
             {
-                str += 2;
-                continue;
+                break;
             }
-            if (is_ues(str + 1))
-            {
-                str += 6;
-                continue;
-            }
-            break;
+            str += size;
         }
-        str++;
     }
     return str;
 }

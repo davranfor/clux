@@ -9,23 +9,28 @@
 #include <string.h>
 #include "json_unicode.h"
 
-/* Check whether a char is an escape code */ 
-int is_esc(const char *str)
+/* Returns the number of chars of a sequence or 0 on fail */
+size_t special_chars(const char *str)
 {
-    char c = *str;
-
-    return (c == '\\') || (c == '/') || (c == '"')
-        || (c == 'b')  || (c == 'f') || (c == 'n') || (c == 'r') || (c == 't');
-}
-
-/* Check wether a sequence of chars is an unicode escape sequence */
-int is_ues(const char *str)
-{
-    return (('u') == str[0])
-        && is_xdigit(str[1])
-        && is_xdigit(str[2])
-        && is_xdigit(str[3])
-        && is_xdigit(str[4]);
+    switch (str[0])
+    {
+        case '\\':
+        case '/' :
+        case '"' :
+        case 'b' :
+        case 'f' :
+        case 'n' :
+        case 'r' :
+        case 't' :
+            return 1;
+        case 'u' :
+            return is_xdigit(str[1])
+                && is_xdigit(str[2])
+                && is_xdigit(str[3])
+                && is_xdigit(str[4]) ? 5 : 0;
+        default:
+            return 0;
+    }   
 }
 
 /* Converts char to escape sequence */
