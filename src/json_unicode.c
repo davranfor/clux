@@ -24,34 +24,23 @@ size_t special_chars(const char *str)
         case 't' :
             return 1;
         case 'u' :
-            return is_xdigit(str[1])
-                && is_xdigit(str[2])
-                && is_xdigit(str[3])
-                && is_xdigit(str[4]) ? 5 : 0;
+            return
+            (
+                is_xdigit(str[1]) &&
+                is_xdigit(str[2]) &&
+                is_xdigit(str[3]) &&
+                is_xdigit(str[4])
+            ) ? 5 : 0;
         default:
             return 0;
     }   
-}
-
-/* Converts char to escape sequence */
-int to_esc(const char *str, char *buf)
-{
-    switch (*str)
-    {
-        case 'b': *buf = '\b'; return 1;
-        case 'f': *buf = '\f'; return 1;
-        case 'n': *buf = '\n'; return 1;
-        case 'r': *buf = '\r'; return 1;
-        case 't': *buf = '\t'; return 1;
-        default : *buf = *str; return 1;
-    }
 }
 
 /**
  * Converts unicode escape sequence to multibyte sequence
  * Returns the length of the multibyte in bytes
  */
-int to_mbs(const char *str, char *buf)
+static size_t decode_hex(const char *str, char *buf)
 {
     char hex[5] = "";
 
@@ -79,14 +68,29 @@ int to_mbs(const char *str, char *buf)
     }
 }
 
+/* Writes sequence to string */
+size_t decode_special_chars(const char *str, char *buf, size_t *size)
+{
+    switch (*str)
+    {
+        default : *buf = *str; *size= 1; return 1;
+        case 'b': *buf = '\b'; *size= 1; return 1;
+        case 'f': *buf = '\f'; *size= 1; return 1;
+        case 'n': *buf = '\n'; *size= 1; return 1;
+        case 'r': *buf = '\r'; *size= 1; return 1;
+        case 't': *buf = '\t'; *size= 1; return 1;
+        case 'u': *size = 5; return decode_hex(str + 1, buf);
+    }
+}
+
 /**
  * Converts multibyte sequence to unicode escape sequence
  * Returns the length of the multibyte in bytes
  */
-int to_ues(const char *str, char *buf)
+size_t encode_special_chars(const char *str, char *buf)
 {
+    size_t length = 1;
     int ues = str[0];
-    int length = 1;
 
     if ((str[0] & 0x80) == 0)
     {

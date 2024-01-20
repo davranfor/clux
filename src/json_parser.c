@@ -124,16 +124,10 @@ static char *new_string(const char *str, const char *end)
     {
         if (*str == '\\')
         {
-            if (str[1] == 'u')
-            {
-                ptr += to_mbs(str + 2, ptr);
-                str += 6;
-            }
-            else
-            {
-                ptr += to_esc(str + 1, ptr);
-                str += 2;
-            }
+            size_t chars;
+
+            ptr += decode_special_chars(++str, ptr, &chars);
+            str += chars;
         }
         else
         {
