@@ -110,8 +110,7 @@ error:
 /* Allocates space for a name or a string value escaping special characters */
 static char *new_string(const char *str, const char *end)
 {
-    size_t size = (size_t)(end - str) + 1;
-    char *buf = malloc(size);
+    char *buf = malloc((size_t)(end - str) + 1);
 
     if (buf == NULL)
     {
@@ -124,10 +123,10 @@ static char *new_string(const char *str, const char *end)
     {
         if (*str == '\\')
         {
-            size_t chars;
+            size_t size;
 
-            ptr += decode_special_chars(++str, ptr, &chars);
-            str += chars;
+            ptr += decode_special_chars(++str, ptr, &size);
+            str += size;
         }
         else
         {
