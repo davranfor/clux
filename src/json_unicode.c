@@ -40,7 +40,7 @@ size_t special_chars(const char *str)
  * Converts unicode escape sequence to multibyte sequence
  * Returns the length of the multibyte in bytes
  */
-static size_t decode_hex(const char *str, char *buf)
+static size_t decode_ues(const char *str, char *buf)
 {
     char hex[5] = "";
 
@@ -79,7 +79,23 @@ size_t decode_special_chars(const char *str, char *buf, size_t *size)
         case 'n': *buf = '\n'; *size= 1; return 1;
         case 'r': *buf = '\r'; *size= 1; return 1;
         case 't': *buf = '\t'; *size= 1; return 1;
-        case 'u': *size = 5; return decode_hex(str + 1, buf);
+        case 'u': *size = 5; return decode_ues(str + 1, buf);
+    }
+}
+
+/* Converts escape to char  */
+char encode_esc(const char *str)
+{
+    switch (*str)
+    {
+        case '\b': return 'b';
+        case '\f': return 'f';
+        case '\n': return 'n';
+        case '\r': return 'r';
+        case '\t': return 't';
+        case '"' : return '"';
+        case '\\': return '\\';
+        default  : return '\0';
     }
 }
 
@@ -87,7 +103,7 @@ size_t decode_special_chars(const char *str, char *buf, size_t *size)
  * Converts multibyte sequence to unicode escape sequence
  * Returns the length of the multibyte in bytes
  */
-size_t encode_special_chars(const char *str, char *buf)
+size_t encode_ues(const char *str, char *buf)
 {
     size_t length = 1;
     int ues = str[0];

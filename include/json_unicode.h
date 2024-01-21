@@ -51,7 +51,8 @@ static inline int is_space(int c)
 
 size_t special_chars(const char *);
 size_t decode_special_chars(const char *, char *, size_t *);
-size_t encode_special_chars(const char *, char *);
+char encode_esc(const char *);
+size_t encode_ues(const char *, char *);
 
 void string_reverse(char *, size_t);
 

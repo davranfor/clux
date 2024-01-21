@@ -112,20 +112,9 @@ static int buffer_parse(json_buffer *buffer, const char *str)
 
     while (*str != '\0')
     {
-        char chr = '\0';
+        char chr = encode_esc(str);
 
-        switch (*str)
-        {
-            case '\b': chr = 'b' ; break;
-            case '\f': chr = 'f' ; break;
-            case '\n': chr = 'n' ; break;
-            case '\r': chr = 'r' ; break;
-            case '\t': chr = 't' ; break;
-            case '"' : chr = '"' ; break;
-            case '\\': chr = '\\'; break;
-            default: break;
-        }
-        if (chr != '\0')
+        if (chr != 0)
         {
             const char esc[] = {'\\', chr, '\0'};
 
@@ -136,7 +125,7 @@ static int buffer_parse(json_buffer *buffer, const char *str)
         else if (is_cntrl(*str) || ((encode == JSON_ASCII) && !is_ascii(*str)))
         {
             char ues[sizeof("\\u0123")] = "";
-            size_t length = encode_special_chars(str, ues);
+            size_t length = encode_ues(str, ues);
 
             CHECK(buffer_write_sized(buffer, ptr, (size_t)(str - ptr)));
             CHECK(buffer_write_sized(buffer, ues, 6));
