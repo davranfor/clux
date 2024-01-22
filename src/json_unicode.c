@@ -94,7 +94,7 @@ char encode_esc(const char *str)
         case '\n': return 'n';
         case '\r': return 'r';
         case '\t': return 't';
-        case '"' : return '"';
+        case '\"': return '"';
         case '\\': return '\\';
         default  : return '\0';
     }

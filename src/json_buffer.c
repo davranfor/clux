@@ -114,7 +114,7 @@ static int buffer_parse(json_buffer *buffer, const char *str)
     {
         char chr = encode_esc(str);
 
-        if (chr != 0)
+        if (chr != '\0')
         {
             const char esc[] = {'\\', chr, '\0'};
 

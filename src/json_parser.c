@@ -129,11 +129,12 @@ static char *new_string(const char *str, const char *end)
     {
         if (str[0] != '\\')
         {
-            *ptr++ = *str++;
+            *ptr++ = *str;
+            str += 1;
         }
         else if (str[1] != 'u')
         {
-            *ptr = decode_esc(str + 1);
+            *ptr++ = decode_esc(str + 1);
             str += 2;
         }
         else
