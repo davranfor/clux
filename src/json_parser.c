@@ -38,16 +38,22 @@ static const char *scan_quoted(const char *str)
 {
     while ((*str != '"') && !is_cntrl(*str))
     {
-        size_t inc = (str[0] != '\\') ? 1
-                    : is_esc(str + 1) ? 2
-                    : is_ues(str + 1) ? 6
-                    : 0;
-
-        if (inc == 0)
+        if (str[0] != '\\')
+        {
+            str += 1;
+        }
+        else if (is_esc(str + 1))
+        {
+            str += 2;
+        }
+        else if (is_ues(str + 1))
+        {
+            str += 6;
+        }
+        else
         {
             break;
         }
-        str += inc;
     }
     return str;
 }
@@ -125,15 +131,15 @@ static char *new_string(const char *str, const char *end)
         {
             *ptr++ = *str++;
         }
-        else if (str[1] == 'u')
-        {
-            ptr += decode_ues(str + 2, ptr);
-            str += 6;
-        }
-        else
+        else if (str[1] != 'u')
         {
             *ptr = decode_esc(str + 1);
             str += 2;
+        }
+        else
+        {
+            ptr += decode_ues(str + 2, ptr);
+            str += 6;
         }
     }
     *ptr = '\0';
