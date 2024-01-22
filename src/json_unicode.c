@@ -9,8 +9,8 @@
 #include <string.h>
 #include "json_unicode.h"
 
-/* Returns the number of chars of a sequence or 0 on fail */
-size_t special_chars(const char *str)
+/* Returns 1 on escape code or 0 otherwise */
+int is_esc(const char *str)
 {
     switch (str[0])
     {
@@ -23,24 +23,40 @@ size_t special_chars(const char *str)
         case 'r' :
         case 't' :
             return 1;
-        case 'u' :
-            return
-            (
-                is_xdigit(str[1]) &&
-                is_xdigit(str[2]) &&
-                is_xdigit(str[3]) &&
-                is_xdigit(str[4])
-            ) ? 5 : 0;
-        default:
+        default  :
             return 0;
-    }   
+    }
+}
+
+/* Returns 1 on unicode escape sequence or 0 otherwise */
+int is_ues(const char *str)
+{
+    return (('u') == str[0])
+        && is_xdigit(str[1])
+        && is_xdigit(str[2])
+        && is_xdigit(str[3])
+        && is_xdigit(str[4]);
+}
+
+/* Decode escape code and return its value */
+char decode_esc(const char *str)
+{
+    switch (*str)
+    {
+        case 'b': return '\b';
+        case 'f': return '\f';
+        case 'n': return '\n';
+        case 'r': return '\r';
+        case 't': return '\t';
+        default : return *str;
+    }
 }
 
 /**
  * Converts unicode escape sequence to multibyte sequence
  * Returns the length of the multibyte in bytes
  */
-static size_t decode_ues(const char *str, char *buf)
+size_t decode_ues(const char *str, char *buf)
 {
     char hex[5] = "";
 
@@ -65,21 +81,6 @@ static size_t decode_ues(const char *str, char *buf)
         buf[1] = (char)(0x80 | ((codepoint >>  6) & 0x3f));
         buf[2] = (char)(0x80 | ((codepoint >>  0) & 0x3f));
         return 3;
-    }
-}
-
-/* Writes sequence to string */
-size_t decode_special_chars(const char *str, char *buf, size_t *size)
-{
-    switch (*str)
-    {
-        default : *buf = *str; *size= 1; return 1;
-        case 'b': *buf = '\b'; *size= 1; return 1;
-        case 'f': *buf = '\f'; *size= 1; return 1;
-        case 'n': *buf = '\n'; *size= 1; return 1;
-        case 'r': *buf = '\r'; *size= 1; return 1;
-        case 't': *buf = '\t'; *size= 1; return 1;
-        case 'u': *size = 5; return decode_ues(str + 1, buf);
     }
 }
 
