@@ -532,11 +532,11 @@ static char *read_file_from_path(const char *path)
 
     char *str = NULL;
 
-    if (fseek(file, 0L, SEEK_END) != -1)
+    if (fseek(file, 0L, SEEK_END) == 0)
     {
         long size = ftell(file);
 
-        if ((size != -1) && (fseek(file, 0L, SEEK_SET) != -1))
+        if ((size != -1L) && (fseek(file, 0L, SEEK_SET) == 0))
         {
             str = read_file(file, (size_t)size);
         }
