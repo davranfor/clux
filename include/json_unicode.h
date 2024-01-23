@@ -50,11 +50,12 @@ static inline int is_space(int c)
 }
 
 int is_esc(const char *);
-int is_ues(const char *);
 char decode_esc(const char *);
-size_t decode_ues(const char *, char *);
 char encode_esc(const char *);
-size_t encode_ues(const char *, char *);
+
+int is_hex(const char *);
+size_t decode_hex(const char *, char *);
+size_t encode_hex(const char *, char *);
 
 void string_reverse(char *, size_t);
 

@@ -124,11 +124,11 @@ static int buffer_parse(json_buffer *buffer, const char *str)
         }
         else if (is_cntrl(*str) || ((encode == JSON_ASCII) && !is_ascii(*str)))
         {
-            char ues[sizeof("\\u0123")] = {'\0'};
-            size_t length = encode_ues(str, ues);
+            char hex[sizeof("\\u0123")] = {'\0'};
+            size_t length = encode_hex(str, hex);
 
             CHECK(buffer_write_sized(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_write_sized(buffer, ues, 6));
+            CHECK(buffer_write_sized(buffer, hex, 6));
             str += length;
             ptr = str;
         }

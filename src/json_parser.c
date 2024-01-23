@@ -46,7 +46,7 @@ static const char *scan_quoted(const char *str)
         {
             str += 2;
         }
-        else if (is_ues(str + 1))
+        else if (is_hex(str + 1))
         {
             str += 6;
         }
@@ -139,7 +139,7 @@ static char *new_string(const char *str, const char *end)
         }
         else
         {
-            ptr += decode_ues(str + 2, ptr);
+            ptr += decode_hex(str + 2, ptr);
             str += 6;
         }
     }

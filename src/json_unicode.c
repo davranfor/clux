@@ -12,7 +12,7 @@
 /* Returns 1 on escape code or 0 otherwise */
 int is_esc(const char *str)
 {
-    switch (str[0])
+    switch (*str)
     {
         case '\\':
         case '/' :
@@ -26,16 +26,6 @@ int is_esc(const char *str)
         default  :
             return 0;
     }
-}
-
-/* Returns 1 on unicode escape sequence or 0 otherwise */
-int is_ues(const char *str)
-{
-    return (('u') == str[0])
-        && is_xdigit(str[1])
-        && is_xdigit(str[2])
-        && is_xdigit(str[3])
-        && is_xdigit(str[4]);
 }
 
 /* Decode escape code and return its value */
@@ -52,11 +42,37 @@ char decode_esc(const char *str)
     }
 }
 
+/* Converts escape to char  */
+char encode_esc(const char *str)
+{
+    switch (*str)
+    {
+        case '\b': return 'b';
+        case '\f': return 'f';
+        case '\n': return 'n';
+        case '\r': return 'r';
+        case '\t': return 't';
+        case '\"': return '"';
+        case '\\': return '\\';
+        default  : return '\0';
+    }
+}
+
+/* Returns 1 on unicode escape sequence or 0 otherwise */
+int is_hex(const char *str)
+{
+    return (('u') == str[0])
+        && is_xdigit(str[1])
+        && is_xdigit(str[2])
+        && is_xdigit(str[3])
+        && is_xdigit(str[4]);
+}
+
 /**
  * Converts unicode escape sequence to multibyte sequence
  * Returns the length of the multibyte in bytes
  */
-size_t decode_ues(const char *str, char *buf)
+size_t decode_hex(const char *str, char *buf)
 {
     char hex[5] = "";
 
@@ -84,30 +100,14 @@ size_t decode_ues(const char *str, char *buf)
     }
 }
 
-/* Converts escape to char  */
-char encode_esc(const char *str)
-{
-    switch (*str)
-    {
-        case '\b': return 'b';
-        case '\f': return 'f';
-        case '\n': return 'n';
-        case '\r': return 'r';
-        case '\t': return 't';
-        case '\"': return '"';
-        case '\\': return '\\';
-        default  : return '\0';
-    }
-}
-
 /**
  * Converts multibyte sequence to unicode escape sequence
  * Returns the length of the multibyte in bytes
  */
-size_t encode_ues(const char *str, char *buf)
+size_t encode_hex(const char *str, char *buf)
 {
     size_t length = 1;
-    int ues = str[0];
+    int hex = str[0];
 
     if ((str[0] & 0x80) == 0)
     {
@@ -117,7 +117,7 @@ size_t encode_ues(const char *str, char *buf)
     {
         if (str[1] != '\0')
         {
-            ues = ((str[0] & 0x1f) << 6)
+            hex = ((str[0] & 0x1f) << 6)
                 | ((str[1] & 0x3f) << 0);
             length = 2;
         }
@@ -126,7 +126,7 @@ size_t encode_ues(const char *str, char *buf)
     {
         if ((str[1] != '\0') && (str[2] != '\0'))
         {
-            ues = ((str[0] & 0x0f) << 12)
+            hex = ((str[0] & 0x0f) << 12)
                 | ((str[1] & 0x3f) << 6)
                 | ((str[2] & 0x3f) << 0);
             length = 3;
@@ -138,16 +138,16 @@ size_t encode_ues(const char *str, char *buf)
         {
             /*
             UES are restricted to 3 bytes and can not be represented as
-            ues = ((str[0] & 0x07) << 18)
+            hex = ((str[0] & 0x07) << 18)
                 | ((str[1] & 0x3f) << 12)
                 | ((str[2] & 0x3f) << 6)
                 | ((str[3] & 0x3f) << 0);
             */
-            ues = 0xfffd; // Replacement character �
+            hex = 0xfffd; // Replacement character �
             length = 4;
         }
     }
-    snprintf(buf, sizeof("\\u0123"), "\\u%04x", ues);
+    snprintf(buf, sizeof("\\u0123"), "\\u%04x", hex);
     return length;
 }
 
