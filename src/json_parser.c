@@ -36,9 +36,9 @@ static inline int is_token(int c)
 
 static const char *scan_quoted(const char *str)
 {
-    while ((*str != '"') && !is_cntrl(*str))
+    while ((*str != '\"') && !is_cntrl(*str))
     {
-        if (str[0] != '\\')
+        if (*str != '\\')
         {
             str += 1;
         }
