@@ -116,14 +116,14 @@ error:
 /* Allocates space for a name or a string value escaping special characters */
 static char *new_string(const char *str, const char *end)
 {
-    char *buf = malloc((size_t)(end - str) + 1);
+    char *text = malloc((size_t)(end - str) + 1);
 
-    if (buf == NULL)
+    if (text == NULL)
     {
         return NULL;
     }
 
-    char *ptr = buf;
+    char *ptr = text;
 
     while (str < end)
     {
@@ -144,7 +144,7 @@ static char *new_string(const char *str, const char *end)
         }
     }
     *ptr = '\0';
-    return buf;
+    return text;
 }
 
 static char *set_name(json *node, const char *left, const char *right)
