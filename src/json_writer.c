@@ -177,8 +177,6 @@ static void set_empty(json *node)
         case JSON_OBJECT:
         case JSON_ARRAY:
             while (json_delete(node->head));
-            node->tail = NULL;
-            node->size = 0;
             return;
         case JSON_STRING:
             free(node->value.string);
