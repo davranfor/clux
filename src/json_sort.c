@@ -129,6 +129,8 @@ void json_reverse(json *root)
     {
         json *node = root->head, *prev;
 
+        root->head = root->tail;
+        root->tail = node;
         while (node != NULL)
         {
             prev = node->prev;
@@ -136,11 +138,6 @@ void json_reverse(json *root)
             node->next = prev;
             node = node->prev;
         }
-
-        json *head = root->head;
-
-        root->head = root->tail;
-        root->tail = head;
     }
 }
 
