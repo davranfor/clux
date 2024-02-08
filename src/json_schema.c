@@ -214,7 +214,7 @@ static int test_type(const json *node, const json *rule)
 
         /* 'integer' must validate if type is 'number' */
         return (mask & (1u << type))
-           || ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
+            || ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
     }
     return SCHEMA_VALID;
 }

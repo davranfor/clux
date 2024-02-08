@@ -95,13 +95,13 @@ int json_is_any(const json *node)
 int json_is_iterable(const json *node)
 {
     return (node != NULL)
-       && ((node->type == JSON_OBJECT) || (node->type == JSON_ARRAY));
+        && ((node->type == JSON_OBJECT) || (node->type == JSON_ARRAY));
 }
 
 int json_is_scalar(const json *node)
 {
     return (node != NULL)
-       && ((node->type != JSON_OBJECT) && (node->type != JSON_ARRAY));
+        && ((node->type != JSON_OBJECT) && (node->type != JSON_ARRAY));
 }
 
 int json_is_object(const json *node)
@@ -144,7 +144,7 @@ int json_is_real(const json *node)
 int json_is_number(const json *node)
 {
     return (node != NULL)
-       && ((node->type == JSON_INTEGER) || (node->type == JSON_REAL));
+        && ((node->type == JSON_INTEGER) || (node->type == JSON_REAL));
 }
 
 int json_is_boolean(const json *node)
@@ -506,7 +506,7 @@ int json_equal(const json *a, const json *b)
 
 /**
  * Sends all nodes to a callback func providing depth and user-data
- * Exit when all nodes are read or callback returns 0
+ * Exit when all nodes are read or callback returns 0 (example in json_height())
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
