@@ -247,9 +247,9 @@ static int set_value(json *node, const char *left, const char *right)
     assert(right > left);
     assert(node->type == JSON_UNDEFINED);
     return try_set_string(node, left, right)
-        || try_set_true  (node, left, right)
-        || try_set_false (node, left, right)
-        || try_set_null  (node, left, right)
+        || try_set_true(node, left, right)
+        || try_set_false(node, left, right)
+        || try_set_null(node, left, right)
         || try_set_number(node, left, right);
 }
 
