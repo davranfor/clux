@@ -182,7 +182,7 @@ static int try_set_number(json *node, const char *left, const char *right)
         return 0;
     }
     /* Skip sign */
-    if (left[0] == '-')
+    if ((left[0] == '+') || (left[0] == '-'))
     {
         left++;
     }
@@ -197,7 +197,7 @@ static int try_set_number(json *node, const char *left, const char *right)
         return 0;
     }
     /* Valid number */
-    if (left + strspn(left, "0123456789") > right)
+    if (left + strspn(left, "xX0123456789") > right)
     {
         node->type = JSON_INTEGER;
     }
