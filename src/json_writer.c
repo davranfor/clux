@@ -584,11 +584,11 @@ json *json_delete(json *node)
 void json_free(json *node)
 {
     const json *parent = node ? node->parent : NULL;
-    json *next;
 
     while (node != parent)
     {
-        next = node->head;
+        json *next = node->head;
+
         node->head = NULL;
         if (next == NULL)
         {
