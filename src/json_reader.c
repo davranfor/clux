@@ -329,7 +329,7 @@ json *json_find_next(const json *root, const char *name)
 /* Length of an UTF8 string */
 size_t json_length(const json *node)
 {
-    if ((node != NULL) || (node->type == JSON_STRING))
+    if ((node != NULL) && (node->type == JSON_STRING))
     {
         return utf8_length(node->value.string);
     }
