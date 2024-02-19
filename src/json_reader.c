@@ -329,21 +329,11 @@ json *json_find_next(const json *root, const char *name)
 /* Length of an UTF8 string */
 size_t json_length(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_STRING))
+    if ((node != NULL) || (node->type == JSON_STRING))
     {
-        return 0;
+        return utf8_length(node->value.string);
     }
-
-    size_t length = 0;
-
-    for (const char *str = node->value.string; *str != '\0'; str++)
-    {
-        if (is_utf8(*str))
-        {
-            length++;
-        }
-    }
-    return length;
+    return 0;
 }
 
 /* Number of childs of an iterable */

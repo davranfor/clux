@@ -167,3 +167,17 @@ void string_reverse(char *str, size_t length)
     }
 }
 
+size_t utf8_length(const char *str)
+{
+    size_t length = 0;
+
+    for (; *str != '\0'; str++)
+    {
+        if (is_utf8(*str))
+        {
+            length++;
+        }
+    }
+    return length;
+}
+
