@@ -167,6 +167,7 @@ void string_reverse(char *str, size_t length)
     }
 }
 
+/* Returns the number of multibytes of a string */
 size_t utf8_length(const char *str)
 {
     size_t length = 0;
