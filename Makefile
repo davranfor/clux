@@ -7,14 +7,14 @@ OBJDIR = obj
 DESTLIB = /usr/local/lib
 DESTINC = /usr/local/include/clux
 SOURCES = $(wildcard $(SRCDIR)/*.c)
-OBJECTS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SOURCES))
+OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SOURCES))
 
 ifeq ($(shell uname -s),Darwin)
-	LINKER = -dynamiclib -install_name $(DESTLIB)/$(TARGET) 
-	TARGET = libclux.dylib 
+	LINKER = -dynamiclib -install_name $(DESTLIB)/$(TARGET)
+	TARGET = libclux.dylib
 else
 	LINKER = -shared
-	TARGET = libclux.so 
+	TARGET = libclux.so
 endif
 
 .PHONY: all debug release develop install uninstall clean
