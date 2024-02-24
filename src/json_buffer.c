@@ -318,10 +318,7 @@ char *json_indent(const json *node, int indent)
     json_buffer buffer = {NULL, 0, 0};
     char *text = NULL;
 
-    if (buffer_loop(&buffer, node,
-                    indent < 0 ? 0 :
-                    indent > 8 ? 8 :
-                    indent))
+    if (buffer_loop(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
     {
         text = buffer.text;
     }
