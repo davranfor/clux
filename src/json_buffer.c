@@ -329,13 +329,13 @@ char *json_indent(const json *node, int indent)
     return text;
 }
 
-int json_write(const json *node, FILE *file)
+int json_write(const json *node, FILE *file, int indent)
 {
     int rc = 0;
 
     if (file != NULL)
     {
-        char *str = json_indent(node, 2);
+        char *str = json_indent(node, indent);
 
         if (str != NULL)
         {
@@ -346,14 +346,14 @@ int json_write(const json *node, FILE *file)
     return rc;
 }
 
-int json_write_file(const json *node, const char *path)
+int json_write_file(const json *node, const char *path, int indent)
 {
     FILE *file;
     int rc = 0;
 
     if ((path != NULL) && (file = fopen(path, "w")))
     {
-        char *str = json_indent(node, 2);
+        char *str = json_indent(node, indent);
 
         if (str != NULL)
         {
@@ -367,7 +367,7 @@ int json_write_file(const json *node, const char *path)
 
 int json_print(const json *node)
 {
-    return json_write(node, stdout);
+    return json_write(node, stdout, 2);
 }
 
 static int buffer_write_path(json_buffer *buffer, const json *node)
