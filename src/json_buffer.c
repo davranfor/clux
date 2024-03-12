@@ -385,7 +385,7 @@ static int buffer_write_path(json_buffer *buffer, const json *node)
     else
     {
         CHECK(buffer_write(buffer, "["));
-        CHECK(buffer_write_integer(buffer, json_offset(node)));
+        CHECK(buffer_write_integer(buffer, (double)json_offset(node)));
         CHECK(buffer_write(buffer, "]"));
     }
     return 1;
