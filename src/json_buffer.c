@@ -66,7 +66,7 @@ static char *buffer_resize(json_buffer *buffer, size_t length)
     return buffer->text;
 }
 
-static json_buffer *buffer_write_sized(json_buffer *buffer, const char *text,
+static json_buffer *buffer_write_length(json_buffer *buffer, const char *text,
     size_t length)
 {
     CHECK(buffer_resize(buffer, length));
@@ -77,7 +77,17 @@ static json_buffer *buffer_write_sized(json_buffer *buffer, const char *text,
 
 static json_buffer *buffer_write(json_buffer *buffer, const char *text)
 {
-    return buffer_write_sized(buffer, text, strlen(text));
+    return buffer_write_length(buffer, text, strlen(text));
+}
+
+static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
+{
+    size_t length = (size_t)snprintf(NULL, 0, "%zu", value);
+
+    CHECK(buffer_resize(buffer, length));
+    snprintf(buffer->text + buffer->length, length + 1, "%zu", value);
+    buffer->length += length;
+    return buffer;
 }
 
 static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
@@ -118,8 +128,8 @@ static int buffer_parse(json_buffer *buffer, const char *str)
         {
             const char seq[] = {'\\', esc, '\0'};
 
-            CHECK(buffer_write_sized(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_write_sized(buffer, seq, 2));
+            CHECK(buffer_write_length(buffer, ptr, (size_t)(str - ptr)));
+            CHECK(buffer_write_length(buffer, seq, 2));
             ptr = ++str;
         }
         else if (is_cntrl(*str) || ((encode == JSON_ASCII) && !is_ascii(*str)))
@@ -127,8 +137,8 @@ static int buffer_parse(json_buffer *buffer, const char *str)
             char seq[sizeof("\\u0123")] = {'\0'};
             size_t length = encode_hex(str, seq);
 
-            CHECK(buffer_write_sized(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_write_sized(buffer, seq, 6));
+            CHECK(buffer_write_length(buffer, ptr, (size_t)(str - ptr)));
+            CHECK(buffer_write_length(buffer, seq, 6));
             str += length;
             ptr = str;
         }
@@ -137,7 +147,7 @@ static int buffer_parse(json_buffer *buffer, const char *str)
             str++;
         }
     }
-    CHECK(buffer_write_sized(buffer, ptr, (size_t)(str - ptr)));
+    CHECK(buffer_write_length(buffer, ptr, (size_t)(str - ptr)));
     return 1;
 }
 
@@ -385,7 +395,7 @@ static int buffer_write_path(json_buffer *buffer, const json *node)
     else
     {
         CHECK(buffer_write(buffer, "["));
-        CHECK(buffer_write_integer(buffer, (double)json_offset(node)));
+        CHECK(buffer_write_size(buffer, json_offset(node)));
         CHECK(buffer_write(buffer, "]"));
     }
     return 1;
