@@ -66,7 +66,7 @@ static char *buffer_resize(json_buffer *buffer, size_t length)
     return buffer->text;
 }
 
-static json_buffer *buffer_write_length(json_buffer *buffer, const char *text,
+static json_buffer *buffer_append(json_buffer *buffer, const char *text,
     size_t length)
 {
     CHECK(buffer_resize(buffer, length));
@@ -77,7 +77,7 @@ static json_buffer *buffer_write_length(json_buffer *buffer, const char *text,
 
 static json_buffer *buffer_write(json_buffer *buffer, const char *text)
 {
-    return buffer_write_length(buffer, text, strlen(text));
+    return buffer_append(buffer, text, strlen(text));
 }
 
 static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
@@ -128,8 +128,8 @@ static int buffer_parse(json_buffer *buffer, const char *str)
         {
             const char seq[] = {'\\', esc, '\0'};
 
-            CHECK(buffer_write_length(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_write_length(buffer, seq, 2));
+            CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
+            CHECK(buffer_append(buffer, seq, 2));
             ptr = ++str;
         }
         else if (is_cntrl(*str) || ((encode == JSON_ASCII) && !is_ascii(*str)))
@@ -137,8 +137,8 @@ static int buffer_parse(json_buffer *buffer, const char *str)
             char seq[sizeof("\\u0123")] = {'\0'};
             size_t length = encode_hex(str, seq);
 
-            CHECK(buffer_write_length(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_write_length(buffer, seq, 6));
+            CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
+            CHECK(buffer_append(buffer, seq, 6));
             str += length;
             ptr = str;
         }
@@ -147,7 +147,7 @@ static int buffer_parse(json_buffer *buffer, const char *str)
             str++;
         }
     }
-    CHECK(buffer_write_length(buffer, ptr, (size_t)(str - ptr)));
+    CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
     return 1;
 }
 
