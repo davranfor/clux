@@ -146,5 +146,29 @@ void json_reverse(json *);
 int json_is(const json *, const char *);
 int json_is_unique(const json *);
 
+
+// ============================================================================
+// Macros 
+// ============================================================================
+#define json_int(node) ((int)json_number(node))
+#define json_uint(node) ((unsigned int)json_number(node))
+#define json_long(node) ((long)json_number(node))
+#define json_ulong(node) ((unsigned long)json_number(node))
+#define json_llong(node) ((long long)json_number(node))
+#define json_ullong(node) ((unsigned long long)json_number(node))
+#define json_size_t(node) ((size_t)json_number(node))
+
+#define json_new_number(node, type) _Generic((type),    \
+    long double: json_new_real,                         \
+    double: json_new_real,                              \
+    float: json_new_real,                               \
+    default: json_new_integer)(node, (double)(type))
+
+#define json_set_number(node, type) _Generic((type),    \
+    long double: json_set_real,                         \
+    double: json_set_real,                              \
+    float: json_set_real,                               \
+    default: json_set_integer)(node, (double)(type))
+
 #endif
 

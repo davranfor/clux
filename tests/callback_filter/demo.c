@@ -28,7 +28,7 @@ int main(void)
     json *root = json_new_array(NULL);
 
     json_push_back(root, json_new_string(NULL, "foo"));   // Not computed
-    json_push_back(root, json_new_integer(NULL, -39));
+    json_push_back(root, json_new_number(NULL, -39));
     json_push_back(root, json_new_integer(NULL, 42));
     json_push_back(root, json_new_object(NULL));          // Not computed
     json_push_back(root, json_new_real(NULL, 0));
