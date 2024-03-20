@@ -45,14 +45,14 @@ static const char *app_get_version(void)
 
 static int app_get_width(void)
 {
-    int width = (int)json_integer(json_find(app_data, "width"));
+    int width = json_int(json_find(app_data, "width"));
 
     return width > 0 ? width : APP_DEFAULT_WIDTH;
 }
 
 static int app_get_height(void)
 {
-    int height = (int)json_integer(json_find(app_data, "height"));
+    int height = json_int(json_find(app_data, "height"));
 
     return height > 0 ? height : APP_DEFAULT_HEIGHT;
 }
