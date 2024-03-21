@@ -157,18 +157,20 @@ int json_is_unique(const json *);
 #define json_llong(node) ((long long)json_number(node))
 #define json_ullong(node) ((unsigned long long)json_number(node))
 #define json_size_t(node) ((size_t)json_number(node))
+#define json_float(node) ((float)json_number(node))
+#define json_double(node) json_number(node)
 
-#define json_new_number(node, type) _Generic((type),    \
+#define json_new_number(node, value) _Generic((value),  \
     long double: json_new_real,                         \
     double: json_new_real,                              \
     float: json_new_real,                               \
-    default: json_new_integer)(node, (double)(type))
+    default: json_new_integer)(node, (double)(value))
 
-#define json_set_number(node, type) _Generic((type),    \
+#define json_set_number(node, value) _Generic((value),  \
     long double: json_set_real,                         \
     double: json_set_real,                              \
     float: json_set_real,                               \
-    default: json_set_integer)(node, (double)(type))
+    default: json_set_integer)(node, (double)(value))
 
 #endif
 
