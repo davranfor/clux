@@ -324,7 +324,7 @@ int test_is_ipv6(const char *str)
         }
         end = next;
     }
-    // Can not start with a single colon (except abbr.v '::')
+    // Can not start with a single colon (except abbrv '::')
     if ((str[0] == ':') && (str[1] != ':'))
     {
         return 0;
