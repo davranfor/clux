@@ -12,7 +12,7 @@ int main(void)
 
     for (int i = 0; i <= 20; i++)
     {
-        json_push_back(root, json_new_integer(NULL, i));
+        json_push_back(root, json_new_number(NULL, i));
     }
     json_print(root);
     // Delete first 10 elements

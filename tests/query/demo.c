@@ -43,7 +43,7 @@ int main(void)
 
     for (int i = 0; i < 2; i++)
     {
-        json_push_back(root, json_new_integer(NULL, i));
+        json_push_back(root, json_new_number(NULL, i));
     }
     json_walk(root, test_query, NULL);
     json_set_integer(json_child(root), 1);

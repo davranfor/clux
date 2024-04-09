@@ -21,7 +21,7 @@ int main(void)
 
     for (int i = 0; i <= 25; i++)
     {
-        json_push_back(root, json_new_integer(NULL, rand() % 100));
+        json_push_back(root, json_new_number(NULL, rand() % 100));
         if ((i % 5) == 0)
         {
             json_push_back(root, json_new_null(NULL));
