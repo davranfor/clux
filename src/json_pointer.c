@@ -16,20 +16,18 @@ static int compare(const char *name, const char *path, const char *end)
         // '~' in name must match with '~0' in path
         if (*name == '~')
         {
-            if ((path[0] != '~') || (path[1] != '0'))
+            if ((*path != '~') || (*++path != '0'))
             {
                 return 0;
             }
-            path++;
         }
         // '/' in name must match with '~1' in path
         else if (*name == '/')
         {
-            if ((path[0] != '~') || (path[1] != '1'))
+            if ((*path != '~') || (*++path != '1'))
             {
                 return 0;
             }
-            path++;
         }
         // Doesn't match
         else if (*name != *path)
