@@ -30,7 +30,7 @@ static int test_query(const json *node, int depth, void *data)
         const char *test = json_is(node, query[i]) ? "is" : "is not";
         char *text = json_encode(node);
         
-        printf("%s %s '%s'\n", text, test, query[i]);
+        printf("%s %s '%s'\n", text ? text : "none", test, query[i]);
         free(text);
     }
     printf("\n");
