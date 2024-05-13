@@ -558,14 +558,11 @@ void json_print_error(const json_error *error)
 {
     if ((error == NULL) || (error->line == 0))
     {
-        fprintf(stderr, "json - %s\n", strerror(errno));
+        fprintf(stderr, "json: %s\n", strerror(errno));
     }
     else
     {
-        fprintf(stderr, "json: Error at line %d, column %d\n",
-            error->line,
-            error->column
-        );
+        fprintf(stderr, "json: Error at %d,%d\n", error->line, error->column);
     }
 }
 
