@@ -26,10 +26,17 @@ static enum json_type token_type(int token)
 
 static inline int is_token(int c)
 {
-    return (c == '{') || (c == '}')
-        || (c == '[') || (c == ']')
-        || (c == ':') || (c == ',')
-        || (c == '\0');
+    switch (c)
+    {
+        case '{':
+        case '}':
+        case '[':
+        case ']':
+        case ':':
+        case ',':
+        case  0 : return 1;
+        default : return 0;
+    }
 }
 
 /* scan() helpers */
