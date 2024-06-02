@@ -184,44 +184,23 @@ static int try_set_number(json *node, const char *left, const char *right)
     char *end;
     double number = strtod(left, &end);
 
-    if ((end != right--) || isnan(number) || isinf(number))
+    if ((end == right) && !isnan(number) && !isinf(number))
     {
-        return 0;
+        node->value.number = number;
+        node->type = left + strspn(left, "+-xX0123456789") >= right
+            ? JSON_INTEGER
+            : JSON_REAL;
+        return 1;
     }
-    /* Skip sign */
-    if ((left[0] == '+') || (left[0] == '-'))
-    {
-        left++;
-    }
-    /* Do not allow padding 0s */
-    if ((left[0] == '0') && is_digit(left[1]))
-    {
-        return 0;
-    }
-    /* Must start and end with a digit */
-    if (!is_digit(*left) || !is_digit(*right))
-    {
-        return 0;
-    }
-    /* Valid number */
-    if (left + strspn(left, "xX0123456789") > right)
-    {
-        node->type = JSON_INTEGER;
-    }
-    else
-    {
-        node->type = JSON_REAL;
-    }
-    node->value.number = number;
-    return 1;
+    return 0;
 }
 
 static int try_set_true(json *node, const char *left, const char *right)
 {
     if ((right - left == 4) && !strncmp(left, "true", 4))
     {
-        node->type = JSON_BOOLEAN;
         node->value.number = 1;
+        node->type = JSON_BOOLEAN;
         return 1;
     }
     return 0;
@@ -231,8 +210,8 @@ static int try_set_false(json *node, const char *left, const char *right)
 {
     if ((right - left == 5) && !strncmp(left, "false", 5))
     {
-        node->type = JSON_BOOLEAN;
         node->value.number = 0;
+        node->type = JSON_BOOLEAN;
         return 1;
     }
     return 0;
@@ -242,8 +221,8 @@ static int try_set_null(json *node, const char *left, const char *right)
 {
     if ((right - left == 4) && !strncmp(left, "null", 4))
     {
-        node->type = JSON_NULL;
         node->value.number = 0;
+        node->type = JSON_NULL;
         return 1;
     }
     return 0;
