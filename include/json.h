@@ -28,8 +28,10 @@ enum json_encode
 };
 
 typedef struct json json;
+typedef struct json_map json_map;
 typedef struct {int line, column;} json_error;
 typedef int (*json_walk_callback)(const json *, int, void *);
+typedef int (*json_map_walk_callback)(json *, size_t, void *);
 typedef int (*json_sort_callback)(const json *, const json *);
 
 // ============================================================================
@@ -126,6 +128,16 @@ int json_print(const json *);
 char *json_path(const json *);
 char *json_quote(const char *);
 // ============================================================================
+// Map
+// ============================================================================
+json_map *json_map_create(const char *, size_t);
+json *json_map_insert(json_map *, json *);
+json *json_map_delete(json_map *, const char *);
+json *json_map_search(const json_map *, const char *);
+json *json_map_walk(const json_map *, json_map_walk_callback, void *);
+size_t json_map_size(const json_map *);
+void json_map_destroy(json_map *, void (*)(json *));
+// ============================================================================
 // Pointer
 // ============================================================================
 json *json_pointer(const json *, const char *);
@@ -160,17 +172,17 @@ int json_is_unique(const json *);
 #define json_float(node) ((float)json_number(node))
 #define json_double(node) json_number(node)
 
-#define json_new_number(node, value) _Generic((value),  \
+#define json_new_number(name, value) _Generic((value),  \
     long double: json_new_real,                         \
     double: json_new_real,                              \
     float: json_new_real,                               \
-    default: json_new_integer)(node, (double)(value))
+    default: json_new_integer)(name, (double)(value))
 
-#define json_set_number(node, value) _Generic((value),  \
+#define json_set_number(name, value) _Generic((value),  \
     long double: json_set_real,                         \
     double: json_set_real,                              \
     float: json_set_real,                               \
-    default: json_set_integer)(node, (double)(value))
+    default: json_set_integer)(name, (double)(value))
 
 #endif
 
