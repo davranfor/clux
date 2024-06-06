@@ -125,7 +125,7 @@ static void reset(json_map *map)
 
 static void move(json_map *map, struct node *node)
 {
-    const char *str= json_string(json_find(node->data, map->name));
+    const char *str = json_string(json_find(node->data, map->name));
     unsigned long hash = (str != NULL) ? hash_str(str) : 0;
     struct node **head = map->list + hash % map->room;
 
