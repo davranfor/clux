@@ -6,7 +6,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "json_private.h"
+#include "json.h"
+#include "json_unicode.h"
 
 struct node
 {
@@ -17,10 +18,10 @@ struct node
 struct json_map
 {
     struct node **list;
-    const char *name;
     json_map *next;
     size_t room;
     size_t size;
+    char *name;
 };
 
 static const size_t primes[] =
@@ -34,7 +35,7 @@ static const size_t primes[] =
     805306457, 1610612741, 3221225473, 4294967291
 };
 
-json_map *json_map_create(const char *name, size_t size)
+static json_map *create(char *name, size_t size)
 {
     enum {NPRIMES = sizeof primes / sizeof *primes};
 
@@ -59,6 +60,28 @@ json_map *json_map_create(const char *name, size_t size)
         }
         map->name = name;
         map->room = size;
+    }
+    return map;
+}
+
+/**
+ * name: json key to find
+ * size: Initial map size
+ */
+json_map *json_map_create(const char *name, size_t size)
+{
+    char *str = string_clone(name);
+
+    if (str == NULL)
+    {
+        return NULL;
+    }
+
+    json_map *map = create(str, size);
+
+    if (map == NULL)
+    {
+        free(str);
     }
     return map;
 }
@@ -175,7 +198,7 @@ json *json_map_insert(json_map *map, json *data)
         // If more than 75% occupied then create a new table
         if (++map->size > map->room - map->room / 4)
         {
-            map->next = json_map_create(map->name, map->room);
+            map->next = create(map->name, map->room);
             if (map->next == NULL)
             {
                 return NULL;
@@ -293,6 +316,12 @@ size_t json_map_size(const json_map *map)
 
 void json_map_destroy(json_map *map, void (*callback)(json *))
 {
+    if (map != NULL)
+    {
+        // The map name is allocated in the first map
+        // further maps contains pointers to this one
+        free(map->name);
+    }
     while (map != NULL)
     {
         for (size_t index = 0; map->size > 0; index++)

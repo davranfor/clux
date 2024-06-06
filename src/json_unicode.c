@@ -151,6 +151,19 @@ size_t encode_hex(const char *str, char *buf)
     return length;
 }
 
+/* Return a duplicated string */
+char *string_clone(const char *str)
+{
+    size_t size = strlen(str) + 1;
+    char *ptr = malloc(size);
+
+    if (ptr == NULL)
+    {
+        return NULL;
+    }
+    return memcpy(ptr, str, size);
+}
+
 /* Reverse chars of a string given a length */ 
 void string_reverse(char *str, size_t length)
 {

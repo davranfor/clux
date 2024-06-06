@@ -57,7 +57,9 @@ int is_hex(const char *);
 size_t decode_hex(const char *, char *);
 size_t encode_hex(const char *, char *);
 
+char *string_clone(const char *);
 void string_reverse(char *, size_t);
+
 size_t utf8_length(const char *);
 
 #endif
