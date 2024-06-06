@@ -10,22 +10,12 @@
 
 static json_map *map;
 
-static void print_node(const json *node)
-{
-    char *str = json_encode(node);
-
-    if (str != NULL)
-    {
-        puts(str);
-        free(str);
-    }
-}
-
+// cppcheck-suppress constParameterCallback
 static int map_print(json *node, size_t iter, void *data)
 {
     (void)iter;
     (void)data;
-    print_node(node);    
+    json_write_line(node, stdout);    
     return 1;
 }
 
@@ -68,7 +58,7 @@ int main(void)
         node = json_map_search(map, str);
         if (node != NULL)
         {
-            print_node(node);
+            json_write_line(node, stdout);    
         }
         else
         {
@@ -78,7 +68,7 @@ int main(void)
         node = json_map_delete(map, str);
         if (node != NULL)
         {
-            print_node(node);
+            json_write_line(node, stdout);    
             json_free(node);
         }
         else

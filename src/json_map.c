@@ -63,9 +63,8 @@ json_map *json_map_create(const char *name, size_t size)
     return map;
 }
 
-#define hash_str(str) hash_ustr((const unsigned char *)(str))
-
-static unsigned long hash_ustr(const unsigned char *key)
+#define hash_str(str) hash_str((const unsigned char *)(str))
+static unsigned long (hash_str)(const unsigned char *key)
 {
     unsigned long hash = 5381;
     unsigned char chr;

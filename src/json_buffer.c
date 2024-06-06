@@ -356,6 +356,23 @@ int json_write(const json *node, FILE *file, int indent)
     return rc;
 }
 
+int json_write_line(const json *node, FILE *file)
+{
+    int rc = 0;
+
+    if (file != NULL)
+    {
+        char *str = json_encode(node);
+
+        if (str != NULL)
+        {
+            rc = fprintf(file, "%s\n", str) >= 0;
+            free(str);
+        }
+    }
+    return rc;
+}
+
 int json_write_file(const json *node, const char *path, int indent)
 {
     FILE *file;
