@@ -28,9 +28,11 @@ enum json_encode
 };
 
 typedef struct json json;
+typedef struct json_map json_map;
 typedef struct {int line, column;} json_error;
 typedef int (*json_walk_callback)(const json *, int, void *);
 typedef int (*json_sort_callback)(const json *, const json *);
+typedef int (*json_map_walk_callback)(json *, size_t, void *);
 
 // ============================================================================
 // Parser
@@ -127,6 +129,16 @@ int json_print(const json *);
 char *json_path(const json *);
 char *json_quote(const char *);
 // ============================================================================
+// Map
+// ============================================================================
+json_map *json_map_create(size_t);
+json *json_map_insert(json_map *, const char *, json *);
+json *json_map_delete(json_map *, const char *);
+json *json_map_search(const json_map *, const char *);
+json *json_map_walk(const json_map *, json_map_walk_callback, void *);
+size_t json_map_size(const json_map *);
+void json_map_destroy(json_map *, void (*)(json *));
+// ============================================================================
 // Pointer
 // ============================================================================
 json *json_pointer(const json *, const char *);
@@ -146,8 +158,6 @@ void json_reverse(json *);
 // ============================================================================
 int json_is(const json *, const char *);
 int json_is_unique(const json *);
-
-
 // ============================================================================
 // Macros 
 // ============================================================================
