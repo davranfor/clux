@@ -133,6 +133,7 @@ char *json_quote(const char *);
 // ============================================================================
 json_map *json_map_create(size_t);
 json *json_map_insert(json_map *, const char *, json *);
+json *json_map_upsert(json_map *, const char *, json *);
 json *json_map_delete(json_map *, const char *);
 json *json_map_search(const json_map *, const char *);
 json *json_map_walk(const json_map *, json_map_walk_callback, void *);

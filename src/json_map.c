@@ -138,7 +138,7 @@ static json_map *rehash(json_map *map, unsigned long hash)
     return map;
 }
 
-json *json_map_insert(json_map *map, const char *key, json *data)
+static json *update(json_map *map, const char *key, json *data, int replace)
 {
     if ((map != NULL) && (data != NULL))
     {
@@ -153,7 +153,17 @@ json *json_map_insert(json_map *map, const char *key, json *data)
         {
             if (strcmp(node->key, key) == 0)
             {
-                return node->data;
+                if (replace)
+                {
+                    json *temp = node->data;
+
+                    node->data = data;
+                    return temp;
+                }
+                else
+                {
+                    return node->data;
+                }
             }
             node = node->next;
         }
@@ -174,6 +184,16 @@ json *json_map_insert(json_map *map, const char *key, json *data)
         return data;
     }
     return NULL;
+}
+
+json *json_map_insert(json_map *map, const char *key, json *data)
+{
+    return update(map, key, data, 0);
+}
+
+json *json_map_upsert(json_map *map, const char *key, json *data)
+{
+    return update(map, key, data, 1);
 }
 
 json *json_map_delete(json_map *map, const char *key)

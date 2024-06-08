@@ -41,12 +41,19 @@ int main(void)
 
     for (size_t iter = 0; iter < size; iter++)
     {
-        node = json_new_object(NULL);
-        json_push_back(node, json_new_format("name", "node %d", rand() % size));
-        if (!json_map_insert(map, json_string(json_child(node)), node))
+        json *(*method)(json_map *, const char *, json *);
+        json *root = json_new_object(NULL);
+
+        json_push_back(root, json_new_format("name", "node %d", rand() % size));
+        method = size % 2 ? json_map_insert : json_map_upsert; 
+        if (!(node = method(map, json_string(json_child(root)), root)))
         {
             perror("json_map_insert");
             exit(EXIT_FAILURE);
+        }
+        if (node != root)
+        {
+            json_free(node);
         }
     }
     for (size_t iter = 0; iter < size; iter++)
