@@ -138,7 +138,7 @@ static json_map *rehash(json_map *map, unsigned long hash)
     return map;
 }
 
-static json *update(json_map *map, const char *key, json *data, int replace)
+static json *upsert(json_map *map, const char *key, json *data, int replace)
 {
     if ((map != NULL) && (data != NULL))
     {
@@ -188,12 +188,12 @@ static json *update(json_map *map, const char *key, json *data, int replace)
 
 json *json_map_insert(json_map *map, const char *key, json *data)
 {
-    return update(map, key, data, 0);
+    return upsert(map, key, data, 0);
 }
 
 json *json_map_upsert(json_map *map, const char *key, json *data)
 {
-    return update(map, key, data, 1);
+    return upsert(map, key, data, 1);
 }
 
 json *json_map_delete(json_map *map, const char *key)
