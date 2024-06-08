@@ -75,20 +75,6 @@ static unsigned long (hash_str)(const unsigned char *key)
     return hash;
 }
 
-static struct node *insert(struct node *next, const char *key, json *data)
-{
-    size_t size = strlen(key) + 1;
-    struct node *node = malloc(sizeof *node + size);
-
-    if (node != NULL)
-    {
-        node->next = next;
-        node->data = data;
-        memcpy(node->key, key, size);
-    }
-    return node;
-}
-
 static void reset(json_map *map)
 {
     json_map *next = map->next;
@@ -136,6 +122,20 @@ static json_map *rehash(json_map *map, unsigned long hash)
         }
     }
     return map;
+}
+
+static struct node *insert(struct node *next, const char *key, json *data)
+{
+    size_t size = strlen(key) + 1;
+    struct node *node = malloc(sizeof *node + size);
+
+    if (node != NULL)
+    {
+        node->next = next;
+        node->data = data;
+        memcpy(node->key, key, size);
+    }
+    return node;
 }
 
 static json *upsert(json_map *map, const char *key, json *data, int replace)
