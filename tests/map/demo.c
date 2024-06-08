@@ -86,6 +86,12 @@ int main(void)
         {
             puts("Not found");
         }
+    }
+    for (size_t iter = 0; iter < size; iter++)
+    {
+        char str[32];
+
+        snprintf(str, sizeof str, "%02d", rand() % size);
         printf("Deleting node %s: ", str);
         node = json_map_delete(map, str);
         if (node != NULL)
