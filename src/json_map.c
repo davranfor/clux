@@ -153,17 +153,13 @@ static json *upsert(json_map *map, const char *key, json *data, int replace)
         {
             if (strcmp(node->key, key) == 0)
             {
+                json *temp = node->data;
+
                 if (replace)
                 {
-                    json *temp = node->data;
-
                     node->data = data;
-                    return temp;
                 }
-                else
-                {
-                    return node->data;
-                }
+                return temp;
             }
             node = node->next;
         }

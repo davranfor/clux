@@ -41,14 +41,29 @@ int main(void)
 
     for (size_t iter = 0; iter < size; iter++)
     {
-        json *(*method)(json_map *, const char *, json *);
         json *root = json_new_object(NULL);
 
-        json_push_back(root, json_new_format("name", "node %d", rand() % size));
-        method = size % 2 ? json_map_insert : json_map_upsert; 
-        if (!(node = method(map, json_string(json_child(root)), root)))
+        json_push_back(root, json_new_format("code", "%02d", rand() % size));
+        json_push_back(root, json_new_string("func", "insert"));
+        if (!(node = json_map_insert(map, json_string(json_child(root)), root)))
         {
             perror("json_map_insert");
+            exit(EXIT_FAILURE);
+        }
+        if (node != root)
+        {
+            json_free(root);
+        }
+    }
+    for (size_t iter = 0; iter < size; iter++)
+    {
+        json *root = json_new_object(NULL);
+
+        json_push_back(root, json_new_format("code", "%02d", rand() % size));
+        json_push_back(root, json_new_string("func", "upsert"));
+        if (!(node = json_map_upsert(map, json_string(json_child(root)), root)))
+        {
+            perror("json_map_upsert");
             exit(EXIT_FAILURE);
         }
         if (node != root)
@@ -60,7 +75,7 @@ int main(void)
     {
         char str[32];
 
-        snprintf(str, sizeof str, "node %d", rand() % size);
+        snprintf(str, sizeof str, "%02d", rand() % size);
         printf("Searching node %s: ", str);
         node = json_map_search(map, str);
         if (node != NULL)
