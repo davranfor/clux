@@ -153,13 +153,13 @@ static json *push(json_map *map, const char *key, json *data, int replace)
         {
             if (strcmp(node->key, key) == 0)
             {
-                json *temp = node->data;
+                json *result = node->data;
 
                 if (replace)
                 {
                     node->data = data;
                 }
-                return temp;
+                return result;
             }
             node = node->next;
         }
