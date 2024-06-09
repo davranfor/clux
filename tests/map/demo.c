@@ -29,7 +29,6 @@ int main(void)
     srand((unsigned)time(NULL));
     atexit(map_destroy);
     map = json_map_create(0);
-
     if (map == NULL)
     {
         perror("json_map_create");
@@ -43,9 +42,10 @@ int main(void)
     {
         json *root = json_new_object(NULL);
 
-        json_push_back(root, json_new_format("code", "%02d", rand() % size));
+        json_push_back(root, json_new_format("code", "%05d", rand() % size));
         json_push_back(root, json_new_string("func", "insert"));
-        if (!(node = json_map_insert(map, json_string(json_child(root)), root)))
+        node = json_map_insert(map, json_string(json_child(root)), root);
+        if (node == NULL)
         {
             perror("json_map_insert");
             exit(EXIT_FAILURE);
@@ -59,9 +59,10 @@ int main(void)
     {
         json *root = json_new_object(NULL);
 
-        json_push_back(root, json_new_format("code", "%02d", rand() % size));
+        json_push_back(root, json_new_format("code", "%05d", rand() % size));
         json_push_back(root, json_new_string("func", "upsert"));
-        if (!(node = json_map_upsert(map, json_string(json_child(root)), root)))
+        node = json_map_upsert(map, json_string(json_child(root)), root);
+        if (node == NULL)
         {
             perror("json_map_upsert");
             exit(EXIT_FAILURE);
@@ -73,9 +74,9 @@ int main(void)
     }
     for (size_t iter = 0; iter < size; iter++)
     {
-        char str[32];
+        char str[8];
 
-        snprintf(str, sizeof str, "%02d", rand() % size);
+        snprintf(str, sizeof str, "%05d", rand() % size);
         printf("Searching node %s: ", str);
         node = json_map_search(map, str);
         if (node != NULL)
@@ -89,9 +90,9 @@ int main(void)
     }
     for (size_t iter = 0; iter < size; iter++)
     {
-        char str[32];
+        char str[8];
 
-        snprintf(str, sizeof str, "%02d", rand() % size);
+        snprintf(str, sizeof str, "%05d", rand() % size);
         printf("Deleting node %s: ", str);
         node = json_map_delete(map, str);
         if (node != NULL)
