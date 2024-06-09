@@ -124,7 +124,7 @@ static json_map *rehash(json_map *map, unsigned long hash)
     return map;
 }
 
-static struct node *insert(struct node *next, const char *key, json *data)
+static struct node *push_node(struct node *next, const char *key, json *data)
 {
     size_t size = strlen(key) + 1;
     struct node *node = malloc(sizeof *node + size);
@@ -138,7 +138,7 @@ static struct node *insert(struct node *next, const char *key, json *data)
     return node;
 }
 
-static json *upsert(json_map *map, const char *key, json *data, int replace)
+static json *push(json_map *map, const char *key, json *data, int replace)
 {
     if ((map != NULL) && (data != NULL))
     {
@@ -163,33 +163,30 @@ static json *upsert(json_map *map, const char *key, json *data, int replace)
             }
             node = node->next;
         }
-        *head = insert(*head, key, data);
-        if (*head == NULL)
+        if ((*head = push_node(*head, key, data)) != NULL)
         {
-            return NULL;
-        }
-        // If more than 75% occupied then create a new table
-        if (++map->size > map->room - map->room / 4)
-        {
-            map->next = json_map_create(map->room);
-            if (map->next == NULL)
+            if (++map->size > map->room - map->room / 4)
             {
-                return NULL;
+                map->next = json_map_create(map->room);
+                if (map->next == NULL)
+                {
+                    return NULL;
+                }
             }
+            return data;
         }
-        return data;
     }
     return NULL;
 }
 
 json *json_map_insert(json_map *map, const char *key, json *data)
 {
-    return upsert(map, key, data, 0);
+    return push(map, key, data, 0);
 }
 
 json *json_map_upsert(json_map *map, const char *key, json *data)
 {
-    return upsert(map, key, data, 1);
+    return push(map, key, data, 1);
 }
 
 json *json_map_delete(json_map *map, const char *key)
@@ -244,7 +241,6 @@ json *json_map_search(const json_map *map, const char *key)
             }
             node = node->next;
         }
-        // Not found in this table, try in the next one
         map = map->next;
     }
     return NULL;
