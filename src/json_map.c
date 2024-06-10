@@ -140,7 +140,7 @@ static struct node *push_node(struct node *next, const char *key, json *data)
 
 static json *push(json_map *map, const char *key, json *data, int replace)
 {
-    if ((map != NULL) && (data != NULL))
+    if ((map != NULL) && (key != NULL) && (data != NULL))
     {
         unsigned long hash = hash_str(key);
 
@@ -191,7 +191,7 @@ json *json_map_upsert(json_map *map, const char *key, json *data)
 
 json *json_map_delete(json_map *map, const char *key)
 {
-    if (map != NULL)
+    if ((map != NULL) && (key != NULL))
     {
         unsigned long hash = hash_str(key);
 
@@ -227,21 +227,24 @@ json *json_map_delete(json_map *map, const char *key)
 
 json *json_map_search(const json_map *map, const char *key)
 {
-    unsigned long hash = hash_str(key);
-
-    while (map != NULL)
+    if ((map != NULL) && (key != NULL))
     {
-        const struct node *node = map->list[hash % map->room];
+        unsigned long hash = hash_str(key);
 
-        while (node != NULL)
+        while (map != NULL)
         {
-            if (strcmp(node->key, key) == 0)
+            const struct node *node = map->list[hash % map->room];
+
+            while (node != NULL)
             {
-                return node->data;
+                if (strcmp(node->key, key) == 0)
+                {
+                    return node->data;
+                }
+                node = node->next;
             }
-            node = node->next;
+            map = map->next;
         }
-        map = map->next;
     }
     return NULL;
 }
