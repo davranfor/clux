@@ -28,14 +28,16 @@ static char *format_string(const char *fmt, va_list args)
 
     va_copy(copy, args);
 
-    size_t size = 1 + (size_t)vsnprintf(NULL, 0, fmt, args);
+    size_t size = 1 + (size_t)vsnprintf(NULL, 0, fmt, copy);
+
+    va_end(copy);
+
     char *str = malloc(size);
 
     if (str != NULL)
     {
-        vsnprintf(str, size, fmt, copy);
+        vsnprintf(str, size, fmt, args);
     }
-    va_end(copy);
     return str;
 }
 
