@@ -89,7 +89,8 @@ int json_walk(const json *, json_walk_callback, void *);
 // ============================================================================
 json *json_new_object(const char *);
 json *json_new_array(const char *);
-json *json_new_format(const char *, const char *, ...);
+json *json_new_format(const char *, const char *, ...)
+    __attribute__ ((format (printf, 2, 3)));
 json *json_new_string(const char *, const char *);
 json *json_new_integer(const char *, double);
 json *json_new_real(const char *, double);
@@ -98,7 +99,8 @@ json *json_new_null(const char *);
 json *json_set_name(json *, const char *);
 json *json_set_object(json *);
 json *json_set_array(json *);
-json *json_set_format(json *, const char *, ...);
+json *json_set_format(json *, const char *, ...)
+    __attribute__ ((format (printf, 2, 3)));
 json *json_set_string(json *, const char *);
 json *json_set_integer(json *, double);
 json *json_set_real(json *, double);
@@ -159,6 +161,7 @@ void json_reverse(json *);
 // ============================================================================
 int json_is(const json *, const char *);
 int json_is_unique(const json *);
+
 // ============================================================================
 // Macros 
 // ============================================================================
