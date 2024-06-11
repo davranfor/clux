@@ -181,11 +181,11 @@ int json_is_unique(const json *);
     float: json_new_real,                               \
     default: json_new_integer)(name, (double)(value))
 
-#define json_set_number(name, value) _Generic((value),  \
+#define json_set_number(node, value) _Generic((value),  \
     long double: json_set_real,                         \
     double: json_set_real,                              \
     float: json_set_real,                               \
-    default: json_set_integer)(name, (double)(value))
+    default: json_set_integer)(node, (double)(value))
 
 #endif
 
