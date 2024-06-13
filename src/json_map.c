@@ -231,7 +231,7 @@ json *json_map_search(const json_map *map, const char *key)
     {
         unsigned long hash = hash_str(key);
 
-        while (map != NULL)
+        do
         {
             const struct node *node = map->list[hash % map->room];
 
@@ -243,8 +243,8 @@ json *json_map_search(const json_map *map, const char *key)
                 }
                 node = node->next;
             }
-            map = map->next;
-        }
+        } while ((map = map->next));
+
     }
     return NULL;
 }
