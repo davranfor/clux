@@ -10,7 +10,6 @@
 
 static json_map *map;
 
-// cppcheck-suppress constParameterCallback
 static int map_print(json *node, size_t iter, void *data)
 {
     (void)iter;

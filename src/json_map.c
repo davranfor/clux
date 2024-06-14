@@ -62,8 +62,8 @@ json_map *json_map_create(size_t size)
     return map;
 }
 
-#define hash_str(key) hash_str((const unsigned char *)(key))
-static unsigned long (hash_str)(const unsigned char *key)
+#define hash(key) hash_str((const unsigned char *)(key))
+static unsigned long hash_str(const unsigned char *key)
 {
     unsigned long hash = 5381;
     unsigned char chr;
@@ -89,7 +89,7 @@ static void reset(json_map *map)
 
 static void move(json_map *map, struct node *node)
 {
-    struct node **head = map->list + hash_str(node->key) % map->room;
+    struct node **head = map->list + hash(node->key) % map->room;
 
     node->next = *head;
     *head = node;
@@ -142,7 +142,7 @@ static json *push(json_map *map, const char *key, json *data, int replace)
 {
     if ((map != NULL) && (key != NULL) && (data != NULL))
     {
-        unsigned long hash = hash_str(key);
+        unsigned long hash = hash(key);
 
         map = rehash(map, hash);
 
@@ -193,7 +193,7 @@ json *json_map_delete(json_map *map, const char *key)
 {
     if ((map != NULL) && (key != NULL))
     {
-        unsigned long hash = hash_str(key);
+        unsigned long hash = hash(key);
 
         map = rehash(map, hash);
 
@@ -229,7 +229,7 @@ json *json_map_search(const json_map *map, const char *key)
 {
     if ((map != NULL) && (key != NULL))
     {
-        unsigned long hash = hash_str(key);
+        unsigned long hash = hash(key);
 
         do
         {
