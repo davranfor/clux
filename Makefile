@@ -17,7 +17,7 @@ else
 	TARGET = libclux.so
 endif
 
-.PHONY: all debug release develop install uninstall clean
+.PHONY: all debug release install uninstall clean
 
 all: release
 
@@ -26,10 +26,6 @@ debug: $(TARGET)
 
 release: CFLAGS += -DNDEBUG -O2
 release: $(TARGET)
-
-develop: CFLAGS += -O2
-develop:
-	$(CC) -I. $(CFLAGS) *.c -o demo -L.. -lclux
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) $(LDLIBS) $(LINKER) -o $(TARGET)
