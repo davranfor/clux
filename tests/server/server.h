@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <stdint.h>
 #include "buffer.h" 
 
 void server_loop(
