@@ -20,7 +20,7 @@ char *pool_set(struct poolfd *pool, char *data, size_t size)
     return pool->data;
 }
 
-char *pool_add(struct poolfd *pool, const char *data, size_t size)
+char *pool_put(struct poolfd *pool, const char *data, size_t size)
 {
     if (pool->type == POOL_BUFFERED)
     {

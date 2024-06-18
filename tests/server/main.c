@@ -77,9 +77,13 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
             memcpy(buffer + head_length, body, body_length);
             pool_set(pool, buffer, head_length + body_length);
         }
-        else if (pool_add(pool, head, head_length))
+        else
         {
-            pool_add(pool, body, body_length);
+            if (!pool_put(pool, head, head_length) ||
+                !pool_put(pool, body, body_length))
+            {
+                perror("pool_put");
+            }
         }
     }
     json_free(node);
