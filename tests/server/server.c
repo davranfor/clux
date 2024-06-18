@@ -202,7 +202,7 @@ static void conn_handle(struct pollfd *conn, struct poolfd *pool)
                 case -1:
                     return;
                 default:
-                    puts(pool->data);
+                    //puts(pool->data);
                     request_handle(pool, buffer, BUFFER_SIZE);
                     break;
             }
