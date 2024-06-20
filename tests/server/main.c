@@ -145,6 +145,7 @@ static json *request_put(const char *uri, const char *content)
         json_free(root);
         return NULL;
     }
+    json_free(node);
     return root;
 }
 
