@@ -288,6 +288,51 @@ json *json_set_null(json *node)
     return set_number(node, JSON_NULL, 0);
 }
 
+static json *move_properties(json *target, json *source)
+{
+    json *node;
+
+    while ((node = json_pop_front(source)))
+    {
+        json *old = json_find(target, node->name);
+
+        if (old != NULL)
+        {
+            json_push_before(old, node);
+            json_delete(old);
+        }
+        else
+        {
+            json_push_back(target, node);
+        }
+    }
+    return target;
+}
+
+static json *move_items(json *target, json *source)
+{
+    json *node;
+
+    while ((node = json_pop_front(source)))
+    {
+        json_push_back(target, node);
+    }
+    return target;
+}
+
+json *json_move(json *target, json *source)
+{
+    if (json_is_object(target) && json_is_object(source))
+    {
+        return move_properties(target, source);
+    }
+    if (json_is_array(target) && json_is_array(source))
+    {
+        return move_items(target, source);
+    }
+    return NULL;
+}
+
 /* push helper */
 static int not_pushable(const json *parent, const json *child)
 {
@@ -610,29 +655,6 @@ void json_free(json *node)
             free(node);
         }
         node = next;
-    }
-}
-
-void json_merge(json *a, json *b)
-{
-    if (json_is_object(a) && json_is_object(b))
-    {
-        json *c;
-
-        while ((c = json_pop_front(b)))
-        {
-            json *d = json_find(a, c->name);
-
-            if (d != NULL)
-            {
-                json_push_before(d, c);
-                json_delete(d);
-            }
-            else
-            {
-                json_push_back(a, c);
-            }
-        }
     }
 }
 

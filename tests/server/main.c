@@ -172,7 +172,7 @@ static json *request_patch(const char *uri, const char *content)
         json_free(root);
         return NULL;
     }
-    json_merge(node, root);
+    node = json_move(node, root);
     json_free(root);
     return node;
 }
