@@ -15,22 +15,10 @@ sudo apt install libcurl4-gnutls-dev
 On macos:
 brew install curl
 
+Run the server on test/server
+Run the server on test/server
 Compile and run with:
 CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo && ./demo
-
-To install a minimal json server for testing: 
-npm install -g json-server
-
-Create a json file (i.e. db.json):
-{
-  "users": [
-  ]
-}
-
-Run the server:
-json-server --watch db.json
-
-Test the server on the browser: http://localhost:3000
 */
 
 #include <stdio.h>
@@ -83,7 +71,7 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
 static int perform(CURL *curl, enum method method,
     const char *param, int id, const char *fields)
 {
-    const char *host = "http://localhost:3000";
+    const char *host = "http://localhost:1234";
     char url[128];
 
     switch (method)
@@ -135,12 +123,6 @@ static int perform(CURL *curl, enum method method,
     }
     curl_easy_setopt(curl, CURLOPT_URL, url);
     return curl_easy_perform(curl);
-}
-
-static void print_error(char *error)
-{
-    error[strcspn(error, "\n")] = 0;
-    puts(error);
 }
 
 int main(void)
@@ -196,14 +178,7 @@ int main(void)
 
             if (node == NULL)
             {
-                if (strncmp(data.text, "Error:", 6))
-                {
-                    json_print_error(&error);
-                }
-                else
-                {
-                    print_error(data.text);
-                }
+                json_print_error(&error);
             }
             else
             {

@@ -134,6 +134,7 @@ char *json_quote(const char *);
 // Map
 // ============================================================================
 json_map *json_map_create(size_t);
+json *json_map_update(json_map *, const char *, json *);
 json *json_map_insert(json_map *, const char *, json *);
 json *json_map_upsert(json_map *, const char *, json *);
 json *json_map_delete(json_map *, const char *);

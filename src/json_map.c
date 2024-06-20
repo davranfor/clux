@@ -23,6 +23,8 @@ struct json_map
     size_t size;
 };
 
+enum {UPDATE, INSERT, UPSERT};
+
 static const size_t primes[] =
 {
     53,        97,         193,        389,
@@ -138,7 +140,7 @@ static struct node *push_node(struct node *next, const char *key, json *data)
     return node;
 }
 
-static json *push(json_map *map, const char *key, json *data, int replace)
+static json *push(json_map *map, const char *key, json *data, int request)
 {
     if ((map != NULL) && (key != NULL) && (data != NULL))
     {
@@ -155,13 +157,17 @@ static json *push(json_map *map, const char *key, json *data, int replace)
             {
                 json *result = node->data;
 
-                if (replace)
+                if (request != INSERT)
                 {
                     node->data = data;
                 }
                 return result;
             }
             node = node->next;
+        }
+        if (request == UPDATE)
+        {
+            return NULL;
         }
         if ((*head = push_node(*head, key, data)) != NULL)
         {
@@ -179,14 +185,19 @@ static json *push(json_map *map, const char *key, json *data, int replace)
     return NULL;
 }
 
+json *json_map_update(json_map *map, const char *key, json *data)
+{
+    return push(map, key, data, UPDATE);
+}
+
 json *json_map_insert(json_map *map, const char *key, json *data)
 {
-    return push(map, key, data, 0);
+    return push(map, key, data, INSERT);
 }
 
 json *json_map_upsert(json_map *map, const char *key, json *data)
 {
-    return push(map, key, data, 1);
+    return push(map, key, data, UPSERT);
 }
 
 json *json_map_delete(json_map *map, const char *key)
