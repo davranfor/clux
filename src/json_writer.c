@@ -613,3 +613,26 @@ void json_free(json *node)
     }
 }
 
+void json_merge(json *a, json *b)
+{
+    if (json_is_object(a) && json_is_object(b))
+    {
+        json *c;
+
+        while ((c = json_pop_front(b)))
+        {
+            json *d = json_find(a, c->name);
+
+            if (d != NULL)
+            {
+                json_push_before(d, c);
+                json_delete(d);
+            }
+            else
+            {
+                json_push_back(a, c);
+            }
+        }
+    }
+}
+

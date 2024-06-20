@@ -120,13 +120,12 @@ static json *request_post(const char *uri, const char *content)
     char key[64];
 
     snprintf(key, sizeof key, "%s/%zu", uri, id);
-    node = json_map_insert(map, key, root);
-    if (node != root)
+    if (json_map_insert(map, key, root) != root)
     {
         json_free(root);
         return NULL;
     }
-    return node;
+    return root;
 }
 
 static json *request_put(const char *uri, const char *content)
@@ -140,17 +139,41 @@ static json *request_put(const char *uri, const char *content)
 
     json *root = json_parse(content, NULL);
 
-    if (!json_equal(json_find(root, "id"), json_find(node, "id")))
+    if (!json_equal(json_find(root, "id"), json_find(node, "id")) ||
+        !json_map_update(map, uri, root))
     {
         json_free(root);
         return NULL;
     }
-    node = json_map_update(map, uri, root);
-    if (node != NULL)
-    {
-        json_free(node);
-    }
     return root;
+}
+
+static json *request_patch(const char *uri, const char *content)
+{
+    json *node = json_map_search(map, uri);
+
+    if (node == NULL)
+    {
+        return NULL;
+    }
+
+    json *root = json_parse(content, NULL);
+
+    if (root == NULL)
+    {
+        return NULL;
+    }
+
+    json *id = json_find(root, "id");
+
+    if (id && !json_equal(id, json_find(node, "id")))
+    {
+        json_free(root);
+        return NULL;
+    }
+    json_merge(node, root);
+    json_free(root);
+    return node;
 }
 
 static json *request_delete(const char *uri)
@@ -179,9 +202,10 @@ static json *request_result(char *header, const char *content,
             return request_get(uri);
         case POST:
             return request_post(uri, content);
-        case PATCH:
         case PUT:
             return request_put(uri, content);
+        case PATCH:
+            return request_patch(uri, content);
         case DELETE:
             return request_delete(uri);
         default:
