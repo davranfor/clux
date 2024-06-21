@@ -288,6 +288,8 @@ json *json_set_null(json *node)
     return set_number(node, JSON_NULL, 0);
 }
 
+/* move helpers */
+
 static json *move_properties(json *target, json *source)
 {
     json *node;

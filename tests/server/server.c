@@ -241,7 +241,7 @@ static void conn_close(struct pollfd *conn, struct poolfd *pool)
     pool_reset(pool);
 }
 
-static void conn_loop(uint16_t port)
+static void server_loop(uint16_t port)
 {
     enum {server = 0, maxfds = MAX_CLIENTS + 1};
     struct poolfd pool[maxfds] = {0};
@@ -312,13 +312,13 @@ static void conn_loop(uint16_t port)
     }
 }
 
-void server_loop(uint16_t port,
+void server_init(uint16_t port,
     int (*cb_request_done)(const char *, size_t),
     void (*cb_request_handle)(struct poolfd *, char *, size_t))
 {
     request_done = cb_request_done;
     request_handle = cb_request_handle;
     signal_connect();
-    conn_loop(port);
+    server_loop(port);
 }
 

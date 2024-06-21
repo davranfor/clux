@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
     }
     atexit(map_destroy);
     map = json_map_create(100);
-    server_loop(port, request_done, request_handle);
+    server_init(port, request_done, request_handle);
     return 0;
 }
 

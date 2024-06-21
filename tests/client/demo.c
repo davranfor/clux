@@ -16,7 +16,7 @@ On macos:
 brew install curl
 
 Run the server on test/server
-Run the server on test/server
+
 Compile and run with:
 CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo && ./demo
 */
