@@ -455,11 +455,6 @@ static int equal(const json *a, const json *b, int depth)
  */
 int json_equal(const json *a, const json *b)
 {
-    if ((a == NULL) && (b == NULL))
-    {
-        return 1;
-    }
-
     int depth = 0, flag = 1;
 
     while ((a != NULL) && (b != NULL))
