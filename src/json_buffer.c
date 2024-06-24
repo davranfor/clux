@@ -366,7 +366,7 @@ int json_write_line(const json *node, FILE *file)
 
         if (str != NULL)
         {
-            rc = fprintf(file, "%s\n", str) >= 0;
+            rc = fprintf(file, "%s\n", str);
             free(str);
         }
     }
