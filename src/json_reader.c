@@ -262,14 +262,26 @@ json *json_at(const json *root, size_t index)
     {
         return NULL;
     }
-    for (json *node = root->head; node != NULL; node = node->next)
+
+    json *node;
+
+    if (root->size - index > index)
     {
-        if (index-- == 0)
+        node = root->head;
+        for (size_t iter = 0; iter < index; iter++)
         {
-            return node;
+            node = node->next;
         }
     }
-    return NULL;
+    else
+    {
+        node = root->tail;
+        for (size_t iter = root->size - 1; iter > index; iter--)
+        {
+            node = node->prev;
+        }
+    }
+    return node;
 }
 
 /* Locates a child by name */

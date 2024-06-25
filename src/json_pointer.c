@@ -57,17 +57,7 @@ static json *get_by_item(const json *root, const char *path, const char *end)
     {
         return NULL;
     }
-
-    unsigned long item = strtoul(path, NULL, 10);
-
-    for (json *node = root->head; node != NULL; node = node->next)
-    {
-        if (item-- == 0)
-        {
-            return node;
-        }
-    }
-    return NULL;
+    return json_at(root, strtoul(path, NULL, 10));
 }
 
 static const char *next_path(const char *path)

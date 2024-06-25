@@ -451,7 +451,9 @@ json *json_push_at(json *parent, json *child, size_t index)
     }
     else
     {
-        if (index >= parent->size)
+        json *node = json_at(parent, index);
+
+        if (node == NULL)
         {
             child->prev = parent->tail;
             parent->tail->next = child;
@@ -459,13 +461,6 @@ json *json_push_at(json *parent, json *child, size_t index)
         }
         else
         {
-            json *node = parent->head;
-
-            while (index > 0)
-            {
-                node = node->next;
-                index--;
-            }
             if (parent->head == node)
             {
                 parent->head = child;
@@ -563,16 +558,11 @@ json *json_pop_back(json *parent)
 
 json *json_pop_at(json *parent, size_t index)
 {
-    json *child = json_child(parent);
+    json *child = json_at(parent, index);
 
-    if ((child == NULL) || (index >= parent->size))
+    if (child == NULL)
     {
         return NULL;
-    }
-    while (index > 0)
-    {
-        child = child->next;
-        index--;
     }
     if (parent->head == child)
     {
