@@ -234,15 +234,8 @@ static int test_enum(const json *node, const json *rule)
     {
         return SCHEMA_ERROR;
     }
-    if (node != NULL)
+    if ((node != NULL) && !json_locate(rule, node))
     {
-        for (rule = json_child(rule); rule != NULL; rule = json_next(rule))
-        {
-            if (json_equal(node, rule))
-            {
-                return SCHEMA_VALID;
-            }
-        }
         return SCHEMA_INVALID;
     }
     return SCHEMA_VALID;
