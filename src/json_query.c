@@ -153,7 +153,7 @@ static int has_unique_properties(const json *node, int (*func)(const json *))
     {
         for (const json *item = head; item != node; item = item->next)
         {
-            if (!strcmp(node->name, item->name) && json_equal(node, item))
+            if (!strcmp(node->name, item->name))
             {
                 return 0;
             }
@@ -222,14 +222,14 @@ static int is_unique_property(const json *node)
 {
     for (const json *item = node->prev; item != NULL; item = item->prev)
     {
-        if (!strcmp(node->name, item->name) && json_equal(node, item))
+        if (!strcmp(node->name, item->name))
         {
             return 0;
         }
     }
     for (const json *item = node->next; item != NULL; item = item->next)
     {
-        if (!strcmp(node->name, item->name) && json_equal(node, item))
+        if (!strcmp(node->name, item->name))
         {
             return 0;
         }
