@@ -334,11 +334,11 @@ static json *replace_items(json *source, json *target)
 
 json *json_replace_childs(json *source, json *target)
 {
-    if (json_is_object(target) && json_is_object(source))
+    if (json_is_object(source) && json_is_object(target))
     {
         return replace_properties(source, target);
     }
-    if (json_is_array(target) && json_is_array(source))
+    if (json_is_array(source) && json_is_array(target))
     {
         return replace_items(source, target);
     }
@@ -347,18 +347,17 @@ json *json_replace_childs(json *source, json *target)
 
 json *json_move_childs(json *source, json *target)
 {
-    if (!json_is_iterable(source) || (json_type(source) != json_type(target)))
+    if (json_is_iterable(source) && (json_type(source) == json_type(target)))
     {
-        return NULL;
-    }
+        json *node;
 
-    json *node;
-
-    while ((node = json_pop_front(source)))
-    {
-        json_push_back(target, node);
+        while ((node = json_pop_front(source)))
+        {
+            json_push_back(target, node);
+        }
+        return target;
     }
-    return target;
+    return NULL;
 }
 
 /* push helper */
