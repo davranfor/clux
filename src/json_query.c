@@ -145,7 +145,24 @@ static int has_simple_childs(const json *node, int (*func)(const json *))
     return node == NULL;
 }
 
-static int has_unique_childs(const json *node, int (*func)(const json *))
+static int has_unique_properties(const json *node, int (*func)(const json *))
+{
+    const json *head = node->head;
+
+    for (node = head; func(node) != 0; node = node->next)
+    {
+        for (const json *item = head; item != node; item = item->next)
+        {
+            if (!strcmp(node->name, item->name) && json_equal(node, item))
+            {
+                return 0;
+            }
+        }
+    }
+    return node == NULL;
+}
+
+static int has_unique_items(const json *node, int (*func)(const json *))
 {
     const json *head = node->head;
 
@@ -160,6 +177,13 @@ static int has_unique_childs(const json *node, int (*func)(const json *))
         }
     }
     return node == NULL;
+}
+
+static int has_unique_childs(const json *node, int (*func)(const json *))
+{
+    return node->type == JSON_OBJECT
+        ? has_unique_properties(node, func)
+        : has_unique_items(node, func);
 }
 
 static int run_query(struct query *query, const json *node)
@@ -194,12 +218,27 @@ int json_is(const json *node, const char *text)
         && run_query(&query, node);
 }
 
-int json_is_unique(const json *node)
+static int is_unique_property(const json *node)
 {
-    if (node == NULL)
+    for (const json *item = node->prev; item != NULL; item = item->prev)
     {
-        return 0;
+        if (!strcmp(node->name, item->name) && json_equal(node, item))
+        {
+            return 0;
+        }
     }
+    for (const json *item = node->next; item != NULL; item = item->next)
+    {
+        if (!strcmp(node->name, item->name) && json_equal(node, item))
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static int is_unique_item(const json *node)
+{
     for (const json *item = node->prev; item != NULL; item = item->prev)
     {
         if (json_equal(node, item))
@@ -215,5 +254,15 @@ int json_is_unique(const json *node)
         }
     }
     return 1;
+}
+
+int json_is_unique(const json *node)
+{
+    if (node == NULL)
+    {
+        return 0;
+    }
+    return node->name ? is_unique_property(node) : is_unique_item(node);
+
 }
 
