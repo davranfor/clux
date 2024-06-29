@@ -288,9 +288,9 @@ json *json_set_null(json *node)
     return set_number(node, JSON_NULL, 0);
 }
 
-/* move helpers */
+/* replace helpers */
 
-static json *move_properties(json *target, json *source)
+static json *replace_properties(json *source, json *target)
 {
     json *node;
 
@@ -311,8 +311,47 @@ static json *move_properties(json *target, json *source)
     return target;
 }
 
-static json *move_items(json *target, json *source)
+static json *replace_items(json *source, json *target)
 {
+    json *node;
+
+    while ((node = json_pop_front(source)))
+    {
+        json *old = json_locate(target, node);
+
+        if (old != NULL)
+        {
+            json_push_before(old, node);
+            json_delete(old);
+        }
+        else
+        {
+            json_push_back(target, node);
+        }
+    }
+    return target;
+}
+
+json *json_replace_childs(json *source, json *target)
+{
+    if (json_is_object(target) && json_is_object(source))
+    {
+        return replace_properties(source, target);
+    }
+    if (json_is_array(target) && json_is_array(source))
+    {
+        return replace_items(source, target);
+    }
+    return NULL;
+}
+
+json *json_move_childs(json *source, json *target)
+{
+    if (!json_is_iterable(source) || (json_type(source) != json_type(target)))
+    {
+        return NULL;
+    }
+
     json *node;
 
     while ((node = json_pop_front(source)))
@@ -320,19 +359,6 @@ static json *move_items(json *target, json *source)
         json_push_back(target, node);
     }
     return target;
-}
-
-json *json_move(json *target, json *source)
-{
-    if (json_is_object(target) && json_is_object(source))
-    {
-        return move_properties(target, source);
-    }
-    if (json_is_array(target) && json_is_array(source))
-    {
-        return move_items(target, source);
-    }
-    return NULL;
 }
 
 /* push helper */

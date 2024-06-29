@@ -26,10 +26,11 @@ static const struct
 }
 map[] =
 {
+    {{"item",     "items"    }, json_is_any     },
     {{"iterable", "iterables"}, json_is_iterable},
+    {{"scalar",   "scalars"  }, json_is_scalar  },
     {{"object",   "objects"  }, json_is_object  },
     {{"array",    "arrays"   }, json_is_array   },
-    {{"scalar",   "scalars"  }, json_is_scalar  },
     {{"string",   "strings"  }, json_is_string  },
     {{"integer",  "integers" }, json_is_integer },
     {{"unsigned", "unsigneds"}, json_is_unsigned},
@@ -37,7 +38,6 @@ map[] =
     {{"number",   "numbers"  }, json_is_number  },
     {{"boolean",  "booleans" }, json_is_boolean },
     {{"null",     "nulls"    }, json_is_null    },
-    {{"item",     "items"    }, json_is_any     },
 };
 
 struct token
@@ -263,6 +263,5 @@ int json_is_unique(const json *node)
         return 0;
     }
     return node->name ? is_unique_property(node) : is_unique_item(node);
-
 }
 

@@ -302,7 +302,7 @@ json *json_find(const json *root, const char *name)
     return NULL;
 }
 
-/* Locates a prev sibling by name */
+/* Locates a previous sibling by name */
 json *json_find_prev(const json *root, const char *name)
 {
     if ((root == NULL) || (root->name == NULL) || (name == NULL))
@@ -333,6 +333,57 @@ json *json_find_next(const json *root, const char *name)
         if (strcmp(node->name, name) == 0)
         {
             return node;
+        }
+    }
+    return NULL;
+}
+
+/* Locates a child by node */
+json *json_locate(const json *root, const json *node)
+{
+    if ((root == NULL) || (node == NULL))
+    {
+        return NULL;
+    }
+    for (json *item = root->head; item != NULL; item = item->next)
+    {
+        if (json_equal(item, node))
+        {
+            return item;
+        }
+    }
+    return NULL;
+}
+
+/* Locates a previous sibling by node */
+json *json_locate_prev(const json *root, const json *node)
+{
+    if ((root == NULL) || (node == NULL))
+    {
+        return NULL;
+    }
+    for (json *item = root->prev; item != NULL; item = item->prev)
+    {
+        if (json_equal(item, node))
+        {
+            return item;
+        }
+    }
+    return NULL;
+}
+
+/* Locates a next sibling by node */
+json *json_locate_next(const json *root, const json *node)
+{
+    if ((root == NULL) || (node == NULL))
+    {
+        return NULL;
+    }
+    for (json *item = root->next; item != NULL; item = item->next)
+    {
+        if (json_equal(item, node))
+        {
+            return item;
         }
     }
     return NULL;
