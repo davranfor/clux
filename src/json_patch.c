@@ -39,16 +39,16 @@ int json_unpatch(json *target, json *source, int patches)
 {
     if (json_is_object(target) && json_is_object(source))
     {
+        json *node;
+
         for (int count = 0; count < patches; count++)
         {
-            if (!json_pop_back(target))
+            if ((node = json_pop_back(target)) == NULL)
             {
                 return -1;
             }
+            json_delete(node);
         }
-
-        json *node;
-
         while ((node = json_pop_front(source)))
         {
             json *item = json_find(target, node->name);
