@@ -172,7 +172,13 @@ static json *request_patch(const char *uri, const char *content)
         json_free(root);
         return NULL;
     }
-    node = json_replace_childs(node, root);
+
+    int patches = json_patch(node, root);
+
+    if (patches == -1)
+    {
+        node = NULL;
+    }
     json_free(root);
     return node;
 }

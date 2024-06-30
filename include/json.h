@@ -109,8 +109,6 @@ json *json_set_integer(json *, double);
 json *json_set_real(json *, double);
 json *json_set_boolean(json *, int);
 json *json_set_null(json *);
-json *json_move_childs(json *, json *);
-json *json_replace_childs(json *, json *);
 json *json_push_front(json *, json *);
 json *json_push_back(json *, json *);
 json *json_push_before(json *, json *);
@@ -122,6 +120,11 @@ json *json_pop_back(json *);
 json *json_pop_at(json *, size_t);
 json *json_delete(json *);
 void json_free(json *);
+// ============================================================================
+// Patcher
+// ============================================================================
+int json_patch(json *, json *);
+int json_unpatch(json *, json *, int);
 // ============================================================================
 // Buffer
 // ============================================================================

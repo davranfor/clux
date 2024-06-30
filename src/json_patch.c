@@ -1,0 +1,71 @@
+/*!
+ *  \brief     clux - json and json-schema library for C
+ *  \author    David Ranieri <davranfor@gmail.com>
+ *  \copyright GNU Public License.
+ */
+
+#include "json_private.h"
+
+int json_patch(json *target, json *source)
+{
+    if (json_is_object(target) && json_is_object(source))
+    {
+        size_t size = json_size(source);
+        int patches = 0;
+
+        for (size_t count = 0; count < size; count++)
+        {
+            json *node = json_pop_front(source);
+            json *item = json_find(target, node->name);
+
+            if (item != NULL)
+            {
+                json_push_before(item, node);
+                json_pop(item);
+                json_push_back(source, item);
+            }
+            else
+            {
+                json_push_back(target, node);
+                patches++;
+            }
+        }
+        return patches;
+    }
+    return -1;
+}
+
+int json_unpatch(json *target, json *source, int patches)
+{
+    if (json_is_object(target) && json_is_object(source))
+    {
+        for (int count = 0; count < patches; count++)
+        {
+            if (!json_pop_back(target))
+            {
+                return -1;
+            }
+        }
+
+        json *node;
+
+        while ((node = json_pop_front(source)))
+        {
+            json *item = json_find(target, node->name);
+
+            if (item != NULL)
+            {
+                json_push_before(item, node);
+                json_delete(item);
+            }
+            else
+            {
+                json_delete(node);
+                return -1;
+            }
+        }
+        return patches;
+    }
+    return -1;
+}
+
