@@ -16,18 +16,26 @@ int json_patch(json *target, json *source)
         for (size_t count = 0; count < size; count++)
         {
             json *node = json_pop_front(source);
-            json *item = json_find(target, node->name);
 
-            if (item != NULL)
+            if (json_find(source, node->name))
             {
-                json_push_before(item, node);
-                json_pop(item);
-                json_push_back(source, item);
+                json_delete(node);
             }
             else
             {
-                json_push_back(target, node);
-                patches++;
+                json *item = json_find(target, node->name);
+
+                if (item != NULL)
+                {
+                    json_push_before(item, node);
+                    json_pop(item);
+                    json_push_back(source, item);
+                }
+                else
+                {
+                    json_push_back(target, node);
+                    patches++;
+                }
             }
         }
         return patches;

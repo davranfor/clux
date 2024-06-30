@@ -165,18 +165,16 @@ static json *request_patch(const char *uri, const char *content)
         return NULL;
     }
 
-    json *id = json_find(root, "id");
+    int id = json_find(node, "id");
+    int patch = json_patch(node, root);
 
-    if (id && !json_equal(id, json_find(node, "id")))
+    if (patch == -1)
     {
-        json_free(root);
-        return NULL;
+        node = NULL;
     }
-
-    int patches = json_patch(node, root);
-
-    if (patches == -1)
+    else if (json_find(node, "id") != id)
     {
+        json_unpatch(node, root, patch);
         node = NULL;
     }
     json_free(root);
