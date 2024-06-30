@@ -43,11 +43,14 @@ int json_unpatch(json *target, json *source, int patches)
 
         for (int count = 0; count < patches; count++)
         {
-            if ((node = json_pop_back(target)) == NULL)
+            if ((node = json_pop_back(target)))
+            {
+                json_delete(node);
+            }
+            else
             {
                 return -1;
             }
-            json_delete(node);
         }
         while ((node = json_pop_front(source)))
         {
