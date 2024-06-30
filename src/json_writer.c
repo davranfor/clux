@@ -288,66 +288,9 @@ json *json_set_null(json *node)
     return set_number(node, JSON_NULL, 0);
 }
 
-/* replace helpers */
-
-static json *replace_properties(json *source, json *target)
+json *json_move_childs(json *target, json *source)
 {
-    json *node;
-
-    while ((node = json_pop_front(source)))
-    {
-        json *old = json_find(target, node->name);
-
-        if (old != NULL)
-        {
-            json_push_before(old, node);
-            json_delete(old);
-        }
-        else
-        {
-            json_push_back(target, node);
-        }
-    }
-    return target;
-}
-
-static json *replace_items(json *source, json *target)
-{
-    json *node;
-
-    while ((node = json_pop_front(source)))
-    {
-        json *old = json_locate(target, node);
-
-        if (old != NULL)
-        {
-            json_push_before(old, node);
-            json_delete(old);
-        }
-        else
-        {
-            json_push_back(target, node);
-        }
-    }
-    return target;
-}
-
-json *json_replace_childs(json *source, json *target)
-{
-    if (json_is_object(source) && json_is_object(target))
-    {
-        return replace_properties(source, target);
-    }
-    if (json_is_array(source) && json_is_array(target))
-    {
-        return replace_items(source, target);
-    }
-    return NULL;
-}
-
-json *json_move_childs(json *source, json *target)
-{
-    if (json_is_iterable(source) && (json_type(source) == json_type(target)))
+    if (json_is_iterable(target) && (target->type == json_type(source)))
     {
         json *node;
 
@@ -356,6 +299,60 @@ json *json_move_childs(json *source, json *target)
             json_push_back(target, node);
         }
         return target;
+    }
+    return NULL;
+}
+
+/* replace helpers */
+
+static json *replace_properties(json *target, json *source)
+{
+    json *node;
+
+    while ((node = json_pop_front(source)))
+    {
+        json *item = json_find(target, node->name);
+
+        if (item == NULL)
+        {
+            json_push_back(target, node);
+        }
+        else
+        {
+            json_push_before(item, node);
+            json_delete(item);
+        }
+    }
+    return target;
+}
+
+static json *replace_items(json *target, json *source)
+{
+    json *node;
+
+    while ((node = json_pop_front(source)))
+    {
+        if (json_locate(target, node))
+        {
+            json_delete(node);
+        }
+        else
+        {
+            json_push_back(target, node);
+        }
+    }
+    return target;
+}
+
+json *json_replace_childs(json *target, json *source)
+{
+    if (json_is_object(target) && json_is_object(source))
+    {
+        return replace_properties(target, source);
+    }
+    if (json_is_array(target) && json_is_array(source))
+    {
+        return replace_items(target, source);
     }
     return NULL;
 }
