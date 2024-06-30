@@ -96,89 +96,79 @@ static json *request_get(const char *uri)
 
 static json *request_post(const char *uri, const char *content)
 {
-    json *root = json_parse(content, NULL);
-
-    if (root == NULL)
-    {
-        return NULL;
-    }
-
-    json *node = json_find(root, "id");
+    json *node = json_parse(content, NULL);
 
     if (node == NULL)
     {
-        node = json_new_number("id", json_map_size(map) + 1);
-        json_push_front(root, node);
-    }
-    if (json_type(node) != JSON_INTEGER)
-    {
-        json_free(root);
         return NULL;
     }
+    json_delete(json_find(node, "id"));
 
-    size_t id = json_size_t(node);
+    static size_t id = 1;
     char key[64];
 
     snprintf(key, sizeof key, "%s/%zu", uri, id);
-    if (json_map_insert(map, key, root) != root)
+    if ((json_map_insert(map, key, node) != node) ||
+        !json_push_front(node, json_new_number("id", id)))
     {
-        json_free(root);
+        json_free(node);
         return NULL;
     }
-    return root;
+    id++;
+    return node;
 }
 
 static json *request_put(const char *uri, const char *content)
 {
-    json *node = json_map_search(map, uri);
+    json *old = json_map_search(map, uri);
 
-    if (node == NULL)
+    if (old == NULL)
     {
         return NULL;
     }
 
-    json *root = json_parse(content, NULL);
+    json *new = json_parse(content, NULL);
 
-    if (!json_equal(json_find(root, "id"), json_find(node, "id")) ||
-        !json_map_update(map, uri, root))
+    if (!json_equal(json_find(new, "id"), json_find(old, "id")) ||
+        !json_map_update(map, uri, new))
     {
-        json_free(root);
+        json_free(new);
         return NULL;
     }
-    json_free(node);
-    return root;
+    json_free(old);
+    return new;
 }
 
 static json *request_patch(const char *uri, const char *content)
 {
-    json *node = json_map_search(map, uri);
+    json *target = json_map_search(map, uri);
 
-    if (node == NULL)
+    if (target == NULL)
     {
         return NULL;
     }
 
-    json *root = json_parse(content, NULL);
+    json *source = json_parse(content, NULL);
 
-    if (root == NULL)
+    if (source == NULL)
     {
         return NULL;
     }
 
-    int id = json_find(node, "id");
-    int patch = json_patch(node, root);
+    size_t id = json_size_t(json_find(target, "id"));
+    int patch = json_patch(target, source);
 
     if (patch == -1)
     {
-        node = NULL;
+        target = NULL;
     }
-    else if (json_find(node, "id") != id)
+    else if (json_size_t(json_find(target, "id")) != id)
     {
-        json_unpatch(node, root, patch);
-        node = NULL;
+        json_unpatch(target, source, patch);
+        target = NULL;
     }
-    json_free(root);
-    return node;
+    json_free(source);
+    return target;
 }
 
 static json *request_delete(const char *uri)

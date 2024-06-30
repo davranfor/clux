@@ -160,8 +160,20 @@ int main(void)
         int id = rand() % 9 + 1;
         char fields[128];
 
-        snprintf(fields, sizeof fields,
-                "{\"id\":%d,\"name\":\"user%d\"}", id, id);
+        switch (method)
+        {
+            case POST:
+            case PATCH:
+                snprintf(fields, sizeof fields, "{\"name\":\"%c\"}", 'a' + id);
+                break;
+            case PUT:
+                snprintf(fields, sizeof fields,
+                    "{\"id\":%d,\"name\":\"%c\"}", id, 'a' + id);
+                break;
+            default:
+                snprintf(fields, sizeof fields, "");
+                break;
+        }
 
         int res = perform(curl, method, param, id, fields);
 
