@@ -112,9 +112,12 @@ static json *request_post(const char *uri, const char *content)
         !json_push_front(node, json_new_number("id", id)))
     {
         json_free(node);
-        return NULL;
+        node = NULL;
     }
-    id++;
+    else
+    {
+        id += 1;
+    }
     return node;
 }
 
@@ -133,9 +136,12 @@ static json *request_put(const char *uri, const char *content)
         !json_map_update(map, uri, new))
     {
         json_free(new);
-        return NULL;
+        new = NULL;
     }
-    json_free(old);
+    else
+    {
+        json_free(old);
+    }
     return new;
 }
 

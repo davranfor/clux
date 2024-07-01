@@ -131,6 +131,16 @@ int main(void)
 
     setlocale(LC_CTYPE, "");
     srand((unsigned)time(NULL));
+
+    json_error error;
+    json *users = json_child(json_parse_file("users.json", &error));
+
+    if (users == NULL)
+    {
+        json_print_error(&error);
+        exit(EXIT_FAILURE);
+    }
+
     curl_global_init(CURL_GLOBAL_DEFAULT);
     atexit(curl_global_cleanup);
 
@@ -153,22 +163,30 @@ int main(void)
 
     int rc = EXIT_SUCCESS;
 
-    for (int i = 0; i <= 10; i++)
+    for (int i = 0; i < 100; i++)
     {
         int method = (i == 10) ? ALL : rand() % ALL;
         const char *param = "users";
-        int id = rand() % 9 + 1;
+        size_t id = rand() % 99 + 1;
         char fields[128];
 
         switch (method)
         {
             case POST:
             case PATCH:
-                snprintf(fields, sizeof fields, "{\"name\":\"%c\"}", 'a' + id);
+                snprintf(fields, sizeof fields,
+                    "{\"name\": \"%s\", \"surname\": \"%s\"}",
+                    json_string(json_find(json_at(users, id), "name")),
+                    json_string(json_find(json_at(users, id), "surname"))
+                );
                 break;
             case PUT:
                 snprintf(fields, sizeof fields,
-                    "{\"id\":%d,\"name\":\"%c\"}", id, 'a' + id);
+                    "{\"id\": %zu, \"name\": \"%s\", \"surname\": \"%s\"}",
+                    id,
+                    json_string(json_find(json_at(users, id), "name")),
+                    json_string(json_find(json_at(users, id), "surname"))
+                ); 
                 break;
             default:
                 snprintf(fields, sizeof fields, "");
@@ -201,6 +219,7 @@ int main(void)
         }
     }
     free(data.text);
+    json_free(json_parent(users));
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     return rc;
