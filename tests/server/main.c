@@ -197,8 +197,7 @@ static json *request_result(char *header, const char *content,
     {
         return NULL;
     }
-    *method = request_method(header); 
-    switch (*method)
+    switch ((*method = request_method(header)))
     {
         case GET:
             return request_get(uri);
@@ -221,6 +220,7 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
 
     if (content == NULL)
     {
+        pool_reset(pool);
         return;
     }
     content[0] = '\0';
@@ -268,6 +268,7 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
                     !pool_put(pool, content, content_length))
                 {
                     perror("pool_put");
+                    pool_reset(pool);
                 }
             }
         }
