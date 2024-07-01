@@ -11,7 +11,7 @@ int json_patch(json *target, json *source)
     if (json_is_object(target) && json_is_object(source))
     {
         size_t size = json_size(source);
-        int patches = 0;
+        int inserts = 0;
 
         for (size_t count = 0; count < size; count++)
         {
@@ -20,36 +20,35 @@ int json_patch(json *target, json *source)
             if (json_find(source, node->name))
             {
                 json_delete(node);
+                continue;
+            }
+
+            json *item = json_find(target, node->name);
+
+            if (item != NULL)
+            {
+                json_push_before(item, node);
+                json_pop(item);
+                json_push_back(source, item);
             }
             else
             {
-                json *item = json_find(target, node->name);
-
-                if (item != NULL)
-                {
-                    json_push_before(item, node);
-                    json_pop(item);
-                    json_push_back(source, item);
-                }
-                else
-                {
-                    json_push_back(target, node);
-                    patches++;
-                }
+                json_push_back(target, node);
+                inserts++;
             }
         }
-        return patches;
+        return inserts;
     }
     return -1;
 }
 
-int json_unpatch(json *target, json *source, int patches)
+int json_unpatch(json *target, json *source, int inserts)
 {
     if (json_is_object(target) && json_is_object(source))
     {
         json *node;
 
-        for (int count = 0; count < patches; count++)
+        for (int count = 0; count < inserts; count++)
         {
             if ((node = json_pop_back(target)))
             {
@@ -75,7 +74,7 @@ int json_unpatch(json *target, json *source, int patches)
                 return -1;
             }
         }
-        return patches;
+        return 0;
     }
     return -1;
 }
