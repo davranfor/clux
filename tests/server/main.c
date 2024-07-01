@@ -218,24 +218,19 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
 {
     char *content = strstr(pool->data, delimiter);
 
-    if (content == NULL)
+    if (content[delimiter_length] != '\0')
     {
-        pool_reset(pool);
-        return;
-    }
-    content[0] = '\0';
-
-    enum method method = NONE;
-    json *node;
-
-    if (content[delimiter_length] == '\0')
-    {
-        node = request_result(pool->data, NULL, &method);        
+        content[0] = '\0';
+        content += delimiter_length;
     }
     else
     {
-        node = request_result(pool->data, content + delimiter_length, &method);
+        content = NULL;
     }
+    
+    enum method method = NONE;
+    json *node = request_result(pool->data, content, &method);
+
     pool_reset(pool);
     if (node == NULL)
     {
@@ -244,32 +239,28 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
         memcpy(buffer, http_ko, header_length);
         pool_set(pool, buffer, header_length);
     }
-    else
+    else if ((content = json_encode(node)))
     {
-        content = json_encode(node);
-        if (content != NULL)
+        size_t content_length = strlen(content);
+        char header[256];
+
+        snprintf(header, sizeof header, http_ok, content_length);
+
+        size_t header_length = strlen(header);
+
+        if (header_length + content_length <= size)
         {
-            size_t content_length = strlen(content);
-            char header[256];
-
-            snprintf(header, sizeof header, http_ok, content_length);
-
-            size_t header_length = strlen(header);
-
-            if (header_length + content_length <= size)
+            memcpy(buffer, header, header_length);
+            memcpy(buffer + header_length, content, content_length);
+            pool_set(pool, buffer, header_length + content_length);
+        }
+        else
+        {
+            if (!pool_put(pool, header, header_length) ||
+                !pool_put(pool, content, content_length))
             {
-                memcpy(buffer, header, header_length);
-                memcpy(buffer + header_length, content, content_length);
-                pool_set(pool, buffer, header_length + content_length);
-            }
-            else
-            {
-                if (!pool_put(pool, header, header_length) ||
-                    !pool_put(pool, content, content_length))
-                {
-                    perror("pool_put");
-                    pool_reset(pool);
-                }
+                perror("pool_put");
+                pool_reset(pool);
             }
         }
         if (method == DELETE)
