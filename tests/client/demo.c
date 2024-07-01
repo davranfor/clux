@@ -203,7 +203,6 @@ int main(void)
         }
         if (data.length > 0)
         {
-            json_error error;
             json *node = json_parse(data.text, &error);
 
             if (node == NULL)

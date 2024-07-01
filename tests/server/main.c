@@ -70,6 +70,7 @@ static enum method request_method(const char *header)
     return method;
 }
 
+// cppcheck-suppress constParameterPointer
 static const char *request_uri(char *header)
 {
     const char *uri = strchr(header, '/');
