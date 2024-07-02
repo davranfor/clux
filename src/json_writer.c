@@ -288,6 +288,126 @@ json *json_set_null(json *node)
     return set_number(node, JSON_NULL, 0);
 }
 
+json *json_let_object(json *parent, const char *name)
+{
+    if (!json_is_object(parent) || (name == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_number(JSON_OBJECT, name, 0))
+        : set_number(node, JSON_OBJECT, 0);
+}
+
+json *json_let_array(json *parent, const char *name)
+{
+    if (!json_is_object(parent) || (name == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_number(JSON_ARRAY, name, 0))
+        : set_number(node, JSON_ARRAY, 0);
+}
+
+json *json_let_format(json *parent, const char *name, const char *fmt, ...)
+{
+    if (!json_is_object(parent) || (name == NULL) || (fmt == NULL))
+    {
+        return NULL;
+    }
+
+    va_list args;
+
+    va_start(args, fmt);
+
+    char *str = format_string(fmt, args);
+
+    va_end(args);
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_string(name, str))
+        : set_string(node, str);
+}
+
+json *json_let_string(json *parent, const char *name, const char *value)
+{
+    if (!json_is_object(parent) || (name == NULL) || (value == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_string(name, copy_string(value)))
+        : set_string(node, copy_string(value));
+}
+
+json *json_let_integer(json *parent, const char *name, double value)
+{
+    if (!json_is_object(parent) || (name == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_number(JSON_INTEGER, name, trunc(value)))
+        : set_number(node, JSON_INTEGER, trunc(value));
+}
+
+json *json_let_real(json *parent, const char *name, double value)
+{
+    if (!json_is_object(parent) || (name == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_number(JSON_REAL, name, value))
+        : set_number(node, JSON_REAL, value);
+}
+
+json *json_let_boolean(json *parent, const char *name, int value)
+{
+    if (!json_is_object(parent) || (name == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_number(JSON_BOOLEAN, name, value ? 1 : 0))
+        : set_number(node, JSON_BOOLEAN, value ? 1 : 0);
+}
+
+json *json_let_null(json *parent, const char *name)
+{
+    if (!json_is_object(parent) || (name == NULL))
+    {
+        return NULL;
+    }
+
+    json *node = json_find(parent, name);
+
+    return (node == NULL)
+        ? json_push_back(parent, new_number(JSON_NULL, name, 0))
+        : set_number(node, JSON_NULL, 0);
+}
+
 /* push helper */
 static int not_pushable(const json *parent, const json *child)
 {
