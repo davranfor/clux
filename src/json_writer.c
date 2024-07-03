@@ -295,11 +295,11 @@ json *json_let_object(json *parent, const char *name)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_number(JSON_OBJECT, name, 0))
-        : set_number(node, JSON_OBJECT, 0);
+        : set_number(child, JSON_OBJECT, 0);
 }
 
 json *json_let_array(json *parent, const char *name)
@@ -309,11 +309,11 @@ json *json_let_array(json *parent, const char *name)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_number(JSON_ARRAY, name, 0))
-        : set_number(node, JSON_ARRAY, 0);
+        : set_number(child, JSON_ARRAY, 0);
 }
 
 json *json_let_format(json *parent, const char *name, const char *fmt, ...)
@@ -331,11 +331,11 @@ json *json_let_format(json *parent, const char *name, const char *fmt, ...)
 
     va_end(args);
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_string(name, str))
-        : set_string(node, str);
+        : set_string(child, str);
 }
 
 json *json_let_string(json *parent, const char *name, const char *value)
@@ -345,11 +345,11 @@ json *json_let_string(json *parent, const char *name, const char *value)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_string(name, copy_string(value)))
-        : set_string(node, copy_string(value));
+        : set_string(child, copy_string(value));
 }
 
 json *json_let_integer(json *parent, const char *name, double value)
@@ -359,11 +359,11 @@ json *json_let_integer(json *parent, const char *name, double value)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_number(JSON_INTEGER, name, trunc(value)))
-        : set_number(node, JSON_INTEGER, trunc(value));
+        : set_number(child, JSON_INTEGER, trunc(value));
 }
 
 json *json_let_real(json *parent, const char *name, double value)
@@ -373,11 +373,11 @@ json *json_let_real(json *parent, const char *name, double value)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_number(JSON_REAL, name, value))
-        : set_number(node, JSON_REAL, value);
+        : set_number(child, JSON_REAL, value);
 }
 
 json *json_let_boolean(json *parent, const char *name, int value)
@@ -387,11 +387,11 @@ json *json_let_boolean(json *parent, const char *name, int value)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_number(JSON_BOOLEAN, name, value ? 1 : 0))
-        : set_number(node, JSON_BOOLEAN, value ? 1 : 0);
+        : set_number(child, JSON_BOOLEAN, value ? 1 : 0);
 }
 
 json *json_let_null(json *parent, const char *name)
@@ -401,11 +401,11 @@ json *json_let_null(json *parent, const char *name)
         return NULL;
     }
 
-    json *node = json_find(parent, name);
+    json *child = json_find(parent, name);
 
-    return (node == NULL)
+    return (child == NULL)
         ? json_push_back(parent, new_number(JSON_NULL, name, 0))
-        : set_number(node, JSON_NULL, 0);
+        : set_number(child, JSON_NULL, 0);
 }
 
 /* push helper */
