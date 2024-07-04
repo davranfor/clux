@@ -36,7 +36,7 @@ enum method
     PUT,
     PATCH,
     DELETE,
-    ALL 
+    METHODS
 };
 
 struct data
@@ -69,7 +69,7 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
 }
 
 static int perform(CURL *curl, enum method method,
-    const char *param, int id, const char *fields)
+    const char *param, size_t id, const char *fields)
 {
     const char *host = "http://localhost:1234";
     char url[128];
@@ -77,9 +77,9 @@ static int perform(CURL *curl, enum method method,
     switch (method)
     {
         case GET:
-            printf("GET:%d\n", id);
+            printf("GET:%zu\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
+            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
             break;
         case POST:
             printf("POST:%s\n", fields);
@@ -93,30 +93,101 @@ static int perform(CURL *curl, enum method method,
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(fields));
-            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
+            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
             break;
         case PATCH:
             printf("PATCH:%s\n", fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(fields));
-            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
+            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
             break;
         case DELETE:
-            printf("DELETE:%d\n", id);
+            printf("DELETE:%zu\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
-            break;
-        case ALL:
-            printf("ALL:\n");
-            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            snprintf(url, sizeof url, "%s/%s", host, param);
+            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
             break;
         default:
             return -1;
     }
     curl_easy_setopt(curl, CURLOPT_URL, url);
     return curl_easy_perform(curl);
+}
+
+static int request(size_t id, const json *users, struct data *data)
+{
+    int method = rand() % METHODS;
+    const char *param = "/users";
+    char fields[128];
+    int rc = 1;
+
+    switch (method)
+    {
+        case POST:
+        case PATCH:
+            snprintf(fields, sizeof fields,
+                "{\"name\": \"%s\", \"surname\": \"%s\"}",
+                json_string(json_find(json_at(users, id), "name")),
+                json_string(json_find(json_at(users, id), "surname"))
+            );
+            break;
+        case PUT:
+            snprintf(fields, sizeof fields,
+                "{\"id\": %zu, \"name\": \"%s\", \"surname\": \"%s\"}",
+                id,
+                json_string(json_find(json_at(users, id), "name")),
+                json_string(json_find(json_at(users, id), "surname"))
+            ); 
+            break;
+        default:
+            snprintf(fields, sizeof fields, "");
+            break;
+    }
+
+    CURL *curl = curl_easy_init();
+
+    if (curl == NULL)
+    {
+        perror("curl_easy_init");
+        exit(EXIT_FAILURE);
+    }
+
+    struct curl_slist *headers = NULL;
+
+    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "charset: utf-8");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)data);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    int res = perform(curl, method, param, id, fields);
+
+    if (res != CURLE_OK)
+    {
+        fprintf(stderr, "curl_easy_perform: %s\n", curl_easy_strerror(res));
+        rc = 0;
+    }
+    else if (data->length > 0)
+    {
+        json_error error;
+        json *node = json_parse(data->text, &error);
+
+        if (node == NULL)
+        {
+            json_print_error(&error);
+        }
+        else
+        {
+            json_print(node);
+            json_free(node);
+        }
+        data->length = 0;
+    }
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+    return rc;
 }
 
 int main(void)
@@ -138,78 +209,14 @@ int main(void)
     curl_global_init(CURL_GLOBAL_DEFAULT);
     atexit(curl_global_cleanup);
 
-    for (int i = 0, fail = 0; (i < 100) && !fail; i++)
+    for (size_t i = 0, n = json_size(users); i < n; i++)
     {
-        int method = (i == 10) ? ALL : rand() % ALL;
-        const char *param = "users";
-        size_t id = rand() % 99 + 1;
-        char fields[128];
+        size_t id = rand() % n;
 
-        switch (method)
+        if (!request(id, users, &data))
         {
-            case POST:
-            case PATCH:
-                snprintf(fields, sizeof fields,
-                    "{\"name\": \"%s\", \"surname\": \"%s\"}",
-                    json_string(json_find(json_at(users, id), "name")),
-                    json_string(json_find(json_at(users, id), "surname"))
-                );
-                break;
-            case PUT:
-                snprintf(fields, sizeof fields,
-                    "{\"id\": %zu, \"name\": \"%s\", \"surname\": \"%s\"}",
-                    id,
-                    json_string(json_find(json_at(users, id), "name")),
-                    json_string(json_find(json_at(users, id), "surname"))
-                ); 
-                break;
-            default:
-                snprintf(fields, sizeof fields, "");
-                break;
+            break;
         }
-
-        CURL *curl = curl_easy_init();
-
-        if (curl == NULL)
-        {
-            perror("curl_easy_init");
-            exit(EXIT_FAILURE);
-        }
-
-        struct curl_slist *headers = NULL;
-
-        headers = curl_slist_append(headers, "Accept: application/json");
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        headers = curl_slist_append(headers, "charset: utf-8");
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&data);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        int res = perform(curl, method, param, id, fields);
-
-        if (res != CURLE_OK)
-        {
-            fprintf(stderr, "curl_easy_perform: %s\n", curl_easy_strerror(res));
-            fail = 1;
-        }
-        else if (data.length > 0)
-        {
-            json *node = json_parse(data.text, &error);
-
-            if (node == NULL)
-            {
-                json_print_error(&error);
-            }
-            else
-            {
-                json_print(node);
-                json_free(node);
-            }
-            data.length = 0;
-        }
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
     }
     json_free(json_parent(users));
     free(data.text);
