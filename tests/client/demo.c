@@ -79,8 +79,6 @@ static int perform(CURL *curl, enum method method,
         case GET:
             printf("GET:%d\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0L);
             snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
             break;
         case POST:
@@ -107,15 +105,11 @@ static int perform(CURL *curl, enum method method,
         case DELETE:
             printf("DELETE:%d\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0L);
             snprintf(url, sizeof url, "%s/%s/%d", host, param, id);
             break;
         case ALL:
             printf("ALL:\n");
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0L);
             snprintf(url, sizeof url, "%s/%s", host, param);
             break;
         default:
@@ -144,26 +138,7 @@ int main(void)
     curl_global_init(CURL_GLOBAL_DEFAULT);
     atexit(curl_global_cleanup);
 
-    struct curl_slist *headers = NULL;
-
-    headers = curl_slist_append(headers, "Accept: application/json");
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    headers = curl_slist_append(headers, "charset: utf-8");
-
-    CURL *curl = curl_easy_init();
-
-    if (curl == NULL)
-    {
-        perror("curl_easy_init");
-        exit(EXIT_FAILURE);
-    }
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&data);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    int rc = EXIT_SUCCESS;
-
-    for (int i = 0; i < 100; i++)
+    for (int i = 0, fail = 0; (i < 100) && !fail; i++)
     {
         int method = (i == 10) ? ALL : rand() % ALL;
         const char *param = "users";
@@ -193,15 +168,32 @@ int main(void)
                 break;
         }
 
+        CURL *curl = curl_easy_init();
+
+        if (curl == NULL)
+        {
+            perror("curl_easy_init");
+            exit(EXIT_FAILURE);
+        }
+
+        struct curl_slist *headers = NULL;
+
+        headers = curl_slist_append(headers, "Accept: application/json");
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        headers = curl_slist_append(headers, "charset: utf-8");
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&data);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
         int res = perform(curl, method, param, id, fields);
 
         if (res != CURLE_OK)
         {
             fprintf(stderr, "curl_easy_perform: %s\n", curl_easy_strerror(res));
-            rc = EXIT_FAILURE;
-            break;
+            fail = 1;
         }
-        if (data.length > 0)
+        else if (data.length > 0)
         {
             json *node = json_parse(data.text, &error);
 
@@ -216,11 +208,11 @@ int main(void)
             }
             data.length = 0;
         }
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
     }
-    free(data.text);
     json_free(json_parent(users));
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-    return rc;
+    free(data.text);
+    return 0;
 }
 
