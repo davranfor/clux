@@ -292,7 +292,7 @@ json *json_find(const json *parent, const char *name)
         return NULL;
     }
     for (json *node = parent->head; node != NULL; node = node->next)
-  
+    {
         assert(node->name != NULL);
         if (strcmp(node->name, name) == 0)
         {
