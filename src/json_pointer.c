@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "json_private.h"
 
 static int compare(const char *name, const char *path, const char *end)
@@ -38,11 +37,10 @@ static int compare(const char *name, const char *path, const char *end)
     return (*name == '\0');
 }
 
-static json *get_by_name(const json *root, const char *path, const char *end)
+static json *get_by_name(const json *parent, const char *path, const char *end)
 {
-    for (json *node = root->head; node != NULL; node = node->next)
+    for (json *node = parent->head; node != NULL; node = node->next)
     {
-        assert(node->name != NULL);
         if (compare(node->name, path, end))
         {
             return node;
@@ -51,13 +49,13 @@ static json *get_by_name(const json *root, const char *path, const char *end)
     return NULL;
 }
 
-static json *get_by_item(const json *root, const char *path, const char *end)
+static json *get_by_item(const json *parent, const char *path, const char *end)
 {
     if (path + strspn(path, "0123456789") != end)
     {
         return NULL;
     }
-    return json_at(root, strtoul(path, NULL, 10));
+    return json_at(parent, strtoul(path, NULL, 10));
 }
 
 static const char *next_path(const char *path)

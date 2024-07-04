@@ -106,31 +106,31 @@ static json *sort(json *top, json_sort_callback callback)
     return merge(top, mid, callback);
 }
 
-void json_sort(json *root, json_sort_callback callback)
+void json_sort(json *parent, json_sort_callback callback)
 {
-    if ((root != NULL) && (root->size > 1))
+    if ((parent != NULL) && (parent->size > 1))
     {
-        json *node = sort(root->head, callback);
+        json *node = sort(parent->head, callback);
 
-        root->head = node;
-        node->prev = NULL;
+        parent->head = node;
+        parent->head->prev = NULL;
         while (node->next != NULL)
         {
             node->next->prev = node;
             node = node->next;
         }
-        root->tail = node;
+        parent->tail = node;
     }
 }
 
-void json_reverse(json *root)
+void json_reverse(json *parent)
 {
-    if ((root != NULL) && (root->size > 1))
+    if ((parent != NULL) && (parent->size > 1))
     {
-        json *node = root->head, *prev;
+        json *node = parent->head, *prev;
 
-        root->head = root->tail;
-        root->tail = node;
+        parent->head = parent->tail;
+        parent->tail = node;
         while (node != NULL)
         {
             prev = node->prev;
