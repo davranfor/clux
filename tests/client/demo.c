@@ -117,7 +117,7 @@ static int perform(CURL *curl, enum method method,
 static int request(size_t id, const json *users, struct data *data)
 {
     int method = rand() % METHODS;
-    const char *param = "/users";
+    const char *param = "users";
     char fields[128];
     int rc = 1;
 
