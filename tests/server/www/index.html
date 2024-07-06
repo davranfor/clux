@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch Example</title>
+</head>
+<body>
+    <h1>Fetch Example</h1>
+    
+    <form id="myForm">
+        <label for="key">Key:</label>
+        <input type="text" id="key" name="key" value="value">
+        <button type="submit">Enviar</button>
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('myForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(event.target);
+            var jsonObject = {};
+            formData.forEach((value, key) => jsonObject[key] = value);
+
+            fetch('/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonObject)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+                document.getElementById('response').innerText = JSON.stringify(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('response').innerText = 'Error al enviar la solicitud.';
+            });
+        });
+    </script>
+</body>
+</html>
+

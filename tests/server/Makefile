@@ -3,8 +3,8 @@ CFLAGS = -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototy
 
 all: demo 
 
-demo: main.c config.h server.c server.h buffer.c buffer.h 
-	$(CC) $(CFLAGS) main.c server.c buffer.c -o demo -lclux
+demo: main.c config.h server.c server.h buffer.c buffer.h utils.c utils.h 
+	$(CC) $(CFLAGS) main.c server.c buffer.c utils.c -O2 -o demo -lclux
 
 clean:
 	rm -f demo

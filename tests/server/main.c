@@ -9,12 +9,16 @@
 #include <clux/json.h>
 #include "config.h"
 #include "server.h"
+#include "utils.h"
 
 static const char *content_type = "Content-Type: application/json\r\n";
 static const char content_length_label[] = "Content-Length:";
-static const char *http_ok = "HTTP/1.1 200 OK\r\n"
-                             "Content-Type: application/json\r\n"
-                             "Content-Length: %zu\r\n\r\n";
+static const char *http_json_ok = "HTTP/1.1 200 OK\r\n"
+                                  "Content-Type: application/json\r\n"
+                                  "Content-Length: %zu\r\n\r\n";
+static const char *http_html_ok = "HTTP/1.1 200 OK\r\n"
+                                  "Content-Type: text/html\r\n"
+                                  "Content-Length: %zu\r\n\r\n";
 static const char *http_ko = "HTTP/1.1 204 No Content\r\n\r\n";
 static const char *delimiter = "\r\n\r\n";
 
@@ -32,6 +36,8 @@ static void map_destroy(void)
 
 static int request_done(const char *str, size_t size)
 {
+    puts("\nNew request:");
+
     const char *end = strstr(str, delimiter);
 
     if (end == NULL)
@@ -39,6 +45,7 @@ static int request_done(const char *str, size_t size)
         return 0;
     }
     end += delimiter_length;
+
 
     const char *label = strstr(str, content_length_label);
 
@@ -90,12 +97,12 @@ static const char *request_uri(char *header)
     return uri;
 }
 
-static json *request_get(const char *uri)
+static char *request_get(const char *uri)
 {
-    return json_map_search(map, uri);
+    return json_encode(json_map_search(map, uri));
 }
 
-static json *request_post(const char *uri, const char *content)
+static char *request_post(const char *uri, const char *content)
 {
     json *node = json_parse(content, NULL);
 
@@ -119,10 +126,10 @@ static json *request_post(const char *uri, const char *content)
     {
         id += 1;
     }
-    return node;
+    return json_encode(node);
 }
 
-static json *request_put(const char *uri, const char *content)
+static char *request_put(const char *uri, const char *content)
 {
     json *old = json_map_search(map, uri);
 
@@ -143,10 +150,10 @@ static json *request_put(const char *uri, const char *content)
     {
         json_free(old);
     }
-    return new;
+    return json_encode(new);
 }
 
-static json *request_patch(const char *uri, const char *content)
+static char *request_patch(const char *uri, const char *content)
 {
     json *target = json_map_search(map, uri);
 
@@ -175,17 +182,24 @@ static json *request_patch(const char *uri, const char *content)
         target = NULL;
     }
     json_free(source);
-    return target;
+    return json_encode(target);
 }
 
-static json *request_delete(const char *uri)
+static char *request_delete(const char *uri)
 {
-    return json_map_delete(map, uri);
+    json *node = json_map_delete(map, uri);
+    char *str = json_encode(node);
+
+    json_free(node);
+    return str;
 }
 
-static json *request_result(char *header, const char *content,
-    enum method *method)
+static char *request_result(char *header, const char *content)
 {
+    if (strncmp(header, "GET / ", sizeof("GET / ") - 1) == 0)
+    {
+        return read_file("www/index.html");
+    }
     if (strstr(header, content_type) == NULL)
     {
         return NULL;
@@ -197,7 +211,7 @@ static json *request_result(char *header, const char *content,
     {
         return NULL;
     }
-    switch ((*method = request_method(header)))
+    switch (request_method(header))
     {
         case GET:
             return request_get(uri);
@@ -227,24 +241,21 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
     {
         content = NULL;
     }
-    
-    enum method method = NONE;
-    json *node = request_result(pool->data, content, &method);
-
-    pool_reset(pool);
-    if (node == NULL)
+    content = request_result(pool->data, content);
+    if (content == NULL)
     {
         size_t header_length = strlen(http_ko);
 
         memcpy(buffer, http_ko, header_length);
         pool_set(pool, buffer, header_length);
     }
-    else if ((content = json_encode(node)))
+    else
     {
+        const char *header_ok = content[0] == '{' ? http_json_ok : http_html_ok;
         size_t content_length = strlen(content);
         char header[256];
 
-        snprintf(header, sizeof header, http_ok, content_length);
+        snprintf(header, sizeof header, header_ok, content_length);
 
         size_t header_length = strlen(header);
 
@@ -256,6 +267,7 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
         }
         else
         {
+            pool_reset(pool);
             if (!pool_put(pool, header, header_length) ||
                 !pool_put(pool, content, content_length))
             {
@@ -263,24 +275,8 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
                 pool_reset(pool);
             }
         }
-        if (method == DELETE)
-        { 
-            json_free(node);
-        }
         free(content);
     }
-}
-
-static uint16_t string_to_uint16(const char *str)
-{
-    char *end;
-    unsigned long result = strtoul(str, &end, 10);
-
-    if ((result > 65535) || (end[strspn(end, " \f\n\r\t\v")] != '\0'))
-    {
-        return 0;
-    }
-    return (uint16_t)result;
 }
 
 int main(int argc, char *argv[])
@@ -299,7 +295,11 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     atexit(map_destroy);
-    map = json_map_create(100);
+    if ((map = json_map_create(100)) == NULL)
+    {
+        perror("json_map_create");
+        exit(EXIT_FAILURE);
+    }
     server_init(port, request_done, request_handle);
     return 0;
 }
