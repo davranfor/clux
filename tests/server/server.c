@@ -131,7 +131,7 @@ static ssize_t conn_recv(struct pollfd *conn, struct poolfd *pool)
 
     size_t rcvd = (size_t)bytes;
 
-    buffer[rcvd++] = '\0';
+    buffer[rcvd] = '\0';
 
     int bufferable = pool->data == NULL;
     
@@ -208,6 +208,7 @@ static void conn_handle(struct pollfd *conn, struct poolfd *pool)
                 case -1:
                     return;
                 default:
+                    puts("");
                     puts(pool->data);
                     request_handle(pool, buffer, BUFFER_SIZE);
                     break;

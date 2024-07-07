@@ -36,8 +36,6 @@ static void map_destroy(void)
 
 static int request_done(const char *str, size_t size)
 {
-    puts("\nNew request:");
-
     const char *end = strstr(str, delimiter);
 
     if (end == NULL)
@@ -60,7 +58,7 @@ static int request_done(const char *str, size_t size)
 
     size_t length = strtoul(label + sizeof(content_length_label), NULL, 10);
 
-    return size == (size_t)(end - str) + length + 1;
+    return size == (size_t)(end - str) + length;
 }
 
 static enum method request_method(const char *header)

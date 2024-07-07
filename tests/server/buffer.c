@@ -29,13 +29,14 @@ char *pool_put(struct poolfd *pool, const char *data, size_t size)
     }
     pool->type = POOL_ALLOCATED;
 
-    char *temp = realloc(pool->data, pool->size + size);
+    char *temp = realloc(pool->data, pool->size + size + 1);
 
     if (temp != NULL)
     {
         pool->data = temp;
         memcpy(pool->data + pool->size, data, size);
         pool->size += size;
+        pool->data[pool->size] = '\0';
     }
     return temp;
 }

@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fetch Example</title>
+    <title>JSON Server</title>
 </head>
 <body>
-    <h1>Fetch Example</h1>
-    
+    <h1>JSON Server</h1>
+    <hr />
     <form id="myForm">
         <label for="key">Key:</label>
-        <input type="text" id="key" name="key" value="value">
+        <input type="text" id="key" name="key">
         <button type="submit">Enviar</button>
     </form>
-
+    <hr />
     <div id="response"></div>
 
     <script>
@@ -36,6 +36,8 @@
             .then(data => {
                 console.log('Response from server:', data);
                 document.getElementById('response').innerText = JSON.stringify(data);
+                document.getElementById('myForm').reset();
+                document.getElementById('key').focus();
             })
             .catch(error => {
                 console.error('Error:', error);
