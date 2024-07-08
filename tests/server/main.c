@@ -19,12 +19,15 @@ static const char *http_json_ok = "HTTP/1.1 200 OK\r\n"
 static const char *http_html_ok = "HTTP/1.1 200 OK\r\n"
                                   "Content-Type: text/html\r\n"
                                   "Content-Length: %zu\r\n\r\n";
-static const char *http_ko = "HTTP/1.1 204 No Content\r\n\r\n";
+static const char *http_no_content = "HTTP/1.1 204 No Content\r\n\r\n";
+static const char *http_not_found = "HTTP/1.1 404 Not Found\r\n"
+                                    "Content-Length: 48\r\n\r\n"
+                                    "<html><body><h1>404 Not Found</h1></body></html>";
 static const char *delimiter = "\r\n\r\n";
 
 enum {delimiter_length = 4};
 
-enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
+enum method {GET, POST, PUT, PATCH, DELETE, METHODS, NONE = METHODS};
 static const char *method_name[] = {"GET", "POST", "PUT", "PATCH", "DELETE"};
 
 static json_map *map;
@@ -192,7 +195,8 @@ static char *request_delete(const char *uri)
     return str;
 }
 
-static char *request_result(char *header, const char *content)
+static char *request_result(char *header, const char *content,
+    enum method *method)
 {
     if (strstr(header, content_type_json) == NULL)
     {
@@ -207,7 +211,7 @@ static char *request_result(char *header, const char *content)
     {
         return NULL;
     }
-    switch (request_method(header))
+    switch ((*method = request_method(header)))
     {
         case GET:
             return request_get(uri);
@@ -226,6 +230,7 @@ static char *request_result(char *header, const char *content)
 
 static void request_handle(struct poolfd *pool, char *buffer, size_t size)
 {
+    enum method method = NONE;
     char *content = strstr(pool->data, delimiter);
 
     if (content[delimiter_length] != '\0')
@@ -237,17 +242,30 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
     {
         content = NULL;
     }
-    content = request_result(pool->data, content);
+    content = request_result(pool->data, content, &method);
     if (content == NULL)
     {
-        size_t header_length = strlen(http_ko);
+        const char *header = method == NONE ? http_not_found : http_no_content;
+        size_t header_length = strlen(header);
 
-        memcpy(buffer, http_ko, header_length);
-        pool_set(pool, buffer, header_length);
+        if (header_length <= size)
+        {
+            memcpy(buffer, header, header_length);
+            pool_set(pool, buffer, header_length);
+        }
+        else
+        {
+            pool_reset(pool);
+            if (!pool_put(pool, header, header_length))
+            {
+                perror("pool_put");
+                pool_reset(pool);
+            }
+        }
     }
     else
     {
-        const char *header_ok = content[0] == '{' ? http_json_ok : http_html_ok;
+        const char *header_ok = method == NONE ? http_html_ok : http_json_ok;
         size_t content_length = strlen(content);
         char header[256];
 
