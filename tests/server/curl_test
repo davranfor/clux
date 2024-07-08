@@ -1,4 +1,0 @@
-#!/bin/bash
-
-curl -X POST http://localhost:1234/users/ -H "Content-Type: application/json" -d '{"key":"value"}'
-

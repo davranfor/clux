@@ -11,8 +11,8 @@
 #include "server.h"
 #include "utils.h"
 
-static const char *content_type = "Content-Type: application/json\r\n";
-static const char content_length_label[] = "Content-Length:";
+static const char *content_type_json = "Content-Type: application/json\r\n";
+static const char *content_length_label = "Content-Length:";
 static const char *http_json_ok = "HTTP/1.1 200 OK\r\n"
                                   "Content-Type: application/json\r\n"
                                   "Content-Length: %zu\r\n\r\n";
@@ -24,7 +24,7 @@ static const char *delimiter = "\r\n\r\n";
 
 enum {delimiter_length = 4};
 
-enum method {GET, POST, PUT, PATCH, DELETE, METHODS, NONE = METHODS};
+enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
 static const char *method_name[] = {"GET", "POST", "PUT", "PATCH", "DELETE"};
 
 static json_map *map;
@@ -56,7 +56,7 @@ static int request_done(const char *str, size_t size)
         return 0;
     }
 
-    size_t length = strtoul(label + sizeof(content_length_label), NULL, 10);
+    size_t length = strtoul(label + strlen(content_length_label), NULL, 10);
 
     return size == (size_t)(end - str) + length;
 }
@@ -194,13 +194,11 @@ static char *request_delete(const char *uri)
 
 static char *request_result(char *header, const char *content)
 {
-    if (strncmp(header, "GET / ", sizeof("GET / ") - 1) == 0)
+    if (strstr(header, content_type_json) == NULL)
     {
-        return read_file("www/index.html");
-    }
-    if (strstr(header, content_type) == NULL)
-    {
-        return NULL;
+        return strncmp(header, "GET / ", 6) == 0
+            ? read_file("www/index.html")
+            : NULL;
     }
 
     const char *uri = request_uri(header);
