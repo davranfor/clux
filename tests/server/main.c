@@ -11,10 +11,6 @@
 #include "server.h"
 #include "utils.h"
 
-static const char *content_type_json =
-    "Content-Type: application/json\r\n";
-static const char *content_length_label =
-    "Content-Length:";
 static const char *http_json_ok =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: application/json\r\n"
@@ -35,13 +31,23 @@ static const char *http_method_not_allowed =
     "Content-Type: application/json\r\n"
     "Content-Length: 17\r\n\r\n"
     "{\"status\":\"fail\"}";
-static const char *delimiter =
+static const char *content_type_json =
+    "Content-Type: application/json\r\n";
+static const char *content_length_label =
+    "Content-Length:";
+static const char *header_end =
     "\r\n\r\n";
 
-enum {delimiter_length = 4};
+enum {HEADER_END_LENGTH = 4};
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
-static const char *method_name[] = {"GET ", "POST ", "PUT ", "PATCH ", "DELETE "};
+static const char *method_name[] = {
+    "GET ",
+    "POST ",
+    "PUT ",
+    "PATCH ",
+    "DELETE ",
+};
 
 static json_map *map;
 
@@ -52,13 +58,13 @@ static void map_destroy(void)
 
 static int request_done(const char *str, size_t size)
 {
-    const char *end = strstr(str, delimiter);
+    const char *end = strstr(str, header_end);
 
     if (end == NULL)
     {
         return 0;
     }
-    end += delimiter_length;
+    end += HEADER_END_LENGTH;
 
 
     const char *label = strstr(str, content_length_label);
@@ -244,12 +250,12 @@ static char *request_result(char *header, const char *content,
 static void request_handle(struct poolfd *pool, char *buffer, size_t size)
 {
     enum method method = NONE;
-    char *content = strstr(pool->data, delimiter);
+    char *content = strstr(pool->data, header_end);
 
-    if (content[delimiter_length] != '\0')
+    if (content[HEADER_END_LENGTH] != '\0')
     {
         content[0] = '\0';
-        content += delimiter_length;
+        content += HEADER_END_LENGTH;
     }
     else
     {
