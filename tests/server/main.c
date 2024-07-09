@@ -21,8 +21,9 @@ static const char *http_html_ok = "HTTP/1.1 200 OK\r\n"
                                   "Content-Length: %zu\r\n\r\n";
 static const char *http_no_content = "HTTP/1.1 204 No Content\r\n\r\n";
 static const char *http_not_found = "HTTP/1.1 404 Not Found\r\n"
-                                    "Content-Length: 48\r\n\r\n"
-                                    "<html><body><h1>404 Not Found</h1></body></html>";
+                                    "Content-Type: text/plain\r\n"
+                                    "Content-Length: 13\r\n\r\n"
+                                    "404 Not Found";
 static const char *delimiter = "\r\n\r\n";
 
 enum {delimiter_length = 4};
