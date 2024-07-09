@@ -11,25 +11,37 @@
 #include "server.h"
 #include "utils.h"
 
-static const char *content_type_json = "Content-Type: application/json\r\n";
-static const char *content_length_label = "Content-Length:";
-static const char *http_json_ok = "HTTP/1.1 200 OK\r\n"
-                                  "Content-Type: application/json\r\n"
-                                  "Content-Length: %zu\r\n\r\n";
-static const char *http_html_ok = "HTTP/1.1 200 OK\r\n"
-                                  "Content-Type: text/html\r\n"
-                                  "Content-Length: %zu\r\n\r\n";
-static const char *http_no_content = "HTTP/1.1 204 No Content\r\n\r\n";
-static const char *http_not_found = "HTTP/1.1 404 Not Found\r\n"
-                                    "Content-Type: text/plain\r\n"
-                                    "Content-Length: 13\r\n\r\n"
-                                    "404 Not Found";
-static const char *delimiter = "\r\n\r\n";
+static const char *content_type_json =
+    "Content-Type: application/json\r\n";
+static const char *content_length_label =
+    "Content-Length:";
+static const char *http_json_ok =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: application/json\r\n"
+    "Content-Length: %zu\r\n\r\n";
+static const char *http_html_ok =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-Length: %zu\r\n\r\n";
+static const char *http_no_content =
+    "HTTP/1.1 204 No Content\r\n\r\n";
+static const char *http_not_found =
+    "HTTP/1.1 404 Not Found\r\n"
+    "Content-Type: text/plain\r\n"
+    "Content-Length: 13\r\n\r\n"
+    "404 Not Found";
+static const char *http_method_not_allowed =
+    "HTTP/1.1 405 Method Not Allowed\r\n"
+    "Content-Type: application/json\r\n"
+    "Content-Length: 17\r\n\r\n"
+    "{\"status\":\"fail\"}";
+static const char *delimiter =
+    "\r\n\r\n";
 
 enum {delimiter_length = 4};
 
-enum method {GET, POST, PUT, PATCH, DELETE, METHODS, NONE = METHODS};
-static const char *method_name[] = {"GET", "POST", "PUT", "PATCH", "DELETE"};
+enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
+static const char *method_name[] = {"GET ", "POST ", "PUT ", "PATCH ", "DELETE "};
 
 static json_map *map;
 
@@ -246,7 +258,21 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
     content = request_result(pool->data, content, &method);
     if (content == NULL)
     {
-        const char *header = method == NONE ? http_not_found : http_no_content;
+        const char *header;
+
+        switch (method)
+        {
+            case NONE:
+                header = http_not_found;
+                break;
+            case UNKNOWN:
+                header = http_method_not_allowed;
+                break;
+            default:
+                header = http_no_content;
+                break;
+        }
+
         size_t header_length = strlen(header);
 
         if (header_length <= size)
