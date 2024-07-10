@@ -25,7 +25,7 @@
             formData.forEach((value, key) => jsonObject[key] = value);
 
             fetch('/users', {
-                method: 'POSTA',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },

@@ -28,7 +28,7 @@ static const char *http_not_found =
     "404 Not Found";
 static const char *http_method_not_allowed =
     "HTTP/1.1 405 Method Not Allowed\r\n"
-    "Allow: GET, POST, PUT, DELETE, PATCH\r\n\r\n"
+    "Allow: GET, POST, PUT, DELETE, PATCH\r\n"
     "Content-Length: 0\r\n\r\n";
 static const char *content_type_json =
     "Content-Type: application/json\r\n";
