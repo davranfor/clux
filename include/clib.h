@@ -4,13 +4,11 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef CLIB_H
+#define CLIB_H
 
-#include <stdint.h>
-
-char *read_file(const char *);
-uint16_t string_to_uint16(const char *);
+#include "clib_stream.h"
+#include "clib_string.h"
 
 #endif
 

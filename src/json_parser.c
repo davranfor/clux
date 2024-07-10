@@ -9,8 +9,9 @@
 #include <assert.h>
 #include <errno.h>
 #include <math.h>
+#include "clib_stream.h"
+#include "clib_unicode.h"
 #include "json_private.h"
-#include "json_unicode.h"
 
 static enum json_type token_type(int token)
 {
@@ -483,57 +484,9 @@ json *json_parse(const char *str, json_error *error)
     return node;
 }
 
-static char *read_file(FILE *file, size_t size)
-{
-    char *str = malloc(size + 1);
-
-    if (str != NULL)
-    {
-        if (fread(str, 1, size, file) == size)
-        {
-            str[size] = '\0';
-        }
-        else
-        {
-            free(str);
-            str = NULL;
-        }
-    }
-    return str;
-}
-
-static char *read_file_from_path(const char *path)
-{
-    if (path == NULL)
-    {
-        return NULL;
-    }
-    
-    FILE *file = fopen(path, "rb");
-
-    if (file == NULL)
-    {
-        return NULL;
-    }
-
-    char *str = NULL;
-
-    if (fseek(file, 0L, SEEK_END) == 0)
-    {
-        long size = ftell(file);
-
-        if ((size != -1L) && (fseek(file, 0L, SEEK_SET) == 0))
-        {
-            str = read_file(file, (size_t)size);
-        }
-    }
-    fclose(file);
-    return str;
-}
-
 json *json_parse_file(const char *path, json_error *error)
 {
-    char *str = read_file_from_path(path);
+    char *str = file_read(path);
     json *node = json_parse(str, error);
 
     free(str);

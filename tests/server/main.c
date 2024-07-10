@@ -6,10 +6,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
+#include <clux/clib.h>
 #include <clux/json.h>
 #include "config.h"
 #include "server.h"
-#include "utils.h"
 
 static const char *http_html_ok =
     "HTTP/1.1 200 OK\r\n"
@@ -238,7 +239,7 @@ static char *request_content(char *header, const char *content,
     if (strstr(header, content_type_json) == NULL)
     {
         return strncmp(header, "GET / ", 6) == 0
-            ? read_file("www/index.html")
+            ? file_read("www/index.html")
             : NULL;
     }
 
@@ -330,6 +331,18 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
     }
 }
 
+static uint16_t port_number(const char *str)
+{
+    char *end;
+    unsigned long result = strtoul(str, &end, 10);
+
+    if ((result > 65535) || (end[strspn(end, " \f\n\r\t\v")] != '\0'))
+    {
+        return 0;
+    }
+    return (uint16_t)result;
+}
+
 int main(int argc, char *argv[])
 {
     if ((argc == 2) && (strcmp(argv[1], "-h") == 0))
@@ -338,13 +351,14 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    uint16_t port = argc > 1 ? string_to_uint16(argv[1]) : SERVER_PORT;
+    uint16_t port = argc > 1 ? port_number(argv[1]) : SERVER_PORT;
 
     if (port == 0)
     {
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
+    setlocale(LC_CTYPE, "");
     atexit(map_destroy);
     if ((map = json_map_create(100)) == NULL)
     {

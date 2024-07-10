@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <regex.h>
-#include "json_unicode.h"
-#include "json_format.h"
+#include "clib_unicode.h"
+#include "clib_format.h"
 
 static const char *test_mask(const char *text, const char *mask)
 {

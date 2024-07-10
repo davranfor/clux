@@ -4,8 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef JSON_FORMAT_H
-#define JSON_FORMAT_H
+#ifndef CLIB_FORMAT_H
+#define CLIB_FORMAT_H
 
 int test_is_date(const char *);
 int test_is_time(const char *);

@@ -8,38 +8,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
+#include "clib_string.h"
 #include "json_private.h"
-
-static char *copy_string(const char *str)
-{
-    size_t size = strlen(str) + 1;
-    char *ptr = malloc(size);
-
-    if (ptr != NULL)
-    {
-        memcpy(ptr, str, size);
-    }
-    return ptr;
-}
-
-static char *format_string(const char *fmt, va_list args)
-{
-    va_list copy;
-
-    va_copy(copy, args);
-
-    size_t size = 1 + (size_t)vsnprintf(NULL, 0, fmt, copy);
-
-    va_end(copy);
-
-    char *str = malloc(size);
-
-    if (str != NULL)
-    {
-        vsnprintf(str, size, fmt, args);
-    }
-    return str;
-}
 
 static json *new_string(const char *key, char *value)
 {
@@ -50,7 +20,7 @@ static json *new_string(const char *key, char *value)
 
     char *name = NULL;
 
-    if ((key != NULL) && !(name = copy_string(key)))
+    if ((key != NULL) && !(name = string_clone(key)))
     {
         free(value);
         return NULL;
@@ -76,7 +46,7 @@ static json *new_number(enum json_type type, const char *key, double value)
 {
     char *name = NULL;
 
-    if ((key != NULL) && !(name = copy_string(key)))
+    if ((key != NULL) && !(name = string_clone(key)))
     {
         return NULL;
     }
@@ -117,7 +87,7 @@ json *json_new_format(const char *name, const char *fmt, ...)
 
     va_start(args, fmt);
 
-    char *str = format_string(fmt, args);
+    char *str = string_vprint(fmt, args);
 
     va_end(args);
     return new_string(name, str);
@@ -129,7 +99,7 @@ json *json_new_string(const char *name, const char *value)
     {
         return NULL;
     }
-    return new_string(name, copy_string(value));
+    return new_string(name, string_clone(value));
 }
 
 json *json_new_integer(const char *name, double value)
@@ -161,7 +131,7 @@ json *json_set_name(json *node, const char *name)
 
     char *str = NULL;
 
-    if ((name != NULL) && !(str = copy_string(name)))
+    if ((name != NULL) && !(str = string_clone(name)))
     {
         return NULL;
     }
@@ -237,7 +207,7 @@ json *json_set_format(json *node, const char *fmt, ...)
 
     va_start(args, fmt);
 
-    char *str = format_string(fmt, args);
+    char *str = string_vprint(fmt, args);
 
     va_end(args);
     return set_string(node, str);
@@ -249,7 +219,7 @@ json *json_set_string(json *node, const char *value)
     {
         return NULL;
     }
-    return set_string(node, copy_string(value));
+    return set_string(node, string_clone(value));
 }
 
 json *json_set_integer(json *node, double value)
@@ -327,7 +297,7 @@ json *json_let_format(json *parent, const char *name, const char *fmt, ...)
 
     va_start(args, fmt);
 
-    char *str = format_string(fmt, args);
+    char *str = string_vprint(fmt, args);
 
     va_end(args);
 
@@ -348,8 +318,8 @@ json *json_let_string(json *parent, const char *name, const char *value)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_string(name, copy_string(value)))
-        : set_string(child, copy_string(value));
+        ? json_push_back(parent, new_string(name, string_clone(value)))
+        : set_string(child, string_clone(value));
 }
 
 json *json_let_integer(json *parent, const char *name, double value)

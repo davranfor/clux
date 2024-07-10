@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "json_unicode.h"
+#include "clib_unicode.h"
 
 /* Returns 1 on escape code or 0 otherwise */
 int is_esc(const char *str)
@@ -148,37 +148,6 @@ size_t encode_hex(const char *str, char *buf)
         }
     }
     snprintf(buf, sizeof("\\u0123"), "\\u%04x", hex);
-    return length;
-}
-
-/* Reverse chars of a string given a length */ 
-void string_reverse(char *str, size_t length)
-{
-    if (length <= 1)
-    {
-        return;
-    }
-    for (size_t i = 0, j = length - 1; i < j; i++, j--)
-    {
-        char c = str[i];
-
-        str[i] = str[j];
-        str[j] = c;
-    }
-}
-
-/* Returns the number of multibytes of a string */
-size_t utf8_length(const char *str)
-{
-    size_t length = 0;
-
-    for (; *str != '\0'; str++)
-    {
-        if (is_utf8(*str))
-        {
-            length++;
-        }
-    }
     return length;
 }
 

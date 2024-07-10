@@ -4,8 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef JSON_UNICODE_H
-#define JSON_UNICODE_H
+#ifndef CLIB_UNICODE_H
+#define CLIB_UNICODE_H
 
 #define is_utf8(c) (((c) & 0xc0) != 0x80)
 
@@ -56,10 +56,6 @@ char encode_esc(const char *);
 int is_hex(const char *);
 size_t decode_hex(const char *, char *);
 size_t encode_hex(const char *, char *);
-
-void string_reverse(char *, size_t);
-
-size_t utf8_length(const char *);
 
 #endif
 

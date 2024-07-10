@@ -7,9 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
+#include "clib_stream.h"
 
-static char *read_file_helper(FILE *file, size_t size)
+static char *file_read_helper(FILE *file, size_t size)
 {
     char *str = malloc(size + 1);
 
@@ -28,7 +28,7 @@ static char *read_file_helper(FILE *file, size_t size)
     return str;
 }
 
-char *read_file(const char *path)
+char *file_read(const char *path)
 {
     if (path == NULL)
     {
@@ -50,22 +50,26 @@ char *read_file(const char *path)
 
         if ((size != -1L) && (fseek(file, 0L, SEEK_SET) == 0))
         {
-            str = read_file_helper(file, (size_t)size);
+            str = file_read_helper(file, (size_t)size);
         }
     }
     fclose(file);
     return str;
 }
 
-uint16_t string_to_uint16(const char *str)
+int file_write(const char *path, const char *str)
 {
-    char *end;
-    unsigned long result = strtoul(str, &end, 10);
+    FILE *file = fopen(path, "w");
 
-    if ((result > 65535) || (end[strspn(end, " \f\n\r\t\v")] != '\0'))
+    if (file == NULL)
     {
         return 0;
     }
-    return (uint16_t)result;
+
+    size_t length = strlen(str);
+    int rc = fwrite(str, 1, length, file) == length;
+
+    fclose(file);
+    return rc;
 }
 

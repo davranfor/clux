@@ -1,0 +1,20 @@
+/*!
+ *  \brief     clux - json and json-schema library for C
+ *  \author    David Ranieri <davranfor@gmail.com>
+ *  \copyright GNU Public License.
+ */
+
+#ifndef CLIB_STRING_H
+#define CLIB_STRING_H
+
+#include <stdio.h>
+
+char *string_clone(const char *);
+char *string_print(const char *, ...) __attribute__ ((format (printf, 1, 2)));
+char *string_vprint(const char *, va_list);
+void string_reverse(char *, size_t);
+
+size_t utf8_length(const char *);
+
+#endif
+
