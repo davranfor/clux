@@ -11,13 +11,13 @@
 #include "server.h"
 #include "utils.h"
 
-static const char *http_json_ok =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: application/json\r\n"
-    "Content-Length: %zu\r\n\r\n";
 static const char *http_html_ok =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
+    "Content-Length: %zu\r\n\r\n";
+static const char *http_json_ok =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: application/json\r\n"
     "Content-Length: %zu\r\n\r\n";
 static const char *http_no_content =
     "HTTP/1.1 204 No Content\r\n\r\n";
@@ -28,9 +28,8 @@ static const char *http_not_found =
     "404 Not Found";
 static const char *http_method_not_allowed =
     "HTTP/1.1 405 Method Not Allowed\r\n"
-    "Content-Type: application/json\r\n"
-    "Content-Length: 17\r\n\r\n"
-    "{\"status\":\"fail\"}";
+    "Allow: GET, POST, PUT, DELETE, PATCH\r\n\r\n"
+    "Content-Length: 0\r\n\r\n";
 static const char *content_type_json =
     "Content-Type: application/json\r\n";
 static const char *content_length_label =
@@ -42,11 +41,11 @@ enum {HEADER_END_LENGTH = 4};
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
 static const char *method_name[] = {
-    "GET ",
-    "POST ",
-    "PUT ",
-    "PATCH ",
-    "DELETE ",
+    "GET /",
+    "POST /",
+    "PUT /",
+    "PATCH /",
+    "DELETE /",
 };
 
 static json_map *map;
@@ -214,7 +213,26 @@ static char *request_delete(const char *uri)
     return str;
 }
 
-static char *request_result(char *header, const char *content,
+static const char *request_header_ok(enum method method)
+{
+    switch (method)
+    {
+        case NONE: return http_html_ok;
+        default: return http_json_ok;
+    }
+}
+
+static const char *request_header_ko(enum method method)
+{
+    switch (method)
+    {
+        case NONE: return http_not_found;
+        case UNKNOWN: return http_method_not_allowed;
+        default: return http_no_content;
+    }
+}
+
+static char *request_content(char *header, const char *content,
     enum method *method)
 {
     if (strstr(header, content_type_json) == NULL)
@@ -261,24 +279,10 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
     {
         content = NULL;
     }
-    content = request_result(pool->data, content, &method);
+    content = request_content(pool->data, content, &method);
     if (content == NULL)
     {
-        const char *header;
-
-        switch (method)
-        {
-            case NONE:
-                header = http_not_found;
-                break;
-            case UNKNOWN:
-                header = http_method_not_allowed;
-                break;
-            default:
-                header = http_no_content;
-                break;
-        }
-
+        const char *header = request_header_ko(method);
         size_t header_length = strlen(header);
 
         if (header_length <= size)
@@ -298,11 +302,11 @@ static void request_handle(struct poolfd *pool, char *buffer, size_t size)
     }
     else
     {
-        const char *header_ok = method == NONE ? http_html_ok : http_json_ok;
+        const char *header_fmt = request_header_ok(method);
         size_t content_length = strlen(content);
         char header[256];
 
-        snprintf(header, sizeof header, header_ok, content_length);
+        snprintf(header, sizeof header, header_fmt, content_length);
 
         size_t header_length = strlen(header);
 
