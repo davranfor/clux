@@ -356,3 +356,26 @@ int test_regex(const char *text, const char *pattern)
     return valid;
 }
 
+int test_match(const char *text, const char *pattern)
+{
+    int (*test)(const char *) =
+        !strcmp(pattern, "date") ? test_is_date :
+        !strcmp(pattern, "time") ? test_is_time :
+        !strcmp(pattern, "date-time") ? test_is_date_time :
+        !strcmp(pattern, "hostname") ? test_is_hostname :
+        !strcmp(pattern, "email") ? test_is_email :
+        !strcmp(pattern, "ipv4") ? test_is_ipv4 :
+        !strcmp(pattern, "ipv6") ? test_is_ipv6 :
+        !strcmp(pattern, "uuid") ? test_is_uuid :
+        !strcmp(pattern, "url") ? test_is_url : NULL;
+
+    if (test != NULL)
+    {
+        return test(text);
+    }
+    else
+    {
+        return test_regex(text, pattern);
+    }
+}
+

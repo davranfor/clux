@@ -18,6 +18,7 @@ int test_is_uuid(const char *);
 int test_is_url(const char *);
 
 int test_regex(const char *, const char *);
+int test_match(const char *, const char *);
 
 #endif
 

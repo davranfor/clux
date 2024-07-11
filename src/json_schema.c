@@ -484,27 +484,7 @@ static int test_format(const json *node, const json *rule)
     }
     if (json_is_string(node))
     {
-        const char *str = json_string(rule);
-
-        int (*test)(const char *) =
-            equal(str, "date") ? test_is_date :
-            equal(str, "time") ? test_is_time :
-            equal(str, "date-time") ? test_is_date_time :
-            equal(str, "hostname") ? test_is_hostname :
-            equal(str, "email") ? test_is_email :
-            equal(str, "ipv4") ? test_is_ipv4 :
-            equal(str, "ipv6") ? test_is_ipv6 :
-            equal(str, "uuid") ? test_is_uuid :
-            equal(str, "url") ? test_is_url : NULL;
-
-        if (test != NULL)
-        {
-            return test(json_string(node));
-        }
-        else
-        {
-            return test_regex(json_string(node), str);
-        }
+        return test_match(json_string(node), json_string(rule));
     }
     return SCHEMA_VALID;
 }
