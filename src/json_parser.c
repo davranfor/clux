@@ -29,9 +29,9 @@ static enum json_type token_type(int token)
     }
 }
 
-static inline int is_token(int c)
+static inline int is_token(int token)
 {
-    switch (c)
+    switch (token)
     {
         case '{':
         case '}':
