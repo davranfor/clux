@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <locale.h>
+#include <clux/json.h>
 #include <clux/json_schema.h>
 
 enum {TARGET, SCHEMA};
