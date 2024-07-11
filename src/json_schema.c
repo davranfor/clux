@@ -9,6 +9,9 @@
 #include <setjmp.h>
 #include <math.h>
 #include "clib_format.h"
+#include "json_reader.h"
+#include "json_pointer.h"
+#include "json_query.h"
 #include "json_schema.h"
 
 typedef struct

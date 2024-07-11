@@ -6,6 +6,8 @@
 
 #include <string.h>
 #include "json_private.h"
+#include "json_reader.h"
+#include "json_query.h"
 
 /**
  * Some examples:

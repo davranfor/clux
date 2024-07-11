@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include "json_private.h"
+#include "json_sort.h"
 
 int JSON_SORT_BY_KEY_ASC(const json *a, const json *b)
 {

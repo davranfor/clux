@@ -4,13 +4,12 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef JSON_REGEX_H
-#define JSON_REGEX_H
+#ifndef JSON_POINTER_H
+#define JSON_POINTER_H
 
 #include "json_header.h"
 
-int json_regex(const json *, const char *);
-int json_match(const json *, const char *);
+json *json_pointer(const json *, const char *);
 
 #endif
 

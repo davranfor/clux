@@ -10,6 +10,7 @@
 #include <math.h>
 #include "clib_string.h"
 #include "json_private.h"
+#include "json_reader.h"
 
 static const char *type_name[] =
 {

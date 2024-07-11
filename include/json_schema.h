@@ -7,7 +7,7 @@
 #ifndef JSON_SCHEMA_H
 #define JSON_SCHEMA_H
 
-#include "json.h"
+#include "json_header.h"
 
 enum {JSON_SCHEMA_WARNING, JSON_SCHEMA_INVALID, JSON_SCHEMA_ERROR};
 

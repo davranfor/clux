@@ -9,6 +9,8 @@
 #include <math.h>
 #include "clib_string.h"
 #include "json_private.h"
+#include "json_reader.h"
+#include "json_writer.h"
 
 static json *new_string(const char *key, char *value)
 {

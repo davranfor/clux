@@ -4,6 +4,7 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -12,6 +13,9 @@
 #include "clib_stream.h"
 #include "clib_unicode.h"
 #include "json_private.h"
+#include "json_reader.h"
+#include "json_writer.h"
+#include "json_parser.h"
 
 static enum json_type token_type(int token)
 {

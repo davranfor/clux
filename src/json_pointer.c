@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "json_private.h"
+#include "json_reader.h"
+#include "json_pointer.h"
 
 static int compare(const char *name, const char *path, const char *end)
 {

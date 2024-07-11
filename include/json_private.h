@@ -7,7 +7,7 @@
 #ifndef JSON_PRIVATE_H
 #define JSON_PRIVATE_H
 
-#include "json.h"
+#include "json_header.h"
 
 struct json
 {

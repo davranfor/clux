@@ -5,6 +5,9 @@
  */
 
 #include "json_private.h"
+#include "json_reader.h"
+#include "json_writer.h"
+#include "json_patch.h"
 
 int json_patch(json *target, json *source)
 {

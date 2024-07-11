@@ -10,6 +10,8 @@
 #include "clib_string.h"
 #include "clib_unicode.h"
 #include "json_private.h"
+#include "json_reader.h"
+#include "json_buffer.h"
 
 #ifndef DBL_DECIMAL_DIG
 #define DBL_DECIMAL_DIG 17
