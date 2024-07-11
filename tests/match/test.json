@@ -1,0 +1,42 @@
+[
+    {"test": "date", "a-valid-date": "2001-01-01"},
+    {"test": "date", "invalid-date": "2001-01-32"},
+
+    {"test": "time", "a-valid-time": "00:00:00"},
+    {"test": "time", "invalid-time": "24:00:00"},
+
+    {"test": "datetime", "a-valid-date-time-1": "2001-01-01T00:00:00"},
+    {"test": "datetime", "a-valid-date-time-2": "2001-01-01T00:00:00+00:00"},
+    {"test": "datetime", "a-valid-date-time-3": "2001-01-01T00:00:00-00:00"},
+    {"test": "datetime", "a-valid-date-time-4": "2001-01-01T00:00:00Z"},
+    {"test": "datetime", "invalid-date-time-1": "2001-01-01T24:00"},
+    {"test": "datetime", "invalid-date-time-2": "2001-01-01T00:00X"},
+
+    {"test": "hostname", "a-valid-hostname": "some.host.com"},
+    {"test": "hostname", "invalid-hostname": "!"},
+
+    {"test": "email", "a-valid-email": "my@mail.com"},
+    {"test": "email", "invalid-email": "mail.com"},
+
+    {"test": "ipv4", "a-valid-ipv4-1": "192.168.1.1"},
+    {"test": "ipv4", "a-valid-ipv4-2": "000.000.000.000"},
+    {"test": "ipv4", "invalid-ipv4-1": "256.0.0.0"},
+    {"test": "ipv4", "invalid-ipv4-2": "255"},
+
+    {"test": "ipv6", "a-valid-ipv6-1": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+    {"test": "ipv6", "a-valid-ipv6-2": "2001:0db8:85a3:0000:0000:8a2e::"},
+    {"test": "ipv6", "a-valid-ipv6-3": "ff06::c3"},
+    {"test": "ipv6", "a-valid-ipv6-4": "ff06::192.168.1.1"},
+    {"test": "ipv6", "invalid-ipv6-1": "2001:0db8:85a3:0000:0000:8a2e:0370"},
+    {"test": "ipv6", "invalid-ipv6-2": "ff06::c3::1"},
+    {"test": "ipv6", "invalid-ipv6-3": "192.168.1.1"},
+
+    {"test": "uuid", "a-valid-uuid": "123e4567-e89b-12d3-a456-426655440000"},
+    {"test": "uuid", "invalid-uuid": "0"},
+
+    {"test": "url", "a-valid-url-1": "http://www.google.com"},
+    {"test": "url", "a-valid-url-2": "https://www.google.com"},
+    {"test": "url", "invalid-url-1": "http://"},
+    {"test": "url", "invalid-url-2": "http://ñ"}
+]
+
