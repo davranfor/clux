@@ -59,6 +59,11 @@ char *file_read(const char *path)
 
 int file_write(const char *path, const char *str)
 {
+    if ((path == NULL) || (str == NULL))
+    {
+        return 0;
+    }
+    
     FILE *file = fopen(path, "w");
 
     if (file == NULL)
