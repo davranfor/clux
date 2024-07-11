@@ -369,13 +369,6 @@ int test_match(const char *text, const char *pattern)
         !strcmp(pattern, "uuid") ? test_is_uuid :
         !strcmp(pattern, "url") ? test_is_url : NULL;
 
-    if (test != NULL)
-    {
-        return test(text);
-    }
-    else
-    {
-        return test_regex(text, pattern);
-    }
+    return test != NULL ? test(text) : test_regex(text, pattern);
 }
 
