@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <math.h>
 #include "clib_string.h"
 #include "json_private.h"
