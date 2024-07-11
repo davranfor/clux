@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <stddef.h>
 #include "clib_format.h"
 #include "json_private.h"
 #include "json_regex.h"

@@ -7,7 +7,6 @@
 #ifndef JSON_READER_H
 #define JSON_READER_H
 
-#include <stddef.h>
 #include "json_header.h"
 
 #define json_int(node) ((int)json_number(node))

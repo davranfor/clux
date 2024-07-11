@@ -7,6 +7,8 @@
 #ifndef JSON_HEADER_H
 #define JSON_HEADER_H
 
+#include <stddef.h>
+
 enum json_type
 {
     JSON_UNDEFINED,
