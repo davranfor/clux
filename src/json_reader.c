@@ -255,6 +255,42 @@ json *json_tail(const json *node)
     return node->tail;
 }
 
+json *json_object_head(const json *node)
+{
+    if ((node == NULL) || (node->type != JSON_OBJECT))
+    {
+        return NULL;
+    }
+    return node->head;
+}
+
+json *json_object_tail(const json *node)
+{
+    if ((node == NULL) || (node->type != JSON_OBJECT))
+    {
+        return NULL;
+    }
+    return node->tail;
+}
+
+json *json_array_head(const json *node)
+{
+    if ((node == NULL) || (node->type != JSON_ARRAY))
+    {
+        return NULL;
+    }
+    return node->head;
+}
+
+json *json_array_tail(const json *node)
+{
+    if ((node == NULL) || (node->type != JSON_ARRAY))
+    {
+        return NULL;
+    }
+    return node->tail;
+}
+
 /* Locates a child by index */
 json *json_at(const json *parent, size_t index)
 {

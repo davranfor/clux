@@ -731,7 +731,7 @@ static int validate(json_schema *schema,
             break;
             case SCHEMA_PATTERN_PROPERTIES:
             {
-                const json *head = json_is_object(node) ? json_child(node) : NULL;
+                const json *head = json_object_head(node);
                 const json *next = json_child(rule);
 
                 while (next != NULL)
@@ -760,7 +760,7 @@ static int validate(json_schema *schema,
             case SCHEMA_ADDITIONAL_PROPERTIES:
             {
                 const json *properties = json_find(json_parent(rule), "properties");
-                const json *item = json_is_object(node) ? json_child(node) : NULL;
+                const json *item = json_object_head(node);
                 const json *next = json_child(rule);
                 int count = 0;
 
@@ -784,7 +784,7 @@ static int validate(json_schema *schema,
             break;
             case SCHEMA_ITEMS:
             {
-                const json *item = json_is_array(node) ? json_child(node) : NULL;
+                const json *item = json_array_head(node);
                 const json *next = json_child(rule);
 
                 if (item == NULL)
@@ -825,7 +825,7 @@ static int validate(json_schema *schema,
             break;
             case SCHEMA_TUPLES:
             {
-                const json *item = json_is_array(node) ? json_child(node) : NULL;
+                const json *item = json_array_head(node);
                 const json *next = json_child(rule);
 
                 if (item == NULL)

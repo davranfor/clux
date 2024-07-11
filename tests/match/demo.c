@@ -26,7 +26,7 @@ int main(void)
 
     json *root = parse_file("test.json");
 
-    for (json *node = json_child(root); node != NULL; node = json_next(node))
+    for (json *node = json_array_head(root); node != NULL; node = json_next(node))
     {
         if (json_is_string(json_at(node, 0)) && json_is_string(json_at(node, 1)))
         {
