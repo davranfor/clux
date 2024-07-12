@@ -127,16 +127,16 @@ static int request(size_t id, const json *users, struct data *data)
         case PATCH:
             snprintf(fields, sizeof fields,
                 "{\"name\": \"%s\", \"surname\": \"%s\"}",
-                json_string(json_find(json_at(users, id), "name")),
-                json_string(json_find(json_at(users, id), "surname"))
+                json_text(json_find(json_at(users, id), "name")),
+                json_text(json_find(json_at(users, id), "surname"))
             );
             break;
         case PUT:
             snprintf(fields, sizeof fields,
                 "{\"id\": %zu, \"name\": \"%s\", \"surname\": \"%s\"}",
                 id,
-                json_string(json_find(json_at(users, id), "name")),
-                json_string(json_find(json_at(users, id), "surname"))
+                json_text(json_find(json_at(users, id), "name")),
+                json_text(json_find(json_at(users, id), "surname"))
             ); 
             break;
         default:

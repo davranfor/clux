@@ -25,6 +25,7 @@ enum json_type json_type(const json *);
 const char *json_type_name(const json *);
 const char *json_key(const json *);
 const char *json_name(const json *);
+const char *json_text(const json *);
 const char *json_string(const json *);
 double json_number(const json *);
 int json_boolean(const json *);

@@ -61,6 +61,20 @@ const char *json_name(const json *node)
     return node->name;
 }
 
+/**
+ * json_text():   returns  ""  if the node is not a string
+ * json_string(): returns NULL if the node is not a string
+ */
+
+const char *json_text(const json *node)
+{
+    if ((node == NULL) || (node->type != JSON_STRING))
+    {
+        return "";
+    }
+    return node->value.string;
+}
+
 const char *json_string(const json *node)
 {
     if ((node == NULL) || (node->type != JSON_STRING))
