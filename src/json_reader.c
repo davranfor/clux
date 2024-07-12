@@ -4,6 +4,7 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -11,6 +12,7 @@
 #include "clib_string.h"
 #include "json_private.h"
 #include "json_reader.h"
+
 
 static const char *type_name[] =
 {
@@ -436,6 +438,27 @@ json *json_locate_next(const json *node, const json *what)
         }
     }
     return NULL;
+}
+
+/**
+ * Returns a json_number converted to string
+ * Example (2 decimals):
+ * const char *text = json_convert(node, 2).to_string;
+ */
+json_converter json_convert(const json *node, int decimals)
+{
+    json_converter buffer;
+    double number = 0;
+
+    if ((node != NULL) && (node->type != JSON_STRING))
+    {
+        number = node->value.number;
+    }
+    snprintf(buffer.to_string, sizeof buffer.to_string, "%.*lf",
+        decimals,
+        number
+    );
+    return buffer;
 }
 
 /* Length of an UTF8 string */

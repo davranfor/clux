@@ -20,6 +20,7 @@
 #define json_double(node) json_number(node)
 
 typedef int (*json_walk_callback)(const json *, int, void *);
+typedef struct { char to_string[64]; } json_converter;
 
 enum json_type json_type(const json *);
 const char *json_type_name(const json *);
@@ -62,6 +63,7 @@ json *json_find_next(const json *, const char *);
 json *json_locate(const json *, const json *);
 json *json_locate_prev(const json *, const json *);
 json *json_locate_next(const json *, const json *);
+json_converter json_convert(const json *, int);
 size_t json_length(const json *);
 size_t json_size(const json *);
 size_t json_offset(const json *);
