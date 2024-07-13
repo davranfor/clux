@@ -444,17 +444,33 @@ json *json_locate_next(const json *node, const json *what)
  * Returns a json_number converted to string
  * Example (2 decimals):
  * const char *text = json_format(node, 2).ptr;
+ * Pass JSON_AUTO_DECIMALS as decimals to print using %g 
  */
 json_converter json_format(const json *node, int decimals)
 {
     json_converter buffer;
     double number = 0;
 
-    if ((node != NULL) && (node->type != JSON_STRING))
+    if (node == NULL)
+    {
+        number = 0.0;
+    }
+    else if (node->type == JSON_STRING)
+    {
+        number = strtod(node->value.string, NULL);
+    }
+    else
     {
         number = node->value.number;
     }
-    snprintf(buffer.str, sizeof buffer.str, "%.*lf", decimals, number);
+    if (decimals >= 0)
+    {
+        snprintf(buffer.str, sizeof buffer.str, "%.*lf", decimals, number);
+    }
+    else
+    {
+        snprintf(buffer.str, sizeof buffer.str, "%g", number);
+    }
     buffer.ptr = buffer.str;
     return buffer;
 }

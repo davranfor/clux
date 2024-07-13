@@ -23,6 +23,8 @@
 #define json_str(node) (json_to_string(node).ptr)
 #define json_num(node) json_to_number(node)
 
+#define JSON_AUTO_DECIMALS (-1)
+
 typedef struct { char str[56]; const char *ptr; } json_converter;
 typedef int (*json_walk_callback)(const json *, int, void *);
 
