@@ -9,7 +9,6 @@
 
 #include "json_header.h"
 
-#define json_str(node) (json_to_string(node).ptr)
 #define json_int(node) ((int)json_number(node))
 #define json_uint(node) ((unsigned int)json_number(node))
 #define json_long(node) ((long)json_number(node))
@@ -19,6 +18,10 @@
 #define json_size_t(node) ((size_t)json_number(node))
 #define json_float(node) ((float)json_number(node))
 #define json_double(node) json_number(node)
+
+#define json_fmt(node, decimals) (json_format(node, decimals).ptr)
+#define json_str(node) (json_to_string(node).ptr)
+#define json_num(node) json_to_number(node)
 
 typedef struct { char str[56]; const char *ptr; } json_converter;
 typedef int (*json_walk_callback)(const json *, int, void *);
@@ -64,8 +67,9 @@ json *json_find_next(const json *, const char *);
 json *json_locate(const json *, const json *);
 json *json_locate_prev(const json *, const json *);
 json *json_locate_next(const json *, const json *);
-json_converter json_convert(const json *, int);
+json_converter json_format(const json *, int);
 json_converter json_to_string(const json *);
+double json_to_number(const json *);
 size_t json_length(const json *);
 size_t json_size(const json *);
 size_t json_offset(const json *);

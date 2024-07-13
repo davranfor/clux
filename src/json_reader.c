@@ -443,9 +443,9 @@ json *json_locate_next(const json *node, const json *what)
 /**
  * Returns a json_number converted to string
  * Example (2 decimals):
- * const char *text = json_convert(node, 2).ptr;
+ * const char *text = json_format(node, 2).ptr;
  */
-json_converter json_convert(const json *node, int decimals)
+json_converter json_format(const json *node, int decimals)
 {
     json_converter buffer;
     double number = 0;
@@ -486,14 +486,28 @@ json_converter json_to_string(const json *node)
                     : FORMAT("%.1f", node->value.number);
                 break;
             case JSON_BOOLEAN:
-                FORMAT("%s", node->value.number != 0 ? "true" : "false");
+                buffer.ptr = node->value.number != 0 ? "true" : "false";
                 break;
             default:
-                FORMAT("%s", type_name[node->type]);
+                buffer.ptr = type_name[node->type];
                 break;
         }
     }
     return buffer;
+}
+
+/* Returns a node converted to number */
+double json_to_number(const json *node)
+{
+    if (node == NULL)
+    {
+        return 0.0;
+    }
+    if (node->type != JSON_STRING)
+    {
+        return node->value.number;
+    }
+    return strtod(node->value.string, NULL);
 }
 
 /* Length of an UTF8 string */
