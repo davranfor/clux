@@ -16,14 +16,14 @@
 
 static const char *type_name[] =
 {
-    "Undefined",
-    "Object",
-    "Array",
-    "String",
-    "Integer",
-    "Real",
-    "Boolean",
-    "Null",
+    "undefined",
+    "object",
+    "array",
+    "string",
+    "integer",
+    "real",
+    "boolean",
+    "null",
 };
 
 enum json_type json_type(const json *node)
@@ -443,7 +443,7 @@ json *json_locate_next(const json *node, const json *what)
 /**
  * Returns a json_number converted to string
  * Example (2 decimals):
- * const char *text = json_convert(node, 2).to_string;
+ * const char *text = json_convert(node, 2).ptr;
  */
 json_converter json_convert(const json *node, int decimals)
 {
@@ -454,10 +454,45 @@ json_converter json_convert(const json *node, int decimals)
     {
         number = node->value.number;
     }
-    snprintf(buffer.to_string, sizeof buffer.to_string, "%.*lf",
-        decimals,
-        number
-    );
+    snprintf(buffer.str, sizeof buffer.str, "%.*lf", decimals, number);
+    buffer.ptr = buffer.str;
+    return buffer;
+}
+
+/**
+ * Returns a node converted to string
+ * Example:
+ * const char *text = json_to_string(node).ptr;
+ */
+#define FORMAT(fmt, value) snprintf(buffer.str, sizeof buffer.str, fmt, value)
+json_converter json_to_string(const json *node)
+{
+    json_converter buffer = {.str = ""};
+
+    buffer.ptr = buffer.str;
+    if (node != NULL)
+    {
+        switch (node->type)
+        {
+            case JSON_STRING:
+                buffer.ptr = node->value.string;
+                break;
+            case JSON_INTEGER:
+                FORMAT("%.0f", node->value.number);
+                break;
+            case JSON_REAL:
+                node->value.number != trunc(node->value.number)
+                    ? FORMAT("%g", node->value.number)
+                    : FORMAT("%.1f", node->value.number);
+                break;
+            case JSON_BOOLEAN:
+                FORMAT("%s", node->value.number != 0 ? "true" : "false");
+                break;
+            default:
+                FORMAT("%s", type_name[node->type]);
+                break;
+        }
+    }
     return buffer;
 }
 

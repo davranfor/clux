@@ -9,6 +9,7 @@
 
 #include "json_header.h"
 
+#define json_str(node) (json_to_string(node).ptr)
 #define json_int(node) ((int)json_number(node))
 #define json_uint(node) ((unsigned int)json_number(node))
 #define json_long(node) ((long)json_number(node))
@@ -19,8 +20,8 @@
 #define json_float(node) ((float)json_number(node))
 #define json_double(node) json_number(node)
 
+typedef struct { char str[56]; const char *ptr; } json_converter;
 typedef int (*json_walk_callback)(const json *, int, void *);
-typedef struct { char to_string[64]; } json_converter;
 
 enum json_type json_type(const json *);
 const char *json_type_name(const json *);
@@ -64,6 +65,7 @@ json *json_locate(const json *, const json *);
 json *json_locate_prev(const json *, const json *);
 json *json_locate_next(const json *, const json *);
 json_converter json_convert(const json *, int);
+json_converter json_to_string(const json *);
 size_t json_length(const json *);
 size_t json_size(const json *);
 size_t json_offset(const json *);
