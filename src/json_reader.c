@@ -4,15 +4,12 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
 #include "clib_string.h"
 #include "json_private.h"
 #include "json_reader.h"
-
 
 static const char *type_name[] =
 {
@@ -438,92 +435,6 @@ json *json_locate_next(const json *node, const json *what)
         }
     }
     return NULL;
-}
-
-/**
- * Returns a json_number converted to string
- * Example (2 decimals):
- * const char *text = json_format(node, 2).ptr;
- * Pass JSON_AUTO_DECIMALS as decimals to print using %g 
- */
-json_converter json_format(const json *node, int decimals)
-{
-    json_converter buffer;
-    double number = 0;
-
-    if (node == NULL)
-    {
-        number = 0.0;
-    }
-    else if (node->type == JSON_STRING)
-    {
-        number = strtod(node->value.string, NULL);
-    }
-    else
-    {
-        number = node->value.number;
-    }
-    if (decimals >= 0)
-    {
-        snprintf(buffer.str, sizeof buffer.str, "%.*lf", decimals, number);
-    }
-    else
-    {
-        snprintf(buffer.str, sizeof buffer.str, "%g", number);
-    }
-    buffer.ptr = buffer.str;
-    return buffer;
-}
-
-/**
- * Returns a node converted to string
- * Example:
- * const char *text = json_to_string(node).ptr;
- */
-#define FORMAT(fmt, value) snprintf(buffer.str, sizeof buffer.str, fmt, value)
-json_converter json_to_string(const json *node)
-{
-    json_converter buffer = {.str = ""};
-
-    buffer.ptr = buffer.str;
-    if (node != NULL)
-    {
-        switch (node->type)
-        {
-            case JSON_STRING:
-                buffer.ptr = node->value.string;
-                break;
-            case JSON_INTEGER:
-                FORMAT("%.0f", node->value.number);
-                break;
-            case JSON_REAL:
-                node->value.number != trunc(node->value.number)
-                    ? FORMAT("%g", node->value.number)
-                    : FORMAT("%.1f", node->value.number);
-                break;
-            case JSON_BOOLEAN:
-                buffer.ptr = node->value.number != 0 ? "true" : "false";
-                break;
-            default:
-                buffer.ptr = type_name[node->type];
-                break;
-        }
-    }
-    return buffer;
-}
-
-/* Returns a node converted to number */
-double json_to_number(const json *node)
-{
-    if (node == NULL)
-    {
-        return 0.0;
-    }
-    if (node->type != JSON_STRING)
-    {
-        return node->value.number;
-    }
-    return strtod(node->value.string, NULL);
 }
 
 /* Length of an UTF8 string */

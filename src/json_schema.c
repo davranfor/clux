@@ -8,7 +8,7 @@
 #include <string.h>
 #include <setjmp.h>
 #include <math.h>
-#include "clib_format.h"
+#include "clib_test.h"
 #include "json_reader.h"
 #include "json_pointer.h"
 #include "json_query.h"

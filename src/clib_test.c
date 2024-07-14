@@ -10,7 +10,7 @@
 #include <regex.h>
 #include "clib_date.h"
 #include "clib_unicode.h"
-#include "clib_format.h"
+#include "clib_test.h"
 
 static const char *test_mask(const char *text, const char *mask)
 {
