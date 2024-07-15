@@ -12,16 +12,105 @@
 #include "json_reader.h"
 #include "json_writer.h"
 
-static json *new_string(const char *key, char *value)
+static json *new_string(char *value)
 {
     if (value == NULL)
     {
         return NULL;
     }
 
-    char *name = NULL;
+    json *node = calloc(1, sizeof *node);
 
-    if ((key != NULL) && !(name = string_clone(key)))
+    if (node != NULL)
+    {
+        node->type = JSON_STRING;
+        node->value.string = value;
+    }
+    else
+    {
+        free(value);
+    }
+    return node;
+}
+
+static json *new_number(enum json_type type, double value)
+{
+    json *node = calloc(1, sizeof *node);
+
+    if (node != NULL)
+    {
+        node->type = type;
+        node->value.number = value;
+    }
+    return node;
+}
+
+json *json_new_object(void)
+{
+    return new_number(JSON_OBJECT, 0);
+}
+
+json *json_new_array(void)
+{
+    return new_number(JSON_ARRAY, 0);
+}
+
+json *json_new_format(const char *fmt, ...)
+{
+    if (fmt == NULL)
+    {
+        return NULL;
+    }
+
+    va_list args;
+
+    va_start(args, fmt);
+
+    char *str = string_vprint(fmt, args);
+
+    va_end(args);
+    return new_string(str);
+}
+
+json *json_new_string(const char *value)
+{
+    if (value == NULL)
+    {
+        return NULL;
+    }
+    return new_string(string_clone(value));
+}
+
+json *json_new_integer(double value)
+{
+    return new_number(JSON_INTEGER, trunc(value));
+}
+
+json *json_new_real(double value)
+{
+    return new_number(JSON_REAL, value);
+}
+
+json *json_new_boolean(int value)
+{
+    return new_number(JSON_BOOLEAN, value ? 1 : 0);
+}
+
+json *json_new_null(void)
+{
+    return new_number(JSON_NULL, 0);
+}
+
+static json *let_string(const char *key, char *value)
+{
+    if (value == NULL)
+    {
+        return NULL;
+    }
+
+    char *name = string_clone(key);
+
+    if (name == NULL)
     {
         free(value);
         return NULL;
@@ -43,11 +132,11 @@ static json *new_string(const char *key, char *value)
     return node;
 }
 
-static json *new_number(enum json_type type, const char *key, double value)
+static json *let_number(enum json_type type, const char *key, double value)
 {
-    char *name = NULL;
+    char *name = string_clone(key);
 
-    if ((key != NULL) && !(name = string_clone(key)))
+    if (name == NULL)
     {
         return NULL;
     }
@@ -67,19 +156,27 @@ static json *new_number(enum json_type type, const char *key, double value)
     return node;
 }
 
-json *json_new_object(const char *name)
+json *json_new_named_object(const char *name)
 {
-    return new_number(JSON_OBJECT, name, 0);
+    if (name == NULL)
+    {
+        return NULL;
+    }
+    return let_number(JSON_OBJECT, name, 0);
 }
 
-json *json_new_array(const char *name)
+json *json_new_named_array(const char *name)
 {
-    return new_number(JSON_ARRAY, name, 0);
+    if (name == NULL)
+    {
+        return NULL;
+    }
+    return let_number(JSON_ARRAY, name, 0);
 }
 
-json *json_new_format(const char *name, const char *fmt, ...)
+json *json_new_named_format(const char *name, const char *fmt, ...)
 {
-    if (fmt == NULL)
+    if ((name == NULL) || (fmt == NULL))
     {
         return NULL;
     }
@@ -91,36 +188,52 @@ json *json_new_format(const char *name, const char *fmt, ...)
     char *str = string_vprint(fmt, args);
 
     va_end(args);
-    return new_string(name, str);
+    return let_string(name, str);
 }
 
-json *json_new_string(const char *name, const char *value)
+json *json_new_named_string(const char *name, const char *value)
 {
-    if (value == NULL)
+    if ((name == NULL) || (value == NULL))
     {
         return NULL;
     }
-    return new_string(name, string_clone(value));
+    return let_string(name, string_clone(value));
 }
 
-json *json_new_integer(const char *name, double value)
+json *json_new_named_integer(const char *name, double value)
 {
-    return new_number(JSON_INTEGER, name, trunc(value));
+    if (name == NULL)
+    {
+        return NULL;
+    }
+    return let_number(JSON_INTEGER, name, trunc(value));
 }
 
-json *json_new_real(const char *name, double value)
+json *json_new_named_real(const char *name, double value)
 {
-    return new_number(JSON_REAL, name, value);
+    if (name == NULL)
+    {
+        return NULL;
+    }
+    return let_number(JSON_REAL, name, value);
 }
 
-json *json_new_boolean(const char *name, int value)
+json *json_new_named_boolean(const char *name, int value)
 {
-    return new_number(JSON_BOOLEAN, name, value ? 1 : 0);
+    if (name == NULL)
+    {
+        return NULL;
+    }
+    return let_number(JSON_BOOLEAN, name, value ? 1 : 0);
 }
 
-json *json_new_null(const char *name)
+json *json_new_named_null(const char *name)
 {
-    return new_number(JSON_NULL, name, 0);
+    if (name == NULL)
+    {
+        return NULL;
+    }
+    return let_number(JSON_NULL, name, 0);
 }
 
 json *json_set_name(json *node, const char *name)
@@ -269,7 +382,7 @@ json *json_let_object(json *parent, const char *name)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_number(JSON_OBJECT, name, 0))
+        ? json_push_back(parent, let_number(JSON_OBJECT, name, 0))
         : set_number(child, JSON_OBJECT, 0);
 }
 
@@ -283,7 +396,7 @@ json *json_let_array(json *parent, const char *name)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_number(JSON_ARRAY, name, 0))
+        ? json_push_back(parent, let_number(JSON_ARRAY, name, 0))
         : set_number(child, JSON_ARRAY, 0);
 }
 
@@ -305,7 +418,7 @@ json *json_let_format(json *parent, const char *name, const char *fmt, ...)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_string(name, str))
+        ? json_push_back(parent, let_string(name, str))
         : set_string(child, str);
 }
 
@@ -319,7 +432,7 @@ json *json_let_string(json *parent, const char *name, const char *value)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_string(name, string_clone(value)))
+        ? json_push_back(parent, let_string(name, string_clone(value)))
         : set_string(child, string_clone(value));
 }
 
@@ -333,7 +446,7 @@ json *json_let_integer(json *parent, const char *name, double value)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_number(JSON_INTEGER, name, trunc(value)))
+        ? json_push_back(parent, let_number(JSON_INTEGER, name, trunc(value)))
         : set_number(child, JSON_INTEGER, trunc(value));
 }
 
@@ -347,7 +460,7 @@ json *json_let_real(json *parent, const char *name, double value)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_number(JSON_REAL, name, value))
+        ? json_push_back(parent, let_number(JSON_REAL, name, value))
         : set_number(child, JSON_REAL, value);
 }
 
@@ -361,7 +474,7 @@ json *json_let_boolean(json *parent, const char *name, int value)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_number(JSON_BOOLEAN, name, value ? 1 : 0))
+        ? json_push_back(parent, let_number(JSON_BOOLEAN, name, value ? 1 : 0))
         : set_number(child, JSON_BOOLEAN, value ? 1 : 0);
 }
 
@@ -375,7 +488,7 @@ json *json_let_null(json *parent, const char *name)
     json *child = json_find(parent, name);
 
     return (child == NULL)
-        ? json_push_back(parent, new_number(JSON_NULL, name, 0))
+        ? json_push_back(parent, let_number(JSON_NULL, name, 0))
         : set_number(child, JSON_NULL, 0);
 }
 

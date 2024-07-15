@@ -39,10 +39,10 @@ int main(void)
 
     for (size_t iter = 0; iter < size; iter++)
     {
-        json *root = json_new_object(NULL);
+        json *root = json_new_object();
 
-        json_push_back(root, json_new_format("code", "%05d", rand() % size));
-        json_push_back(root, json_new_string("func", "insert"));
+        json_let_format(root, "code", "%05d", rand() % size);
+        json_let_string(root, "func", "insert");
         node = json_map_insert(map, json_string(json_child(root)), root);
         if (node == NULL)
         {
@@ -56,10 +56,10 @@ int main(void)
     }
     for (size_t iter = 0; iter < size; iter++)
     {
-        json *root = json_new_object(NULL);
+        json *root = json_new_object();
 
-        json_push_back(root, json_new_format("code", "%05d", rand() % size));
-        json_push_back(root, json_new_string("func", "upsert"));
+        json_let_format(root, "code", "%05d", rand() % size);
+        json_let_string(root, "func", "upsert");
         node = json_map_upsert(map, json_string(json_child(root)), root);
         if (node == NULL)
         {

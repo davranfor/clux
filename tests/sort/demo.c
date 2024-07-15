@@ -17,14 +17,14 @@ int main(void)
 {
     srand((unsigned)time(NULL));
 
-    json *root = json_new_array(NULL);
+    json *root = json_new_array();
 
     for (int i = 0; i <= 25; i++)
     {
-        json_push_back(root, json_new_number(NULL, rand() % 100));
+        json_push_back(root, json_new_number(rand() % 100));
         if ((i % 5) == 0)
         {
-            json_push_back(root, json_new_null(NULL));
+            json_push_back(root, json_new_null());
         }
     }
 

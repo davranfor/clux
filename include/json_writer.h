@@ -9,11 +9,17 @@
 
 #include "json_header.h"
 
-#define json_new_number(name, value) _Generic((value),          \
+#define json_new_number(value) _Generic((value),                \
     long double: json_new_real,                                 \
     double: json_new_real,                                      \
     float: json_new_real,                                       \
-    default: json_new_integer)(name, (double)(value))
+    default: json_new_integer)((double)(value))
+
+#define json_new_named_number(name, value) _Generic((value),    \
+    long double: json_new_named_real,                           \
+    double: json_new_named_real,                                \
+    float: json_new_named_real,                                 \
+    default: json_new_named_integer)(name, (double)(value))
 
 #define json_set_number(node, value) _Generic((value),          \
     long double: json_set_real,                                 \
@@ -27,15 +33,24 @@
     float: json_let_real,                                       \
     default: json_let_integer)(parent, name, (double)(value))
 
-json *json_new_object(const char *);
-json *json_new_array(const char *);
-json *json_new_format(const char *, const char *, ...)
+json *json_new_object(void);
+json *json_new_array(void);
+json *json_new_format(const char *, ...)
+    __attribute__ ((format (printf, 1, 2)));
+json *json_new_string(const char *);
+json *json_new_integer(double);
+json *json_new_real(double);
+json *json_new_boolean(int);
+json *json_new_null(void);
+json *json_new_named_object(const char *);
+json *json_new_named_array(const char *);
+json *json_new_named_format(const char *, const char *, ...)
     __attribute__ ((format (printf, 2, 3)));
-json *json_new_string(const char *, const char *);
-json *json_new_integer(const char *, double);
-json *json_new_real(const char *, double);
-json *json_new_boolean(const char *, int);
-json *json_new_null(const char *);
+json *json_new_named_string(const char *, const char *);
+json *json_new_named_integer(const char *, double);
+json *json_new_named_real(const char *, double);
+json *json_new_named_boolean(const char *, int);
+json *json_new_named_null(const char *);
 json *json_set_name(json *, const char *);
 json *json_set_object(json *);
 json *json_set_array(json *);

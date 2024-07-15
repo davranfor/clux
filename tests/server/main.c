@@ -137,7 +137,7 @@ static char *request_post(const char *uri, const char *content)
 
     snprintf(key, sizeof key, "%s/%zu", uri, id);
     if ((json_map_insert(map, key, node) != node) ||
-        !json_push_front(node, json_new_number("id", id)))
+        !json_push_front(node, json_new_named_number("id", id)))
     {
         json_free(node);
         node = NULL;

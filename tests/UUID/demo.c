@@ -24,7 +24,7 @@ int main(void)
 
     uuid_unparse(uuid, str);
 
-    json *node = json_new_string("UUID", str);
+    json *node = json_new_named_string("UUID", str);
 
     json_print(node);
     json_free(node);
