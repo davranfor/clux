@@ -4,6 +4,11 @@
  *  \copyright GNU Public License.
  */
 
+/**
+ * BE CAREFUL!
+ * These functions return a struct without allocating memory
+ */
+
 #ifndef JSON_FORMAT_H
 #define JSON_FORMAT_H
 
@@ -13,7 +18,7 @@
 
 #define JSON_FMT_AUTO (-1) // Format infered from the number
 #define JSON_FMT_HEX  (-2) // Hexadecimal notation
-#define JSON_FMT_SCI  (-3) // Hexadecimal notation lower (0x0)
+#define JSON_FMT_SCI  (-3) // Scientific notation
 
 #define json_fmt(node, decimals) (json_format((node), (decimals)).str)
 #define json_str(node) (json_value(node).as_string)
