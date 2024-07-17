@@ -19,19 +19,19 @@
     long double: json_new_named_real,                           \
     double: json_new_named_real,                                \
     float: json_new_named_real,                                 \
-    default: json_new_named_integer)(name, (double)(value))
+    default: json_new_named_integer)((name), (double)(value))
 
 #define json_set_number(node, value) _Generic((value),          \
     long double: json_set_real,                                 \
     double: json_set_real,                                      \
     float: json_set_real,                                       \
-    default: json_set_integer)(node, (double)(value))
+    default: json_set_integer)((node), (double)(value))
 
 #define json_let_number(parent, name, value) _Generic((value),  \
     long double: json_let_real,                                 \
     double: json_let_real,                                      \
     float: json_let_real,                                       \
-    default: json_let_integer)(parent, name, (double)(value))
+    default: json_let_integer)((parent), (name), (double)(value))
 
 json *json_new_object(void);
 json *json_new_array(void);

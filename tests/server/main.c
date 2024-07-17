@@ -218,8 +218,10 @@ static const char *request_header_ok(enum method method)
 {
     switch (method)
     {
-        case NONE: return http_html_ok;
-        default: return http_json_ok;
+        case NONE:
+            return http_html_ok;
+        default:
+            return http_json_ok;
     }
 }
 
@@ -227,9 +229,12 @@ static const char *request_header_ko(enum method method)
 {
     switch (method)
     {
-        case NONE: return http_not_found;
-        case UNKNOWN: return http_method_not_allowed;
-        default: return http_no_content;
+        case NONE:
+            return http_not_found;
+        case UNKNOWN:
+            return http_method_not_allowed;
+        default:
+            return http_no_content;
     }
 }
 

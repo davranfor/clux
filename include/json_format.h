@@ -11,7 +11,7 @@
 
 #define JSON_AUTO_DECIMALS (-1)
 
-#define json_format(node, decimals) (json_format_number(node, decimals).ptr)
+#define json_format(node, decimals) (json_format_number((node), (decimals)).ptr)
 #define json_str(node) (json_to_string(node).ptr)
 
 typedef struct { char str[56]; const char *ptr; } json_format_buffer;
