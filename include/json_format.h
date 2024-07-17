@@ -9,8 +9,11 @@
 
 #include "json_header.h"
 
-#define JSON_FORMAT_STR_SIZE 48
-#define JSON_AUTO_DECIMALS (-1)
+#define JSON_STR_SIZE 48
+
+#define JSON_FMT_AUTO (-1) // Format infered from the number
+#define JSON_FMT_HEX  (-2) // Hexadecimal notation
+#define JSON_FMT_SCI  (-3) // Hexadecimal notation lower (0x0)
 
 #define json_fmt(node, decimals) (json_format((node), (decimals)).str)
 #define json_str(node) (json_value(node).as_string)
@@ -18,12 +21,12 @@
 
 struct json_format
 {
-    char str[JSON_FORMAT_STR_SIZE];
+    char str[JSON_STR_SIZE];
 };
 
 struct json_value
 {
-    char str[JSON_FORMAT_STR_SIZE];
+    char str[JSON_STR_SIZE];
     const char *as_string;
     double as_number;
 };

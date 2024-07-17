@@ -17,13 +17,11 @@
 
 #define MAX_DECIMALS DBL_DECIMAL_DIG
 
-#define format(arg, fmt, ...) \
-    snprintf(arg.str, JSON_FORMAT_STR_SIZE, fmt, __VA_ARGS__)
+#define format(arg, fmt, ...) snprintf(arg.str, JSON_STR_SIZE, fmt, __VA_ARGS__)
 
-/**
- * Returns a json_number converted to string
- * Pass JSON_AUTO_DECIMALS as decimals to print using %g 
- */
+typedef unsigned long long ullong;
+
+/* Returns a json_number converted to string */
 struct json_format json_format(const json *node, int decimals)
 {
     struct json_format buffer;
@@ -45,7 +43,15 @@ struct json_format json_format(const json *node, int decimals)
     {
         format(buffer, "%.*f", decimals, number);
     }
-    else
+    else if (decimals == JSON_FMT_HEX)
+    {
+        format(buffer, "0x%llx", (ullong)number);
+    }
+    else if (decimals == JSON_FMT_SCI)
+    {
+        format(buffer, "%e", number);
+    }
+    else // JSON_FMT_AUTO
     {
         format(buffer, "%g", number);
     }
