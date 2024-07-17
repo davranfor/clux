@@ -47,7 +47,7 @@ json_format_buffer json_format(const json *node, int decimals)
     return buffer;
 }
 
-/* Returns a node converted to string */
+/* Returns a node converted to string and number */
 #define FORMAT(fmt, ...) snprintf(buffer.str, sizeof buffer.str, fmt, __VA_ARGS__)
 json_value_buffer json_value(const json *node)
 {
