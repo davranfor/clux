@@ -15,6 +15,11 @@
 #define DBL_DECIMAL_DIG 17
 #endif
 
+#define MAX_DECIMALS DBL_DECIMAL_DIG
+
+#define format(arg, fmt, ...) \
+    snprintf(arg.str, sizeof(arg.str), fmt, __VA_ARGS__)
+
 /**
  * Returns a json_number converted to string
  * Pass JSON_AUTO_DECIMALS as decimals to print using %g 
@@ -36,19 +41,18 @@ json_format_buffer json_format(const json *node, int decimals)
     {
         number = node->value.number;
     }
-    if ((decimals >= 0) && (decimals <= DBL_DECIMAL_DIG))
+    if ((decimals >= 0) && (decimals <= MAX_DECIMALS))
     {
-        snprintf(buffer.str, sizeof buffer.str, "%.*f", decimals, number);
+        format(buffer, "%.*f", decimals, number);
     }
     else
     {
-        snprintf(buffer.str, sizeof buffer.str, "%g", number);
+        format(buffer, "%g", number);
     }
     return buffer;
 }
 
 /* Returns a node converted to string and number */
-#define FORMAT(fmt, ...) snprintf(buffer.str, sizeof buffer.str, fmt, __VA_ARGS__)
 json_value_buffer json_value(const json *node)
 {
     json_value_buffer buffer = {.str = ""};
@@ -63,13 +67,13 @@ json_value_buffer json_value(const json *node)
                 buffer.as_number = strtod(node->value.string, NULL);
                 break;
             case JSON_INTEGER:
-                FORMAT("%.0f", node->value.number);
+                format(buffer, "%.0f", node->value.number);
                 buffer.as_number = node->value.number;
                 break;
             case JSON_REAL:
                 node->value.number != trunc(node->value.number)
-                    ? FORMAT("%.*g", DBL_DECIMAL_DIG, node->value.number)
-                    : FORMAT("%.1f", node->value.number);
+                    ? format(buffer, "%.*g", MAX_DECIMALS, node->value.number)
+                    : format(buffer, "%.1f", node->value.number);
                 buffer.as_number = node->value.number;
                 break;
             case JSON_BOOLEAN:

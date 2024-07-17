@@ -381,7 +381,7 @@ json *json_let_object(json *parent, const char *name)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_number(JSON_OBJECT, name, 0))
         : set_number(child, JSON_OBJECT, 0);
 }
@@ -395,7 +395,7 @@ json *json_let_array(json *parent, const char *name)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_number(JSON_ARRAY, name, 0))
         : set_number(child, JSON_ARRAY, 0);
 }
@@ -417,7 +417,7 @@ json *json_let_format(json *parent, const char *name, const char *fmt, ...)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_string(name, str))
         : set_string(child, str);
 }
@@ -431,7 +431,7 @@ json *json_let_string(json *parent, const char *name, const char *value)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_string(name, string_clone(value)))
         : set_string(child, string_clone(value));
 }
@@ -445,7 +445,7 @@ json *json_let_integer(json *parent, const char *name, double value)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_number(JSON_INTEGER, name, trunc(value)))
         : set_number(child, JSON_INTEGER, trunc(value));
 }
@@ -459,7 +459,7 @@ json *json_let_real(json *parent, const char *name, double value)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_number(JSON_REAL, name, value))
         : set_number(child, JSON_REAL, value);
 }
@@ -473,7 +473,7 @@ json *json_let_boolean(json *parent, const char *name, int value)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_number(JSON_BOOLEAN, name, value ? 1 : 0))
         : set_number(child, JSON_BOOLEAN, value ? 1 : 0);
 }
@@ -487,7 +487,7 @@ json *json_let_null(json *parent, const char *name)
 
     json *child = json_find(parent, name);
 
-    return (child == NULL)
+    return child == NULL
         ? json_push_back(parent, let_number(JSON_NULL, name, 0))
         : set_number(child, JSON_NULL, 0);
 }

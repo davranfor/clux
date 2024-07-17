@@ -87,7 +87,7 @@ json *json_pointer(const json *node, const char *path)
     {
         return NULL;
     }
-    return (*path == '/')
+    return *path == '/'
         ? pointer(json_root(node), path + 1)
         : pointer(json_self(node), path);
 }

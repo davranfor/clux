@@ -16,7 +16,7 @@
 static int sum_numbers_until_null(const json *node, int depth, void *data)
 {
     (void)depth;
-printf("%s %s %f\n", json_fmt(node, JSON_AUTO_DECIMALS), json_str(node), json_num(node));
+
     if (json_is_number(node))
     {
         *(double *)data += json_number(node);
@@ -36,7 +36,7 @@ int main(void)
     json_push_back(root, json_new_string("10000")); // Not computed
     json_push_back(root, json_new_format("%d", 1)); // Not computed
     json_push_back(root, json_new_real(0.14));
-    json_push_back(root, json_new_boolean( 1));     // Not computed
+    json_push_back(root, json_new_boolean(1));      // Not computed
     json_push_back(root, json_new_null());          // Stop here
     json_push_back(root, json_new_integer(100));    // Not computed
 
