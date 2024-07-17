@@ -11,14 +11,24 @@
 
 #define JSON_AUTO_DECIMALS (-1)
 
-#define json_format(node, decimals) (json_format_number((node), (decimals)).ptr)
-#define json_str(node) (json_to_string(node).ptr)
+#define json_fmt(node, decimals) (json_format((node), (decimals)).str)
+#define json_str(node) (json_value(node).as_string)
+#define json_num(node) (json_value(node).as_number)
 
-typedef struct { char str[56]; const char *ptr; } json_format_buffer;
+typedef struct
+{
+    char str[64];
+} json_format_buffer;
 
-json_format_buffer json_format_number(const json *, int);
-json_format_buffer json_to_string(const json *);
-double json_to_number(const json *);
+typedef struct
+{
+    char str[48];
+    const char *as_string;
+    double as_number;
+} json_value_buffer;
+
+json_format_buffer json_format(const json *, int);
+json_value_buffer json_value(const json *);
 
 #endif
 

@@ -16,6 +16,7 @@
 static int sum_numbers_until_null(const json *node, int depth, void *data)
 {
     (void)depth;
+    printf("%s %s %f\n", json_fmt(node, JSON_AUTO_DECIMALS), json_str(node), json_num(node));
     if (json_is_number(node))
     {
         *(double *)data += json_number(node);

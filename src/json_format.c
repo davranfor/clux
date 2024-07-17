@@ -12,11 +12,15 @@
 #include "json_reader.h"
 #include "json_format.h"
 
+#ifndef DBL_DECIMAL_DIG
+#define DBL_DECIMAL_DIG 17
+#endif
+
 /**
  * Returns a json_number converted to string
  * Pass JSON_AUTO_DECIMALS as decimals to print using %g 
  */
-json_format_buffer json_format_number(const json *node, int decimals)
+json_format_buffer json_format(const json *node, int decimals)
 {
     json_format_buffer buffer;
     double number = 0;
@@ -33,62 +37,51 @@ json_format_buffer json_format_number(const json *node, int decimals)
     {
         number = node->value.number;
     }
-    if (decimals >= 0)
+    if ((decimals >= 0) && (decimals <= DBL_DECIMAL_DIG))
     {
-        snprintf(buffer.str, sizeof buffer.str, "%.*lf", decimals, number);
+        snprintf(buffer.str, sizeof buffer.str, "%.*f", decimals, number);
     }
     else
     {
         snprintf(buffer.str, sizeof buffer.str, "%g", number);
     }
-    buffer.ptr = buffer.str;
     return buffer;
 }
 
 /* Returns a node converted to string */
-#define FORMAT(fmt, value) snprintf(buffer.str, sizeof buffer.str, fmt, value)
-json_format_buffer json_to_string(const json *node)
+#define FORMAT(fmt, ...) snprintf(buffer.str, sizeof buffer.str, fmt, __VA_ARGS__)
+json_value_buffer json_value(const json *node)
 {
-    json_format_buffer buffer = {.str = ""};
+    json_value_buffer buffer = {.str = ""};
 
-    buffer.ptr = buffer.str;
+    buffer.as_string = buffer.str;
     if (node != NULL)
     {
         switch (node->type)
         {
             case JSON_STRING:
-                buffer.ptr = node->value.string;
+                buffer.as_string = node->value.string;
+                buffer.as_number = strtod(node->value.string, NULL);
                 break;
             case JSON_INTEGER:
                 FORMAT("%.0f", node->value.number);
+                buffer.as_number = node->value.number;
                 break;
             case JSON_REAL:
                 node->value.number != trunc(node->value.number)
-                    ? FORMAT("%g", node->value.number)
+                    ? FORMAT("%.*g", DBL_DECIMAL_DIG, node->value.number)
                     : FORMAT("%.1f", node->value.number);
+                buffer.as_number = node->value.number;
                 break;
             case JSON_BOOLEAN:
-                buffer.ptr = node->value.number != 0 ? "true" : "false";
+                buffer.as_string = node->value.number != 0 ? "true" : "false";
+                buffer.as_number = node->value.number;
                 break;
             default:
-                buffer.ptr = json_type_name(node);
+                buffer.as_string = json_type_name(node);
                 break;
         }
     }
     return buffer;
-}
-
-/* Returns a node converted to number */
-double json_to_number(const json *node)
-{
-    if (node == NULL)
-    {
-        return 0.0;
-    }
-    if (node->type != JSON_STRING)
-    {
-        return node->value.number;
-    }
-    return strtod(node->value.string, NULL);
 }
 
