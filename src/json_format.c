@@ -9,7 +9,6 @@
 #include <string.h>
 #include <math.h>
 #include "json_private.h"
-#include "json_reader.h"
 #include "json_format.h"
 
 #ifndef DBL_DECIMAL_DIG
@@ -77,8 +76,10 @@ json_value_buffer json_value(const json *node)
                 buffer.as_string = node->value.number != 0 ? "true" : "false";
                 buffer.as_number = node->value.number;
                 break;
+            case JSON_NULL:
+                buffer.as_string = "null";
+                break;
             default:
-                buffer.as_string = json_type_name(node);
                 break;
         }
     }
