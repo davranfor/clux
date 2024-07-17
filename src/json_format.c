@@ -18,15 +18,15 @@
 #define MAX_DECIMALS DBL_DECIMAL_DIG
 
 #define format(arg, fmt, ...) \
-    snprintf(arg.str, sizeof(arg.str), fmt, __VA_ARGS__)
+    snprintf(arg.str, JSON_FORMAT_STR_SIZE, fmt, __VA_ARGS__)
 
 /**
  * Returns a json_number converted to string
  * Pass JSON_AUTO_DECIMALS as decimals to print using %g 
  */
-json_format_buffer json_format(const json *node, int decimals)
+struct json_format json_format(const json *node, int decimals)
 {
-    json_format_buffer buffer;
+    struct json_format buffer;
     double number = 0;
 
     if (node == NULL)
@@ -53,9 +53,9 @@ json_format_buffer json_format(const json *node, int decimals)
 }
 
 /* Returns a node converted to string and number */
-json_value_buffer json_value(const json *node)
+struct json_value json_value(const json *node)
 {
-    json_value_buffer buffer = {.str = ""};
+    struct json_value buffer = {.str = ""};
 
     buffer.as_string = buffer.str;
     if (node != NULL)
