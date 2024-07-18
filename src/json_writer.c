@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "clib_math.h"
 #include "clib_string.h"
 #include "json_private.h"
 #include "json_reader.h"
@@ -83,7 +84,9 @@ json *json_new_string(const char *value)
 
 json *json_new_integer(double value)
 {
-    return new_number(JSON_INTEGER, trunc(value));
+    return is_safe_number(value)
+        ? new_number(JSON_INTEGER, trunc(value))
+        : new_number(JSON_REAL, trunc(value));
 }
 
 json *json_new_real(double value)
@@ -206,7 +209,9 @@ json *json_new_named_integer(const char *name, double value)
     {
         return NULL;
     }
-    return let_number(JSON_INTEGER, name, trunc(value));
+    return is_safe_number(value)
+        ? let_number(JSON_INTEGER, name, trunc(value))
+        : let_number(JSON_REAL, name, trunc(value));
 }
 
 json *json_new_named_real(const char *name, double value)
@@ -342,7 +347,9 @@ json *json_set_integer(json *node, double value)
     {
         return NULL;
     }
-    return set_number(node, JSON_INTEGER, trunc(value));
+    return is_safe_number(value)
+        ? set_number(node, JSON_INTEGER, trunc(value))
+        : set_number(node, JSON_REAL, trunc(value));
 }
 
 json *json_set_real(json *node, double value)
@@ -445,9 +452,18 @@ json *json_let_integer(json *parent, const char *name, double value)
 
     json *child = json_find(parent, name);
 
-    return child == NULL
-        ? json_push_back(parent, let_number(JSON_INTEGER, name, trunc(value)))
-        : set_number(child, JSON_INTEGER, trunc(value));
+    if (child == NULL)
+    {
+        return is_safe_number(value)
+            ? json_push_back(parent, let_number(JSON_INTEGER, name, trunc(value)))
+            : json_push_back(parent, let_number(JSON_REAL, name, trunc(value)));
+    }
+    else
+    {
+        return is_safe_number(value)
+            ? let_number(JSON_INTEGER, name, trunc(value))
+            : let_number(JSON_REAL, name, trunc(value));
+    }
 }
 
 json *json_let_real(json *parent, const char *name, double value)

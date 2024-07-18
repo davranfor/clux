@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <math.h>
+#include "clib_math.h"
 #include "clib_stream.h"
 #include "clib_unicode.h"
 #include "json_private.h"
@@ -192,8 +193,8 @@ static int try_set_number(json *node, const char *left, const char *right)
     if ((end == right) && !isnan(number) && !isinf(number))
     {
         node->value.number = number;
-        node->type = left + strspn(left, "+-xX0123456789") >= right
-            ? JSON_INTEGER
+        node->type = (left + strspn(left, "+-xX0123456789") >= right)
+            ? is_safe_number(number) ? JSON_INTEGER : JSON_REAL
             : JSON_REAL;
         return 1;
     }

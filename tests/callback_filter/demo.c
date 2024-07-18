@@ -31,7 +31,7 @@ int main(void)
     json_push_back(root, json_new_number(-39));
     json_push_back(root, json_new_integer(42));
     json_push_back(root, json_new_object());        // Not computed
-    json_push_back(root, json_new_real(0));
+    json_push_back(root, json_new_real(0.0));
     json_push_back(root, json_new_string("10000")); // Not computed
     json_push_back(root, json_new_format("%d", 1)); // Not computed
     json_push_back(root, json_new_real(0.14));
