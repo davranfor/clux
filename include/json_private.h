@@ -9,8 +9,6 @@
 
 #include "json_header.h"
 
-#define JSON_DECIMAL_DIG 17
-
 struct json
 {
     json *parent, *head, *prev, *next, *tail;

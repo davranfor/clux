@@ -7,7 +7,7 @@
 #ifndef CLIB_MATH_H
 #define CLIB_MATH_H
 
-int is_safe_number(double);
+int is_safe_integer(double);
 
 #endif
 

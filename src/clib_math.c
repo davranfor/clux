@@ -7,7 +7,7 @@
 #include <math.h>
 #include "clib_math.h"
 
-int is_safe_number(double number)
+int is_safe_integer(double number)
 {
     int exponent;
     double mantissa = frexp(number, &exponent);

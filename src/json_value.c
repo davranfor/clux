@@ -36,7 +36,8 @@ struct json_value json_value(const json *node)
             }
             case JSON_REAL:
             {
-                format(buffer, "%.*g", JSON_DECIMAL_DIG, node->value.number);
+                format(buffer, "%.*g", JSON_MAX_DECIMALS, node->value.number);
+
                 size_t end = strspn(buffer.str, "-0123456789");
 
                 if (buffer.str[end] == '\0')

@@ -84,7 +84,7 @@ json *json_new_string(const char *value)
 
 json *json_new_integer(double value)
 {
-    return is_safe_number(value)
+    return is_safe_integer(value)
         ? new_number(JSON_INTEGER, trunc(value))
         : new_number(JSON_REAL, trunc(value));
 }
@@ -209,7 +209,7 @@ json *json_new_named_integer(const char *name, double value)
     {
         return NULL;
     }
-    return is_safe_number(value)
+    return is_safe_integer(value)
         ? let_number(JSON_INTEGER, name, trunc(value))
         : let_number(JSON_REAL, name, trunc(value));
 }
@@ -347,7 +347,7 @@ json *json_set_integer(json *node, double value)
     {
         return NULL;
     }
-    return is_safe_number(value)
+    return is_safe_integer(value)
         ? set_number(node, JSON_INTEGER, trunc(value))
         : set_number(node, JSON_REAL, trunc(value));
 }
@@ -454,13 +454,13 @@ json *json_let_integer(json *parent, const char *name, double value)
 
     if (child == NULL)
     {
-        return is_safe_number(value)
+        return is_safe_integer(value)
             ? json_push_back(parent, let_number(JSON_INTEGER, name, trunc(value)))
             : json_push_back(parent, let_number(JSON_REAL, name, trunc(value)));
     }
     else
     {
-        return is_safe_number(value)
+        return is_safe_integer(value)
             ? let_number(JSON_INTEGER, name, trunc(value))
             : let_number(JSON_REAL, name, trunc(value));
     }

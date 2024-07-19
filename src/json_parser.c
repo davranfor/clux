@@ -194,7 +194,7 @@ static int try_set_number(json *node, const char *left, const char *right)
     {
         node->value.number = number;
         node->type = (left + strspn(left, "+-xX0123456789") >= right)
-            ? is_safe_number(number) ? JSON_INTEGER : JSON_REAL
+            ? is_safe_integer(number) ? JSON_INTEGER : JSON_REAL
             : JSON_REAL;
         return 1;
     }
