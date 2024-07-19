@@ -12,6 +12,8 @@
 #include "json_reader.h"
 #include "json_buffer.h"
 
+#define MAX_DECIMALS 17
+
 /* return 0 if buffer_realloc() fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
 
@@ -100,11 +102,11 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 
 static json_buffer *buffer_write_real(json_buffer *buffer, double value)
 {
-    size_t length = (size_t)snprintf(NULL, 0, "%.*g", JSON_MAX_DECIMALS, value);
+    size_t length = (size_t)snprintf(NULL, 0, "%.*g", MAX_DECIMALS, value);
 
     CHECK(buffer_resize(buffer, length));
     snprintf(buffer->text + buffer->length, length + 1, "%.*g",
-             JSON_MAX_DECIMALS, value);
+             MAX_DECIMALS, value);
 
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;

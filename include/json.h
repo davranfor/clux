@@ -12,7 +12,6 @@
 #include "json_writer.h"
 #include "json_buffer.h"
 #include "json_pointer.h"
-#include "json_value.h"
 #include "json_query.h"
 #include "json_patch.h"
 #include "json_sort.h"
