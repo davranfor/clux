@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
 #include "clib_string.h"
 #include "clib_unicode.h"
 #include "json_private.h"
