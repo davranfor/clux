@@ -17,6 +17,10 @@
 #define DBL_DECIMAL_DIG 17
 #endif
 
+#define BUFFER_FORMAT_SIZE 32
+#define buffer_format(buffer, ...) \
+    snprintf(buffer->text + buffer->length, BUFFER_FORMAT_SIZE, __VA_ARGS__);
+
 /* return 0 if buffer_realloc() fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
 
@@ -85,32 +89,38 @@ static json_buffer *buffer_write(json_buffer *buffer, const char *text)
 
 static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
 {
-    size_t length = (size_t)snprintf(NULL, 0, "%zu", value);
+    if (buffer->size - buffer->length < BUFFER_FORMAT_SIZE)
+    {
+        CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
+    }
 
-    CHECK(buffer_resize(buffer, length));
-    snprintf(buffer->text + buffer->length, length + 1, "%zu", value);
+    size_t length = (size_t)buffer_format(buffer, "%zu", value);
+
     buffer->length += length;
     return buffer;
 }
 
 static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 {
-    size_t length = (size_t)snprintf(NULL, 0, "%.0f", value);
+    if (buffer->size - buffer->length < BUFFER_FORMAT_SIZE)
+    {
+        CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
+    }
 
-    CHECK(buffer_resize(buffer, length));
-    snprintf(buffer->text + buffer->length, length + 1, "%.0f", value);
+    size_t length = (size_t)buffer_format(buffer, "%.0f", value);
+
     buffer->length += length;
     return buffer;
 }
 
 static json_buffer *buffer_write_real(json_buffer *buffer, double value)
 {
-    size_t length = (size_t)snprintf(NULL, 0, "%.*g", DBL_DECIMAL_DIG, value);
+    if (buffer->size - buffer->length < BUFFER_FORMAT_SIZE)
+    {
+        CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
+    }
 
-    CHECK(buffer_resize(buffer, length));
-    snprintf(buffer->text + buffer->length, length + 1, "%.*g",
-             DBL_DECIMAL_DIG, value);
-
+    size_t length = (size_t)buffer_format(buffer, "%.*g", DBL_DECIMAL_DIG, value);
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 
