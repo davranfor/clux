@@ -13,13 +13,16 @@
 #include "json_reader.h"
 #include "json_buffer.h"
 
-#ifndef DBL_DECIMAL_DIG
-#define DBL_DECIMAL_DIG 17
-#endif
-
-#define BUFFER_FORMAT_SIZE 32
+/**
+ * According to IEEE 754-1985, double can represent numbers with maximum
+ * accuracy of 17 digits after point. Add to it both minuses for mantissa
+ * and period, point, e-char and 3 digits of period (8 bit), and you will
+ * get exact 24 chars.
+ */
+#define MAX_DECIMALS 17
+#define BUFFER_FORMAT_SIZE 24
 #define buffer_format(buffer, ...) \
-    snprintf(buffer->text + buffer->length, BUFFER_FORMAT_SIZE, __VA_ARGS__);
+    snprintf(buffer->text + buffer->length, BUFFER_FORMAT_SIZE + 1, __VA_ARGS__)
 
 /* return 0 if buffer_realloc() fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
@@ -89,7 +92,7 @@ static json_buffer *buffer_write(json_buffer *buffer, const char *text)
 
 static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
 {
-    if (buffer->size - buffer->length < BUFFER_FORMAT_SIZE)
+    if (buffer->size - buffer->length <= BUFFER_FORMAT_SIZE)
     {
         CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
     }
@@ -102,7 +105,7 @@ static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
 
 static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 {
-    if (buffer->size - buffer->length < BUFFER_FORMAT_SIZE)
+    if (buffer->size - buffer->length <= BUFFER_FORMAT_SIZE)
     {
         CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
     }
@@ -115,12 +118,12 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 
 static json_buffer *buffer_write_real(json_buffer *buffer, double value)
 {
-    if (buffer->size - buffer->length < BUFFER_FORMAT_SIZE)
+    if (buffer->size - buffer->length <= BUFFER_FORMAT_SIZE)
     {
         CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
     }
 
-    size_t length = (size_t)buffer_format(buffer, "%.*g", DBL_DECIMAL_DIG, value);
+    size_t length = (size_t)buffer_format(buffer, "%.*g", MAX_DECIMALS, value);
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 
