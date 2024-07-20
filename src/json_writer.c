@@ -36,6 +36,11 @@ static json *new_string(char *value)
 
 static json *new_number(enum json_type type, double value)
 {
+    if (isnan(value) || isinf(value))
+    {
+        return NULL;
+    }
+
     json *node = calloc(1, sizeof *node);
 
     if (node != NULL)
@@ -137,6 +142,11 @@ static json *let_string(const char *key, char *value)
 
 static json *let_number(enum json_type type, const char *key, double value)
 {
+    if (isnan(value) || isinf(value))
+    {
+        return NULL;
+    }
+
     char *name = string_clone(key);
 
     if (name == NULL)
@@ -291,6 +301,10 @@ static json *set_string(json *node, char *value)
 
 static json *set_number(json *node, enum json_type type, double value)
 {
+    if (isnan(value) || isinf(value))
+    {
+        return NULL;
+    }
     set_empty(node);
     node->type = type;
     node->value.number = value;

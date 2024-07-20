@@ -16,10 +16,7 @@ int is_safe_integer(double number)
     {
         return 1;
     }
-    if ((exponent == 53) || (exponent == -53))
-    {
-        return (mantissa > -1.0) && (mantissa < 1.0);
-    }
-    return 0; 
+    return ((exponent == -53) || (exponent == 53))
+        && ((mantissa > -1.0) && (mantissa < 1.0));
 } 
 
