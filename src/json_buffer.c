@@ -19,9 +19,7 @@
  * get exact 24 chars.
  */
 #define MAX_DECIMALS 17
-#define BUFFER_FORMAT_SIZE 24
-#define buffer_format(buffer, ...) \
-    snprintf(buffer->text + buffer->length, BUFFER_FORMAT_SIZE + 1, __VA_ARGS__)
+#define NUMBER_CHARS 24
 
 /* return 0 if buffer_realloc() fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
@@ -89,11 +87,14 @@ static json_buffer *buffer_write(json_buffer *buffer, const char *text)
     return buffer_append(buffer, text, strlen(text));
 }
 
-static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
+#define buffer_format(buffer, ...) \
+    snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
+
+static json_buffer *buffer_write_size_t(json_buffer *buffer, size_t value)
 {
-    if (buffer->size - buffer->length <= BUFFER_FORMAT_SIZE)
+    if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
-        CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
+        CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
     size_t length = (size_t)buffer_format(buffer, "%zu", value);
@@ -104,9 +105,9 @@ static json_buffer *buffer_write_size(json_buffer *buffer, size_t value)
 
 static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 {
-    if (buffer->size - buffer->length <= BUFFER_FORMAT_SIZE)
+    if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
-        CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
+        CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
     size_t length = (size_t)buffer_format(buffer, "%.0f", value);
@@ -117,9 +118,9 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
 
 static json_buffer *buffer_write_real(json_buffer *buffer, double value)
 {
-    if (buffer->size - buffer->length <= BUFFER_FORMAT_SIZE)
+    if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
-        CHECK(buffer_resize(buffer, BUFFER_FORMAT_SIZE));
+        CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
     size_t length = (size_t)buffer_format(buffer, "%.*g", MAX_DECIMALS, value);
@@ -427,7 +428,7 @@ static int buffer_write_path(json_buffer *buffer, const json *node)
     else
     {
         CHECK(buffer_write(buffer, "["));
-        CHECK(buffer_write_size(buffer, json_offset(node)));
+        CHECK(buffer_write_size_t(buffer, json_offset(node)));
         CHECK(buffer_write(buffer, "]"));
     }
     return 1;
