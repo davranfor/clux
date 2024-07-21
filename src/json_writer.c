@@ -475,8 +475,8 @@ json *json_let_integer(json *parent, const char *name, double value)
     else
     {
         return is_safe_integer(value)
-            ? let_number(JSON_INTEGER, name, trunc(value))
-            : let_number(JSON_REAL, name, trunc(value));
+            ? set_number(child, JSON_INTEGER, trunc(value))
+            : set_number(child, JSON_REAL, trunc(value));
     }
 }
 
