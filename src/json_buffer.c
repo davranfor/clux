@@ -87,7 +87,7 @@ static json_buffer *buffer_write(json_buffer *buffer, const char *text)
     return buffer_append(buffer, text, strlen(text));
 }
 
-#define buffer_format(buffer, ...) \
+#define buffer_format(buffer, ...) (size_t) \
     snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
 
 static json_buffer *buffer_write_size_t(json_buffer *buffer, size_t value)
@@ -97,7 +97,7 @@ static json_buffer *buffer_write_size_t(json_buffer *buffer, size_t value)
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = (size_t)buffer_format(buffer, "%zu", value);
+    size_t length = buffer_format(buffer, "%zu", value);
 
     buffer->length += length;
     return buffer;
@@ -110,7 +110,7 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = (size_t)buffer_format(buffer, "%.0f", value);
+    size_t length = buffer_format(buffer, "%.0f", value);
 
     buffer->length += length;
     return buffer;
@@ -123,7 +123,7 @@ static json_buffer *buffer_write_real(json_buffer *buffer, double value)
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = (size_t)buffer_format(buffer, "%.*g", MAX_DECIMALS, value);
+    size_t length = buffer_format(buffer, "%.*g", MAX_DECIMALS, value);
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 
