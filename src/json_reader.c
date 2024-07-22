@@ -25,11 +25,7 @@ static const char *type_name[] =
 
 enum json_type json_type(const json *node)
 {
-    if (node == NULL)
-    {
-        return JSON_UNDEFINED;
-    }
-    return node->type;
+    return node != NULL ? node->type : JSON_UNDEFINED;
 }
 
 const char *json_type_name(const json *node)
@@ -44,20 +40,16 @@ const char *json_type_name(const json *node)
 
 const char *json_key(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->name;
+    return node != NULL ? node->name : NULL;
 }
 
 const char *json_name(const json *node)
 {
-    if ((node == NULL) || (node->name == NULL))
+    if ((node != NULL) && (node->name != NULL))
     {
-        return "";
+        return node->name;
     }
-    return node->name;
+    return "";
 }
 
 /**
@@ -67,38 +59,38 @@ const char *json_name(const json *node)
 
 const char *json_text(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_STRING))
+    if ((node != NULL) && (node->type == JSON_STRING))
     {
-        return "";
+        return node->value.string;
     }
-    return node->value.string;
+    return "";
 }
 
 const char *json_string(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_STRING))
+    if ((node != NULL) && (node->type == JSON_STRING))
     {
-        return NULL;
+        return node->value.string;
     }
-    return node->value.string;
+    return NULL;
 }
 
 double json_number(const json *node)
 {
-    if ((node == NULL) || (node->type == JSON_STRING))
+    if ((node != NULL) && (node->type != JSON_STRING))
     {
-        return 0.0;
+        return node->value.number;
     }
-    return node->value.number;
+    return 0.0;
 }
 
 int json_boolean(const json *node)
 {
-    if ((node == NULL) || (node->type == JSON_STRING))
+    if ((node != NULL) && (node->type != JSON_STRING))
     {
-        return 0;
+        return node->value.number != 0;
     }
-    return node->value.number != 0;
+    return 0;
 }
 
 int json_is_any(const json *node)
@@ -217,92 +209,68 @@ json *json_root(const json *node)
 
 json *json_parent(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->parent;
+    return node != NULL ? node->parent : NULL;
 }
 
 json *json_child(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->head;
+    return node != NULL ? node->head : NULL;
 }
 
 json *json_head(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->head;
+    return node != NULL ? node->head : NULL;
 }
 
 json *json_prev(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->prev;
+    return node != NULL ? node->prev : NULL;
 }
 
 json *json_next(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->next;
+    return node != NULL ? node->next : NULL;
 }
 
 json *json_tail(const json *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->tail;
+    return node != NULL ? node->tail : NULL;
 }
 
 json *json_object_head(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_OBJECT))
+    if ((node != NULL) && (node->type == JSON_OBJECT))
     {
-        return NULL;
+        return node->head;
     }
-    return node->head;
+    return NULL;
 }
 
 json *json_object_tail(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_OBJECT))
+    if ((node != NULL) && (node->type == JSON_OBJECT))
     {
-        return NULL;
+        return node->tail;
     }
-    return node->tail;
+    return NULL;
 }
 
 json *json_array_head(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_ARRAY))
+    if ((node != NULL) && (node->type == JSON_ARRAY))
     {
-        return NULL;
+        return node->head;
     }
-    return node->head;
+    return NULL;
 }
 
 json *json_array_tail(const json *node)
 {
-    if ((node == NULL) || (node->type != JSON_ARRAY))
+    if ((node != NULL) && (node->type == JSON_ARRAY))
     {
-        return NULL;
+        return node->tail;
     }
-    return node->tail;
+    return NULL;
 }
 
 /* Locates a child by index */
@@ -450,11 +418,7 @@ size_t json_length(const json *node)
 /* Number of childs of an iterable */
 size_t json_size(const json *node)
 {
-    if (node == NULL)
-    {
-        return 0;
-    }
-    return node->size;
+    return node != NULL ? node->size : 0;
 }
 
 /* Position of the node into an interable */
