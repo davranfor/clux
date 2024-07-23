@@ -68,14 +68,14 @@ static const char *next_path(const char *path)
 /* json_pointer helper */
 static json *pointer(json *node, const char *path)
 {
-    while ((node != NULL) && (*path != '\0'))
+    while ((node != NULL) && (path != NULL))
     {
         const char *end = next_path(path);
 
         node = (node->type == JSON_OBJECT)
             ? get_by_name(node, path, end)
             : get_by_item(node, path, end);
-        path = *end ? end + 1 : end;
+        path = *end == '/' ? end + 1 : NULL;
     }
     return node;
 }
@@ -87,8 +87,14 @@ json *json_pointer(const json *node, const char *path)
     {
         return NULL;
     }
-    return *path == '/'
-        ? pointer(json_root(node), path + 1)
-        : pointer(json_self(node), path);
+    switch (*path)
+    {
+        case '/':
+            return pointer(json_self(node), path + 1);
+        case '\0':
+            return json_self(node);
+        default:
+            return NULL;
+    }
 }
 

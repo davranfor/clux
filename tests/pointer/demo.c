@@ -17,11 +17,11 @@ static void print(const json *node, const char *path)
 
 int main(void)
 {
-    const char *str = "{\"data\": [0, 1, 2], \"a~b\": 10, \"a/b\": 20}";
+    const char *str = "{\"\": 0, \"data\": [0, 1, 2], \"a~b\": 10, \"a/b\": 20}";
     json *node = json_parse(str, NULL);
 
-    print(node, "");        // self
-    print(node, "/");       // root
+    print(node, "");        // self node
+    print(node, "/");       // empty key
     print(node, "/data");   // object
     print(node, "/data/1"); // array
     print(node, "/a~0b");   // special case 1: '~' must be escaped with '~0'
