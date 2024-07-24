@@ -27,6 +27,7 @@ json_list *json_list_create(size_t size)
         if (list->data == NULL)
         {
             free(list);
+            list = NULL;
         }
     }
     return list;
