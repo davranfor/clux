@@ -37,9 +37,9 @@ int json_list_add(json_list *list, const json *data)
 {
     if ((list != NULL) && (data != NULL))
     {
-        if (list->size + 1 > list->room)
+        if (list->size == list->room)
         {
-            size_t room = next_pow2(list->room + 1);
+            size_t room = list->room * 2;
             const json **temp = realloc(list->data, sizeof *temp * room);
 
             if (temp == NULL)
