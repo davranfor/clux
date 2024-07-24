@@ -89,12 +89,12 @@ json *json_pointer(const json *node, const char *path)
     }
     switch (*path)
     {
-        case '/':
-            return pointer(json_self(node), path + 1);
         case '\0':
             return json_self(node);
         default:
-            return NULL;
+            return pointer(json_self(node), path);
+        case '/':
+            return pointer(json_root(node), path + 1);
     }
 }
 
