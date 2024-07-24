@@ -15,6 +15,7 @@
 #include "json_query.h"
 #include "json_patch.h"
 #include "json_sort.h"
+#include "json_list.h"
 #include "json_map.h"
 
 #endif

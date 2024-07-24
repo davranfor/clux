@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "clib_math.h"
 #include "clib_string.h"
 #include "clib_unicode.h"
 #include "json_private.h"
@@ -50,25 +51,13 @@ static char *buffer_realloc(json_buffer *buffer, size_t size)
     return text;
 }
 
-static size_t buffer_next_size(size_t size)
-{
-    size -= 1;
-    size |= size >> 1;
-    size |= size >> 2;
-    size |= size >> 4;
-    size |= size >> 8;
-    size |= size >> 16;
-    size += 1;
-    return size;
-}
-
 static char *buffer_resize(json_buffer *buffer, size_t length)
 {
     size_t size = buffer->length + length + 1;
 
     if (size > buffer->size)
     {
-        return buffer_realloc(buffer, buffer_next_size(size));
+        return buffer_realloc(buffer, next_pow2(size));
     }
     return buffer->text;
 }

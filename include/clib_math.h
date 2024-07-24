@@ -7,7 +7,10 @@
 #ifndef CLIB_MATH_H
 #define CLIB_MATH_H
 
+#include <stddef.h>
+
 int is_safe_integer(double);
+size_t next_pow2(size_t);
 
 #endif
 
