@@ -76,6 +76,51 @@ size_t json_list_size(const json_list *list)
     return list != NULL ? list->size : 0;
 }
 
+static void swap(const json **a, const json **b)
+{
+    const json *pt = *a;
+
+    *a = *b;
+    *b = pt;
+}
+
+static int partition(const json **list, int lo, int hi,
+    json_sort_callback callback)
+{
+    const json *pivot = list[hi];
+    int a = lo - 1;
+
+    for (int b = lo; b < hi; b++)
+    {
+        if (callback(list[b], pivot) <= 0)
+        {
+            swap(&list[++a], &list[b]);
+        }
+    }
+    swap(&list[a + 1], &list[hi]);
+    return a + 1;
+}
+
+static void sort(const json **list, int lo, int hi,
+    json_sort_callback callback)
+{
+    if (lo < hi)
+    {
+        int part = partition(list, lo, hi, callback);
+
+        sort(list, lo, part - 1, callback);
+        sort(list, part + 1, hi, callback);
+    }
+}
+
+void json_list_sort(json_list *list, json_sort_callback callback)
+{
+    if ((list != NULL) && (list->size > 1))
+    {
+        sort(list->data, 0, (int)list->size, callback);
+    }
+}
+
 void json_list_destroy(json_list *list)
 {
     if (list != NULL)

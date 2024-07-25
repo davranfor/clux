@@ -23,6 +23,14 @@ static int filter_integers(const json *node, int depth, void *data)
     return 1;
 }
 
+static int sort_integers(const json *pa, const json *pb)
+{
+    double a = json_number(pa);
+    double b = json_number(pb);
+
+    return a < b ? -1 : a > b;
+}
+
 int main(void)
 {
     json *root = json_new_array();
@@ -35,14 +43,14 @@ int main(void)
     json_push_back(root, json_new_string("10000"));
     json_push_back(root, json_new_integer(1));
     json_push_back(root, json_new_array());
-    json_push_back(root, json_new_integer(2));
     json_push_back(root, json_new_null());
-    json_push_back(root, json_parse("[3,4,5,6,7,8,9]", NULL));
+    json_push_back(root, json_parse("[9,8,7,6,2,3,4,5]", NULL));
 
     json_list *list = json_list_create(0);
 
     if ((list != NULL) && json_walk(root, filter_integers, list))
     {
+        json_list_sort(list, sort_integers);
         for (size_t i = 0, n = json_list_size(list); i < n; i++)
         {
             json_print(json_list_at(list, i));
