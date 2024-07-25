@@ -8,6 +8,8 @@
 #include "clib_math.h"
 #include "json_list.h"
 
+#define MIN_SIZE 8
+
 struct json_list
 {
     const json **data;
@@ -15,14 +17,14 @@ struct json_list
     size_t size;
 };
 
-json_list *json_list_create(size_t size)
+json_list *json_list_create(size_t room)
 {
     json_list *list = malloc(sizeof *list);
 
     if (list != NULL)
     {
         list->size = 0;
-        list->room = next_pow2(size < 8 ? 8 : size);
+        list->room = room <= MIN_SIZE ? MIN_SIZE : next_pow2(room);
         list->data = malloc(sizeof *list->data * list->room);
         if (list->data == NULL)
         {
