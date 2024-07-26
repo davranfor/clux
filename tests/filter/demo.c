@@ -23,10 +23,10 @@ static int filter_integers(const json *node, int depth, void *data)
     return 1;
 }
 
-static int sort_integers(const json *pa, const json *pb)
+static int sort_integers(const void *pa, const void *pb)
 {
-    double a = json_number(pa);
-    double b = json_number(pb);
+    double a = json_number(*(const json * const *)pa);
+    double b = json_number(*(const json * const *)pb);
 
     return a < b ? -1 : a > b;
 }

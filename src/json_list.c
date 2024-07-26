@@ -76,75 +76,11 @@ size_t json_list_size(const json_list *list)
     return list != NULL ? list->size : 0;
 }
 
-// Function to merge two sorted subarrays in place
-static void merge(const json **array, int top, int mid, int end,
-    json_sort_callback callback)
-{
-    int tmp = mid + 1;
-
-    // If the direct merge is already sorted
-    if (callback(array[mid], array[tmp]) <= 0)
-    {
-        return;
-    }
-    // Two pointers to maintain top of both arrays to merge
-    while ((top <= mid) && (tmp <= end))
-    {
-        // If element 1 is in right place
-        if (callback(array[top], array[tmp]) <= 0)
-        {
-            top++;
-        }
-        else
-        {
-            const json *value = array[tmp];
-            int index = tmp;
-
-            // Shift all lements between element 1 and element 2 right by 1
-            while (index != top)
-            {
-                array[index] = array[index - 1];
-                index--;
-            }
-            array[top] = value;
-            // Update all the pointers
-            top++;
-            mid++;
-            tmp++;
-        }
-    }
-}
-
-// Iterative merge sort function to sort arr[0...n-1]
-static void sort(const json **array, int size, json_sort_callback callback)
-{
-    // Merge subarrays in bottom-up manner
-    for (int count = 1; count <= size - 1; count = count * 2)
-    {
-        // Pick starting point of different subarrays of current size
-        for (int top = 0; top < size - 1; top += count * 2)
-        {
-            // Find ending point of left subarray
-            int mid = top + count - 1;
-            // Find ending point of right subarray
-            int end = top + 2 * count - 1 < size - 1
-                ? top + 2 * count - 1
-                : size - 1;
-
-            // Merge Subarrays arr[top...mid] & arr[mid+1...end]
-            if (mid < end)
-            {
-                merge(array, top, mid, end, callback);
-            }
-        }
-    }
-}
-
-void json_list_sort(json_list *list, json_sort_callback callback)
+void json_list_sort(json_list *list, int (*callback)(const void *, const void *))
 {
     if ((list != NULL) && (list->size > 1))
     {
-        sort(list->data, (int)list->size, callback);
+        qsort(list->data, list->size, sizeof(const json *), callback);
     }
 }
 

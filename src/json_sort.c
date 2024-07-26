@@ -58,7 +58,7 @@ int JSON_SORT_BY_VALUE_DESC(const json *a, const json *b)
 
 static json *split(json *top)
 {
-    json *fast = top;
+    const json *fast = top;
     json *slow = top;
 
     while ((fast->next != NULL) && (fast = fast->next->next))
