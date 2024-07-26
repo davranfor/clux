@@ -92,7 +92,13 @@ static int partition(const json **list, int lo, int hi,
 
     for (int b = lo; b < hi; b++)
     {
-        if (callback(list[b], pivot) <= 0)
+        int compare = callback(list[b], pivot);
+
+        /**
+         * Compare both values and list pointer positions in order
+         * to preserve the relative order of equal elements
+         */
+        if ((compare < 0) || ((compare == 0) && (list[b] < pivot)))
         {
             a++;
             swap(&list[a], &list[b]);
