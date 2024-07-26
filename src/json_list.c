@@ -76,47 +76,67 @@ size_t json_list_size(const json_list *list)
     return list != NULL ? list->size : 0;
 }
 
-static void swap(const json **a, const json **b)
-{
-    const json *temp = *a;
-
-    *a = *b;
-    *b = temp;
-}
-
-static int partition(const json **list, int lo, int hi,
+// Function to merge two sorted subarrays in place
+static void merge(const json **array, int top, int mid, int end,
     json_sort_callback callback)
 {
-    const json *pivot = list[hi];
-    int a = lo - 1;
+    int tmp = mid + 1;
 
-    for (int b = lo; b < hi; b++)
+    // If the direct merge is already sorted
+    if (callback(array[mid], array[tmp]) <= 0)
     {
-        int compare = callback(list[b], pivot);
-
-        /**
-         * Compare both values and list pointer positions in order
-         * to preserve the relative order of equal elements
-         */
-        if ((compare < 0) || ((compare == 0) && (list[b] < pivot)))
+        return;
+    }
+    // Two pointers to maintain top of both arrays to merge
+    while ((top <= mid) && (tmp <= end))
+    {
+        // If element 1 is in right place
+        if (callback(array[top], array[tmp]) <= 0)
         {
-            a++;
-            swap(&list[a], &list[b]);
+            top++;
+        }
+        else
+        {
+            const json *value = array[tmp];
+            int index = tmp;
+
+            // Shift all lements between element 1 and element 2 right by 1
+            while (index != top)
+            {
+                array[index] = array[index - 1];
+                index--;
+            }
+            array[top] = value;
+            // Update all the pointers
+            top++;
+            mid++;
+            tmp++;
         }
     }
-    swap(&list[a + 1], &list[hi]);
-    return a + 1;
 }
 
-static void sort(const json **list, int lo, int hi,
-    json_sort_callback callback)
+// Iterative merge sort function to sort arr[0...n-1]
+static void sort(const json **array, int size, json_sort_callback callback)
 {
-    if (lo < hi)
+    // Merge subarrays in bottom-up manner
+    for (int count = 1; count <= size - 1; count = count * 2)
     {
-        int part = partition(list, lo, hi, callback);
+        // Pick starting point of different subarrays of current size
+        for (int top = 0; top < size - 1; top += count * 2)
+        {
+            // Find ending point of left subarray
+            int mid = top + count - 1;
+            // Find ending point of right subarray
+            int end = top + 2 * count - 1 < size - 1
+                ? top + 2 * count - 1
+                : size - 1;
 
-        sort(list, lo, part - 1, callback);
-        sort(list, part + 1, hi, callback);
+            // Merge Subarrays arr[top...mid] & arr[mid+1...end]
+            if (mid < end)
+            {
+                merge(array, top, mid, end, callback);
+            }
+        }
     }
 }
 
@@ -124,7 +144,7 @@ void json_list_sort(json_list *list, json_sort_callback callback)
 {
     if ((list != NULL) && (list->size > 1))
     {
-        sort(list->data, 0, (int)list->size - 1, callback);
+        sort(list->data, (int)list->size, callback);
     }
 }
 
