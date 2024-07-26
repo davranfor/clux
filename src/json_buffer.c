@@ -57,7 +57,7 @@ static char *buffer_resize(json_buffer *buffer, size_t length)
 
     if (size > buffer->size)
     {
-        return buffer_realloc(buffer, next_pow2(size));
+        return buffer_realloc(buffer, next_size(size));
     }
     return buffer->text;
 }

@@ -21,7 +21,7 @@ int is_safe_integer(double number)
 } 
 
 /* Returns the smallest power of two that is greater than or equal to size */
-size_t next_pow2(size_t size)
+size_t next_size(size_t size)
 {
     size -= 1;
     size |= size >> 1;

@@ -24,7 +24,7 @@ json_list *json_list_create(size_t room)
     if (list != NULL)
     {
         list->size = 0;
-        list->room = room <= MIN_SIZE ? MIN_SIZE : next_pow2(room);
+        list->room = room <= MIN_SIZE ? MIN_SIZE : next_size(room);
         list->data = malloc(sizeof *list->data * list->room);
         if (list->data == NULL)
         {
@@ -78,10 +78,10 @@ size_t json_list_size(const json_list *list)
 
 static void swap(const json **a, const json **b)
 {
-    const json *pt = *a;
+    const json *temp = *a;
 
     *a = *b;
-    *b = pt;
+    *b = temp;
 }
 
 static int partition(const json **list, int lo, int hi,
@@ -94,7 +94,8 @@ static int partition(const json **list, int lo, int hi,
     {
         if (callback(list[b], pivot) <= 0)
         {
-            swap(&list[++a], &list[b]);
+            a++;
+            swap(&list[a], &list[b]);
         }
     }
     swap(&list[a + 1], &list[hi]);
@@ -117,7 +118,7 @@ void json_list_sort(json_list *list, json_sort_callback callback)
 {
     if ((list != NULL) && (list->size > 1))
     {
-        sort(list->data, 0, (int)list->size, callback);
+        sort(list->data, 0, (int)list->size - 1, callback);
     }
 }
 

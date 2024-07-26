@@ -10,7 +10,7 @@
 #include <stddef.h>
 
 int is_safe_integer(double);
-size_t next_pow2(size_t);
+size_t next_size(size_t);
 
 #endif
 
