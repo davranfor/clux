@@ -439,12 +439,12 @@ size_t json_offset(const json *node)
 }
 
 /* json_height helper */
-static int tree_height(const json *node, int depth, void *height)
+static int tree_height(const json *node, size_t depth, void *height)
 {
     (void)node;
-    if (depth > *(int *)height)
+    if (depth > *(size_t *)height)
     {
-        *(int *)height = depth;
+        *(size_t *)height = depth;
     }
     return 1;
 }
@@ -452,10 +452,10 @@ static int tree_height(const json *node, int depth, void *height)
 /* Number of edges from the leaf node to the passed node */
 size_t json_height(const json *node)
 {
-    int height = 0;
+    size_t height = 0;
 
     json_walk(node, tree_height, &height);
-    return (size_t)height;
+    return height;
 }
 
 /* Number of edges from the root node to the passed node */
@@ -530,7 +530,8 @@ static int equal(const json *a, const json *b, int depth)
  */
 int json_equal(const json *a, const json *b)
 {
-    int depth = 0, flag = 1;
+    int depth = 0;
+    int flag = 1;
 
     while ((a != NULL) && (b != NULL))
     {
@@ -570,7 +571,8 @@ int json_equal(const json *a, const json *b)
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
-    int depth = 0, flag = 1;
+    size_t depth = 0;
+    int flag = 1;
 
     while (node != NULL)
     {
@@ -595,9 +597,9 @@ int json_walk(const json *node, json_walk_callback callback, void *data)
         }
         else
         {
-            break;
+            return 1;
         }
     }
-    return 1;
+    return 0;
 }
 

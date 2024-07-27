@@ -19,7 +19,7 @@
 #define json_float(node) ((float)json_number(node))
 #define json_double(node) json_number(node)
 
-typedef int (*json_walk_callback)(const json *, int, void *);
+typedef int (*json_walk_callback)(const json *, size_t, void *);
 
 enum json_type json_type(const json *);
 const char *json_type_name(const json *);

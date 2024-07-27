@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <clux/json.h>
 
-static int test_query(const json *node, int depth, void *data)
+static int test_query(const json *node, size_t depth, void *data)
 {
     (void)data;
 

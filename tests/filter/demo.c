@@ -7,18 +7,19 @@
 #include <clux/json.h>
 
 /**
- * json_walk() callback function
+ * json_list_filter() callback function
  *
  * Return:
  *  0 to stop traversing
  * !0 to continue
  */
-static int filter_integers(const json *node, int depth, void *data)
+static int filter_integers(json_list *list, json *node, size_t depth, void *data)
 {
     (void)depth;
+    (void)data;
     if (json_is_integer(node))
     {
-        return json_list_add(data, node);
+        return json_list_push(list, node) != NULL;
     }
     return 1;
 }
@@ -48,7 +49,7 @@ int main(void)
 
     json_list *list = json_list_create(0);
 
-    if ((list != NULL) && json_walk(root, filter_integers, list))
+    if (json_list_filter(list, root, filter_integers, NULL))
     {
         json_list_sort(list, sort_integers);
         for (size_t i = 0, n = json_list_size(list); i < n; i++)
