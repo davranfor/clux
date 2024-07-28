@@ -93,7 +93,7 @@ size_t json_list_size(const json_list *list)
 
 /**
  * Sends all nodes to a callback func providing list, node and user-data
- * Exit when all nodes are read or callback returns 0
+ * Exit when all nodes are read or callback returns <= 0
  */
 int json_list_filter(json_list *list, json *node,
     json_list_callback callback, void *data)
@@ -104,13 +104,13 @@ int json_list_filter(json_list *list, json *node,
     }
 
     size_t depth = 0;
-    int flag = 1;
+    int flag = 1, rc;
 
     while (node != NULL)
     {
-        if ((flag == 1) && (callback(list, node, depth, data) == 0))
+        if ((flag == 1) && ((rc = callback(list, node, depth, data) <= 0)))
         {
-            return 0;
+             return rc;
         }
         if ((flag == 1) && (node->head != NULL))
         {
@@ -140,6 +140,20 @@ void json_list_sort(json_list *list, int (*callback)(const void *, const void *)
     if ((list != NULL) && (list->size > 1))
     {
         qsort(list->data, list->size, sizeof *list->data, callback);
+    }
+}
+
+void json_list_reverse(json_list *list)
+{
+    if ((list != NULL) && (list->size > 1))
+    {
+        for (size_t a = 0, b = list->size - 1; a < b; a++, b--)
+        {
+            json *temp = list->data[a];
+
+            list->data[a] = list->data[b];
+            list->data[b] = temp;
+        }
     }
 }
 

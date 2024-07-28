@@ -567,18 +567,18 @@ int json_equal(const json *a, const json *b)
 
 /**
  * Sends all nodes to a callback func providing depth and user-data
- * Exit when all nodes are read or callback returns 0 (example in json_height())
+ * Exit when all nodes are read or callback returns <=0 (example in json_height())
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
     size_t depth = 0;
-    int flag = 1;
+    int flag = 1, rc;
 
     while (node != NULL)
     {
-        if ((flag == 1) && (callback(node, depth, data) == 0))
+        if ((flag == 1) && ((rc = callback(node, depth, data) <= 0)))
         {
-            return 0;
+            return rc;
         }
         if ((flag == 1) && (node->head != NULL))
         {

@@ -10,8 +10,8 @@
  * json_list_filter() callback function
  *
  * Return:
- *  0 to stop traversing
- * !0 to continue
+ *  <= 0 to stop traversing
+ *   > 0 to continue
  */
 static int filter_integers(json_list *list, json *node, size_t depth, void *data)
 {
