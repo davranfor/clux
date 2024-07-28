@@ -572,13 +572,18 @@ int json_equal(const json *a, const json *b)
 int json_walk(const json *node, json_walk_callback callback, void *data)
 {
     size_t depth = 0;
-    int flag = 1, rc;
+    int flag = 1;
 
     while (node != NULL)
     {
-        if ((flag == 1) && ((rc = callback(node, depth, data) <= 0)))
+        if (flag == 1)
         {
-            return rc;
+            int rc = callback(node, depth, data);
+            
+            if (rc <= 0)
+            {
+                return rc;
+            }
         }
         if ((flag == 1) && (node->head != NULL))
         {

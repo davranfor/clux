@@ -104,13 +104,18 @@ int json_list_filter(json_list *list, json *node,
     }
 
     size_t depth = 0;
-    int flag = 1, rc;
+    int flag = 1;
 
     while (node != NULL)
     {
-        if ((flag == 1) && ((rc = callback(list, node, depth, data) <= 0)))
+        if (flag == 1)
         {
-             return rc;
+            int rc = callback(list, node, depth, data);
+            
+            if (rc <= 0)
+            {
+                return rc;
+            }
         }
         if ((flag == 1) && (node->head != NULL))
         {
