@@ -8,9 +8,9 @@
 #include <clux/json.h>
 #include <clux/json_regex.h>
 
-static json * parse_file(const char *path)
+static json *parse_file(const char *path)
 {
-    json_error error; // Error handle is optional
+    json_error error;
     json *node = json_parse_file(path, &error);
 
     if (node == NULL)
@@ -27,14 +27,12 @@ int main(void)
 
     json *root = parse_file("test.json");
 
-    for (json *node = json_array_head(root); node != NULL; node = json_next(node))
+    for (const json *node = json_array_head(root); node != NULL; node = json_next(node))
     {
         printf("Testing '%s' -> '%s' = %s\n",
             json_name(json_at(node, 1)),
             json_text(json_at(node, 1)),
-            json_match(json_at(node, 1), json_string(json_at(node, 0)))
-                ? "true"
-                : "false"
+            json_match(json_at(node, 1), json_string(json_at(node, 0))) ? "true" : "false"
         );
     }
     json_free(root);
