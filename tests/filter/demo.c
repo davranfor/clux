@@ -26,10 +26,18 @@ static int filter_integers(json_list *list, json *node, size_t depth, void *data
 
 static int sort_integers(const void *pa, const void *pb)
 {
-    double a = json_number(*(const json * const *)pa);
-    double b = json_number(*(const json * const *)pb);
+    double a = json_number(*(json * const *)pa);
+    double b = json_number(*(json * const *)pb);
 
     return a < b ? -1 : a > b;
+}
+
+static void print_integers(json * const *data, size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        json_print(data[i]);
+    } 
 }
 
 int main(void)
@@ -52,12 +60,9 @@ int main(void)
     if (json_list_filter(list, root, filter_integers, NULL))
     {
         json_list_sort(list, sort_integers);
-        for (size_t i = 0, n = json_list_size(list); i < n; i++)
-        {
-            json_print(json_list_at(list, i));
-        } 
+        print_integers(json_list_data(list), json_list_size(list));
     }
-    json_list_destroy(list);
+    json_list_free(list);
     json_free(root);
     return 0;
 }

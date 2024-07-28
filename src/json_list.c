@@ -162,7 +162,7 @@ void json_list_reverse(json_list *list)
     }
 }
 
-void json_list_destroy(json_list *list)
+void json_list_free(json_list *list)
 {
     if (list != NULL)
     {
