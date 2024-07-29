@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "clib_math.h"
 #include "json_private.h"
 #include "json_list.h"
@@ -138,6 +139,66 @@ int json_list_filter(json_list *list, json *node,
         }
     }
     return 0;
+}
+
+int JSON_LIST_SORT_BY_KEY_ASC(const void *pa, const void *pb)
+{
+    const json *a = *(json * const *)pa;
+    const json *b = *(json * const *)pb;
+
+    if ((a->name != NULL) && (b->name != NULL))
+    {
+        return strcmp(a->name, b->name);
+    }
+    return 0;
+}
+
+int JSON_LIST_SORT_BY_KEY_DESC(const void *pa, const void *pb)
+{
+    const json *a = *(json * const *)pa;
+    const json *b = *(json * const *)pb;
+
+    if ((a->name != NULL) && (b->name != NULL))
+    {
+        return strcmp(b->name, a->name);
+    }
+    return 0;
+}
+
+int JSON_LIST_SORT_BY_VALUE_ASC(const void *pa, const void *pb)
+{
+    const json *a = *(json * const *)pa;
+    const json *b = *(json * const *)pb;
+
+    if (a->type != b->type)
+    {
+        return a->type > b->type ? 1 : -1;
+    }
+    if (a->type != JSON_STRING)
+    {
+        return
+            a->value.number < b->value.number ? -1 :
+            a->value.number > b->value.number;
+    }
+    return strcmp(a->value.string, b->value.string);
+}
+
+int JSON_LIST_SORT_BY_VALUE_DESC(const void *pa, const void *pb)
+{
+    const json *a = *(json * const *)pa;
+    const json *b = *(json * const *)pb;
+
+    if (a->type != b->type)
+    {
+        return b->type > a->type ? 1 : -1;
+    }
+    if (a->type != JSON_STRING)
+    {
+        return
+            b->value.number < a->value.number ? -1 :
+            b->value.number > a->value.number;
+    }
+    return strcmp(b->value.string, a->value.string);
 }
 
 void json_list_sort(json_list *list, int (*callback)(const void *, const void *))
