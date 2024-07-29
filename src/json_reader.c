@@ -504,6 +504,10 @@ int json_compare(const json *a, const json *b)
 /* json_equal helper */
 static int equal(const json *a, const json *b, int depth)
 {
+    if ((a->type != b->type) || (a->size != b->size))
+    {
+        return 0;
+    }
     if (depth > 0)
     {
         if ((a->name == NULL) != (b->name == NULL))
@@ -514,10 +518,6 @@ static int equal(const json *a, const json *b, int depth)
         {
             return 0;
         }
-    }
-    if ((a->type != b->type) || (a->size != b->size))
-    {
-        return 0;
     }
     return a->type != JSON_STRING
          ? a->value.number == b->value.number
