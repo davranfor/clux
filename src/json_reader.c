@@ -181,7 +181,7 @@ int json_is_null(const json *node)
 
 /**
  * Useful to return a non constant 'json *node' when a function
- * gets 'const json *node' as argument and returns the same node.
+ * gets 'const json *' as argument and returns the same node.
  * For example calling 'x = json_pointer(node, "");'
  * returns the same node that was passed.
  * Use it with care.

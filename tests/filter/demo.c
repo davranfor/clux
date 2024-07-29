@@ -24,7 +24,7 @@ static int filter_integers(json_list *list, json *node, size_t depth, void *data
     return 1;
 }
 
-static void print_integers(json * const *data, size_t size)
+static void print(json * const *data, size_t size)
 {
     for (size_t i = 0; i < size; i++)
     {
@@ -52,7 +52,7 @@ int main(void)
     if (json_list_filter(list, root, filter_integers, NULL))
     {
         json_list_sort(list, JSON_LIST_SORT_BY_VALUE_ASC);
-        print_integers(json_list_data(list), json_list_size(list));
+        print(json_list_data(list), json_list_size(list));
     }
     json_list_free(list);
     json_free(root);
