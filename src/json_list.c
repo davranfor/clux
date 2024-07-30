@@ -88,7 +88,7 @@ size_t json_list_size(const json_list *list)
 }
 
 /**
- * Sends all nodes to a callback func providing list, node and user-data
+ * Sends all nodes to a callback func providing list, node, depth and user-data
  * Exit when all nodes are read or callback returns <= 0
  */
 int json_list_filter(json_list *list, json *node,

@@ -570,7 +570,7 @@ int json_equal(const json *a, const json *b)
 }
 
 /**
- * Sends all nodes to a callback func providing depth and user-data
+ * Sends all nodes to a callback func providing node, depth and user-data
  * Exit when all nodes are read or callback returns <=0 (example in json_height())
  */
 int json_walk(const json *node, json_walk_callback callback, void *data)
