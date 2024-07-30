@@ -31,7 +31,7 @@ json_list *json_list_create(size_t room)
         if (list->data == NULL)
         {
             free(list);
-            list = NULL;
+            return NULL;
         }
     }
     return list;
@@ -63,12 +63,7 @@ json *json_list_pop(json_list *list)
 {
     if ((list != NULL) && (list->size > 0))
     {
-        list->size--;
-
-        json *data = list->data[list->size];
-
-        list->data[list->size] = NULL; 
-        return data;
+        return list->data[--list->size];
     }
     return NULL;
 }

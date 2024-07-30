@@ -18,7 +18,7 @@
 #include "json_writer.h"
 #include "json_parser.h"
 
-static enum json_type token_type(int token)
+static inline enum json_type token_type(int token)
 {
     switch (token)
     {
