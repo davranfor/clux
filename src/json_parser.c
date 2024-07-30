@@ -350,7 +350,7 @@ static const char *parse(json *node, const char *left)
                     {
                         return left;
                     }
-                    if (json_is_object(node->parent) && (node->name == NULL))
+                    if ((node->parent->type == JSON_OBJECT) && (node->name == NULL))
                     {
                         return left;
                     }
@@ -386,7 +386,7 @@ static const char *parse(json *node, const char *left)
                         }
                         return left;
                     }
-                    if (json_is_object(node->parent) && (node->name == NULL))
+                    if ((node->parent->type == JSON_OBJECT) && (node->name == NULL))
                     {
                         return left;
                     }
