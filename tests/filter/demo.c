@@ -34,24 +34,12 @@ static void print(json * const *data, size_t size)
 
 int main(void)
 {
-    json *root = json_new_array();
-
-    json_push_back(root, json_new_string("foo"));
-    json_push_back(root, json_new_number(1.0));
-    json_push_back(root, json_new_integer(0));
-    json_push_back(root, json_new_object());
-    json_push_back(root, json_new_real(0.0));
-    json_push_back(root, json_new_string("10000"));
-    json_push_back(root, json_new_integer(1));
-    json_push_back(root, json_new_array());
-    json_push_back(root, json_new_null());
-    json_push_back(root, json_parse("[9,8,7,6,2,3,4,5]", NULL));
-
+    json *root = json_parse("[\"1\", 2, 0, {}, 1, 3.5, [9,8,7,6,2,3,4,5]]", NULL);
     json_list *list = json_list_create(0);
 
     if (json_list_filter(list, root, filter_integers, NULL))
     {
-        json_list_sort(list, JSON_LIST_SORT_BY_VALUE_ASC);
+        json_list_sort(list, json_list_compare_value_asc);
         print(json_list_data(list), json_list_size(list));
     }
     json_list_free(list);

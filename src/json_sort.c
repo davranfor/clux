@@ -8,7 +8,7 @@
 #include "json_private.h"
 #include "json_sort.h"
 
-int JSON_SORT_BY_KEY_ASC(const json *a, const json *b)
+int json_compare_key_asc(const json *a, const json *b)
 {
     if ((a->name != NULL) && (b->name != NULL))
     {
@@ -17,7 +17,7 @@ int JSON_SORT_BY_KEY_ASC(const json *a, const json *b)
     return 0;
 }
 
-int JSON_SORT_BY_KEY_DESC(const json *a, const json *b)
+int json_compare_key_desc(const json *a, const json *b)
 {
     if ((a->name != NULL) && (b->name != NULL))
     {
@@ -26,7 +26,7 @@ int JSON_SORT_BY_KEY_DESC(const json *a, const json *b)
     return 0;
 }
 
-int JSON_SORT_BY_VALUE_ASC(const json *a, const json *b)
+int json_compare_value_asc(const json *a, const json *b)
 {
     if (a->type != b->type)
     {
@@ -41,7 +41,7 @@ int JSON_SORT_BY_VALUE_ASC(const json *a, const json *b)
     return strcmp(a->value.string, b->value.string);
 }
 
-int JSON_SORT_BY_VALUE_DESC(const json *a, const json *b)
+int json_compare_value_desc(const json *a, const json *b)
 {
     if (a->type != b->type)
     {

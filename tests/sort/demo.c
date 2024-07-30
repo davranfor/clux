@@ -33,7 +33,7 @@ int main(void)
 
     // Sort by predefined callback
     puts("Sorted by value (ascendent):");
-    json_sort(root, JSON_SORT_BY_VALUE_ASC);
+    json_sort(root, json_compare_value_asc);
     json_print(root);
 
     // Sort by user-defined callback

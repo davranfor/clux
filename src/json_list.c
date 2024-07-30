@@ -140,7 +140,7 @@ int json_list_filter(json_list *list, json *node,
     return 0;
 }
 
-int JSON_LIST_SORT_BY_KEY_ASC(const void *pa, const void *pb)
+int json_list_compare_key_asc(const void *pa, const void *pb)
 {
     const json *a = *(json * const *)pa;
     const json *b = *(json * const *)pb;
@@ -152,7 +152,7 @@ int JSON_LIST_SORT_BY_KEY_ASC(const void *pa, const void *pb)
     return 0;
 }
 
-int JSON_LIST_SORT_BY_KEY_DESC(const void *pa, const void *pb)
+int json_list_compare_key_desc(const void *pa, const void *pb)
 {
     const json *a = *(json * const *)pa;
     const json *b = *(json * const *)pb;
@@ -164,7 +164,7 @@ int JSON_LIST_SORT_BY_KEY_DESC(const void *pa, const void *pb)
     return 0;
 }
 
-int JSON_LIST_SORT_BY_VALUE_ASC(const void *pa, const void *pb)
+int json_list_compare_value_asc(const void *pa, const void *pb)
 {
     const json *a = *(json * const *)pa;
     const json *b = *(json * const *)pb;
@@ -182,7 +182,7 @@ int JSON_LIST_SORT_BY_VALUE_ASC(const void *pa, const void *pb)
     return strcmp(a->value.string, b->value.string);
 }
 
-int JSON_LIST_SORT_BY_VALUE_DESC(const void *pa, const void *pb)
+int json_list_compare_value_desc(const void *pa, const void *pb)
 {
     const json *a = *(json * const *)pa;
     const json *b = *(json * const *)pb;

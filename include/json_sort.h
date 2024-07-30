@@ -12,10 +12,10 @@
 typedef int (*json_sort_callback)(const json *, const json *);
 
 // Predefined sort callbacks
-int JSON_SORT_BY_KEY_ASC(const json *, const json *);
-int JSON_SORT_BY_KEY_DESC(const json *, const json *);
-int JSON_SORT_BY_VALUE_ASC(const json *, const json *);
-int JSON_SORT_BY_VALUE_DESC(const json *, const json *);
+int json_compare_key_asc(const json *, const json *);
+int json_compare_key_desc(const json *, const json *);
+int json_compare_value_asc(const json *, const json *);
+int json_compare_value_desc(const json *, const json *);
 // End predefined sort callbacks
 void json_sort(json *, json_sort_callback);
 void json_reverse(json *);

@@ -7,6 +7,7 @@
 #ifndef CLIB_STRING_H
 #define CLIB_STRING_H
 
+#include <stddef.h>
 #include <stdarg.h>
 
 char *string_clone(const char *);

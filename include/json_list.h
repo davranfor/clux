@@ -20,10 +20,10 @@ json **json_list_data(const json_list *);
 size_t json_list_size(const json_list *);
 int json_list_filter(json_list *, json *, json_list_callback, void *);
 // Predefined sort callbacks
-int JSON_LIST_SORT_BY_KEY_ASC(const void *, const void *);
-int JSON_LIST_SORT_BY_KEY_DESC(const void *, const void *);
-int JSON_LIST_SORT_BY_VALUE_ASC(const void *, const void *);
-int JSON_LIST_SORT_BY_VALUE_DESC(const void *, const void *);
+int json_list_compare_key_asc(const void *, const void *);
+int json_list_compare_key_desc(const void *, const void *);
+int json_list_compare_value_asc(const void *, const void *);
+int json_list_compare_value_desc(const void *, const void *);
 // End predefined sort callbacks
 void json_list_sort(json_list *, int (*)(const void *, const void *));
 void json_list_reverse(json_list *);
