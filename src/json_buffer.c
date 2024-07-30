@@ -289,16 +289,20 @@ static int buffer_loop(json_buffer *buffer, const json *node, int indent)
             node = node->head;
             depth++;
         }
-        else if ((depth > 0) && (node->next != NULL))
+        else if (depth > 0)
         {
-            node = node->next;
-            flag = 1;
-        }
-        else if (depth-- > 0)
-        {
-            node = node->parent;
-            CHECK(buffer_loop_end(buffer, node, depth, nested, indent));
-            flag = 0;
+            if (node->next != NULL)
+            {
+                node = node->next;
+                flag = 1;
+            }
+            else
+            {
+                node = node->parent;
+                flag = 0;
+                depth--;
+                CHECK(buffer_loop_end(buffer, node, depth, nested, indent));
+            }
         }
         else
         {

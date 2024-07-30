@@ -123,15 +123,19 @@ int json_list_filter(json_list *list, json *node,
             node = node->head;
             depth++;
         }
-        else if ((depth > 0) && (node->next != NULL))
+        else if (depth > 0)
         {
-            node = node->next;
-            flag = 1;
-        }
-        else if (depth-- > 0)
-        {
-            node = node->parent;
-            flag = 0;
+            if (node->next != NULL)
+            {
+                node = node->next;
+                flag = 1;
+            }
+            else
+            {
+                node = node->parent;
+                flag = 0;
+                depth--;
+            }
         }
         else
         {
