@@ -361,12 +361,9 @@ static const char *parse(json *node, const char *left)
                         return left;
                     }
                 }
-                else
+                else if (left != token)
                 {
-                    if (left != token)
-                    {
-                        return left;
-                    }
+                    return left;
                 }
                 node = create_next(node);
                 break;
@@ -398,12 +395,9 @@ static const char *parse(json *node, const char *left)
                         return left;
                     }
                 }
-                else
+                else if (left != token)
                 {
-                    if (left != token)
-                    {
-                        return left;
-                    }
+                    return left;
                 }
                 node = node->parent;
                 parent = json_type(node->parent);
@@ -425,12 +419,9 @@ static const char *parse(json *node, const char *left)
                         return left;
                     }
                 }
-                else
+                else if (left != token)
                 {
-                    if (left != token)
-                    {
-                        return left;
-                    }
+                    return left;
                 }
                 /* Correct document */
                 return NULL;
