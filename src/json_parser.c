@@ -293,12 +293,14 @@ static json *create_next(json *node)
 /* Parse document - returns an error position or NULL on success */
 static const char *parse(json *node, const char *left)
 {
+    enum json_type parent = JSON_UNDEFINED;
     const char *right = NULL;
-    const char *token;
 
     while (node != NULL)
     {
-        if (!(token = scan(&left, &right)))
+        const char *token = scan(&left, &right);
+
+        if (token == NULL)
         {
             return left;
         }
@@ -317,11 +319,11 @@ static const char *parse(json *node, const char *left)
                     return left;
                 }
                 /* Object properties must have a name */
-                if (json_is_object(node->parent) && (node->name == NULL))
+                if ((parent == JSON_OBJECT) && (node->name == NULL))
                 {
                     return token;
                 }
-                node->type = token_type(*token);
+                parent = node->type = token_type(*token);
                 node = create_head(node);
                 break;
             case ':':
@@ -330,7 +332,7 @@ static const char *parse(json *node, const char *left)
                     return left;
                 }
                 /* Only object properties can have a name */
-                if (!json_is_object(node->parent) || (node->name != NULL))
+                if ((parent != JSON_OBJECT) || (node->name != NULL))
                 {
                     return token;
                 }
@@ -350,7 +352,7 @@ static const char *parse(json *node, const char *left)
                     {
                         return left;
                     }
-                    if ((node->parent->type == JSON_OBJECT) && (node->name == NULL))
+                    if ((parent == JSON_OBJECT) && (node->name == NULL))
                     {
                         return left;
                     }
@@ -370,7 +372,7 @@ static const char *parse(json *node, const char *left)
                 break;
             case ']':
             case '}':
-                if (json_type(node->parent) != token_type(*token))
+                if (parent != token_type(*token))
                 {
                     return token;
                 }
@@ -382,11 +384,12 @@ static const char *parse(json *node, const char *left)
                         if ((node->prev == NULL) && (node->name == NULL))
                         {
                             node = delete_head(node->parent);
+                            parent = json_type(node->parent);
                             break;
                         }
                         return left;
                     }
-                    if ((node->parent->type == JSON_OBJECT) && (node->name == NULL))
+                    if ((parent == JSON_OBJECT) && (node->name == NULL))
                     {
                         return left;
                     }
@@ -403,6 +406,7 @@ static const char *parse(json *node, const char *left)
                     }
                 }
                 node = node->parent;
+                parent = json_type(node->parent);
                 break;
             case '\0':
                 /* Bad closed document */
