@@ -1,0 +1,44 @@
+/*!
+ *  \brief     clux - json and json-schema library for C
+ *  \author    David Ranieri <davranfor@gmail.com>
+ *  \copyright GNU Public License.
+ */
+
+#ifndef JSON_READER_H
+#define JSON_READER_H
+
+#include "json_header.h"
+
+typedef int (*json_walk_callback)(const json_t *, size_t, void *);
+
+const char *json_key(const json_t *);
+const char *json_string(const json_t *);
+double json_number(const json_t *);
+int json_boolean(const json_t *);
+int json_is_iterable(const json_t *);
+int json_is_scalar(const json_t *);
+int json_is_object(const json_t *);
+int json_is_array(const json_t *);
+int json_is_string(const json_t *);
+int json_is_integer(const json_t *);
+int json_is_real(const json_t *);
+int json_is_number(const json_t *);
+int json_is_boolean(const json_t *);
+int json_is_true(const json_t *);
+int json_is_false(const json_t *);
+int json_is_null(const json_t *);
+int json_is_root(const json_t *);
+int json_is_child(const json_t *);
+enum json_type json_type(const json_t *);
+unsigned json_size(const json_t *);
+unsigned json_index(const json_t *, const char *);
+json_t *json_child(const json_t *);
+json_t *json_head(const json_t *);
+json_t *json_tail(const json_t *);
+json_t *json_find(const json_t *, const char *);
+json_t *json_at(const json_t *, size_t);
+int json_equal(const json_t *, const json_t *);
+int json_walk(const json_t *, json_walk_callback, void *);
+
+#endif
+
