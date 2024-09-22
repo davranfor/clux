@@ -18,6 +18,15 @@ const char *json_key(const json_t *node)
     return NULL;
 }
 
+const char *json_name(const json_t *node)
+{
+    if ((node != NULL) && (node->key != NULL))
+    {
+        return node->key;
+    }
+    return "";
+}
+
 const char *json_string(const json_t *node)
 {
     if ((node != NULL) && (node->type == JSON_STRING))
@@ -25,6 +34,15 @@ const char *json_string(const json_t *node)
         return node->string;
     }
     return NULL;
+}
+
+const char *json_text(const json_t *node)
+{
+    if ((node != NULL) && (node->type == JSON_STRING))
+    {
+        return node->string;
+    }
+    return "";
 }
 
 double json_number(const json_t *node)

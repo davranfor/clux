@@ -26,7 +26,7 @@ int main(void)
     print(node, "/data/1"); // array
     print(node, "/a~0b");   // special case 1: '~' must be escaped with '~0'
     print(node, "/a~1b");   // special case 2: '/' must be escaped with '~1'
-    print(node, "dummy");   // something that doesn't exists
+    print(node, "/dummy");  // something that doesn't exists
     json_delete(node);
     return 0;
 }

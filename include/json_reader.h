@@ -12,7 +12,9 @@
 typedef int (*json_walk_callback)(const json_t *, size_t, void *);
 
 const char *json_key(const json_t *);
+const char *json_name(const json_t *);
 const char *json_string(const json_t *);
+const char *json_text(const json_t *);
 double json_number(const json_t *);
 int json_boolean(const json_t *);
 int json_is_iterable(const json_t *);
