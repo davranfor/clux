@@ -151,33 +151,6 @@ static int buffer_quote(json_buffer *buffer, const char *text)
     return 1;
 }
 
-static int buffer_print(json_buffer *buffer, const json_t *node)
-{
-    switch (node->type)
-    {
-        case JSON_STRING:
-            CHECK(buffer_quote(buffer, node->string));
-            return 1;
-        case JSON_INTEGER:
-            CHECK(buffer_write_integer(buffer, node->number));
-            return 1;
-        case JSON_REAL:
-            CHECK(buffer_write_real(buffer, node->number));
-            return 1;
-        case JSON_TRUE:
-            CHECK(buffer_write(buffer, "true"));
-            return 1;
-        case JSON_FALSE:
-            CHECK(buffer_write(buffer, "false"));
-            return 1;
-        case JSON_NULL:
-            CHECK(buffer_write(buffer, "null"));
-            return 1;
-        default:
-            return 0;
-    }
-}
-
 static int buffer_print_node(json_buffer *buffer, const json_t *node,
     unsigned short depth, unsigned char indent, unsigned char trailing_comma)
 {
@@ -198,8 +171,25 @@ static int buffer_print_node(json_buffer *buffer, const json_t *node,
         case JSON_ARRAY:
             CHECK(buffer_write(buffer, "["));
             break;
+        case JSON_STRING:
+            CHECK(buffer_quote(buffer, node->string));
+            break;
+        case JSON_INTEGER:
+            CHECK(buffer_write_integer(buffer, node->number));
+            break;
+        case JSON_REAL:
+            CHECK(buffer_write_real(buffer, node->number));
+            break;
+        case JSON_TRUE:
+            CHECK(buffer_write(buffer, "true"));
+            break;
+        case JSON_FALSE:
+            CHECK(buffer_write(buffer, "false"));
+            break;
+        case JSON_NULL:
+            CHECK(buffer_write(buffer, "null"));
+            break;
         default:
-            CHECK(buffer_print(buffer, node));
             break;
     }
     if (node->size == 0)
@@ -307,8 +297,8 @@ static int buffer_loop(json_buffer *buffer, const json_t *node, int indent)
         };
 #pragma GCC diagnostic pop
 
-        return buffer_print_tree(
-            buffer, is_property ? &grandparent : &parent, 0, (unsigned char)indent);
+        node = is_property ? &grandparent : &parent; 
+        return buffer_print_tree(buffer, node, 0, (unsigned char)indent);
     }
     return 0;
 }
