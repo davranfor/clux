@@ -251,6 +251,7 @@ static json_t *pop(json_t *parent, unsigned index)
     if (--parent->size == 0)
     {
         free(parent->child);
+        parent->child = NULL;
     }
     free(child->key);
     child->key = NULL;
