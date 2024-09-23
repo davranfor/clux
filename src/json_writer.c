@@ -150,7 +150,7 @@ json_t *json_new_null(void)
 
 static json_t *push(json_t *parent, unsigned index, const char *name, json_t *child)
 {
-    if ((child == NULL) || (parent == child) || child->packed)
+    if ((parent == child) || child->packed)
     {
         return NULL;
     }
@@ -189,29 +189,15 @@ static json_t *push(json_t *parent, unsigned index, const char *name, json_t *ch
                 parent->child + index,
                 sizeof(*parent->child) * (parent->size - index));
     }
-    child->key = key;
+    if ((parent->type == JSON_ARRAY) || (key != NULL))
+    {
+        free(child->key);
+        child->key = key;
+    }
     child->packed = 1;
     parent->child[index] = child;
     parent->size++;
     return child;    
-}
-
-json_t *json_object_push(json_t *parent, size_t index, const char *key, json_t *child)
-{
-    if ((parent == NULL) || (parent->type != JSON_OBJECT) || (key == NULL))
-    {
-        return NULL;
-    }
-    return push(parent, (unsigned)index, key, child);
-}
-
-json_t *json_array_push(json_t *parent, size_t index, json_t *child)
-{
-    if ((parent == NULL) || (parent->type != JSON_ARRAY))
-    {
-        return NULL;
-    }
-    return push(parent, (unsigned)index, NULL, child);
 }
 
 /**
@@ -222,7 +208,42 @@ json_t *json_parser_push(json_t *, json_t *);
 
 json_t *json_parser_push(json_t *parent, json_t *child)
 {
-    return push(parent, (unsigned)-1, NULL, child);
+    if (child != NULL)
+    {
+        return push(parent, (unsigned)-1, NULL, child);
+    }
+    return NULL;
+}
+
+json_t *json_object_push(json_t *parent, size_t index, const char *key,
+    json_t *child)
+{
+    if ((parent != NULL) && (key != NULL) && (child != NULL) &&
+        (parent->type == JSON_OBJECT))
+    {
+        return push(parent, (unsigned)index, key, child);
+    }
+    return NULL;
+}
+
+json_t *json_array_push(json_t *parent, size_t index, json_t *child)
+{
+    if ((parent != NULL) && (parent->type == JSON_ARRAY) && (child != NULL))
+    {
+        return push(parent, (unsigned)index, NULL, child);
+    }
+    return NULL;
+}
+
+json_t *json_push_at(json_t *parent, size_t index, json_t *child)
+{
+    if ((parent != NULL) && (child != NULL)
+    && ((parent->type == JSON_ARRAY)
+    || ((parent->type == JSON_OBJECT) && (child->key != NULL))))
+    {
+        return push(parent, (unsigned)index, NULL, child);
+    }
+    return NULL;
 }
 
 static json_t *pop(json_t *parent, unsigned index)
@@ -253,8 +274,6 @@ static json_t *pop(json_t *parent, unsigned index)
         free(parent->child);
         parent->child = NULL;
     }
-    free(child->key);
-    child->key = NULL;
     child->packed = 0;
     return child;
 }
@@ -309,7 +328,7 @@ static void delete_tree(json_t *node)
     delete_node(node);
 }
 
-int json_delete(json_t *node)
+int json_delete_root(json_t *node)
 {
     if (node == NULL)
     {
@@ -325,12 +344,12 @@ int json_delete(json_t *node)
 
 int json_delete_by_key(json_t *parent, const char *key)
 {
-    return json_delete(json_pop_by_key(parent, key));
+    return json_delete_root(json_pop_by_key(parent, key));
 }
 
 int json_delete_by_index(json_t *parent, size_t index)
 {
-    return json_delete(json_pop_by_index(parent, index));
+    return json_delete_root(json_pop_by_index(parent, index));
 }
 
 /*
