@@ -49,6 +49,7 @@ json_t *json_head(const json_t *);
 json_t *json_tail(const json_t *);
 json_t *json_find(const json_t *, const char *);
 json_t *json_at(const json_t *, size_t);
+int json_compare(const json_t *, const json_t *);
 int json_equal(const json_t *, const json_t *);
 int json_walk(const json_t *, json_walk_callback, void *);
 

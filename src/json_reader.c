@@ -274,6 +274,35 @@ json_t *json_at(const json_t *node, size_t index)
     return NULL;
 }
 
+/**
+ * Compares two nodes by value
+ * Returns
+ *  < 0 if a < b
+ *  > 0 if a > b
+ *  0 otherwise
+ */
+int json_compare(const json_t *a, const json_t *b)
+{
+    if ((a == NULL) || (b == NULL))
+    {
+        return a ? +1 : b ? -1 : 0;
+    }
+    if (a->type != b->type)
+    {
+        return a->type > b->type ? +1 : -1;
+    }
+    switch (a->type)
+    {
+        case JSON_STRING:
+            return strcmp(a->string, b->string);
+        case JSON_INTEGER:
+        case JSON_REAL:
+            return a->number < b->number ? -1 : a->number > b->number;
+        default:
+            return 0;
+    }
+}
+
 static int equal(const json_t *a, const json_t *b)
 {
     if ((a->type != b->type) || (a->size != b->size))

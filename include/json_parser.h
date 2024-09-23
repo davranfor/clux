@@ -9,7 +9,7 @@
 
 #include "json_header.h"
 
-typedef struct {int line, column;} json_error_t;
+typedef struct { int line, column; } json_error_t;
 
 void json_parser_set_max_depth(unsigned short);
 unsigned short json_parser_get_max_depth(void);
