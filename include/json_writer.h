@@ -63,6 +63,7 @@ json_t *json_pop_by_index(json_t *, size_t);
 int json_delete_root(json_t *);
 int json_delete_by_key(json_t *, const char *);
 int json_delete_by_index(json_t *, size_t);
+void json_free(json_t *);
 
 #endif
 

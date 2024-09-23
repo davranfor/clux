@@ -12,6 +12,7 @@
 #include "json_writer.h"
 #include "json_buffer.h"
 #include "json_pointer.h"
+#include "json_map.h"
 
 #endif
 

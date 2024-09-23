@@ -363,6 +363,19 @@ int json_delete_by_index(json_t *parent, size_t index)
     return json_delete_root(json_pop_by_index(parent, index));
 }
 
+void json_free(json_t *node)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+    if (node->packed)
+    {
+        return;
+    }
+    delete_tree(node);
+}
+
 /*
 static int json_compare_key(const void *pa, const void *pb)
 {
