@@ -9,6 +9,16 @@
 
 #include "json_header.h"
 
+#define json_int(node) ((int)json_number(node))
+#define json_uint(node) ((unsigned int)json_number(node))
+#define json_long(node) ((long)json_number(node))
+#define json_ulong(node) ((unsigned long)json_number(node))
+#define json_llong(node) ((long long)json_number(node))
+#define json_ullong(node) ((unsigned long long)json_number(node))
+#define json_size_t(node) ((size_t)json_number(node))
+#define json_float(node) ((float)json_number(node))
+#define json_double(node) json_number(node)
+
 typedef int (*json_walk_callback)(const json_t *, size_t, void *);
 
 const char *json_key(const json_t *);

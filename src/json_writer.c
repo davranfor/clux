@@ -148,7 +148,8 @@ json_t *json_new_null(void)
     return node;
 }
 
-static json_t *push(json_t *parent, unsigned index, const char *name, json_t *child)
+static json_t *push(json_t *parent, unsigned index, const char *name,
+    json_t *child)
 {
     if ((parent == child) || child->packed)
     {
@@ -218,8 +219,11 @@ json_t *json_parser_push(json_t *parent, json_t *child)
 json_t *json_object_push(json_t *parent, size_t index, const char *key,
     json_t *child)
 {
-    if ((parent != NULL) && (key != NULL) && (child != NULL) &&
-        (parent->type == JSON_OBJECT))
+    if ((parent == NULL) || (key == NULL) || (child == NULL))
+    {
+        return NULL;
+    }
+    if (parent->type == JSON_OBJECT)
     {
         return push(parent, (unsigned)index, key, child);
     }
@@ -228,7 +232,11 @@ json_t *json_object_push(json_t *parent, size_t index, const char *key,
 
 json_t *json_array_push(json_t *parent, size_t index, json_t *child)
 {
-    if ((parent != NULL) && (parent->type == JSON_ARRAY) && (child != NULL))
+    if ((parent == NULL) || (child == NULL))
+    {
+        return NULL;
+    }
+    if (parent->type == JSON_ARRAY)
     {
         return push(parent, (unsigned)index, NULL, child);
     }
@@ -237,9 +245,12 @@ json_t *json_array_push(json_t *parent, size_t index, json_t *child)
 
 json_t *json_push_at(json_t *parent, size_t index, json_t *child)
 {
-    if ((parent != NULL) && (child != NULL)
-    && ((parent->type == JSON_ARRAY)
-    || ((parent->type == JSON_OBJECT) && (child->key != NULL))))
+    if ((parent == NULL) || (child == NULL))
+    {
+        return NULL;
+    }
+    if ((parent->type == JSON_ARRAY)
+    || ((parent->type == JSON_OBJECT) && (child->key != NULL)))
     {
         return push(parent, (unsigned)index, NULL, child);
     }
