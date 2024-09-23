@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Server</title>
+</head>
+<body>
+    <h1>JSON Server</h1>
+    <hr />
+    <form id="myForm">
+        <label for="key">Key:</label>
+        <input type="text" id="key" name="key">
+        <button type="submit">Enviar</button>
+    </form>
+    <hr />
+    <div id="response"></div>
+    <script>
+        document.getElementById('myForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(event.target);
+            var jsonObject = {};
+            formData.forEach((value, key) => jsonObject[key] = value);
+
+            fetch('/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonObject)
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    // Si la respuesta es HTTP 200, parsea el JSON y devuelve los datos
+                    return response.json();
+                } else if (response.status === 204) {
+                    // Si la respuesta es HTTP 204, no hay contenido para parsear
+                    return Promise.resolve(); // Resuelve la promesa vacía
+                } else if (response.status === 405) {
+                    // Si la respuesta es HTTP 405, método no permitido
+                    return Promise.reject('Method Not Allowed');
+                } else {
+                    // Otros códigos de estado pueden ser manejados aquí
+                    return Promise.reject('Unexpected Error');
+                }
+            })
+            .then(data => {
+                // Maneja los datos según el tipo de respuesta
+                if (data) {
+                    console.log('Response from server:', data);
+                    document.getElementById('response').innerText = JSON.stringify(data);
+                } else {
+                    console.log('Request completed successfully (HTTP 204)');
+                    document.getElementById('response').innerText = 'Request completed successfully (HTTP 204)';
+                }
+            })
+            .catch(error => {
+                // Captura los errores y muestra un mensaje de error
+                console.error('Error:', error);
+                if (error === 'Method Not Allowed') {
+                    document.getElementById('response').innerText = 'Method Not Allowed (HTTP 405)';
+                } else {
+                    document.getElementById('response').innerText = `Error: ${error}`;
+                }
+            })
+            .finally(() => {
+                // Aquí puedes añadir cualquier limpieza adicional o código que quieras ejecutar al final
+                // Limpia el formulario y enfoca el campo 'key'
+                document.getElementById('myForm').reset();
+                document.getElementById('key').focus();
+            });
+        });
+    </script>
+</body>
+</html>
+

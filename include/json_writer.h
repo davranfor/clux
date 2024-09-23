@@ -9,7 +9,7 @@
 
 #include "json_header.h"
 
-#define json_new_number(value) _Generic((number),   \
+#define json_new_number(number) _Generic((number),  \
     long double: json_new_real,                     \
     double: json_new_real,                          \
     float: json_new_real,                           \
