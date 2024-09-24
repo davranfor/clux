@@ -30,7 +30,7 @@ int json_compare_by_value(const void *pa, const void *pb)
 
     if (a->type != b->type)
     {
-        return a->type > b->type ? +1 : -1;
+        return a->type < b->type ? -1 : 1;
     }
     switch (a->type)
     {

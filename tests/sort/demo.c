@@ -13,7 +13,7 @@ static int nulls_first(const void *pa, const void *pb)
     int a = json_is_null(*(json_t * const *)pa);
     int b = json_is_null(*(json_t * const *)pb);
 
-    return a == b ? json_compare_by_value(pa, pb) : b - a;
+    return a > b ? -1 : b > a ? 1 : json_compare_by_value(pa, pb);
 }
 
 int main(void)

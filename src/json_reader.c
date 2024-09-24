@@ -285,11 +285,11 @@ int json_compare(const json_t *a, const json_t *b)
 {
     if ((a == NULL) || (b == NULL))
     {
-        return a ? +1 : b ? -1 : 0;
+        return 0;
     }
     if (a->type != b->type)
     {
-        return a->type > b->type ? +1 : -1;
+        return a->type < b->type ? -1 : 1;
     }
     switch (a->type)
     {
