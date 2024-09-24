@@ -12,6 +12,8 @@
 #define JSON_HEAD 0
 #define JSON_TAIL ((unsigned)-1)
 
+#define JSON_NOT_FOUND -1u
+
 enum json_type
 {
     JSON_UNDEFINED,

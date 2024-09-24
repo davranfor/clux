@@ -220,7 +220,7 @@ unsigned json_index(const json_t *node, const char *key)
             }
         }
     }
-    return -1u;
+    return JSON_NOT_FOUND;
 }
 
 json_t *json_child(const json_t *node)

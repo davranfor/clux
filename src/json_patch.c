@@ -32,7 +32,7 @@ int json_patch(json_t *target, json_t *source)
 
             unsigned index = json_index(target, node->key);
 
-            if (index != -1u)
+            if (index != JSON_NOT_FOUND)
             {
                 json_push(target, index, node);
                 json_push_back(source, json_pop(target, index + 1));

@@ -141,7 +141,6 @@ static const char *scan_string(const char *str)
     return str;
 }
 
-extern json_t *json_parser_push(json_t *, json_t *);
 static json_t *parse(const char **, unsigned short);
 
 static char *parse_key(const char **str)
@@ -199,14 +198,13 @@ static json_t *parse_object(const char **str, unsigned short depth)
 
         json_t *child = parse(str, depth + 1);
 
-        if (!json_parser_push(parent, child))
+        child ? (void)(child->key = key) : free(key);
+        if (!json_push_back(parent, child))
         {
             json_delete(parent);
             json_delete(child);
-            free(key);
             return NULL;
         }
-        child->key = key;
         if (**str == ',')
         {
             *str = skip_whitespaces(++*str);
@@ -249,7 +247,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
 
         json_t *child = parse(str, depth + 1);
 
-        if (!json_parser_push(parent, child))
+        if (!json_push_back(parent, child))
         {
             json_delete(parent);
             json_delete(child);

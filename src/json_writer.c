@@ -201,21 +201,6 @@ static json_t *push(json_t *parent, unsigned index, const char *name,
     return child;    
 }
 
-/**
- * Not exported in json_writer.h
- * Declared as 'extern' in json_parser.c
- */
-json_t *json_parser_push(json_t *, json_t *);
-
-json_t *json_parser_push(json_t *parent, json_t *child)
-{
-    if (child != NULL)
-    {
-        return push(parent, (unsigned)-1, NULL, child);
-    }
-    return NULL;
-}
-
 json_t *json_object_push(json_t *parent, size_t index, const char *key,
     json_t *child)
 {
@@ -293,11 +278,11 @@ json_t *json_pop_by_key(json_t *parent, const char *key)
 {
     unsigned index = json_index(parent, key);
 
-    if (index == -1u)
+    if (index == JSON_NOT_FOUND)
     {
         return NULL;
     }
-    return pop(parent, (unsigned)index);
+    return pop(parent, index);
 }
 
 json_t *json_pop_by_index(json_t *parent, size_t index)
