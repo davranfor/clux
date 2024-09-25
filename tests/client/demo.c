@@ -68,7 +68,7 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
     return length;
 }
 
-static int perform(CURL *curl, enum method method,
+static CURLcode perform(CURL *curl, int method,
     const char *param, size_t id, const char *fields)
 {
     const char *host = "http://localhost:1234";
@@ -108,7 +108,7 @@ static int perform(CURL *curl, enum method method,
             snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
             break;
         default:
-            return -1;
+            break;
     }
     curl_easy_setopt(curl, CURLOPT_URL, url);
     return curl_easy_perform(curl);
@@ -162,11 +162,11 @@ static int request(size_t id, const json_t *users, struct data *data)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)data);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    int res = perform(curl, method, param, id, fields);
+    CURLcode code = perform(curl, method, param, id, fields);
 
-    if (res != CURLE_OK)
+    if (code != CURLE_OK)
     {
-        fprintf(stderr, "curl_easy_perform: %s\n", curl_easy_strerror(res));
+        fprintf(stderr, "curl_easy_perform: %s\n", curl_easy_strerror(code));
         rc = 0;
     }
     else if (data->length > 0)
@@ -211,7 +211,7 @@ int main(void)
 
     for (size_t i = 0, n = json_size(users); i < n; i++)
     {
-        size_t id = rand() % n;
+        size_t id = (size_t)rand() % n;
 
         if (!request(id, users, &data))
         {

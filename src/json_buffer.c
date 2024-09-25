@@ -269,7 +269,7 @@ static int buffer_print_tree(json_buffer *buffer,const json_t *node,
     return 1;
 }
 
-/*
+/**
  * The cast from 'const json_t *' to 'json_t *' is needed to set/fake the childs, so
  * we don't need to check if the node has depth 0 on each iteration of print_tree().
  *
