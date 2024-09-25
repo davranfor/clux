@@ -13,34 +13,42 @@ int json_patch(json_t *target, json_t *source)
 {
     if (json_is_object(target) && json_is_object(source))
     {
-        size_t size = json_size(source);
+        unsigned count = 0;
         int inserts = 0;
 
-        for (size_t count = 0; count < size; count++)
+        while (count < source->size)
         {
-            json_t *node = json_pop_front(source);
+            const char *key = source->child[count]->key;
+            unsigned index = json_index(target, key);
 
-            if (node == NULL)
+            if (index == JSON_NOT_FOUND)
             {
-                return -1;
-            }
-            if (json_find(source, node->key))
-            {
-                json_delete(node);
-                continue;
-            }
+                json_t *node = json_pop(source, count);
 
-            unsigned index = json_index(target, node->key);
-
-            if (index != JSON_NOT_FOUND)
-            {
-                json_push(target, index, node);
-                json_push_back(source, json_pop(target, index + 1));
+                // If realloc fails, undo changes
+                if (!json_push_back(target, node))
+                {
+                    json_delete(node);
+                    while (json_delete(source, count));
+                    json_unpatch(target, source, inserts);
+                    return -1;
+                }
+                inserts++;
             }
             else
             {
-                json_push_back(target, node);
-                inserts++;
+                json_swap(target, index, source, count);
+                // Delete repeated keys in the list
+                index = json_index(source, key);
+                if (index != count)
+                {
+                    json_swap(source, index, source, count);
+                    json_delete(source, index);
+                }
+                else
+                {
+                    count++;
+                }
             }
         }
         return inserts;
@@ -48,40 +56,22 @@ int json_patch(json_t *target, json_t *source)
     return -1;
 }
 
-int json_unpatch(json_t *target, json_t *source, int inserts)
+void json_unpatch(json_t *target, json_t *source, int inserts)
 {
     if (json_is_object(target) && json_is_object(source))
     {
-        json_t *node;
-
-        for (int count = 0; count < inserts; count++)
+        while (source->size > 0)
         {
-            if ((node = json_pop_back(target)))
-            {
-                json_delete(node);
-            }
-            else
-            {
-                return -1;
-            }
-        }
-        while ((node = json_pop_front(source)))
-        {
+            json_t *node = source->child[source->size - 1];
             unsigned index = json_index(target, node->key);
 
-            if (index != -1u)
+            if (index != JSON_NOT_FOUND)
             {
-                json_push(target, index, node);
-                json_delete(target, index + 1);
+                json_swap(target, index, source, JSON_TAIL);
             }
-            else
-            {
-                json_delete(node);
-                return -1;
-            }
+            json_delete_back(source);
         }
-        return 0;
+        while ((inserts-- > 0) && json_delete_back(target));
     }
-    return -1;
 }
 

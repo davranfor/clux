@@ -294,6 +294,31 @@ json_t *json_pop_by_index(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
+int json_swap(json_t *target, size_t a, json_t *source, size_t b)
+{
+    if ((target == NULL) || (source == NULL))
+    {
+        return 0;
+    }
+    if ((a == JSON_TAIL) && (target->size > 0))
+    {
+        a = target->size - 1;
+    }
+    if ((b == JSON_TAIL) && (source->size > 0))
+    {
+        b = source->size - 1;
+    }
+    if ((a < target->size) && (b < source->size)) 
+    {
+        json_t *temp = target->child[a];
+
+        target->child[a] = source->child[b];
+        source->child[b] = temp;
+        return 1;
+    }
+    return 0;
+}
+
 static void delete_node(json_t *node)
 {
     if (node->type == JSON_STRING)

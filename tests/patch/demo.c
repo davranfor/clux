@@ -9,7 +9,7 @@
 int main(void)
 {
     json_t *a = json_parse("{\"a\": 1, \"b\": 2, \"c\": 3}", NULL);
-    json_t *b = json_parse("{\"a\": 3, \"c\": 1, \"d\": 0}", NULL);
+    json_t *b = json_parse("{\"a\": 4, \"c\": 1, \"a\": 3, \"d\": 5, \"d\": 0}", NULL);
 
     puts("Before patch:");
     json_print(a);

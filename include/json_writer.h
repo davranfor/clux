@@ -44,7 +44,7 @@
 #define json_delete_front(parent) \
     json_delete_by_index(parent, JSON_HEAD)
 #define json_delete_back(parent) \
-    json_pop_delete_index(parent, JSON_TAIL)
+    json_delete_by_index(parent, JSON_TAIL)
 
 json_t *json_new_object(void);
 json_t *json_new_array(void);
@@ -60,6 +60,7 @@ json_t *json_array_push(json_t *, size_t, json_t *);
 json_t *json_push_at(json_t *, size_t, json_t *);
 json_t *json_pop_by_key(json_t *, const char *);
 json_t *json_pop_by_index(json_t *, size_t);
+int json_swap(json_t *, size_t, json_t *, size_t);
 int json_delete_root(json_t *);
 int json_delete_by_key(json_t *, const char *);
 int json_delete_by_index(json_t *, size_t);

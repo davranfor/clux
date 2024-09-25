@@ -10,7 +10,7 @@
 #include "json_header.h"
 
 int json_patch(json_t *, json_t *);
-int json_unpatch(json_t *, json_t *, int);
+void json_unpatch(json_t *, json_t *, int);
 
 #endif
 
