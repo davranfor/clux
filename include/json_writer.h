@@ -19,8 +19,10 @@
 #define json_push(...) \
     JSON_PUSH(__VA_ARGS__, json_object_push, json_push_at, )(__VA_ARGS__)
 
-#define json_push_front(parent, ...) json_push(parent, JSON_HEAD, __VA_ARGS__)
-#define json_push_back(parent, ...) json_push(parent, JSON_TAIL, __VA_ARGS__)
+#define json_push_front(parent, ...)    \
+    json_push(parent, JSON_HEAD, __VA_ARGS__)
+#define json_push_back(parent, ...) \
+    json_push(parent, JSON_TAIL, __VA_ARGS__)
 
 #define json_pop(parent, what) _Generic((what), \
     char *: json_pop_by_key,                    \
