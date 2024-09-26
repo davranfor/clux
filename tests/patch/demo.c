@@ -8,6 +8,7 @@
 
 int main(void)
 {
+/*
     json_t *a = json_parse("{\"a\": 1, \"b\": 2, \"c\": 3}", NULL);
     json_t *b = json_parse("{\"a\": 4, \"c\": 1, \"a\": 3, \"d\": 5, \"d\": 0}", NULL);
 
@@ -25,8 +26,8 @@ int main(void)
 
     json_delete(a);
     json_delete(b);
+*/
 
-/*
     json_t *node = json_parse("[0, 1, 2, 3, 4, 5]", NULL);
 
     puts("Before move:");
@@ -41,7 +42,6 @@ int main(void)
     json_print(node);
 
     json_delete(node);
-*/
 
     return 0;
 }

@@ -293,13 +293,9 @@ json_t *json_pop_by_index(json_t *parent, size_t index)
 static json_t *move(json_t *target, unsigned index,
     json_t *source, unsigned source_index)
 {
-    if (index > target->size)
+    if (index >= target->size)
     {
-        if (index != -1u)
-        {
-            return NULL;
-        }
-        index = target->size;
+        index = target->size - 1;
     }
  
     unsigned size = next_size(target->size);
@@ -340,27 +336,18 @@ static json_t *move(json_t *target, unsigned index,
 
 static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
 {
-    if (a > parent->size)
+    if (a >= parent->size)
     {
-        if (a != -1u)
-        {
-            return NULL;
-        }
         a = parent->size - 1;
     }
-    if (b > parent->size)
+    if (b >= parent->size)
     {
         b = parent->size - 1;
     }
 
     json_t *temp = parent->child[a];
 
-    if ((a - b == 1) || (b - a == 1)) 
-    {
-        parent->child[a] = parent->child[b];
-        parent->child[b] = temp;
-    }
-    else if (a > b)
+    if (a > b)
     {
         memmove(parent->child + b + 1,
                 parent->child + b,
@@ -378,14 +365,16 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
 
 json_t *json_move_child(json_t *target, size_t a, json_t *source, size_t b)
 {
-    if ((target == NULL) || (source == NULL) || (source->size == 0))
+    if ((target == NULL) || (target->size == 0) ||
+        (source == NULL) || (source->size == 0))
     {
         return NULL;
     }
     if ((target->type == JSON_ARRAY)
     || ((target->type == JSON_OBJECT) && (source->type == JSON_OBJECT)))
     {
-        if ((b == JSON_TAIL) || (b < target->size))
+        if (((a == JSON_TAIL) || (a < target->size)) &&
+            ((b == JSON_TAIL) || (b < source->size)))
         {
             if (target != source)
             {
