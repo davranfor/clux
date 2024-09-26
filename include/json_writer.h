@@ -34,15 +34,15 @@
 #define json_pop_back(parent) \
     json_pop_by_index(parent, JSON_TAIL)
 
-#define json_move_from_to(target, a, b) \
-    json_move_child(target, a, target, b)
+#define json_move_from_to(parent, a, b) \
+    json_move_child(parent, a, parent, b)
 
 #define JSON_MOVE(_1, _2, _3, _4, NAME, ...) NAME
 #define json_move(...) \
     JSON_MOVE(__VA_ARGS__, json_move_child, json_move_from_to, )(__VA_ARGS__)
 
-#define json_swap_from_to(target, a, b) \
-    json_swap_child(target, a, target, b)
+#define json_swap_from_to(parent, a, b) \
+    json_swap_child(parent, a, parent, b)
 
 #define JSON_SWAP(_1, _2, _3, _4, NAME, ...) NAME
 #define json_swap(...) \

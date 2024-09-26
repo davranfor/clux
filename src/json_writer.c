@@ -290,12 +290,12 @@ json_t *json_pop_by_index(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
-static json_t *move(json_t *target, unsigned index,
-    json_t *source, unsigned source_index)
+static json_t *move(json_t *source, unsigned source_index,
+    json_t *target, unsigned index)
 {
-    if (index >= target->size)
+    if (index > target->size)
     {
-        index = target->size - 1;
+        index = target->size;
     }
  
     unsigned size = next_size(target->size);
@@ -319,11 +319,7 @@ static json_t *move(json_t *target, unsigned index,
 
     json_t *child = pop(source, source_index);
 
-    if (child == NULL)
-    {
-        return NULL;
-    }
-    if (target->type == JSON_ARRAY)
+    if (target->type != source->type)
     {
         free(child->key);
         child->key = NULL;
@@ -363,22 +359,22 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
     return temp;
 }
 
-json_t *json_move_child(json_t *target, size_t a, json_t *source, size_t b)
+json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
 {
-    if ((target == NULL) || (target->size == 0) ||
-        (source == NULL) || (source->size == 0))
+    if ((source == NULL) || (source->size == 0) ||
+        (target == NULL) || (target->size == 0))
     {
         return NULL;
     }
     if ((target->type == JSON_ARRAY)
     || ((target->type == JSON_OBJECT) && (source->type == JSON_OBJECT)))
     {
-        if (((a == JSON_TAIL) || (a < target->size)) &&
-            ((b == JSON_TAIL) || (b < source->size)))
+        if (((a == JSON_TAIL) || (a < source->size)) &&
+            ((b == JSON_TAIL) || (b <= target->size)))
         {
-            if (target != source)
+            if (source != target)
             {
-                return move(target, (unsigned)a, source, (unsigned)b);
+                return move(source, (unsigned)a, target, (unsigned)b);
             }
             else
             {
@@ -389,26 +385,26 @@ json_t *json_move_child(json_t *target, size_t a, json_t *source, size_t b)
     return NULL;
 }
 
-json_t *json_swap_child(json_t *target, size_t a, json_t *source, size_t b)
+json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
 {
-    if ((target == NULL) || (source == NULL))
+    if ((source == NULL) || (target == NULL) || (source->type != target->type))
     {
         return NULL;
     }
-    if ((a == JSON_TAIL) && (target->size > 0))
+    if ((a == JSON_TAIL) && (source->size > 0))
     {
-        a = target->size - 1;
+        a = source->size - 1;
     }
-    if ((b == JSON_TAIL) && (source->size > 0))
+    if ((b == JSON_TAIL) && (target->size > 0))
     {
-        b = source->size - 1;
+        b = target->size - 1;
     }
-    if ((a < target->size) && (b < source->size)) 
+    if ((a < source->size) && (b < target->size)) 
     {
-        json_t *temp = target->child[a];
+        json_t *temp = source->child[a];
 
-        target->child[a] = source->child[b];
-        source->child[b] = temp;
+        source->child[a] = target->child[b];
+        target->child[b] = temp;
         return temp;
     }
     return NULL;

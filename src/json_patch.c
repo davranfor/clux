@@ -9,9 +9,9 @@
 #include "json_writer.h"
 #include "json_patch.h"
 
-int json_patch(json_t *target, json_t *source)
+int json_patch(json_t *source, json_t *target)
 {
-    if (json_is_object(target) && json_is_object(source))
+    if (json_is_object(source) && json_is_object(target))
     {
         unsigned count = 0;
         int inserts = 0;
@@ -24,17 +24,17 @@ int json_patch(json_t *target, json_t *source)
             if (index == JSON_NOT_FOUND)
             {
                 // If realloc fails, undo changes
-                if (!json_move(target, JSON_TAIL, source, count))
+                if (!json_move(source, count, target, JSON_TAIL))
                 {
                     while (json_delete(source, count));
-                    json_unpatch(target, source, inserts);
+                    json_unpatch(source, target, inserts);
                     return -1;
                 }
                 inserts++;
             }
             else
             {
-                json_swap(target, index, source, count);
+                json_swap(source, count, target, index);
                 // Delete repeated keys in the list
                 index = json_index(source, key);
                 if (index != count)
@@ -53,9 +53,9 @@ int json_patch(json_t *target, json_t *source)
     return -1;
 }
 
-void json_unpatch(json_t *target, json_t *source, int inserts)
+void json_unpatch(json_t *source, json_t *target, int inserts)
 {
-    if (json_is_object(target) && json_is_object(source))
+    if (json_is_object(source) && json_is_object(target))
     {
         while (source->size > 0)
         {
@@ -64,7 +64,7 @@ void json_unpatch(json_t *target, json_t *source, int inserts)
 
             if (index != JSON_NOT_FOUND)
             {
-                json_swap(target, index, source, JSON_TAIL);
+                json_swap(source, JSON_TAIL, target, index);
             }
             json_delete_back(source);
         }

@@ -190,7 +190,7 @@ static char *request_patch(const char *uri, const char *content)
     }
 
     size_t id = json_size_t(json_find(target, "id"));
-    int patch = json_patch(target, source);
+    int patch = json_patch(source, target);
 
     if (patch == -1)
     {
@@ -198,7 +198,7 @@ static char *request_patch(const char *uri, const char *content)
     }
     else if (json_size_t(json_find(target, "id")) != id)
     {
-        json_unpatch(target, source, patch);
+        json_unpatch(source, target, patch);
         target = NULL;
     }
     json_delete(source);
