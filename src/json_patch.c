@@ -23,12 +23,9 @@ int json_patch(json_t *target, json_t *source)
 
             if (index == JSON_NOT_FOUND)
             {
-                json_t *node = json_pop(source, count);
-
                 // If realloc fails, undo changes
-                if (!json_push_back(target, node))
+                if (!json_move(target, JSON_TAIL, source, count))
                 {
-                    json_delete(node);
                     while (json_delete(source, count));
                     json_unpatch(target, source, inserts);
                     return -1;
@@ -42,7 +39,7 @@ int json_patch(json_t *target, json_t *source)
                 index = json_index(source, key);
                 if (index != count)
                 {
-                    json_swap(source, index, source, count);
+                    json_swap(source, index, count);
                     json_delete(source, index);
                 }
                 else

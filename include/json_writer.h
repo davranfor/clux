@@ -32,6 +32,20 @@
 #define json_pop_back(parent) \
     json_pop_by_index(parent, JSON_TAIL)
 
+#define json_move_from_to(target, a, b) \
+    json_move_child(target, a, target, b)
+
+#define JSON_MOVE(_1, _2, _3, _4, NAME, ...) NAME
+#define json_move(...) \
+    JSON_MOVE(__VA_ARGS__, json_move_child, json_move_from_to, )(__VA_ARGS__)
+
+#define json_swap_from_to(target, a, b) \
+    json_swap_child(target, a, target, b)
+
+#define JSON_SWAP(_1, _2, _3, _4, NAME, ...) NAME
+#define json_swap(...) \
+    JSON_SWAP(__VA_ARGS__, json_swap_child, json_swap_from_to, )(__VA_ARGS__)
+
 #define json_delete_child(parent, what) _Generic((what),    \
     char *: json_delete_by_key,                             \
     void *: json_delete_by_key,                             \
@@ -60,7 +74,8 @@ json_t *json_array_push(json_t *, size_t, json_t *);
 json_t *json_push_at(json_t *, size_t, json_t *);
 json_t *json_pop_by_key(json_t *, const char *);
 json_t *json_pop_by_index(json_t *, size_t);
-int json_swap(json_t *, size_t, json_t *, size_t);
+json_t *json_move_child(json_t *, size_t, json_t *, size_t);
+json_t *json_swap_child(json_t *, size_t, json_t *, size_t);
 int json_delete_root(json_t *);
 int json_delete_by_key(json_t *, const char *);
 int json_delete_by_index(json_t *, size_t);

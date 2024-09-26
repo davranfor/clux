@@ -244,10 +244,6 @@ json_t *json_push_at(json_t *parent, size_t index, json_t *child)
 
 static json_t *pop(json_t *parent, unsigned index)
 {
-    if (parent->size == 0)
-    {
-        return NULL;
-    }
     if (index >= parent->size)
     {
         if (index != -1u)
@@ -287,18 +283,128 @@ json_t *json_pop_by_key(json_t *parent, const char *key)
 
 json_t *json_pop_by_index(json_t *parent, size_t index)
 {
-    if (parent == NULL)
+    if ((parent == NULL) || (parent->size == 0))
     {
         return NULL;
     }
     return pop(parent, (unsigned)index);
 }
 
-int json_swap(json_t *target, size_t a, json_t *source, size_t b)
+static json_t *move(json_t *target, unsigned index,
+    json_t *source, unsigned source_index)
+{
+    if (index > target->size)
+    {
+        if (index != -1u)
+        {
+            return NULL;
+        }
+        index = target->size;
+    }
+ 
+    unsigned size = next_size(target->size);
+
+    if (size > target->size) 
+    {
+        json_t **childs = realloc(target->child, sizeof(*childs) * size);
+
+        if (childs == NULL)
+        {
+            return NULL;
+        }
+        target->child = childs;
+    }
+    if (index < target->size)
+    {
+        memmove(target->child + index + 1,
+                target->child + index,
+                sizeof(*target->child) * (target->size - index));
+    }
+
+    json_t *child = pop(source, source_index);
+
+    if (child == NULL)
+    {
+        return NULL;
+    }
+    if (target->type == JSON_ARRAY)
+    {
+        free(child->key);
+        child->key = NULL;
+    }
+    child->packed = 1;
+    target->child[index] = child;
+    target->size++;
+    return child;    
+}
+
+static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
+{
+    if (a > parent->size)
+    {
+        if (a != -1u)
+        {
+            return NULL;
+        }
+        a = parent->size - 1;
+    }
+    if (b > parent->size)
+    {
+        b = parent->size - 1;
+    }
+
+    json_t *temp = parent->child[a];
+
+    if ((a - b == 1) || (b - a == 1)) 
+    {
+        parent->child[a] = parent->child[b];
+        parent->child[b] = temp;
+    }
+    else if (a > b)
+    {
+        memmove(parent->child + b + 1,
+                parent->child + b,
+                sizeof(*parent->child) * (a - b));
+    }
+    else if (b > a)
+    {
+        memmove(parent->child + a,
+                parent->child + a + 1,
+                sizeof(*parent->child) * (b - a));
+    }
+    parent->child[b] = temp;
+    return temp;
+}
+
+json_t *json_move_child(json_t *target, size_t a, json_t *source, size_t b)
+{
+    if ((target == NULL) || (source == NULL) || (source->size == 0))
+    {
+        return NULL;
+    }
+    if ((target->type == JSON_ARRAY)
+    || ((target->type == JSON_OBJECT) && (source->type == JSON_OBJECT)))
+    {
+        if ((b == JSON_TAIL) || (b < target->size))
+        {
+            if (target != source)
+            {
+                return move(target, (unsigned)a, source, (unsigned)b);
+            }
+            else
+            {
+                return move_from_to(target, (unsigned)a, (unsigned)b);
+            }
+        }
+    }
+    return NULL;
+}
+
+json_t *json_swap_child(json_t *target, size_t a, json_t *source, size_t b)
 {
     if ((target == NULL) || (source == NULL))
     {
-        return 0;
+        return NULL;
     }
     if ((a == JSON_TAIL) && (target->size > 0))
     {
@@ -314,9 +420,9 @@ int json_swap(json_t *target, size_t a, json_t *source, size_t b)
 
         target->child[a] = source->child[b];
         source->child[b] = temp;
-        return 1;
+        return temp;
     }
-    return 0;
+    return NULL;
 }
 
 static void delete_node(json_t *node)
