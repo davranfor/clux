@@ -64,6 +64,33 @@ static void set_error(json_error_t *error, const char *str, const char *end)
     }
 }
 
+static json_t *push(json_t *parent, char *key, json_t *child)
+{
+    if (child == NULL)
+    {
+        free(key);
+        return NULL;
+    }
+
+    unsigned size = next_size(parent->size);
+
+    if (size > parent->size) 
+    {
+        json_t **childs = realloc(parent->child, sizeof(*childs) * size);
+
+        if (childs == NULL)
+        {
+            free(key);
+            return NULL;
+        }
+        parent->child = childs;
+    }
+    parent->child[parent->size++] = child;
+    child->packed = 1;
+    child->key = key;
+    return child;    
+}
+
 static json_t *new_node(unsigned char type)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -198,8 +225,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
 
         json_t *child = parse(str, depth + 1);
 
-        child ? (void)(child->key = key) : free(key);
-        if (!json_push_back(parent, child))
+        if (!push(parent, key, child))
         {
             json_delete(parent);
             json_delete(child);
@@ -247,7 +273,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
 
         json_t *child = parse(str, depth + 1);
 
-        if (!json_push_back(parent, child))
+        if (!push(parent, NULL, child))
         {
             json_delete(parent);
             json_delete(child);

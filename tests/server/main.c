@@ -66,7 +66,6 @@ static int request_done(const char *str, size_t size)
     }
     end += HEADER_END_LENGTH;
 
-
     const char *label = strstr(str, content_length_label);
 
     if (label == NULL)
