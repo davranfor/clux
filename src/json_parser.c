@@ -64,7 +64,7 @@ static void set_error(json_error_t *error, const char *str, const char *end)
     }
 }
 
-static json_t *push(json_t *parent, char *key, json_t *child)
+static json_t *push(json_t *parent, json_t *child)
 {
     unsigned size = next_size(parent->size);
 
