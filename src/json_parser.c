@@ -91,13 +91,13 @@ static json_t *push(json_t *parent, char *key, json_t *child)
     return child;    
 }
 
-static json_t *new_node(enum json_type type)
+static json_t *new_node(unsigned char type)
 {
     json_t *node = calloc(1, sizeof *node);
 
     if (node != NULL)
     {
-        node->type = (unsigned char)type;
+        node->type = type;
     }
     return node;
 }
@@ -194,10 +194,9 @@ static char *parse_key(const char **str)
     return new_string(key, end);
 }
 
-static json_t *parse_iterable(enum json_type iterable,
-    const char **str, unsigned short depth)
+static json_t *parse_object(const char **str, unsigned short depth)
 {
-    json_t *parent = new_node(iterable);
+    json_t *parent = new_node(JSON_OBJECT);
 
     if (parent == NULL)
     {
@@ -206,10 +205,9 @@ static json_t *parse_iterable(enum json_type iterable,
 
     *str = skip_whitespaces(++*str);
 
-    char end = iterable == JSON_OBJECT ? '}' : ']';
     int trailing_comma = 0;
 
-    while (**str != end)
+    while (**str != '}')
     {
         if (((parent->size > 0) && (trailing_comma == 0)) || (depth >= max_depth))
         {
@@ -217,9 +215,9 @@ static json_t *parse_iterable(enum json_type iterable,
             return NULL;
         }
 
-        char *key = NULL;
+        char *key = parse_key(str);
 
-        if ((iterable == JSON_OBJECT) && !(key = parse_key(str)))
+        if (key == NULL)
         {
             json_delete(parent);
             return NULL;
@@ -228,6 +226,54 @@ static json_t *parse_iterable(enum json_type iterable,
         json_t *child = parse(str, depth + 1);
 
         if (!push(parent, key, child))
+        {
+            json_delete(parent);
+            json_delete(child);
+            return NULL;
+        }
+        if (**str == ',')
+        {
+            *str = skip_whitespaces(++*str);
+            trailing_comma = 1;
+        }
+        else
+        {
+            trailing_comma = 0;
+        }        
+    }
+    if (trailing_comma != 0)
+    {
+        json_delete(parent);
+        return NULL;
+    }
+    *str = skip_whitespaces(++*str);
+    return parent; 
+}
+
+static json_t *parse_array(const char **str, unsigned short depth)
+{
+    json_t *parent = new_node(JSON_ARRAY);
+
+    if (parent == NULL)
+    {
+        return NULL;
+    }
+
+    *str = skip_whitespaces(++*str);
+
+    int trailing_comma = 0;
+
+    while (**str != ']')
+    {
+        if (((parent->size > 0) && (trailing_comma == 0)) || (depth >= max_depth))
+        {
+            json_delete(parent);
+            return NULL;
+        }
+
+        json_t *child = parse(str, depth + 1);
+
+        if (!push(parent, NULL, child))
         {
             json_delete(parent);
             json_delete(child);
@@ -345,9 +391,9 @@ static json_t *parse(const char **str, unsigned short depth)
     switch (**str)
     {
         case '{':
-            return parse_iterable(JSON_OBJECT, str, depth);
+            return parse_object(str, depth);
         case '[':
-            return parse_iterable(JSON_ARRAY, str, depth);
+            return parse_array( str, depth);
         case '"':
             return parse_string(str);
         case '-':
