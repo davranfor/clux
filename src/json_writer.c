@@ -477,21 +477,3 @@ void json_free(json_t *node)
     delete_tree(node);
 }
 
-/*
-static int json_compare_key(const void *pa, const void *pb)
-{
-    const json_t *a = *(json_t * const *)pa;
-    const json_t *b = *(json_t * const *)pb;
-
-    return strcmp(a->key, b->key);
-}
-
-static void json_sort(json_t *node, int (*callback)(const void *, const void *))
-{
-    if ((node != NULL) && (node->size > 1))
-    {
-        qsort(node->child, node->size, sizeof *node->child, callback);
-    }
-}
-*/
-
