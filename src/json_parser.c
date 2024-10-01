@@ -392,7 +392,7 @@ static json_t *parse(const char **str, unsigned short depth)
         case '{':
             return parse_object(str, depth);
         case '[':
-            return parse_array( str, depth);
+            return parse_array(str, depth);
         case '"':
             return parse_string(str);
         case '-':

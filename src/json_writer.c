@@ -442,13 +442,9 @@ static void delete_tree(json_t *node)
 
 int json_delete_root(json_t *node)
 {
-    if (node == NULL)
+    if (!node || node->packed)
     {
         return 0;
-    }
-    if (node->packed)
-    {
-        return -1;
     }
     delete_tree(node);
     return 1;
@@ -466,11 +462,7 @@ int json_delete_by_index(json_t *parent, size_t index)
 
 void json_free(json_t *node)
 {
-    if (node == NULL)
-    {
-        return;
-    }
-    if (node->packed)
+    if (!node || node->packed)
     {
         return;
     }
