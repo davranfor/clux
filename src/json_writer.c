@@ -361,8 +361,7 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
 
 json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
 {
-    if ((source == NULL) || (source->size == 0) ||
-        (target == NULL) || (target->size == 0))
+    if ((source == NULL) || (source->size == 0) || (target == NULL))
     {
         return NULL;
     }
