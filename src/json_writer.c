@@ -410,6 +410,16 @@ json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
+int json_delete_by_key(json_t *parent, const char *key)
+{
+    return json_delete_root(json_pop_by_key(parent, key));
+}
+
+int json_delete_by_index(json_t *parent, size_t index)
+{
+    return json_delete_root(json_pop_by_index(parent, index));
+}
+
 static void delete_node(json_t *node)
 {
     if (node->type == JSON_STRING)
@@ -448,16 +458,6 @@ int json_delete_root(json_t *node)
     }
     delete_tree(node);
     return 1;
-}
-
-int json_delete_by_key(json_t *parent, const char *key)
-{
-    return json_delete_root(json_pop_by_key(parent, key));
-}
-
-int json_delete_by_index(json_t *parent, size_t index)
-{
-    return json_delete_root(json_pop_by_index(parent, index));
 }
 
 void json_free(json_t *node)
