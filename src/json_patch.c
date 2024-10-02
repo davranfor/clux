@@ -59,8 +59,8 @@ void json_unpatch(json_t *source, json_t *target, int inserts)
     {
         while (source->size > 0)
         {
-            json_t *node = source->child[source->size - 1];
-            unsigned index = json_index(target, node->key);
+            const char *key = source->child[source->size - 1]->key;
+            unsigned index = json_index(target, key);
 
             if (index != JSON_NOT_FOUND)
             {
