@@ -85,7 +85,7 @@ static json_t *append(json_t *parent, json_t *child)
     }
     parent->child[parent->size++] = child;
     child->packed = 1;
-    return child;    
+    return child;
 }
 
 static json_t *new_node(unsigned char type)
