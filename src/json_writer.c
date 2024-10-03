@@ -359,7 +359,7 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
     return temp;
 }
 
-json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
+json_t *json_move_childs(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (source->size == 0) || (target == NULL))
     {
@@ -384,7 +384,7 @@ json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
-json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
+json_t *json_swap_childs(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (target == NULL) || (source->type != target->type))
     {
