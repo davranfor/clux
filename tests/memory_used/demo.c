@@ -50,12 +50,7 @@ static void print_memory_used(const char *path)
     json_error_t error;
     json_t *node = json_parse(file, &error);
 
-    if (node == NULL)
-    {
-        fprintf(stderr, "%s\n", path);
-        json_print_error(&error);
-    }
-    else
+    if (node != NULL)
     {
         size_t node_size = 0;
 
@@ -63,6 +58,11 @@ static void print_memory_used(const char *path)
         printf("File size: %zu bytes\nTree size: %zu bytes\n",
             file_size, node_size);
         json_delete(node);
+    }
+    else
+    {
+        fprintf(stderr, "%s\n", path);
+        json_print_error(&error);
     }
     free(file);
 }
