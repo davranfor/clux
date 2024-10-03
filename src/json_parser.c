@@ -75,13 +75,13 @@ static json_t *append(json_t *parent, json_t *child)
 
     if (size > parent->size) 
     {
-        json_t **childs = realloc(parent->child, sizeof(*childs) * size);
+        json_t **temp = realloc(parent->child, sizeof(*temp) * size);
 
-        if (childs == NULL)
+        if (temp == NULL)
         {
             return NULL;
         }
-        parent->child = childs;
+        parent->child = temp;
     }
     parent->child[parent->size++] = child;
     child->packed = 1;

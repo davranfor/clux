@@ -175,14 +175,14 @@ static json_t *push(json_t *parent, unsigned index, const char *name,
 
     if (size > parent->size) 
     {
-        json_t **childs = realloc(parent->child, sizeof(*childs) * size);
+        json_t **temp = realloc(parent->child, sizeof(*temp) * size);
 
-        if (childs == NULL)
+        if (temp == NULL)
         {
             free(key);
             return NULL;
         }
-        parent->child = childs;
+        parent->child = temp;
     }
     if (index < parent->size)
     {
@@ -302,13 +302,13 @@ static json_t *move(json_t *source, unsigned source_index,
 
     if (size > target->size) 
     {
-        json_t **childs = realloc(target->child, sizeof(*childs) * size);
+        json_t **temp = realloc(target->child, sizeof(*temp) * size);
 
-        if (childs == NULL)
+        if (temp == NULL)
         {
             return NULL;
         }
-        target->child = childs;
+        target->child = temp;
     }
     if (index < target->size)
     {
@@ -359,7 +359,7 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
     return temp;
 }
 
-json_t *json_move_childs(json_t *source, size_t a, json_t *target, size_t b)
+json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (source->size == 0) || (target == NULL))
     {
@@ -384,7 +384,7 @@ json_t *json_move_childs(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
-json_t *json_swap_childs(json_t *source, size_t a, json_t *target, size_t b)
+json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (target == NULL) || (source->type != target->type))
     {

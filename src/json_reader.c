@@ -223,15 +223,6 @@ unsigned json_index(const json_t *node, const char *key)
     return JSON_NOT_FOUND;
 }
 
-json_t *json_child(const json_t *node)
-{
-    if ((node != NULL) && (node->size > 0))
-    {
-        return node->child[0];
-    }
-    return NULL;
-}
-
 json_t *json_head(const json_t *node)
 {
     if ((node != NULL) && (node->size > 0))
@@ -321,7 +312,7 @@ static int equal(const json_t *a, const json_t *b)
     }
 }
 
-static int equal_childs(const json_t *a, const json_t *b)
+static int equal_children(const json_t *a, const json_t *b)
 {
     for (unsigned index = 0; index < a->size; index++)
     {
@@ -336,7 +327,7 @@ static int equal_childs(const json_t *a, const json_t *b)
         {
             return 0;
         }
-        if ((c->size > 0) && !equal_childs(c, d))
+        if ((c->size > 0) && !equal_children(c, d))
         {
             return 0;
         }
@@ -356,7 +347,7 @@ int json_equal(const json_t *a, const json_t *b)
         {
             return 1;
         }
-        return equal_childs(a, b);
+        return equal_children(a, b);
     }
     return 0;
 }

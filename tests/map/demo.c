@@ -43,7 +43,7 @@ int main(void)
 
         json_push_back(root, "code", json_new_format("%05d", rand() % size));
         json_push_back(root, "func", json_new_string("insert"));
-        node = json_map_insert(map, json_string(json_child(root)), root);
+        node = json_map_insert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
             perror("json_map_insert");
@@ -60,7 +60,7 @@ int main(void)
 
         json_push_back(root, "code", json_new_format("%05d", rand() % size));
         json_push_back(root, "func", json_new_string("upsert"));
-        node = json_map_upsert(map, json_string(json_child(root)), root);
+        node = json_map_upsert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
             perror("json_map_upsert");

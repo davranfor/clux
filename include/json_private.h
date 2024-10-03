@@ -11,7 +11,7 @@ struct json
 {
     char *key;
     union { struct json **child; char *string; double number; };
-    unsigned size;          // Size (childs) of an iterable (object/array)
+    unsigned size;          // Size of an iterable (object/array)
     unsigned short flags;   // Available for user
     unsigned char packed;   // 0 - Root node | 1 - Not root node
     unsigned char type;     // json_type_t compressed in 1 byte
