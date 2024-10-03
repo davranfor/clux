@@ -44,6 +44,7 @@ int json_is_child(const json_t *);
 enum json_type json_type(const json_t *);
 unsigned json_size(const json_t *);
 unsigned json_index(const json_t *, const char *);
+const json_t * const *json_child(const json_t *);
 json_t *json_head(const json_t *);
 json_t *json_tail(const json_t *);
 json_t *json_find(const json_t *, const char *);

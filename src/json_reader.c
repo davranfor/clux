@@ -223,6 +223,15 @@ unsigned json_index(const json_t *node, const char *key)
     return JSON_NOT_FOUND;
 }
 
+const json_t * const *json_child(const json_t *node)
+{
+    if ((node != NULL) && (node->size > 0))
+    {
+        return (const json_t * const *)node->child;
+    }
+    return NULL;
+}
+
 json_t *json_head(const json_t *node)
 {
     if ((node != NULL) && (node->size > 0))
