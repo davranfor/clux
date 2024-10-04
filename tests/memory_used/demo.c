@@ -52,11 +52,11 @@ static void print_memory_used(const char *path)
 
     if (node != NULL)
     {
-        size_t node_size = 0;
+        size_t tree_size = 0;
 
-        json_walk(node, sum_memory_used, &node_size);
+        json_walk(node, sum_memory_used, &tree_size);
         printf("File size: %zu bytes\nTree size: %zu bytes\n",
-            file_size, node_size);
+            file_size, tree_size);
         json_delete(node);
     }
     else

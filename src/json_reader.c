@@ -223,6 +223,7 @@ unsigned json_index(const json_t *node, const char *key)
     return JSON_NOT_FOUND;
 }
 
+/* Only for debugging purposes (the address may change on parent resize) */
 const json_t * const *json_child(const json_t *node)
 {
     if ((node != NULL) && (node->size > 0))
