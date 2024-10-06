@@ -10,7 +10,7 @@
 #include "json_header.h"
 
 typedef struct json_map json_map_t;
-typedef int (*json_map_walk_callback)(json_t *, size_t, void *);
+typedef int (*json_map_callback)(json_t *, size_t, void *);
 
 json_map_t *json_map_create(size_t);
 json_t *json_map_update(json_map_t *, const char *, json_t *);
@@ -18,7 +18,7 @@ json_t *json_map_insert(json_map_t *, const char *, json_t *);
 json_t *json_map_upsert(json_map_t *, const char *, json_t *);
 json_t *json_map_delete(json_map_t *, const char *);
 json_t *json_map_search(const json_map_t *, const char *);
-json_t *json_map_walk(const json_map_t *, json_map_walk_callback, void *);
+json_t *json_map_walk(const json_map_t *, json_map_callback, void *);
 size_t json_map_size(const json_map_t *);
 void json_map_destroy(json_map_t *, void (*)(json_t *));
 

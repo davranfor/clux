@@ -260,8 +260,8 @@ json_t *json_map_search(const json_map_t *map, const char *key)
     return NULL;
 }
 
-json_t *json_map_walk(const json_map_t *map, json_map_walk_callback callback,
-    void *cookie)
+json_t *json_map_walk(const json_map_t *map, json_map_callback callback,
+    void *data)
 {
     size_t iter = 0;
 
@@ -273,7 +273,7 @@ json_t *json_map_walk(const json_map_t *map, json_map_walk_callback callback,
 
             while (node != NULL)
             {
-                if (!callback(node->data, iter++, cookie))
+                if (!callback(node->data, iter++, data))
                 {
                     return node->data;
                 }
