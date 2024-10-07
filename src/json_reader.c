@@ -130,6 +130,13 @@ int json_is_integer(const json_t *node)
         && (node->type == JSON_INTEGER);
 }
 
+int json_is_unsigned(const json_t *node)
+{
+    return (node != NULL)
+        && (node->type == JSON_INTEGER)
+        && (node->number >= 0);
+}
+
 int json_is_real(const json_t *node)
 {
     return (node != NULL)

@@ -33,6 +33,7 @@ int json_is_object(const json_t *);
 int json_is_array(const json_t *);
 int json_is_string(const json_t *);
 int json_is_integer(const json_t *);
+int json_is_unsigned(const json_t *);
 int json_is_real(const json_t *);
 int json_is_number(const json_t *);
 int json_is_boolean(const json_t *);

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <math.h>
 #include "clib_test.h"
+#include "clib_string.h"
 #include "json_private.h"
 #include "json_reader.h"
 #include "json_pointer.h"
@@ -37,6 +38,36 @@ enum
     SCHEMA_ALL_OF, SCHEMA_ANY_OF, SCHEMA_ONE_OF,
     SCHEMA_IF, SCHEMA_THEN, SCHEMA_ELSE
 };
+
+static int notify(json_schema_t *schema,
+    const json_t *rule, const json_t *node, int event)
+{
+    int aborted = 0;
+
+    if (schema->callback)
+    {
+        aborted = !schema->callback(rule, node, event, schema->data);
+    }
+    return aborted;
+}
+
+static int raise_warning(json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    return notify(schema, rule, node, JSON_SCHEMA_WARNING);
+}
+
+static int raise_invalid(json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    return notify(schema, rule, node, JSON_SCHEMA_INVALID);
+}
+
+static void raise_error(json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    notify(schema, rule, node, JSON_SCHEMA_ERROR);
+}
 
 static int test_valid(const json_t *subschema,
     const json_t *rule, const json_t *node)
@@ -79,6 +110,36 @@ static int test_ref(const json_t *subschema,
         : SCHEMA_ERROR;
 }
 
+static int test_min_length(const json_t *subschema,
+    const json_t *rule, const json_t *node)
+{
+    (void)subschema;
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node != NULL) && (node->type == JSON_STRING))
+    {
+        return string_length(node->string) >= json_size_t(rule);
+    }
+    return SCHEMA_VALID;
+}
+
+static int test_max_length(const json_t *subschema,
+    const json_t *rule, const json_t *node)
+{
+    (void)subschema;
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node != NULL) && (node->type == JSON_STRING))
+    {
+        return string_length(node->string) <= json_size_t(rule);
+    }
+    return SCHEMA_VALID;
+}
+
 #define hash(key) hash_str((const unsigned char *)(key))
 static unsigned long hash_str(const unsigned char *key)
 {
@@ -94,11 +155,11 @@ static unsigned long hash_str(const unsigned char *key)
 
 typedef int (*test_t)(const json_t *, const json_t *, const json_t *);
 
-typedef struct schema_func
+typedef struct func
 {
     const char *name;
     const test_t test;
-    struct schema_func *next;
+    struct func *next;
 } func_t;
 
 static func_t funcs[] =
@@ -110,6 +171,8 @@ static func_t funcs[] =
     {.name = "title", .test = test_is_string},
     {.name = "description", .test = test_is_string},
     {.name = "default", .test = test_valid},
+    {.name = "minLength", .test = test_min_length},
+    {.name = "maxLength", .test = test_max_length},
 };
 
 enum
@@ -165,52 +228,6 @@ static test_t get_test(const json_t *rule)
     return NULL;
 }
 
-/*
-        equal(name, "$schema") ? test_is_string :
-        equal(name, "$id") ? test_is_string :
-        equal(name, "$defs") ? test_is_object :
-        equal(name, "$ref") ? test_ref :
-        equal(name, "title") ? test_is_string :
-        equal(name, "description") ? test_is_string :
-        equal(name, "not") ? test_not :
-        equal(name, "allOf") ? test_all_of :
-        equal(name, "anyOf") ? test_any_of :
-        equal(name, "oneOf") ? test_one_of :
-        equal(name, "if") ? test_if :
-        equal(name, "then") ? test_then :
-        equal(name, "else") ? test_else :
-        equal(name, "type") ? test_type :
-        equal(name, "const") ? test_const :
-        equal(name, "enum") ? test_enum :
-        equal(name, "required") ? test_required :
-        equal(name, "dependentRequired") ? test_dependent_required :
-        equal(name, "dependentSchemas") ? test_dependent_schemas :
-        equal(name, "properties") ? test_properties :
-        equal(name, "patternProperties") ? test_pattern_properties :
-        equal(name, "additionalProperties") ? test_additional_properties :
-        equal(name, "minProperties") ? test_min_properties :
-        equal(name, "maxProperties") ? test_max_properties :
-        equal(name, "items") ? test_items :
-        equal(name, "additionalItems") ? test_additional_items :
-        equal(name, "minItems") ? test_min_items :
-        equal(name, "maxItems") ? test_max_items :
-        equal(name, "uniqueItems") ? test_unique_items :
-        equal(name, "minLength") ? test_min_length :
-        equal(name, "maxLength") ? test_max_length :
-        equal(name, "format") ? test_format :
-        equal(name, "pattern") ? test_pattern :
-        equal(name, "minimum") ? test_minimum :
-        equal(name, "maximum") ? test_maximum :
-        equal(name, "exclusiveMinimum") ? test_is_boolean :
-        equal(name, "exclusiveMaximum") ? test_is_boolean :
-        equal(name, "multipleOf") ? test_multiple_of :
-        equal(name, "readOnly") ? test_is_boolean :
-        equal(name, "writeOnly") ? test_is_boolean :
-        equal(name, "deprecated") ? test_is_boolean :
-        equal(name, "examples") ? test_is_array :
-        equal(name, "default") ? test_valid : NULL;
-*/
-
 static int validate(json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
@@ -218,7 +235,8 @@ static int validate(json_schema_t *schema,
 
     if (schema->depth++ >= SCHEMA_MAX_DEPTH)
     {
-        return !valid;
+        raise_error(schema, rule, node);
+        return 0;
     }
     for (unsigned i = 0; i < rule->size; i++)
     {
@@ -226,18 +244,33 @@ static int validate(json_schema_t *schema,
 
         if (test == NULL)
         {
+            if (raise_warning(schema, rule, node))
+            {
+                return 0;
+            }
             continue;
         }
         switch (test(rule, rule->child[i], node))
         {
-            default: break;
+            case SCHEMA_INVALID:
+                if (raise_invalid(schema, rule, node))
+                {
+                    return 0;
+                }
+                valid = 0;
+                break;
+            case SCHEMA_ERROR:
+                raise_error(schema, rule, node);
+                return 0;
+            default:
+                break;
         }
     }
     schema->depth--;
     return valid;
 }
 
-int json_validate(const json_t *node, const json_t *rule,
+int json_validate(const json_t *rule, const json_t *node,
     json_validate_callback callback, void *data)
 {
     json_schema_t schema =
@@ -247,7 +280,7 @@ int json_validate(const json_t *node, const json_t *rule,
         .data = data
     };
 
-    if ((node == NULL) || (rule == NULL))
+    if ((rule == NULL) || (node == NULL))
     {
         return 0;
     }
