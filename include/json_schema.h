@@ -11,9 +11,9 @@
 
 enum {JSON_SCHEMA_WARNING, JSON_SCHEMA_INVALID, JSON_SCHEMA_ERROR};
 
-typedef int (*json_schema_callback)(const json_t *, const json_t *, int, void *);
+typedef int (*json_validate_callback)(const json_t *, const json_t *, int, void *);
 
-int json_validate(const json_t *, const json_t *, json_schema_callback, void *);
+int json_validate(const json_t *, const json_t *, json_validate_callback, void *);
 
 #endif
 

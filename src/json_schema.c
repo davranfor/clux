@@ -15,6 +15,17 @@
 
 #define SCHEMA_MAX_DEPTH (unsigned)-1
 
+typedef struct
+{
+    const json_t *root;
+    // Recursion
+    const json_t *skip;
+    unsigned depth;
+    // User data
+    json_validate_callback callback;
+    void *data;
+} json_schema_t;
+
 enum
 {
     SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_ERROR,
@@ -27,33 +38,42 @@ enum
     SCHEMA_IF, SCHEMA_THEN, SCHEMA_ELSE
 };
 
-typedef struct
+static int test_valid(const json_t *subschema,
+    const json_t *rule, const json_t *node)
 {
-    const json_t *root;
-    // Recursion
-    const json_t *skip;
-    unsigned depth;
-    // User data
-    json_schema_callback callback;
-    void *data;
-} json_schema_t;
+    (void)subschema, (void)rule, (void)node;
+    return SCHEMA_VALID;
+}
 
-static int test_is_object(const json_t *rule)
+static int test_error(const json_t *subschema,
+    const json_t *rule, const json_t *node)
 {
+    (void)subschema, (void)rule, (void)node;
+    return SCHEMA_ERROR;
+}
+
+static int test_is_object(const json_t *subschema,
+    const json_t *rule, const json_t *node)
+{
+    (void)subschema, (void)node;
     return rule->type == JSON_OBJECT
         ? SCHEMA_VALID
         : SCHEMA_ERROR;
 }
 
-static int test_is_string(const json_t *rule)
+static int test_is_string(const json_t *subschema,
+    const json_t *rule, const json_t *node)
 {
+    (void)subschema, (void)node;
     return rule->type == JSON_STRING
         ? SCHEMA_VALID
         : SCHEMA_ERROR;
 }
 
-static int test_ref(const json_t *rule)
+static int test_ref(const json_t *subschema,
+    const json_t *rule, const json_t *node)
 {
+    (void)subschema, (void)node;
     return rule->type == JSON_STRING
         ? SCHEMA_REF
         : SCHEMA_ERROR;
@@ -72,27 +92,24 @@ static unsigned long hash_str(const unsigned char *key)
     return hash;
 }
 
-typedef int (*func0)(void);
-typedef int (*func1)(const json_t *);
-typedef int (*func2)(const json_t *, const json_t *);
-typedef int (*func3)(const json_t *, const json_t *, const json_t *);
+typedef int (*test_t)(const json_t *, const json_t *, const json_t *);
 
 typedef struct schema_func
 {
-    size_t params;
-    union {func0 fn0; func1 fn1; func2 fn2; func3 fn3;};
     const char *name;
+    const test_t test;
     struct schema_func *next;
 } func_t;
 
 static func_t funcs[] =
 {
-    {.params = 1,   .fn1 = test_is_string,   .name = "$schema"},
-    {.params = 1,   .fn1 = test_is_string,   .name = "$id"},
-    {.params = 1,   .fn1 = test_is_object,   .name = "$defs"},
-    {.params = 1,   .fn1 = test_ref,         .name = "$ref"},
-    {.params = 1,   .fn1 = test_is_string,   .name = "title"},
-    {.params = 1,   .fn1 = test_is_string,   .name = "description"},
+    {.name = "$schema", .test = test_is_string},
+    {.name = "$id", .test = test_is_string},
+    {.name = "$defs", .test = test_is_object},
+    {.name = "$ref", .test = test_ref},
+    {.name = "title", .test = test_is_string},
+    {.name = "description", .test = test_is_string},
+    {.name = "default", .test = test_valid},
 };
 
 enum
@@ -124,6 +141,28 @@ static void table_load(void)
             table[index] = &funcs[i];
         }
     }
+    table_loaded = 1;
+}
+
+static test_t get_test(const json_t *rule)
+{
+    if (rule->key == NULL)
+    {
+        return test_error;
+    }
+
+    unsigned long index = hash(rule->key) % TABLE_SIZE;
+    func_t *func = table[index];
+
+    while (func != NULL)
+    {
+        if (!strcmp(func->name, rule->key))
+        {
+            return func->test;
+        }
+        func = func->next;
+    }
+    return NULL;
 }
 
 /*
@@ -173,23 +212,33 @@ static void table_load(void)
 */
 
 static int validate(json_schema_t *schema,
-    const json_t *node, const json_t *rule)
+    const json_t *rule, const json_t *node)
 {
-    (void)node;
-    (void)rule;
-
     int valid = 1;
 
     if (schema->depth++ >= SCHEMA_MAX_DEPTH)
     {
+        return !valid;
+    }
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        test_t test = get_test(rule->child[i]);
 
+        if (test == NULL)
+        {
+            continue;
+        }
+        switch (test(rule, rule->child[i], node))
+        {
+            default: break;
+        }
     }
     schema->depth--;
     return valid;
 }
 
 int json_validate(const json_t *node, const json_t *rule,
-    json_schema_callback callback, void *data)
+    json_validate_callback callback, void *data)
 {
     json_schema_t schema =
     {
@@ -210,6 +259,6 @@ int json_validate(const json_t *node, const json_t *rule,
     {
         table_load();
     }
-    return validate(&schema, node, rule);
+    return validate(&schema, rule, node);
 }
 
