@@ -18,9 +18,9 @@
 
 typedef struct
 {
+    // Object containing rules
     const json_t *root;
-    // Recursion
-    const json_t *skip;
+    // Detect infinite loops
     unsigned depth;
     // User data
     json_validate_callback callback;
@@ -42,22 +42,22 @@ enum
 static int notify(json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    int aborted = 0;
+    int stop = 0;
 
     if (schema->callback)
     {
-        aborted = !schema->callback(rule, node, event, schema->data);
+        return schema->callback(rule, node, event, schema->data) == 0;
     }
-    return aborted;
+    return stop;
 }
 
-static int raise_warning(json_schema_t *schema,
+static int stop_on_warning(json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     return notify(schema, rule, node, JSON_SCHEMA_WARNING);
 }
 
-static int raise_invalid(json_schema_t *schema,
+static int stop_on_failure(json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     return notify(schema, rule, node, JSON_SCHEMA_INVALID);
@@ -244,7 +244,7 @@ static int validate(json_schema_t *schema,
 
         if (test == NULL)
         {
-            if (raise_warning(schema, rule, node))
+            if (stop_on_warning(schema, rule, node))
             {
                 return 0;
             }
@@ -253,7 +253,7 @@ static int validate(json_schema_t *schema,
         switch (test(rule, rule->child[i], node))
         {
             case SCHEMA_INVALID:
-                if (raise_invalid(schema, rule, node))
+                if (stop_on_failure(schema, rule, node))
                 {
                     return 0;
                 }

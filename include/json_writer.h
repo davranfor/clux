@@ -25,14 +25,14 @@
     json_push(parent, JSON_TAIL, __VA_ARGS__)
 
 #define json_pop(parent, what) _Generic((what), \
-    char *: json_pop_by_key,                    \
-    void *: json_pop_by_key,                    \
-    default: json_pop_by_index)((parent), (what))
+    char *: json_pop_key,                       \
+    void *: json_pop_key,                       \
+    default: json_pop_index)((parent), (what))
 
 #define json_pop_front(parent) \
-    json_pop_by_index(parent, JSON_HEAD)
+    json_pop_index(parent, JSON_HEAD)
 #define json_pop_back(parent) \
-    json_pop_by_index(parent, JSON_TAIL)
+    json_pop_index(parent, JSON_TAIL)
 
 #define json_move_from_to(parent, a, b) \
     json_move_child(parent, a, parent, b)
@@ -49,18 +49,18 @@
     JSON_SWAP(__VA_ARGS__, json_swap_child, json_swap_from_to, )(__VA_ARGS__)
 
 #define json_delete_child(parent, what) _Generic((what),    \
-    char *: json_delete_by_key,                             \
-    void *: json_delete_by_key,                             \
-    default: json_delete_by_index)((parent), (what))
+    char *: json_delete_key,                                \
+    void *: json_delete_key,                                \
+    default: json_delete_index)((parent), (what))
 
 #define JSON_DELETE(_1, _2, NAME, ...) NAME
 #define json_delete(...) \
     JSON_DELETE(__VA_ARGS__, json_delete_child, json_delete_root, )(__VA_ARGS__)
 
 #define json_delete_front(parent) \
-    json_delete_by_index(parent, JSON_HEAD)
+    json_delete_index(parent, JSON_HEAD)
 #define json_delete_back(parent) \
-    json_delete_by_index(parent, JSON_TAIL)
+    json_delete_index(parent, JSON_TAIL)
 
 json_t *json_new_object(void);
 json_t *json_new_array(void);
@@ -74,12 +74,12 @@ json_t *json_new_null(void);
 json_t *json_object_push(json_t *, size_t, const char *, json_t *);
 json_t *json_array_push(json_t *, size_t, json_t *);
 json_t *json_push_at(json_t *, size_t, json_t *);
-json_t *json_pop_by_key(json_t *, const char *);
-json_t *json_pop_by_index(json_t *, size_t);
+json_t *json_pop_key(json_t *, const char *);
+json_t *json_pop_index(json_t *, size_t);
 json_t *json_move_child(json_t *, size_t, json_t *, size_t);
 json_t *json_swap_child(json_t *, size_t, json_t *, size_t);
-int json_delete_by_key(json_t *, const char *);
-int json_delete_by_index(json_t *, size_t);
+int json_delete_key(json_t *, const char *);
+int json_delete_index(json_t *, size_t);
 int json_delete_root(json_t *);
 void json_free(json_t *);
 
