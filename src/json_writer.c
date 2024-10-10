@@ -228,7 +228,7 @@ json_t *json_array_push(json_t *parent, size_t index, json_t *child)
     return NULL;
 }
 
-json_t *json_push_at(json_t *parent, size_t index, json_t *child)
+json_t *json_push_child(json_t *parent, size_t index, json_t *child)
 {
     if ((parent == NULL) || (child == NULL))
     {
@@ -270,7 +270,7 @@ static json_t *pop(json_t *parent, unsigned index)
     return child;
 }
 
-json_t *json_pop_key(json_t *parent, const char *key)
+json_t *json_object_pop(json_t *parent, const char *key)
 {
     unsigned index = json_index(parent, key);
 
@@ -281,7 +281,16 @@ json_t *json_pop_key(json_t *parent, const char *key)
     return pop(parent, index);
 }
 
-json_t *json_pop_index(json_t *parent, size_t index)
+json_t *json_array_pop(json_t *parent, size_t index)
+{
+    if ((parent == NULL) || (parent->type != JSON_ARRAY) || (parent->size == 0))
+    {
+        return NULL;
+    }
+    return pop(parent, (unsigned)index);
+}
+
+json_t *json_pop_child(json_t *parent, size_t index)
 {
     if ((parent == NULL) || (parent->size == 0))
     {
@@ -409,14 +418,19 @@ json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
-int json_delete_key(json_t *parent, const char *key)
+int json_object_delete(json_t *parent, const char *key)
 {
-    return json_delete_root(json_pop_key(parent, key));
+    return json_delete_root(json_object_pop(parent, key));
 }
 
-int json_delete_index(json_t *parent, size_t index)
+int json_array_delete(json_t *parent, size_t index)
 {
-    return json_delete_root(json_pop_index(parent, index));
+    return json_delete_root(json_array_pop(parent, index));
+}
+
+int json_delete_child(json_t *parent, size_t index)
+{
+    return json_delete_root(json_pop_child(parent, index));
 }
 
 static void delete_node(json_t *node)
