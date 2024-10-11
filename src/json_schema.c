@@ -98,7 +98,7 @@ static test_t tests[] = {TEST(TEST_NAME)};
 enum
 {
     TESTS_SIZE = NTESTS - DEFS - 1,
-    TABLE_SIZE = TESTS_SIZE * 5 
+    TABLE_SIZE = TESTS_SIZE 
 };
 
 static test_t *table[TABLE_SIZE];
@@ -109,20 +109,9 @@ static void table_load(void)
     for (size_t i = 0; i < TESTS_SIZE; i++)
     {
         unsigned long index = hash(tests[i].name) % TABLE_SIZE;
-        test_t *test = table[index];
 
-        if (test != NULL)
-        {
-            while (test->next != NULL)
-            {
-                test = test->next;
-            }
-            test->next = &tests[i];
-        }
-        else
-        {
-            table[index] = &tests[i];
-        }
+        tests[i].next = table[index];
+        table[index] = &tests[i];
     }
     table_loaded = 1;
 }
