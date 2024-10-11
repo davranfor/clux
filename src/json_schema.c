@@ -29,7 +29,7 @@ typedef struct
 
 enum
 {
-    SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_ERROR,
+    SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID,
     SCHEMA_DEPENDENT_SCHEMAS,
     SCHEMA_PROPERTIES, SCHEMA_PATTERN_PROPERTIES, SCHEMA_ADDITIONAL_PROPERTIES,
     SCHEMA_ITEMS, SCHEMA_ADDITIONAL_ITEMS, SCHEMA_TUPLES,
@@ -57,7 +57,7 @@ static int stop_on_warning(json_schema_t *schema,
     return notify(schema, rule, node, JSON_SCHEMA_WARNING);
 }
 
-static int stop_on_failure(json_schema_t *schema,
+static int stop_on_invalid(json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     return notify(schema, rule, node, JSON_SCHEMA_INVALID);
@@ -229,14 +229,14 @@ static test_t get_test(const json_t *rule)
 }
 
 static int validate(json_schema_t *schema,
-    const json_t *rule, const json_t *node)
+    const json_t *rule, const json_t *node, int stoppable)
 {
-    int valid = 1;
+    int valid = SCHEMA_VALID;
 
     if (schema->depth++ >= SCHEMA_MAX_DEPTH)
     {
         raise_error(schema, rule, node);
-        return 0;
+        return SCHEMA_ERROR;
     }
     for (unsigned i = 0; i < rule->size; i++)
     {
@@ -246,22 +246,22 @@ static int validate(json_schema_t *schema,
         {
             if (stop_on_warning(schema, rule, node))
             {
-                return 0;
+                return SCHEMA_INVALID;
             }
             continue;
         }
         switch (test(rule, rule->child[i], node))
         {
             case SCHEMA_INVALID:
-                if (stop_on_failure(schema, rule, node))
+                if (stoppable && stop_on_invalid(schema, rule, node))
                 {
-                    return 0;
+                    return SCHEMA_INVALID;
                 }
-                valid = 0;
+                valid = SCHEMA_INVALID;
                 break;
             case SCHEMA_ERROR:
                 raise_error(schema, rule, node);
-                return 0;
+                return SCHEMA_ERROR;
             default:
                 break;
         }
@@ -292,6 +292,6 @@ int json_validate(const json_t *rule, const json_t *node,
     {
         table_load();
     }
-    return validate(&schema, rule, node);
+    return validate(&schema, rule, node, 1) > 0;
 }
 
