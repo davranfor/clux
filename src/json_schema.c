@@ -27,18 +27,6 @@ typedef struct
     void *data;
 } json_schema_t;
 
-enum
-{
-    SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID,
-    SCHEMA_DEPENDENT_SCHEMAS,
-    SCHEMA_PROPERTIES, SCHEMA_PATTERN_PROPERTIES, SCHEMA_ADDITIONAL_PROPERTIES,
-    SCHEMA_ITEMS, SCHEMA_ADDITIONAL_ITEMS, SCHEMA_TUPLES,
-    SCHEMA_REF,
-    SCHEMA_NOT,
-    SCHEMA_ALL_OF, SCHEMA_ANY_OF, SCHEMA_ONE_OF,
-    SCHEMA_IF, SCHEMA_THEN, SCHEMA_ELSE
-};
-
 static int notify(json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
@@ -69,77 +57,6 @@ static void raise_error(json_schema_t *schema,
     notify(schema, rule, node, JSON_SCHEMA_ERROR);
 }
 
-static int test_valid(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema, (void)rule, (void)node;
-    return SCHEMA_VALID;
-}
-
-static int test_error(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema, (void)rule, (void)node;
-    return SCHEMA_ERROR;
-}
-
-static int test_is_object(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema, (void)node;
-    return rule->type == JSON_OBJECT
-        ? SCHEMA_VALID
-        : SCHEMA_ERROR;
-}
-
-static int test_is_string(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema, (void)node;
-    return rule->type == JSON_STRING
-        ? SCHEMA_VALID
-        : SCHEMA_ERROR;
-}
-
-static int test_ref(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema, (void)node;
-    return rule->type == JSON_STRING
-        ? SCHEMA_REF
-        : SCHEMA_ERROR;
-}
-
-static int test_min_length(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema;
-    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
-    {
-        return SCHEMA_ERROR;
-    }
-    if ((node != NULL) && (node->type == JSON_STRING))
-    {
-        return string_length(node->string) >= json_size_t(rule);
-    }
-    return SCHEMA_VALID;
-}
-
-static int test_max_length(const json_t *subschema,
-    const json_t *rule, const json_t *node)
-{
-    (void)subschema;
-    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
-    {
-        return SCHEMA_ERROR;
-    }
-    if ((node != NULL) && (node->type == JSON_STRING))
-    {
-        return string_length(node->string) <= json_size_t(rule);
-    }
-    return SCHEMA_VALID;
-}
-
 #define hash(key) hash_str((const unsigned char *)(key))
 static unsigned long hash_str(const unsigned char *key)
 {
@@ -153,79 +70,81 @@ static unsigned long hash_str(const unsigned char *key)
     return hash;
 }
 
-typedef int (*test_t)(const json_t *, const json_t *, const json_t *);
+typedef struct test { const char *name; struct test *next; } test_t;
 
-typedef struct func
-{
-    const char *name;
-    const test_t test;
-    struct func *next;
-} func_t;
+#define TEST(X)                                 \
+    X(SCHEMA_SCHEMA,        "$schema")          \
+    X(SCHEMA_ID,            "$id")              \
+    X(SCHEMA_DEFS,          "$defs")            \
+    X(SCHEMA_REF,           "$ref")             \
+    X(SCHEMA_TITLE,         "title")            \
+    X(SCHEMA_DESCRIPTION,   "description")      \
+    X(SCHEMA_DEFAULT,       "default")          \
+    X(SCHEMA_MIN_LENGTH,    "minLength")        \
+    X(SCHEMA_MAX_LENGTH,    "maxLength")
 
-static func_t funcs[] =
+
+#define TEST_ENUM(a, b) a,
+enum
 {
-    {.name = "$schema", .test = test_is_string},
-    {.name = "$id", .test = test_is_string},
-    {.name = "$defs", .test = test_is_object},
-    {.name = "$ref", .test = test_ref},
-    {.name = "title", .test = test_is_string},
-    {.name = "description", .test = test_is_string},
-    {.name = "default", .test = test_valid},
-    {.name = "minLength", .test = test_min_length},
-    {.name = "maxLength", .test = test_max_length},
+    SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING,
+    DEFS = SCHEMA_WARNING, TEST(TEST_ENUM) NTESTS
 };
+
+#define TEST_NAME(a, b) {.name = b},
+static test_t tests[] = {TEST(TEST_NAME)};
 
 enum
 {
-    FUNCS_SIZE = sizeof(funcs) / sizeof(funcs[0]),
-    TABLE_SIZE = FUNCS_SIZE * 5 
+    TESTS_SIZE = NTESTS - DEFS - 1,
+    TABLE_SIZE = TESTS_SIZE * 5 
 };
 
-static func_t *table[TABLE_SIZE];
+static test_t *table[TABLE_SIZE];
 static int table_loaded;
 
 static void table_load(void)
 {
-    for (size_t i = 0; i < FUNCS_SIZE; i++)
+    for (size_t i = 0; i < TESTS_SIZE; i++)
     {
-        unsigned long index = hash(funcs[i].name) % TABLE_SIZE;
-        func_t *func = table[index];
+        unsigned long index = hash(tests[i].name) % TABLE_SIZE;
+        test_t *test = table[index];
 
-        if (func != NULL)
+        if (test != NULL)
         {
-            while (func->next != NULL)
+            while (test->next != NULL)
             {
-                func = func->next;
+                test = test->next;
             }
-            func->next = &funcs[i];
+            test->next = &tests[i];
         }
         else
         {
-            table[index] = &funcs[i];
+            table[index] = &tests[i];
         }
     }
     table_loaded = 1;
 }
 
-static test_t get_test(const json_t *rule)
+static int get_test(const json_t *rule)
 {
     if (rule->key == NULL)
     {
-        return test_error;
+        return SCHEMA_ERROR;
     }
 
     unsigned long index = hash(rule->key) % TABLE_SIZE;
-    func_t *func = table[index];
+    test_t *test = table[index];
 
-    while (func != NULL)
+    while (test != NULL)
     {
-        if (!strcmp(func->name, rule->key))
+        if (!strcmp(test->name, rule->key))
         {
-            return func->test;
+            return (int)(test - tests) + DEFS + 1;
         }
-        func = func->next;
+        test = test->next;
     }
-    return NULL;
+    return SCHEMA_WARNING;
 }
 
 static int validate(json_schema_t *schema,
@@ -240,18 +159,14 @@ static int validate(json_schema_t *schema,
     }
     for (unsigned i = 0; i < rule->size; i++)
     {
-        test_t test = get_test(rule->child[i]);
-
-        if (test == NULL)
+        switch (get_test(rule->child[i]))
         {
-            if (stop_on_warning(schema, rule, node))
-            {
-                return SCHEMA_INVALID;
-            }
-            continue;
-        }
-        switch (test(rule, rule->child[i], node))
-        {
+            case SCHEMA_WARNING:
+                if (stoppable && stop_on_warning(schema, rule, node))
+                {
+                    return SCHEMA_INVALID;
+                }
+                continue;
             case SCHEMA_INVALID:
                 if (stoppable && stop_on_invalid(schema, rule, node))
                 {
