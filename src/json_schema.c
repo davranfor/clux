@@ -34,7 +34,7 @@ static int notify(json_schema_t *schema,
 
     if (schema->callback)
     {
-        return schema->callback(rule, node, event, schema->data) == 0;
+        return schema->callback(node, rule, event, schema->data) == 0;
     }
     return stop;
 }
@@ -185,7 +185,7 @@ static int validate(json_schema_t *schema,
     return valid;
 }
 
-int json_validate(const json_t *rule, const json_t *node,
+int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
     json_schema_t schema =
