@@ -4,7 +4,7 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdio.h>
+#include <stdio.h> // remove when no longer needed
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -73,6 +73,7 @@ static unsigned long hash_str(const unsigned char *key)
 
 typedef struct test { const char *name; struct test *next; } test_t;
 
+/* X macro indexing enum and array of tests */
 #define TEST(X)                                 \
     X(SCHEMA_SCHEMA,        "$schema")          \
     X(SCHEMA_ID,            "$id")              \
@@ -126,7 +127,7 @@ static void table_load(void)
     table_loaded = 1;
 }
 
-static int get_test(const json_t *rule)
+static int test_index(const json_t *rule)
 {
     if (rule->key == NULL)
     {
@@ -159,7 +160,7 @@ static int validate(json_schema_t *schema,
     }
     for (unsigned i = 0; i < rule->size; i++)
     {
-        int test = get_test(rule->child[i]);
+        int test = test_index(rule->child[i]);
 
         switch (test)
         {
