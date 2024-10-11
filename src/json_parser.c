@@ -351,7 +351,7 @@ static json_t *parse_number(const char **str)
     node->type = (*str + strspn(*str, "-0123456789") >= end)
         ? is_safe_integer(number) ? JSON_INTEGER : JSON_REAL
         : JSON_REAL;
-    *str = end;
+    *str = skip_whitespaces(end);
     return node; 
 }
 

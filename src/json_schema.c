@@ -4,6 +4,7 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -83,7 +84,6 @@ typedef struct test { const char *name; struct test *next; } test_t;
     X(SCHEMA_MIN_LENGTH,    "minLength")        \
     X(SCHEMA_MAX_LENGTH,    "maxLength")
 
-
 #define TEST_ENUM(a, b) a,
 enum
 {
@@ -159,7 +159,9 @@ static int validate(json_schema_t *schema,
     }
     for (unsigned i = 0; i < rule->size; i++)
     {
-        switch (get_test(rule->child[i]))
+        int test = get_test(rule->child[i]);
+
+        switch (test)
         {
             case SCHEMA_WARNING:
                 if (stoppable && stop_on_warning(schema, rule, node))
@@ -178,6 +180,7 @@ static int validate(json_schema_t *schema,
                 raise_error(schema, rule, node);
                 return SCHEMA_ERROR;
             default:
+                puts(tests[test - DEFS - 1].name);
                 break;
         }
     }
