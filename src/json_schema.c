@@ -136,9 +136,8 @@ enum
 };
 
 static test_t *table[TABLE_SIZE];
-static int table_loaded;
 
-static void table_load(void)
+__attribute__((constructor)) static void table_load(void)
 {
     for (size_t i = 0; i < TESTS_SIZE; i++)
     {
@@ -147,7 +146,6 @@ static void table_load(void)
         tests[i].next = table[index];
         table[index] = &tests[i];
     }
-    table_loaded = 1;
 }
 
 static int table_get_test(const char *key)
@@ -451,10 +449,6 @@ int json_validate(const json_t *node, const json_t *rule,
     if (rule->type != JSON_OBJECT)
     {
         return 0;
-    }
-    if (!table_loaded)
-    {
-        table_load();
     }
     return validate(&schema, rule, node, 1) > 0;
 }

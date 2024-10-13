@@ -11,6 +11,7 @@
 #include "json_reader.h"
 #include "json_writer.h"
 #include "json_buffer.h"
+#include "json_schema.h"
 #include "json_sort.h"
 #include "json_pointer.h"
 #include "json_patch.h"

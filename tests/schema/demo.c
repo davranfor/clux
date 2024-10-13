@@ -7,7 +7,6 @@
 #include <locale.h>
 #include <stdlib.h>
 #include <clux/json.h>
-#include <clux/json_schema.h>
 
 static json_t *parse_file(const char *path)
 {
