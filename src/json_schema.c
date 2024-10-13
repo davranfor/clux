@@ -122,6 +122,7 @@ typedef struct test { const char *name; struct test *next; } test_t;
 enum
 {
     SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING,
+    SCHEMA_INVALID_CONTINUE, SCHEMA_INVALID_STOP,
     DEFS = SCHEMA_WARNING, TEST(TEST_ENUM) NTESTS
 };
 
@@ -226,7 +227,7 @@ static unsigned add_type(const char *type, unsigned value)
     return 0;
 }
 
-static int validate_type(const json_t *rule, const json_t *node)
+static int test_type(const json_t *rule, const json_t *node)
 {
     unsigned mask = 0;
 
@@ -263,7 +264,7 @@ static int validate_type(const json_t *rule, const json_t *node)
     return SCHEMA_VALID;
 }
 
-static int validate_unsigned(int test, const json_t *rule, const json_t *node)
+static int test_unsigned(int test, const json_t *rule, const json_t *node)
 {
     if ((rule->type != JSON_INTEGER) || (rule->number < 0))
     {
@@ -299,7 +300,7 @@ static int validate_unsigned(int test, const json_t *rule, const json_t *node)
     }
 }
 
-static int validate_required(json_schema_t *schema,
+static int test_required(json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
     if (rule->type != JSON_ARRAY)
@@ -332,15 +333,14 @@ static int validate_required(json_schema_t *schema,
 
                 if (stop_on_invalid(schema, &temp, node))
                 {
-                    return SCHEMA_INVALID;
+                    return SCHEMA_INVALID_STOP;
                 }
             }
-            valid = SCHEMA_INVALID;
+            valid = SCHEMA_INVALID_CONTINUE;
         }
     }
     return valid;
 }
-
 
 static int validate(json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
@@ -388,7 +388,7 @@ static int validate(json_schema_t *schema,
                 return SCHEMA_ERROR;
             // Validate simple tests that doesn't need a parent
             case SCHEMA_TYPE:
-                test = validate_type(rule->child[i], node);
+                test = test_type(rule->child[i], node);
                 break;
             case SCHEMA_MAX_ITEMS:
             case SCHEMA_MAX_LENGTH:
@@ -396,11 +396,11 @@ static int validate(json_schema_t *schema,
             case SCHEMA_MIN_ITEMS:
             case SCHEMA_MIN_LENGTH:
             case SCHEMA_MIN_PROPERTIES:
-                test = validate_unsigned(test, rule->child[i], node);
+                test = test_unsigned(test, rule->child[i], node);
                 break;
             // Validate multiple tests that doesn't need a parent
             case SCHEMA_REQUIRED:
-                test = validate_required(schema, rule->child[i], node, stoppable);
+                test = test_required(schema, rule->child[i], node, stoppable);
                 break;
             default:
                 assert("Unhandled case");
@@ -418,6 +418,11 @@ static int validate(json_schema_t *schema,
                 }
                 valid = SCHEMA_INVALID;
                 break;
+            case SCHEMA_INVALID_CONTINUE:
+                valid = SCHEMA_INVALID;
+                break;
+            case SCHEMA_INVALID_STOP:
+                return SCHEMA_INVALID;
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;

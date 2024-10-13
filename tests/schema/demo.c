@@ -46,7 +46,6 @@ static int on_validate(const json_t *target, const json_t *source,
     fprintf(stderr, "Rule (%s)\n", path[1]);
     json_write(source, stderr, 2);
     return JSON_SCHEMA_CONTINUE;
-
 }
 
 int main(void)
