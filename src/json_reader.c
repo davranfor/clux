@@ -258,6 +258,7 @@ json_t *json_tail(const json_t *node)
     return NULL;
 }
 
+/* Locates a child by key */
 json_t *json_find(const json_t *node, const char *key)
 {
     if ((node != NULL) && (node->type == JSON_OBJECT) && (key != NULL))
@@ -273,6 +274,23 @@ json_t *json_find(const json_t *node, const char *key)
     return NULL;
 }
 
+/* Locates a child by node */
+json_t *json_locate(const json_t *node, const json_t *what)
+{
+    if ((node != NULL) && (what != NULL))
+    {
+        for (unsigned index = 0; index < node->size; index++)
+        {
+            if (json_equal(node->child[index], what))
+            {
+                return node->child[index];
+            }
+        }
+    }
+    return NULL;
+}
+
+/* Return node at position 'index' */
 json_t *json_at(const json_t *node, size_t index)
 {
     if ((node != NULL) && (node->size > index))
@@ -280,6 +298,26 @@ json_t *json_at(const json_t *node, size_t index)
         return node->child[index];
     }
     return NULL;
+}
+
+/* Return 1 if all nodes are unique, 0 otherwise */
+int json_unique_children(const json_t *node)
+{
+    if (node == NULL)
+    {
+        return 0;
+    }
+    for (unsigned i = 0; i < node->size; i++)
+    {
+        for (unsigned j = 0; j < i; j++)
+        {
+            if (json_equal(node->child[i], node->child[j]))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 
 /**

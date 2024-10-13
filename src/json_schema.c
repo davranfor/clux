@@ -207,6 +207,203 @@ static int get_test(const json_t *rule)
     }
 }
 
+static int test_const(const json_t *rule, const json_t *node)
+{
+    if ((node != NULL) && !json_equal(rule, node))
+    {
+        return SCHEMA_INVALID;
+    }
+    return SCHEMA_VALID;
+}
+
+static int test_enum(const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_ARRAY)
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node != NULL) && !json_locate(rule, node))
+    {
+        return SCHEMA_INVALID;
+    }
+    return SCHEMA_VALID;
+}
+
+static int test_maximum(const json_t *parent,
+    const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    {
+        return SCHEMA_ERROR;
+    }
+    if (!json_is_number(node))
+    {
+        return SCHEMA_VALID;
+    }
+    if (json_is_true(json_find(parent, "exclusiveMaximum")))
+    {
+        return node->number < rule->number;
+    }
+    else
+    {
+        return node->number <= rule->number;
+    }
+}
+
+static int test_max_items(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node == NULL) || (node->type != JSON_ARRAY))
+    {
+        return SCHEMA_VALID;
+    }
+    return (size_t)rule->number >= node->size;
+}
+
+static int test_max_length(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node == NULL) || (node->type != JSON_STRING))
+    {
+        return SCHEMA_VALID;
+    }
+    return (size_t)rule->number >= string_length(node->string);
+}
+
+static int test_max_properties(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node == NULL) || (node->type != JSON_OBJECT))
+    {
+        return SCHEMA_VALID;
+    }
+    return (size_t)rule->number >= node->size;
+}
+
+static int test_minimum(const json_t *parent,
+    const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    {
+        return SCHEMA_ERROR;
+    }
+    if (!json_is_number(node))
+    {
+        return SCHEMA_VALID;
+    }
+    if (json_is_true(json_find(parent, "exclusiveMinimum")))
+    {
+        return node->number > rule->number;
+    }
+    else
+    {
+        return node->number >= rule->number;
+    }
+}
+
+static int test_min_items(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node == NULL) || (node->type != JSON_ARRAY))
+    {
+        return SCHEMA_VALID;
+    }
+    return (size_t)rule->number <= node->size;
+}
+
+static int test_min_length(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node == NULL) || (node->type != JSON_STRING))
+    {
+        return SCHEMA_VALID;
+    }
+    return (size_t)rule->number <= string_length(node->string);
+}
+
+static int test_min_properties(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node == NULL) || (node->type != JSON_OBJECT))
+    {
+        return SCHEMA_VALID;
+    }
+    return (size_t)rule->number <= node->size;
+}
+
+static int test_multiple_of(const json_t *rule, const json_t *node)
+{
+    if (json_number(rule) <= 0)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (!json_is_number(node))
+    {
+        return SCHEMA_VALID;
+    }
+    return fmod(node->number, rule->number) == 0;
+}
+
+static int test_required(json_schema_t *schema,
+    const json_t *rule, const json_t *node, int stoppable)
+{
+    if (rule->type != JSON_ARRAY)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int valid = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_STRING)
+        {
+            return SCHEMA_ERROR;
+        }
+        if (!json_find(node, rule->child[i]->string))
+        {
+            if (stoppable)
+            {
+                const json_t temp =
+                {
+                    .key = "required",
+                    .string = rule->child[i]->string,
+                    .type = JSON_STRING
+                };
+
+                if (stop_on_invalid(schema, &temp, node))
+                {
+                    return SCHEMA_INVALID_STOP;
+                }
+            }
+            valid = SCHEMA_INVALID_CONTINUE;
+        }
+    }
+    return valid;
+}
+
 static unsigned add_type(const char *type, unsigned value)
 {
     static const char *types[] =
@@ -262,82 +459,17 @@ static int test_type(const json_t *rule, const json_t *node)
     return SCHEMA_VALID;
 }
 
-static int test_unsigned(int test, const json_t *rule, const json_t *node)
+static int test_unique_items(const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    if ((rule->type != JSON_TRUE) && (rule->type != JSON_FALSE))
     {
         return SCHEMA_ERROR;
     }
-    if (node == NULL)
+    if ((rule->type == JSON_TRUE) && json_is_array(node))
     {
-        return SCHEMA_VALID;
+        return json_unique_children(node);
     }
-    switch (test)
-    {
-        case SCHEMA_MAX_ITEMS:
-            return (node->type != JSON_ARRAY)
-                || ((size_t)node->size <= (size_t)rule->number);
-        case SCHEMA_MAX_LENGTH:
-            return (node->type != JSON_STRING)
-                || (string_length(node->string) <= (size_t)rule->number);
-        case SCHEMA_MAX_PROPERTIES:
-            return (node->type != JSON_OBJECT)
-                || ((size_t)node->size <= (size_t)rule->number);
-        case SCHEMA_MIN_ITEMS:
-            return (node->type != JSON_ARRAY)
-                || ((size_t)node->size >= (size_t)rule->number);
-        case SCHEMA_MIN_LENGTH:
-            return (node->type != JSON_STRING)
-                || (string_length(node->string) >= (size_t)rule->number);
-        case SCHEMA_MIN_PROPERTIES:
-            return (node->type != JSON_OBJECT)
-                || ((size_t)node->size >= (size_t)rule->number);
-        default:
-            assert("Unhandled case");
-            return SCHEMA_ERROR;
-    }
-}
-
-static int test_required(json_schema_t *schema,
-    const json_t *rule, const json_t *node, int stoppable)
-{
-    if (rule->type != JSON_ARRAY)
-    {
-        return SCHEMA_ERROR;
-    }
-    if (node->type != JSON_OBJECT)
-    {
-        return SCHEMA_VALID;
-    }
-
-    int valid = SCHEMA_VALID;
-
-    for (unsigned i = 0; i < rule->size; i++)
-    {
-        if (rule->child[i]->type != JSON_STRING)
-        {
-            return SCHEMA_ERROR;
-        }
-        if (!json_find(node, rule->child[i]->string))
-        {
-            if (stoppable)
-            {
-                const json_t temp =
-                {
-                    .key = "required",
-                    .string = rule->child[i]->string,
-                    .type = JSON_STRING
-                };
-
-                if (stop_on_invalid(schema, &temp, node))
-                {
-                    return SCHEMA_INVALID_STOP;
-                }
-            }
-            valid = SCHEMA_INVALID_CONTINUE;
-        }
-    }
-    return valid;
+    return SCHEMA_VALID;
 }
 
 static int validate(json_schema_t *schema,
@@ -384,19 +516,48 @@ static int validate(json_schema_t *schema,
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;
-            // Validate simple tests that doesn't need a parent
+            // Validate simple tests that doesn't need the parent
+            case SCHEMA_CONST:
+                test = test_const(rule->child[i], node);
+                break;
+            case SCHEMA_ENUM:
+                test = test_enum(rule->child[i], node);
+                break;
+            case SCHEMA_MAX_ITEMS:
+                test = test_max_items(rule->child[i], node);
+                break;
+            case SCHEMA_MAX_LENGTH:
+                test = test_max_length(rule->child[i], node);
+                break;
+            case SCHEMA_MAX_PROPERTIES:
+                test = test_max_properties(rule->child[i], node);
+                break;
+            case SCHEMA_MIN_ITEMS:
+                test = test_min_items(rule->child[i], node);
+                break;
+            case SCHEMA_MIN_LENGTH:
+                test = test_min_length(rule->child[i], node);
+                break;
+            case SCHEMA_MIN_PROPERTIES:
+                test = test_min_properties(rule->child[i], node);
+                break;
+            case SCHEMA_MULTIPLE_OF:
+                test = test_multiple_of(rule->child[i], node);
+                break;
             case SCHEMA_TYPE:
                 test = test_type(rule->child[i], node);
                 break;
-            case SCHEMA_MAX_ITEMS:
-            case SCHEMA_MAX_LENGTH:
-            case SCHEMA_MAX_PROPERTIES:
-            case SCHEMA_MIN_ITEMS:
-            case SCHEMA_MIN_LENGTH:
-            case SCHEMA_MIN_PROPERTIES:
-                test = test_unsigned(test, rule->child[i], node);
+            case SCHEMA_UNIQUE_ITEMS:
+                test = test_unique_items(rule->child[i], node);
                 break;
-            // Validate multiple tests that doesn't need a parent
+            // Validate simple tests that needs the parent
+            case SCHEMA_MAXIMUM:
+                test = test_maximum(rule, rule->child[i], node);
+                break;
+            case SCHEMA_MINIMUM:
+                test = test_minimum(rule, rule->child[i], node);
+                break;
+            // Validate multiple tests that doesn't need the parent
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
                 break;
@@ -442,11 +603,7 @@ int json_validate(const json_t *node, const json_t *rule,
         .data = data
     };
 
-    if ((rule == NULL) || (node == NULL))
-    {
-        return 0;
-    }
-    if (rule->type != JSON_OBJECT)
+    if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
     {
         return 0;
     }
