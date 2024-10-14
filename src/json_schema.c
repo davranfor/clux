@@ -16,14 +16,10 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
-#define SCHEMA_MAX_DEPTH (unsigned short)-1
-
 typedef struct
 {
     // Object containing rules
     const json_t *root;
-    // Detect infinite loops
-    unsigned depth;
     // User data
     json_validate_callback callback;
     void *data;
@@ -218,13 +214,26 @@ static int test_const(const json_t *rule, const json_t *node)
 
 static int test_enum(const json_t *rule, const json_t *node)
 {
-    if (rule->type != JSON_ARRAY)
+    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
     {
         return SCHEMA_ERROR;
     }
     if ((node != NULL) && !json_locate(rule, node))
     {
         return SCHEMA_INVALID;
+    }
+    return SCHEMA_VALID;
+}
+
+static int test_format(const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_STRING)
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node != NULL) && (node->type == JSON_STRING))
+    {
+        return test_match(node->string, rule->string);
     }
     return SCHEMA_VALID;
 }
@@ -359,7 +368,20 @@ static int test_multiple_of(const json_t *rule, const json_t *node)
     {
         return SCHEMA_VALID;
     }
-    return fmod(node->number, rule->number) == 0;
+    return fmod(node->number, rule->number) == 0.0;
+}
+
+static int test_pattern(const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_STRING)
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node != NULL) && (node->type == JSON_STRING))
+    {
+        return test_regex(node->string, rule->string);
+    }
+    return SCHEMA_VALID;
 }
 
 static int test_required(json_schema_t *schema,
@@ -369,7 +391,7 @@ static int test_required(json_schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    if (node->type != JSON_OBJECT)
+    if ((node == NULL) || (node->type != JSON_OBJECT))
     {
         return SCHEMA_VALID;
     }
@@ -404,7 +426,7 @@ static int test_required(json_schema_t *schema,
     return valid;
 }
 
-static unsigned add_type(const char *type, unsigned value)
+static unsigned add_type(const char *type, unsigned mask)
 {
     static const char *types[] =
     {
@@ -416,7 +438,7 @@ static unsigned add_type(const char *type, unsigned value)
     {
         if (!strcmp(type, types[item]))
         {
-            return value | (1u << (item + 1));
+            return mask | (1u << (item + 1));
         }
     }
     return 0;
@@ -433,7 +455,7 @@ static int test_type(const json_t *rule, const json_t *node)
             return SCHEMA_ERROR;
         }
     }
-    else if (rule->type == JSON_ARRAY)
+    else if ((rule->type == JSON_ARRAY) && (rule->size > 0))
     {
         for (unsigned i = 0; i < rule->size; i++)
         {
@@ -477,11 +499,6 @@ static int validate(json_schema_t *schema,
 {
     int valid = SCHEMA_VALID;
 
-    if (schema->depth++ >= SCHEMA_MAX_DEPTH)
-    {
-        raise_error(schema, rule, node);
-        return SCHEMA_ERROR;
-    }
     for (unsigned i = 0; i < rule->size; i++)
     {
         int test = get_test(rule->child[i]);
@@ -489,10 +506,6 @@ static int validate(json_schema_t *schema,
         /* DEBUG (remove this) */
         if (test > DEFS)
         {
-            for (unsigned depth = 0; depth - 1 < schema->depth; depth++)
-            {
-                printf("  ");
-            } 
             puts(tests[test - DEFS - 1].name);
         }
         switch (test)
@@ -523,6 +536,9 @@ static int validate(json_schema_t *schema,
             case SCHEMA_ENUM:
                 test = test_enum(rule->child[i], node);
                 break;
+            case SCHEMA_FORMAT:
+                test = test_format(rule->child[i], node);
+                break;
             case SCHEMA_MAX_ITEMS:
                 test = test_max_items(rule->child[i], node);
                 break;
@@ -543,6 +559,9 @@ static int validate(json_schema_t *schema,
                 break;
             case SCHEMA_MULTIPLE_OF:
                 test = test_multiple_of(rule->child[i], node);
+                break;
+            case SCHEMA_PATTERN:
+                test = test_pattern(rule->child[i], node);
                 break;
             case SCHEMA_TYPE:
                 test = test_type(rule->child[i], node);
@@ -589,7 +608,6 @@ static int validate(json_schema_t *schema,
                 break;
         }
     }
-    schema->depth--;
     return valid;
 }
 
