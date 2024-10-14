@@ -4,6 +4,8 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h>
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -129,7 +131,7 @@ static test_t tests[] = {TEST(TEST_NAME)};
 enum
 {
     TESTS_SIZE = NTESTS - DEFS - 1,
-    TABLE_SIZE = TESTS_SIZE 
+    TABLE_SIZE = TESTS_SIZE * 3 
 };
 
 static test_t *table[TABLE_SIZE];
@@ -170,6 +172,7 @@ static int get_test(const json_t *rule)
 
     int test = table_get_test(rule->key);
 
+    // Validate very simple rules that doesn't need to be tested
     switch (test)
     {
         case SCHEMA_DEFAULT:
@@ -190,8 +193,6 @@ static int get_test(const json_t *rule)
                 ? SCHEMA_VALID
                 : SCHEMA_ERROR;
         case SCHEMA_DEPRECATED:
-        case SCHEMA_EXCLUSIVE_MAXIMUM:
-        case SCHEMA_EXCLUSIVE_MINIMUM:
         case SCHEMA_READ_ONLY:
         case SCHEMA_WRITE_ONLY:
             return rule->type == JSON_TRUE
@@ -327,6 +328,32 @@ static int test_enum(const json_t *rule, const json_t *node)
     return json_locate(rule, node) != NULL;
 }
 
+static int test_exclusive_maximum(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
+    {
+        return SCHEMA_VALID;
+    }
+    return node->number < rule->number;
+}
+
+static int test_exclusive_minimum(const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
+    {
+        return SCHEMA_VALID;
+    }
+    return node->number > rule->number;
+}
+
 static int test_format(const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_STRING)
@@ -340,8 +367,7 @@ static int test_format(const json_t *rule, const json_t *node)
     return test_match(node->string, rule->string);
 }
 
-static int test_maximum(const json_t *parent,
-    const json_t *rule, const json_t *node)
+static int test_maximum(const json_t *rule, const json_t *node)
 {
     if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
     {
@@ -351,14 +377,7 @@ static int test_maximum(const json_t *parent,
     {
         return SCHEMA_VALID;
     }
-    if (json_is_true(json_find(parent, "exclusiveMaximum")))
-    {
-        return node->number < rule->number;
-    }
-    else
-    {
-        return node->number <= rule->number;
-    }
+    return node->number <= rule->number;
 }
 
 static int test_max_items(const json_t *rule, const json_t *node)
@@ -400,8 +419,7 @@ static int test_max_properties(const json_t *rule, const json_t *node)
     return (size_t)rule->number >= node->size;
 }
 
-static int test_minimum(const json_t *parent,
-    const json_t *rule, const json_t *node)
+static int test_minimum(const json_t *rule, const json_t *node)
 {
     if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
     {
@@ -411,14 +429,7 @@ static int test_minimum(const json_t *parent,
     {
         return SCHEMA_VALID;
     }
-    if (json_is_true(json_find(parent, "exclusiveMinimum")))
-    {
-        return node->number > rule->number;
-    }
-    else
-    {
-        return node->number >= rule->number;
-    }
+    return node->number >= rule->number;
 }
 
 static int test_min_items(const json_t *rule, const json_t *node)
@@ -722,15 +733,24 @@ static int validate(const json_schema_t *schema,
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;
-            // Validate simple tests that doesn't need the parent
+            // Validate simple tests
             case SCHEMA_CONST:
                 test = test_const(rule->child[i], node);
                 break;
             case SCHEMA_ENUM:
                 test = test_enum(rule->child[i], node);
                 break;
+            case SCHEMA_EXCLUSIVE_MAXIMUM:
+                test = test_exclusive_maximum(rule->child[i], node);
+                break;
+            case SCHEMA_EXCLUSIVE_MINIMUM:
+                test = test_exclusive_minimum(rule->child[i], node);
+                break;
             case SCHEMA_FORMAT:
                 test = test_format(rule->child[i], node);
+                break;
+            case SCHEMA_MAXIMUM:
+                test = test_maximum(rule->child[i], node);
                 break;
             case SCHEMA_MAX_ITEMS:
                 test = test_max_items(rule->child[i], node);
@@ -740,6 +760,9 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_MAX_PROPERTIES:
                 test = test_max_properties(rule->child[i], node);
+                break;
+            case SCHEMA_MINIMUM:
+                test = test_minimum(rule->child[i], node);
                 break;
             case SCHEMA_MIN_ITEMS:
                 test = test_min_items(rule->child[i], node);
@@ -762,14 +785,7 @@ static int validate(const json_schema_t *schema,
             case SCHEMA_UNIQUE_ITEMS:
                 test = test_unique_items(rule->child[i], node);
                 break;
-            // Validate simple tests that needs the parent
-            case SCHEMA_MAXIMUM:
-                test = test_maximum(rule, rule->child[i], node);
-                break;
-            case SCHEMA_MINIMUM:
-                test = test_minimum(rule, rule->child[i], node);
-                break;
-            // Validate multiple tests that doesn't need the parent
+            // Validate multiple tests
             case SCHEMA_DEPENDENT_REQUIRED:
                 test = test_dependent_required(schema, rule->child[i], node, stoppable);
                 break;
