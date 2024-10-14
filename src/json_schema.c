@@ -204,6 +204,58 @@ static int get_test(const json_t *rule)
     }
 }
 
+static int test_all_of(const json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        switch (validate(schema, rule->child[i], node, 0))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_INVALID_STOP;
+            case SCHEMA_INVALID:
+                return SCHEMA_INVALID;
+            default:
+                break; 
+        }
+    }
+    return SCHEMA_VALID;
+}
+
+static int test_any_of(const json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        switch (validate(schema, rule->child[i], node, 0))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_INVALID_STOP;
+            case SCHEMA_VALID:
+                return SCHEMA_VALID;
+            default:
+                break; 
+        }
+    }
+    return SCHEMA_INVALID;
+}
+
 static int test_const(const json_t *rule, const json_t *node)
 {
     return json_equal(rule, node);
@@ -440,6 +492,39 @@ static int test_not(const json_schema_t *schema,
         return SCHEMA_INVALID_STOP;
     }
     return !result;
+}
+
+static int test_one_of(const json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
+    {
+        return SCHEMA_ERROR;
+    }
+
+    int count = 0;
+
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        switch (validate(schema, rule->child[i], node, 0))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_INVALID_STOP;
+            case SCHEMA_VALID:
+                if (count++ == 1)
+                {
+                    return SCHEMA_INVALID;
+                }
+                break;
+            default:
+                break; 
+        }
+    }
+    return count == 1;
 }
 
 static int test_pattern(const json_t *rule, const json_t *node)
@@ -691,9 +776,19 @@ static int validate(const json_schema_t *schema,
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
                 break;
-            // Validate recursive tests forcing stoppable to 'false'
+            // Validate recursive tests forcing stoppable to 'false' (not)
             case SCHEMA_NOT:
                 test = test_not(schema, rule->child[i], node);
+                break;
+            // Validate recursive tests forcing stoppable to 'false' (combinators)
+            case SCHEMA_ALL_OF:
+                test = test_all_of(schema, rule->child[i], node);
+                break;
+            case SCHEMA_ANY_OF:
+                test = test_any_of(schema, rule->child[i], node);
+                break;
+            case SCHEMA_ONE_OF:
+                test = test_one_of(schema, rule->child[i], node);
                 break;
             // Validate recursive tests
             case SCHEMA_PROPERTIES:

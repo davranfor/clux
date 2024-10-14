@@ -1,7 +1,7 @@
 {
     "firstName": "John",
     "lastName": "Doe",
-    "age": 120,
+    "age": 42,
     "email": "john.doe@example.com",
     "phone": ["123", "321"],
     "data": [
