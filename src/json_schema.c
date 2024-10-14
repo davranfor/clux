@@ -25,6 +25,8 @@ typedef struct
     void *data;
 } json_schema_t;
 
+static int validate(json_schema_t *, const json_t *, const json_t *, int);
+
 static int notify(json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
@@ -433,6 +435,51 @@ static int test_pattern(const json_t *rule, const json_t *node)
     return test_regex(node->string, rule->string);
 }
 
+static int test_properties(json_schema_t *schema,
+    const json_t *rule, const json_t *node, int stoppable)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int valid = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        if (rule->child[i]->size == 0)
+        {
+            continue;
+        }
+
+        const json_t *elem = json_find(node, rule->child[i]->key);
+
+        if (elem == NULL)
+        {
+            continue;
+        }
+        switch (validate(schema, rule->child[i], elem, stoppable))
+        {
+            case SCHEMA_INVALID:
+                valid = SCHEMA_INVALID_CONTINUE;
+                break;
+            case SCHEMA_ERROR:
+                return SCHEMA_INVALID_STOP;
+            default:
+                break;
+        }
+    }
+    return valid;
+}
+
 static int test_required(json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
@@ -562,13 +609,13 @@ static int validate(json_schema_t *schema,
             case SCHEMA_WARNING:
                 if (stoppable && stop_on_warning(schema, rule->child[i], node))
                 {
-                    return SCHEMA_INVALID;
+                    return SCHEMA_ERROR;
                 }
                 continue;
             case SCHEMA_INVALID:
                 if (stoppable && stop_on_invalid(schema, rule->child[i], node))
                 {
-                    return SCHEMA_INVALID;
+                    return SCHEMA_ERROR;
                 }
                 valid = SCHEMA_INVALID;
                 break;
@@ -629,6 +676,10 @@ static int validate(json_schema_t *schema,
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
                 break;
+            // Validate recursive tests
+            case SCHEMA_PROPERTIES:
+                test = test_properties(schema, rule->child[i], node, stoppable);
+                break;
             default:
                 assert("Unhandled case");
                 //test = SCHEMA_ERROR;
@@ -641,7 +692,7 @@ static int validate(json_schema_t *schema,
             case SCHEMA_INVALID:
                 if (stoppable && stop_on_invalid(schema, rule->child[i], node))
                 {
-                    return SCHEMA_INVALID;
+                    return SCHEMA_ERROR;
                 }
                 valid = SCHEMA_INVALID;
                 break;
@@ -649,7 +700,7 @@ static int validate(json_schema_t *schema,
                 valid = SCHEMA_INVALID;
                 break;
             case SCHEMA_INVALID_STOP:
-                return SCHEMA_INVALID;
+                return SCHEMA_ERROR;
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;
