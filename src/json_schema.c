@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdio.h> // remove when no longer needed
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,9 +24,9 @@ typedef struct
     void *data;
 } json_schema_t;
 
-static int validate(json_schema_t *, const json_t *, const json_t *, int);
+static int validate(const json_schema_t *, const json_t *, const json_t *, int);
 
-static int notify(json_schema_t *schema,
+static int notify(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
     int stop = 0;
@@ -39,19 +38,19 @@ static int notify(json_schema_t *schema,
     return stop;
 }
 
-static int stop_on_warning(json_schema_t *schema,
+static int stop_on_warning(const json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     return notify(schema, rule, node, JSON_SCHEMA_WARNING);
 }
 
-static int stop_on_invalid(json_schema_t *schema,
+static int stop_on_invalid(const json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     return notify(schema, rule, node, JSON_SCHEMA_INVALID);
 }
 
-static void raise_error(json_schema_t *schema,
+static void raise_error(const json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     notify(schema, rule, node, JSON_SCHEMA_ERROR);
@@ -210,7 +209,7 @@ static int test_const(const json_t *rule, const json_t *node)
     return json_equal(rule, node);
 }
 
-static int test_dependent_required(json_schema_t *schema,
+static int test_dependent_required(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
     if ((rule->type != JSON_OBJECT) || (rule->size == 0))
@@ -422,7 +421,7 @@ static int test_multiple_of(const json_t *rule, const json_t *node)
     return fmod(node->number, rule->number) == 0.0;
 }
 
-static int test_not(json_schema_t *schema,
+static int test_not(const json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_OBJECT)
@@ -456,7 +455,7 @@ static int test_pattern(const json_t *rule, const json_t *node)
     return test_regex(node->string, rule->string);
 }
 
-static int test_properties(json_schema_t *schema,
+static int test_properties(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
     if (rule->type != JSON_OBJECT)
@@ -489,11 +488,11 @@ static int test_properties(json_schema_t *schema,
         }
         switch (validate(schema, rule->child[i], elem, stoppable))
         {
+            case SCHEMA_ERROR:
+                return SCHEMA_INVALID_STOP;
             case SCHEMA_INVALID:
                 valid = SCHEMA_INVALID_CONTINUE;
                 break;
-            case SCHEMA_ERROR:
-                return SCHEMA_INVALID_STOP;
             default:
                 break;
         }
@@ -501,7 +500,7 @@ static int test_properties(json_schema_t *schema,
     return valid;
 }
 
-static int test_required(json_schema_t *schema,
+static int test_required(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
     if (rule->type != JSON_ARRAY)
@@ -608,7 +607,7 @@ static int test_unique_items(const json_t *rule, const json_t *node)
     return json_unique_children(node);
 }
 
-static int validate(json_schema_t *schema,
+static int validate(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
     int valid = SCHEMA_VALID;
@@ -617,18 +616,13 @@ static int validate(json_schema_t *schema,
     {
         int test = get_test(rule->child[i]);
 
-        /* DEBUG (remove this) */
-        if (test > DEFS)
-        {
-            puts(tests[test - DEFS - 1].name);
-        }
         switch (test)
         {
             // Validate very simple rules that doesn't need to be tested
             case SCHEMA_VALID:
                 continue;
             case SCHEMA_WARNING:
-                if (stoppable && stop_on_warning(schema, rule->child[i], node))
+                if (stop_on_warning(schema, rule->child[i], node))
                 {
                     return SCHEMA_ERROR;
                 }
@@ -739,7 +733,7 @@ static int validate(json_schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    json_schema_t schema =
+    const json_schema_t schema =
     {
         .root = rule,
         .callback = callback,

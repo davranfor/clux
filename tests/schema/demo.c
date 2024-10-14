@@ -25,7 +25,7 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_t *target, const json_t *source,
+static int on_validate(const json_t *node, const json_t *rule,
     int event, void *data)
 {
     const char **path = data;
@@ -36,14 +36,16 @@ static int on_validate(const json_t *target, const json_t *source,
         "Aborted. Malformed schema"
     };
 
-    fprintf(stderr, "\nEvtMsg: %s\n", msg[event]);
-    fprintf(stderr, "Node (%s)\n", path[0]);
-    if (json_is_scalar(target))
+    fprintf(stderr, "\nTarget: %s\nSchema: %s\n%s\n",
+            path[0], path[1], msg[event]
+    );
+    if ((event == JSON_SCHEMA_INVALID) && json_is_scalar(node))
     {
-        json_write(target, stderr, 2);
+        fprintf(stderr, "Node:\n");
+        json_write(node, stderr, 2);
     }
-    fprintf(stderr, "Rule (%s)\n", path[1]);
-    json_write(source, stderr, 2);
+    fprintf(stderr, "Rule\n");
+    json_write(rule, stderr, 2);
     return JSON_SCHEMA_CONTINUE;
 }
 
@@ -60,20 +62,20 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-    json_t *source = parse_file(path[1]);
+    json_t *schema = parse_file(path[1]);
 
-    if (source == NULL)
+    if (schema == NULL)
     {
         json_delete(target);
         exit(EXIT_FAILURE);
     }
 
-    if (!json_validate(target, source, on_validate, path))
+    if (!json_validate(target, schema, on_validate, path))
     {
         fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
     }
     json_delete(target);
-    json_delete(source);
+    json_delete(schema);
     return 0;
 }
 
