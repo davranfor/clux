@@ -422,6 +422,27 @@ static int test_multiple_of(const json_t *rule, const json_t *node)
     return fmod(node->number, rule->number) == 0.0;
 }
 
+static int test_not(json_schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (rule->size == 0)
+    {
+        return SCHEMA_INVALID;
+    }
+ 
+    int result = validate(schema, rule, node, 0);
+
+    if (result == SCHEMA_ERROR)
+    {
+        return SCHEMA_INVALID_STOP;
+    }
+    return !result;
+}
+
 static int test_pattern(const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_STRING)
@@ -675,6 +696,10 @@ static int validate(json_schema_t *schema,
                 break;
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
+                break;
+            // Validate recursive tests forcing stoppable to 'false'
+            case SCHEMA_NOT:
+                test = test_not(schema, rule->child[i], node);
                 break;
             // Validate recursive tests
             case SCHEMA_PROPERTIES:
