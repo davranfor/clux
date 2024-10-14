@@ -205,6 +205,58 @@ static int get_test(const json_t *rule)
     }
 }
 
+static int test_additional_properties(const json_schema_t *schema,
+    const json_t *parent, const json_t *rule, const json_t *node, int stoppable)
+{
+    if (rule->type == JSON_TRUE)
+    {
+        return SCHEMA_VALID;
+    }
+    if ((rule->type != JSON_FALSE) && (rule->type != JSON_OBJECT))
+    {
+        return SCHEMA_ERROR;
+    } 
+    if ((node->type != JSON_OBJECT) || (node->size == 0))
+    {
+        return SCHEMA_VALID;
+    }
+
+    const json_t *properties = json_find(parent, "properties");
+    int valid = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < node->size; i++)
+    {
+        if (!json_find(properties, node->child[i]->key))
+        { 
+            if (rule->type == JSON_FALSE)
+            {
+                if (stoppable)
+                {
+                    if (stop_on_invalid(schema, rule, node->child[i]))
+                    {
+                        return SCHEMA_INVALID_STOP;
+                    }
+                }
+                valid = SCHEMA_INVALID_CONTINUE;
+            }
+            else // if object
+            {
+                switch (validate(schema, rule, node->child[i], stoppable))
+                {
+                    case SCHEMA_ERROR:
+                        return SCHEMA_INVALID_STOP;
+                    case SCHEMA_INVALID:
+                        valid = SCHEMA_INVALID_CONTINUE;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    return valid;
+}
+
 static int test_all_of(const json_schema_t *schema,
     const json_t *rule, const json_t *node)
 {
@@ -807,6 +859,9 @@ static int validate(const json_schema_t *schema,
                 test = test_one_of(schema, rule->child[i], node);
                 break;
             // Validate recursive tests
+            case SCHEMA_ADDITIONAL_PROPERTIES:
+                test = test_additional_properties(schema, rule, rule->child[i], node, stoppable);
+                break;
             case SCHEMA_PROPERTIES:
                 test = test_properties(schema, rule->child[i], node, stoppable);
                 break;
