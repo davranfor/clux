@@ -205,11 +205,64 @@ static int get_test(const json_t *rule)
 
 static int test_const(const json_t *rule, const json_t *node)
 {
-    if ((node != NULL) && !json_equal(rule, node))
+    return json_equal(rule, node);
+}
+
+static int test_dependent_required(json_schema_t *schema,
+    const json_t *rule, const json_t *node, int stoppable)
+{
+    if ((rule->type != JSON_OBJECT) || (rule->size == 0))
     {
-        return SCHEMA_INVALID;
+        return SCHEMA_ERROR;
     }
-    return SCHEMA_VALID;
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int valid = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        const json_t *elem = rule->child[i];
+
+        if ((elem->type != JSON_ARRAY) || (elem->size == 0))
+        {
+            return SCHEMA_ERROR;
+        }
+        if (!json_find(node, elem->key))
+        {
+            continue;
+        }
+        for (unsigned j = 0; j < elem->size; j++)
+        {
+            if (elem->child[j]->type != JSON_STRING)
+            {
+                return SCHEMA_ERROR;
+            }
+            if (!json_find(node, elem->child[j]->string))
+            {
+                if (stoppable)
+                {
+                    const json_t temp =
+                    {
+                        .key = rule->key,
+                        .child = (json_t *[]){rule->child[i]},
+                        .size = 1,
+                        .type = JSON_OBJECT
+                    };
+
+                    if (stop_on_invalid(schema, &temp, node))
+                    {
+                        return SCHEMA_INVALID_STOP;
+                    }
+                }
+                valid = SCHEMA_INVALID_CONTINUE;
+                break;
+            }
+        }
+    }
+    return valid;
 }
 
 static int test_enum(const json_t *rule, const json_t *node)
@@ -218,11 +271,7 @@ static int test_enum(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node != NULL) && !json_locate(rule, node))
-    {
-        return SCHEMA_INVALID;
-    }
-    return SCHEMA_VALID;
+    return json_locate(rule, node) != NULL;
 }
 
 static int test_format(const json_t *rule, const json_t *node)
@@ -231,11 +280,11 @@ static int test_format(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node != NULL) && (node->type == JSON_STRING))
+    if (node->type != JSON_STRING)
     {
-        return test_match(node->string, rule->string);
+        return SCHEMA_VALID;
     }
-    return SCHEMA_VALID;
+    return test_match(node->string, rule->string);
 }
 
 static int test_maximum(const json_t *parent,
@@ -245,7 +294,7 @@ static int test_maximum(const json_t *parent,
     {
         return SCHEMA_ERROR;
     }
-    if (!json_is_number(node))
+    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
     {
         return SCHEMA_VALID;
     }
@@ -265,7 +314,7 @@ static int test_max_items(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_ARRAY))
+    if (node->type != JSON_ARRAY)
     {
         return SCHEMA_VALID;
     }
@@ -278,7 +327,7 @@ static int test_max_length(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_STRING))
+    if (node->type != JSON_STRING)
     {
         return SCHEMA_VALID;
     }
@@ -291,7 +340,7 @@ static int test_max_properties(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_OBJECT))
+    if (node->type != JSON_OBJECT)
     {
         return SCHEMA_VALID;
     }
@@ -305,7 +354,7 @@ static int test_minimum(const json_t *parent,
     {
         return SCHEMA_ERROR;
     }
-    if (!json_is_number(node))
+    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
     {
         return SCHEMA_VALID;
     }
@@ -325,7 +374,7 @@ static int test_min_items(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_ARRAY))
+    if (node->type != JSON_ARRAY)
     {
         return SCHEMA_VALID;
     }
@@ -338,7 +387,7 @@ static int test_min_length(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_STRING))
+    if (node->type != JSON_STRING)
     {
         return SCHEMA_VALID;
     }
@@ -351,7 +400,7 @@ static int test_min_properties(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_OBJECT))
+    if (node->type != JSON_OBJECT)
     {
         return SCHEMA_VALID;
     }
@@ -377,11 +426,11 @@ static int test_pattern(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node != NULL) && (node->type == JSON_STRING))
+    if (node->type != JSON_STRING)
     {
-        return test_regex(node->string, rule->string);
+        return SCHEMA_VALID;
     }
-    return SCHEMA_VALID;
+    return test_regex(node->string, rule->string);
 }
 
 static int test_required(json_schema_t *schema,
@@ -391,7 +440,7 @@ static int test_required(json_schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    if ((node == NULL) || (node->type != JSON_OBJECT))
+    if (node->type != JSON_OBJECT)
     {
         return SCHEMA_VALID;
     }
@@ -410,7 +459,7 @@ static int test_required(json_schema_t *schema,
             {
                 const json_t temp =
                 {
-                    .key = "required",
+                    .key = rule->key,
                     .string = rule->child[i]->string,
                     .type = JSON_STRING
                 };
@@ -469,16 +518,13 @@ static int test_type(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if (node != NULL)
-    {
-        unsigned type = node->type;
 
-        /* Reduce JSON_FALSE and JSON_NULL in order to match types */
-        return (mask & (1u << (type < JSON_FALSE ? type : type - 1)))
-            /* 'integer' validates as true if type is 'number' */
-            || ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
-    }
-    return SCHEMA_VALID;
+    unsigned type = node->type;
+
+    /* Reduce JSON_FALSE and JSON_NULL in order to match types */
+    return (mask & (1u << (type < JSON_FALSE ? type : type - 1)))
+        /* 'integer' validates as true if type is 'number' */
+        || ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
 }
 
 static int test_unique_items(const json_t *rule, const json_t *node)
@@ -487,11 +533,11 @@ static int test_unique_items(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((rule->type == JSON_TRUE) && json_is_array(node))
+    if ((rule->type != JSON_TRUE) || (node->type != JSON_ARRAY))
     {
-        return json_unique_children(node);
+        return SCHEMA_VALID;
     }
-    return SCHEMA_VALID;
+    return json_unique_children(node);
 }
 
 static int validate(json_schema_t *schema,
@@ -577,6 +623,9 @@ static int validate(json_schema_t *schema,
                 test = test_minimum(rule, rule->child[i], node);
                 break;
             // Validate multiple tests that doesn't need the parent
+            case SCHEMA_DEPENDENT_REQUIRED:
+                test = test_dependent_required(schema, rule->child[i], node, stoppable);
+                break;
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
                 break;

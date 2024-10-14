@@ -68,7 +68,8 @@
     },
     "required": ["age"],
     "dependentRequired": {
-        "lastName": ["firstName"]
+        "age": ["firstName"],
+        "lastName": ["firstName", "dummy", "lastName"]
     },
     "dependentSchemas": {
         "credit_card": {
