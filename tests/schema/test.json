@@ -17,6 +17,8 @@
         "country": "Spain"
     },
     "credit_card": 123456,
-    "billing_address": "13 Rue del percebe"
+    "billing_address": "13 Rue del percebe",
+    "SomeKey": "This is a string",
+    "123": 456
 }
 

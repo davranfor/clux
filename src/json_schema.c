@@ -201,7 +201,7 @@ static int test_additional_properties(const json_schema_t *schema,
     {
         return SCHEMA_ERROR;
     } 
-    if ((node->type != JSON_OBJECT) || (node->size == 0))
+    if (node->type != JSON_OBJECT)
     {
         return SCHEMA_VALID;
     }
@@ -318,23 +318,23 @@ static int test_dependent_required(const json_schema_t *schema,
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        const json_t *elem = rule->child[i];
+        const json_t *keys = rule->child[i];
 
-        if ((elem->type != JSON_ARRAY) || (elem->size == 0))
+        if ((keys->type != JSON_ARRAY) || (keys->size == 0))
         {
             return SCHEMA_ERROR;
         }
-        if (!json_find(node, elem->key))
+        if (!json_find(node, keys->key))
         {
             continue;
         }
-        for (unsigned j = 0; j < elem->size; j++)
+        for (unsigned j = 0; j < keys->size; j++)
         {
-            if (elem->child[j]->type != JSON_STRING)
+            if (keys->child[j]->type != JSON_STRING)
             {
                 return SCHEMA_ERROR;
             }
-            if (!json_find(node, elem->child[j]->string))
+            if (!json_find(node, keys->child[j]->string))
             {
                 if (stoppable)
                 {
@@ -591,6 +591,51 @@ static int test_pattern(const json_t *rule, const json_t *node)
     return test_regex(node->string, rule->string);
 }
 
+static int test_pattern_properties(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int stoppable)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int valid = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        if (rule->child[i]->size == 0)
+        {
+            continue;
+        }
+        for (unsigned j = 0; j < node->size; j++)
+        {
+            if (!test_regex(node->child[j]->key, rule->child[i]->key))
+            {
+                continue;
+            };
+            switch (validate(schema, rule->child[i], node->child[j], stoppable))
+            {
+                case SCHEMA_ERROR:
+                    return SCHEMA_INVALID_STOP;
+                case SCHEMA_INVALID:
+                    valid = SCHEMA_INVALID_CONTINUE;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    return valid;
+}
+
 static int test_properties(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
@@ -616,13 +661,13 @@ static int test_properties(const json_schema_t *schema,
             continue;
         }
 
-        const json_t *elem = json_find(node, rule->child[i]->key);
+        const json_t *property = json_find(node, rule->child[i]->key);
 
-        if (elem == NULL)
+        if (property == NULL)
         {
             continue;
         }
-        switch (validate(schema, rule->child[i], elem, stoppable))
+        switch (validate(schema, rule->child[i], property, stoppable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_INVALID_STOP;
@@ -842,6 +887,9 @@ static int validate(const json_schema_t *schema,
             // Validate recursive tests
             case SCHEMA_ADDITIONAL_PROPERTIES:
                 test = test_additional_properties(schema, rule, rule->child[i], node, stoppable);
+                break;
+            case SCHEMA_PATTERN_PROPERTIES:
+                test = test_pattern_properties(schema, rule->child[i], node, stoppable);
                 break;
             case SCHEMA_PROPERTIES:
                 test = test_properties(schema, rule->child[i], node, stoppable);
