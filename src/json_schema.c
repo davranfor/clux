@@ -176,28 +176,20 @@ static int get_test(const json_t *rule)
         case SCHEMA_DEFAULT:
             return SCHEMA_VALID;
         case SCHEMA_DEFS:
-            return rule->type == JSON_OBJECT
-                ? SCHEMA_VALID
-                : SCHEMA_ERROR;
+            return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
-            return rule->type == JSON_ARRAY
-                ? SCHEMA_VALID
-                : SCHEMA_ERROR;
+            return rule->type == JSON_ARRAY ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_DESCRIPTION:
         case SCHEMA_ID:
         case SCHEMA_SCHEMA:
         case SCHEMA_TITLE:
-            return rule->type == JSON_STRING
-                ? SCHEMA_VALID
-                : SCHEMA_ERROR;
+            return rule->type == JSON_STRING ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_DEPRECATED:
         case SCHEMA_READ_ONLY:
         case SCHEMA_WRITE_ONLY:
-            return rule->type == JSON_TRUE
+            return (rule->type == JSON_TRUE) || (rule->type == JSON_FALSE)
                 ? SCHEMA_VALID
-                : rule->type == JSON_FALSE
-                    ? SCHEMA_VALID
-                    : SCHEMA_ERROR;
+                : SCHEMA_ERROR;
         default:
             return test;
     }
@@ -222,23 +214,26 @@ static int test_additional_properties(const json_schema_t *schema,
     const json_t *properties = json_find(parent, "properties");
     int valid = SCHEMA_VALID;
 
-    for (unsigned i = 0; i < node->size; i++)
+    if (rule->type == JSON_FALSE)
     {
-        if (!json_find(properties, node->child[i]->key))
-        { 
-            if (rule->type == JSON_FALSE)
-            {
-                if (stoppable)
+        for (unsigned i = 0; i < node->size; i++)
+        {
+            if (!json_find(properties, node->child[i]->key))
+            { 
+                if (stoppable && stop_on_invalid(schema, rule, node->child[i]))
                 {
-                    if (stop_on_invalid(schema, rule, node->child[i]))
-                    {
-                        return SCHEMA_INVALID_STOP;
-                    }
+                    return SCHEMA_INVALID_STOP;
                 }
                 valid = SCHEMA_INVALID_CONTINUE;
             }
-            else // if object
-            {
+        }
+    }
+    else // if (rule->type == JSON_OBJECT)
+    {
+        for (unsigned i = 0; i < node->size; i++)
+        {
+            if (!json_find(properties, node->child[i]->key))
+            { 
                 switch (validate(schema, rule, node->child[i], stoppable))
                 {
                     case SCHEMA_ERROR:
@@ -710,14 +705,7 @@ static int test_type(const json_t *rule, const json_t *node)
 {
     unsigned mask = 0;
 
-    if (rule->type == JSON_STRING)
-    {
-        if (!(mask = add_type(rule->string, mask)))
-        {
-            return SCHEMA_ERROR;
-        }
-    }
-    else if ((rule->type == JSON_ARRAY) && (rule->size > 0))
+    if ((rule->type == JSON_ARRAY) && (rule->size > 0))
     {
         for (unsigned i = 0; i < rule->size; i++)
         {
@@ -725,6 +713,13 @@ static int test_type(const json_t *rule, const json_t *node)
             {
                 return SCHEMA_ERROR;
             }
+        }
+    }
+    else if (rule->type == JSON_STRING)
+    {
+        if (!(mask = add_type(rule->string, mask)))
+        {
+            return SCHEMA_ERROR;
         }
     }
     else
@@ -773,13 +768,6 @@ static int validate(const json_schema_t *schema,
                     return SCHEMA_ERROR;
                 }
                 continue;
-            case SCHEMA_INVALID:
-                if (stoppable && stop_on_invalid(schema, rule->child[i], node))
-                {
-                    return SCHEMA_ERROR;
-                }
-                valid = SCHEMA_INVALID;
-                break;
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;
@@ -870,8 +858,6 @@ static int validate(const json_schema_t *schema,
         // Validate result
         switch (test)
         {
-            case SCHEMA_VALID:
-                continue;
             case SCHEMA_INVALID:
                 if (stoppable && stop_on_invalid(schema, rule->child[i], node))
                 {
