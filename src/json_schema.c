@@ -120,23 +120,18 @@ enum
 {
     SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING,
     SCHEMA_INVALID_CONTINUE, SCHEMA_INVALID_STOP,
-    DEFS = SCHEMA_WARNING, TEST(TEST_ENUM) NTESTS
+    DEFS, TEST(TEST_ENUM) NTESTS
 };
 
 #define TEST_NAME(a, b) {.name = b},
 static test_t tests[] = {TEST(TEST_NAME)};
 
-enum
-{
-    TESTS_SIZE = NTESTS - DEFS - 1,
-    TABLE_SIZE = TESTS_SIZE * 3 
-};
-
+enum {TABLE_SIZE = NTESTS - DEFS - 1};
 static test_t *table[TABLE_SIZE];
 
 __attribute__((constructor)) static void table_load(void)
 {
-    for (size_t i = 0; i < TESTS_SIZE; i++)
+    for (size_t i = 0; i < TABLE_SIZE; i++)
     {
         unsigned long index = hash(tests[i].name) % TABLE_SIZE;
 
