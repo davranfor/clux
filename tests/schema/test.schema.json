@@ -37,7 +37,7 @@
                     {"type": "integer"},
                     {"type": "string"}
                 ],
-                "additionalItems": false,
+                "additionalItems": { "type": "boolean" },
                 "type": "array"
             }
         },
