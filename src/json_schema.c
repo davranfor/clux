@@ -353,10 +353,7 @@ static int test_dependent_schemas(const json_schema_t *schema,
         {
             continue;
         }
-
-        const json_t *property = json_find(node, rule->child[i]->key);
-
-        if (property == NULL)
+        if (!json_find(node, rule->child[i]->key))
         {
             continue;
         }
