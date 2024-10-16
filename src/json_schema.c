@@ -84,6 +84,7 @@ typedef struct test { const char *name; struct test *next; } test_t;
     _(SCHEMA_DEPENDENT_SCHEMAS,         "dependentSchemas")     \
     _(SCHEMA_DEPRECATED,                "deprecated")           \
     _(SCHEMA_DESCRIPTION,               "description")          \
+    _(SCHEMA_ELSE,                      "else")                 \
     _(SCHEMA_ENUM,                      "enum")                 \
     _(SCHEMA_EXAMPLES,                  "examples")             \
     _(SCHEMA_EXCLUSIVE_MAXIMUM,         "exclusiveMaximum")     \
@@ -110,6 +111,7 @@ typedef struct test { const char *name; struct test *next; } test_t;
     _(SCHEMA_REF,                       "$ref")                 \
     _(SCHEMA_REQUIRED,                  "required")             \
     _(SCHEMA_SCHEMA,                    "$schema")              \
+    _(SCHEMA_THEN,                      "then")                 \
     _(SCHEMA_TITLE,                     "title")                \
     _(SCHEMA_TYPE,                      "type")                 \
     _(SCHEMA_UNIQUE_ITEMS,              "uniqueItems")          \
@@ -215,11 +217,18 @@ static int test_additional_properties(const json_schema_t *schema,
         {
             if (!json_find(properties, node->child[i]->key))
             { 
-                if (stoppable && stop_on_invalid(schema, rule, node->child[i]))
+                if (stoppable)
                 {
-                    return SCHEMA_INVALID_STOP;
+                    if (stop_on_invalid(schema, rule, node->child[i]))
+                    {
+                        return SCHEMA_INVALID_STOP;
+                    }
+                    valid = SCHEMA_INVALID_CONTINUE;
                 }
-                valid = SCHEMA_INVALID_CONTINUE;
+                else
+                {
+                    return SCHEMA_INVALID_CONTINUE;
+                }
             }
         }
     }
@@ -297,6 +306,24 @@ static int test_any_of(const json_schema_t *schema,
     return SCHEMA_INVALID;
 }
 
+static int test_branch(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int stoppable)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    switch (validate(schema, rule, node, stoppable))
+    {
+        case SCHEMA_ERROR:
+            return SCHEMA_INVALID_STOP;
+        case SCHEMA_INVALID:
+            return SCHEMA_INVALID_CONTINUE;
+        default:
+            return SCHEMA_VALID;
+    }
+}
+
 static int test_const(const json_t *rule, const json_t *node)
 {
     return json_equal(rule, node);
@@ -350,9 +377,12 @@ static int test_dependent_required(const json_schema_t *schema,
                     {
                         return SCHEMA_INVALID_STOP;
                     }
+                    valid = SCHEMA_INVALID_CONTINUE;
                 }
-                valid = SCHEMA_INVALID_CONTINUE;
-                break;
+                else
+                {
+                    return SCHEMA_INVALID_CONTINUE;
+                }
             }
         }
     }
@@ -405,6 +435,51 @@ static int test_format(const json_t *rule, const json_t *node)
         return SCHEMA_VALID;
     }
     return test_match(node->string, rule->string);
+}
+
+static int test_if(const json_schema_t *schema,
+    const json_t *parent, unsigned *child, const json_t *node)
+{
+    unsigned index = *child;
+    const json_t *rule = parent->child[index];
+
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (parent->size <= index + 1)
+    {
+        return SCHEMA_VALID;
+    }
+    
+    const json_t *next = parent->child[index + 1];
+    int branch = 0;
+ 
+    if (!strcmp(next->key, "else"))
+    {
+        branch = 1;
+    }
+    else if (strcmp(next->key, "then"))
+    {
+        return SCHEMA_VALID;
+    }
+    if (next->type != JSON_OBJECT)
+    {
+        *child += 1;
+        return SCHEMA_ERROR;
+    }
+
+    int valid = validate(schema, rule, node, 0);
+
+    if (valid == SCHEMA_ERROR)
+    {
+        return SCHEMA_INVALID_STOP;
+    }
+    if (valid == branch)
+    {
+        *child += 1;
+    }
+    return SCHEMA_VALID;
 }
 
 static int test_maximum(const json_t *rule, const json_t *node)
@@ -716,8 +791,12 @@ static int test_required(const json_schema_t *schema,
                 {
                     return SCHEMA_INVALID_STOP;
                 }
+                valid = SCHEMA_INVALID_CONTINUE;
             }
-            valid = SCHEMA_INVALID_CONTINUE;
+            else
+            {
+                return SCHEMA_INVALID_CONTINUE;
+            }
         }
     }
     return valid;
@@ -870,11 +949,11 @@ static int validate(const json_schema_t *schema,
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
                 break;
-            // Validate recursive tests forcing stoppable to 'false' (not)
+            // Validate special case 'not'
             case SCHEMA_NOT:
                 test = test_not(schema, rule->child[i], node);
                 break;
-            // Validate recursive tests forcing stoppable to 'false' (combinators)
+            // Validate recursive combinators tests
             case SCHEMA_ALL_OF:
                 test = test_all_of(schema, rule->child[i], node);
                 break;
@@ -883,6 +962,14 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_ONE_OF:
                 test = test_one_of(schema, rule->child[i], node);
+                break;
+            // Validate recursive logical tests
+            case SCHEMA_IF:
+                test = test_if(schema, rule, &i, node);
+                break;
+            case SCHEMA_THEN:
+            case SCHEMA_ELSE:
+                test = test_branch(schema, rule, node, stoppable);
                 break;
             // Validate recursive tests
             case SCHEMA_ADDITIONAL_PROPERTIES:
