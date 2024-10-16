@@ -209,14 +209,15 @@ static int test_additional_items(const json_schema_t *schema,
     }
 
     const json_t *items = json_find(parent, "items");
-    int result = SCHEMA_VALID;
 
     if (rule->type == JSON_FALSE)
     {
-        result = node->size <= items->size;
+        return node->size <= items->size;
     }
     else // if (rule->type == JSON_OBJECT)
     {
+        int result = SCHEMA_VALID;
+
         for (unsigned i = items->size; i < node->size; i++)
         {
             switch (validate(schema, rule, node->child[i], abortable))
@@ -234,8 +235,8 @@ static int test_additional_items(const json_schema_t *schema,
                     break;
             }
         }
+        return result;
     }
-    return result;
 }
 
 static int test_additional_properties(const json_schema_t *schema,
