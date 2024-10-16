@@ -969,7 +969,7 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_THEN:
             case SCHEMA_ELSE:
-                test = test_branch(schema, rule, node, stoppable);
+                test = test_branch(schema, rule->child[i], node, stoppable);
                 break;
             // Validate recursive tests
             case SCHEMA_ADDITIONAL_PROPERTIES:
