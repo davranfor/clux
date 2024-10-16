@@ -560,11 +560,47 @@ static int test_items(const json_schema_t *schema,
 
     if (rule->type == JSON_OBJECT)
     {
-
+        for (unsigned i = 0; i < node->size; i++)
+        {
+            switch (validate(schema, rule, node->child[i], abortable))
+            {
+                case SCHEMA_ERROR:
+                    return SCHEMA_ABORTED;
+                case SCHEMA_INVALID:
+                    if (!abortable)
+                    {
+                        return SCHEMA_FAILURE;
+                    }
+                    result = SCHEMA_FAILURE;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     else // if (rule->type == JSON_ARRAY)
     {
-
+        for (unsigned i = 0; (i < rule->size) && (i < node->size); i++)
+        {
+            if (rule->child[i]->type != JSON_OBJECT)
+            {
+                return SCHEMA_ERROR;
+            }
+            switch (validate(schema, rule->child[i], node->child[i], abortable))
+            {
+                case SCHEMA_ERROR:
+                    return SCHEMA_ABORTED;
+                case SCHEMA_INVALID:
+                    if (!abortable)
+                    {
+                        return SCHEMA_FAILURE;
+                    }
+                    result = SCHEMA_FAILURE;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     return result;
 }
@@ -962,7 +998,7 @@ static int test_type(const json_t *rule, const json_t *node)
 
     /* Reduce JSON_FALSE and JSON_NULL in order to match types */
     return (mask & (1u << (type < JSON_FALSE ? type : type - 1)))
-        /* 'integer' validates as true if type is 'number' */
+        /* 'integer' validates as true when type is 'number' */
         || ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
 }
 
@@ -1083,7 +1119,7 @@ static int validate(const json_schema_t *schema,
             case SCHEMA_ELSE:
                 test = test_branch(schema, rule->child[i], node, abortable);
                 break;
-            // Validate recursive tests
+            // Validate recursive object related tests
             case SCHEMA_PROPERTIES:
                 test = test_properties(schema, rule->child[i], node, abortable);
                 break;
@@ -1092,6 +1128,10 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_PATTERN_PROPERTIES:
                 test = test_pattern_properties(schema, rule->child[i], node, abortable);
+                break;
+            // Validate recursive array related tests
+            case SCHEMA_ITEMS:
+                test = test_items(schema, rule->child[i], node, abortable);
                 break;
             // Validate recursive dependent tests
             case SCHEMA_DEPENDENT_SCHEMAS:
