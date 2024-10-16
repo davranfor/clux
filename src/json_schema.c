@@ -329,6 +329,51 @@ static int test_const(const json_t *rule, const json_t *node)
     return json_equal(rule, node);
 }
 
+static int test_dependent_schemas(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int stoppable)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int valid = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < rule->size; i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        if (rule->child[i]->size == 0)
+        {
+            continue;
+        }
+
+        const json_t *property = json_find(node, rule->child[i]->key);
+
+        if (property == NULL)
+        {
+            continue;
+        }
+        switch (validate(schema, rule->child[i], node, stoppable))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_INVALID_STOP;
+            case SCHEMA_INVALID:
+                valid = SCHEMA_INVALID_CONTINUE;
+                break;
+            default:
+                break;
+        }
+    }
+    return valid;
+}
+
 static int test_dependent_required(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int stoppable)
 {
@@ -943,25 +988,25 @@ static int validate(const json_schema_t *schema,
                 test = test_unique_items(rule->child[i], node);
                 break;
             // Validate multiple tests
-            case SCHEMA_DEPENDENT_REQUIRED:
-                test = test_dependent_required(schema, rule->child[i], node, stoppable);
-                break;
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, stoppable);
+                break;
+            case SCHEMA_DEPENDENT_REQUIRED:
+                test = test_dependent_required(schema, rule->child[i], node, stoppable);
                 break;
             // Validate special case 'not'
             case SCHEMA_NOT:
                 test = test_not(schema, rule->child[i], node);
                 break;
             // Validate recursive combinators tests
-            case SCHEMA_ALL_OF:
-                test = test_all_of(schema, rule->child[i], node);
-                break;
             case SCHEMA_ANY_OF:
                 test = test_any_of(schema, rule->child[i], node);
                 break;
             case SCHEMA_ONE_OF:
                 test = test_one_of(schema, rule->child[i], node);
+                break;
+            case SCHEMA_ALL_OF:
+                test = test_all_of(schema, rule->child[i], node);
                 break;
             // Validate recursive logical tests
             case SCHEMA_IF:
@@ -972,17 +1017,22 @@ static int validate(const json_schema_t *schema,
                 test = test_branch(schema, rule->child[i], node, stoppable);
                 break;
             // Validate recursive tests
+            case SCHEMA_PROPERTIES:
+                test = test_properties(schema, rule->child[i], node, stoppable);
+                break;
             case SCHEMA_ADDITIONAL_PROPERTIES:
                 test = test_additional_properties(schema, rule, rule->child[i], node, stoppable);
                 break;
             case SCHEMA_PATTERN_PROPERTIES:
                 test = test_pattern_properties(schema, rule->child[i], node, stoppable);
                 break;
-            case SCHEMA_PROPERTIES:
-                test = test_properties(schema, rule->child[i], node, stoppable);
+            // Validate recursive dependent tests
+            case SCHEMA_DEPENDENT_SCHEMAS:
+                test = test_dependent_schemas(schema, rule->child[i], node, stoppable);
                 break;
+            // Rule not handled (shouldn't get here)
             default:
-                assert("Unhandled case");
+                assert(0 && "Unhandled test case");
                 //test = SCHEMA_ERROR;
         }
         // Validate result
