@@ -1,10 +1,126 @@
 {
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://example.com/schemas/complex-schema-2d-defs",
+  "title": "Complex Schema with 2D Arrays and $defs Example",
+  "description": "A schema for a complex object with reusable definitions for 2D arrays and nested structures.",
   "type": "object",
+  "required": ["id", "person", "status", "matrix"],
+  
   "properties": {
-    "name": { "type": "string" },
-    "children": {
+    "id": {
+      "type": "string",
+      "description": "A unique identifier for the object"
+    },
+    "person": {
+      "$ref": "#/$defs/person"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive", "pending"]
+    },
+    "preferences": {
+      "$ref": "#/$defs/preferences"
+    },
+    "subscription": {
+      "oneOf": [
+        { "$ref": "#/$defs/freeSubscription" },
+        { "$ref": "#/$defs/premiumSubscription" }
+      ]
+    },
+    "matrix": {
+      "$ref": "#/$defs/matrix"
+    }
+  },
+  
+  "$defs": {
+    "person": {
+      "type": "object",
+      "required": ["name", "age", "address"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "age": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["male", "female", "other"]
+        },
+        "address": {
+          "$ref": "#/$defs/address"
+        }
+      }
+    },
+    "address": {
+      "type": "object",
+      "required": ["street", "city", "zipcode"],
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "zipcode": { 
+          "type": "string", 
+          "pattern": "^[0-9]{5}(-[0-9]{4})?$" 
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "newsletter": {
+          "type": "boolean",
+          "default": false
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["light", "dark"]
+        }
+      }
+    },
+    "freeSubscription": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "free" },
+        "expiryDate": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["type", "expiryDate"]
+    },
+    "premiumSubscription": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "premium" },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["type", "startDate", "features"]
+    },
+    "matrix": {
       "type": "array",
-      "items": { "$ref": "#" }
+      "description": "A 2D array of integers representing a grid or table",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "minItems": 2,
+      "maxItems": 5,
+      "description": "A matrix with 2 to 5 rows of integers, each row being an array of integers"
     }
   }
 }
+
