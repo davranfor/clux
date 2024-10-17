@@ -15,6 +15,8 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
+#define MAX_ACTIVE_REFS 1024
+
 typedef struct
 {
     // Object containing rules
@@ -22,6 +24,8 @@ typedef struct
     // User data
     json_validate_callback callback;
     void *data;
+    // Detect cyclic references
+    int *active_refs;
 } json_schema_t;
 
 static int validate(const json_schema_t *, const json_t *, const json_t *, int);
@@ -981,7 +985,23 @@ static int test_ref(const json_schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    switch (validate(schema, rule, node, abortable))
+    if (++(*schema->active_refs) >= MAX_ACTIVE_REFS)
+    {
+        const json_t temp =
+        {
+            .key = "Max active #refs reached",
+            .number = *schema->active_refs,
+            .type = JSON_INTEGER
+        };
+
+        raise_error(schema, &temp, node);
+        return SCHEMA_ABORTED;
+    }
+
+    int result = validate(schema, rule, node, abortable);
+
+    (*schema->active_refs)--;
+    switch (result)
     {
         case SCHEMA_ERROR:
             return SCHEMA_ABORTED;
@@ -1265,11 +1285,13 @@ static int validate(const json_schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
+    int active_refs = 0;
     const json_schema_t schema =
     {
         .root = rule,
         .callback = callback,
-        .data = data
+        .data = data,
+        .active_refs = &active_refs
     };
 
     if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
