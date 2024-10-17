@@ -965,18 +965,23 @@ static int test_ref(const json_schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    if (ref[1] == '/')
+    if (ref[1] == '\0')
     {
         rule = schema->root;
     }
-
-    const json_t *pointer = json_pointer(rule, ref + 1);
-
-    if ((pointer == NULL) || (pointer->type != JSON_OBJECT))
+    else if (ref[1] == '/')
+    {
+        rule = json_pointer(schema->root, ref + 1);
+    }
+    else
     {
         return SCHEMA_ERROR;
     }
-    switch (validate(schema, pointer, node, abortable))
+    if ((rule == NULL) || (rule->type != JSON_OBJECT))
+    {
+        return SCHEMA_ERROR;
+    }
+    switch (validate(schema, rule, node, abortable))
     {
         case SCHEMA_ERROR:
             return SCHEMA_ABORTED;
@@ -1230,7 +1235,7 @@ static int validate(const json_schema_t *schema,
             // Rule not handled (shouldn't get here)
             default:
                 assert(0 && "Unhandled test case");
-                //test = SCHEMA_ERROR;
+                test = SCHEMA_ERROR;
         }
         // Validate result
         switch (test)
