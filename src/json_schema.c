@@ -15,7 +15,7 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
-#define MAX_ACTIVE_REFS 1024
+#define MAX_ACTIVE_REFS 128
 
 typedef struct
 {
@@ -463,7 +463,7 @@ static int test_dependent_required(const json_schema_t *schema,
             {
                 if (abortable)
                 {
-                    const json_t temp =
+                    const json_t note =
                     {
                         .key = rule->key,
                         .child = (json_t *[]){rule->child[i]},
@@ -471,7 +471,7 @@ static int test_dependent_required(const json_schema_t *schema,
                         .type = JSON_OBJECT
                     };
 
-                    if (abort_on_failure(schema, &temp, node))
+                    if (abort_on_failure(schema, &note, node))
                     {
                         return SCHEMA_ABORTED;
                     }
@@ -987,14 +987,14 @@ static int test_ref(const json_schema_t *schema,
     }
     if (++(*schema->active_refs) >= MAX_ACTIVE_REFS)
     {
-        const json_t temp =
+        const json_t note =
         {
             .key = "Max active #refs reached",
             .number = *schema->active_refs,
             .type = JSON_INTEGER
         };
 
-        raise_error(schema, &temp, node);
+        raise_error(schema, &note, node);
         return SCHEMA_ABORTED;
     }
 
@@ -1036,14 +1036,14 @@ static int test_required(const json_schema_t *schema,
         {
             if (abortable)
             {
-                const json_t temp =
+                const json_t note =
                 {
                     .key = rule->key,
                     .string = rule->child[i]->string,
                     .type = JSON_STRING
                 };
 
-                if (abort_on_failure(schema, &temp, node))
+                if (abort_on_failure(schema, &note, node))
                 {
                     return SCHEMA_ABORTED;
                 }
