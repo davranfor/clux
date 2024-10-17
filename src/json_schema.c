@@ -120,8 +120,8 @@ typedef struct test { const char *name; struct test *next; } test_t;
 #define TEST_ENUM(a, b) a,
 enum
 {
-    SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING,
-    SCHEMA_FAILURE, SCHEMA_ABORTED,
+    SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID,
+    SCHEMA_WARNING, SCHEMA_FAILURE, SCHEMA_ABORTED,
     DEFS, TEST(TEST_ENUM) NTESTS
 };
 
@@ -951,6 +951,42 @@ static int test_properties(const json_schema_t *schema,
     return result;
 }
 
+static int test_ref(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable)
+{
+    if (rule->type != JSON_STRING)
+    {
+        return SCHEMA_ERROR;
+    }
+
+    const char *ref = rule->string;
+
+    if (ref[0] != '#')
+    {
+        return SCHEMA_ERROR;
+    }
+    if (ref[1] == '/')
+    {
+        rule = schema->root;
+    }
+
+    const json_t *pointer = json_pointer(rule, ref + 1);
+
+    if ((pointer == NULL) || (pointer->type != JSON_OBJECT))
+    {
+        return SCHEMA_ERROR;
+    }
+    switch (validate(schema, pointer, node, abortable))
+    {
+        case SCHEMA_ERROR:
+            return SCHEMA_ABORTED;
+        case SCHEMA_INVALID:
+            return SCHEMA_FAILURE;
+        default:
+            return SCHEMA_VALID;
+    }
+}
+
 static int test_required(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -1143,6 +1179,10 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_DEPENDENT_REQUIRED:
                 test = test_dependent_required(schema, rule->child[i], node, abortable);
+                break;
+            // Validate special case 'ref'
+            case SCHEMA_REF:
+                test = test_ref(schema, rule->child[i], node, abortable);
                 break;
             // Validate special case 'not'
             case SCHEMA_NOT:
