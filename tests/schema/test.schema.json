@@ -1,126 +1,77 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "$id": "https://example.com/schemas/complex-schema-2d-defs",
-  "title": "Complex Schema with 2D Arrays and $defs Example",
-  "description": "A schema for a complex object with reusable definitions for 2D arrays and nested structures.",
+  "$id": "https://ejemplo.com/producto.schema.json",
+  "title": "Producto",
+  "description": "Esquema para validar un producto",
   "type": "object",
-  "required": ["id", "person", "status", "matrix"],
-  
   "properties": {
-    "id": {
+    "nombre": {
       "type": "string",
-      "description": "A unique identifier for the object"
+      "minLength": 1,
+      "maxLength": 100
     },
-    "person": {
-      "$ref": "#/$defs/person"
+    "precio": {
+      "type": "number",
+      "minimum": 0
     },
-    "status": {
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true,
+      "maxItems": 10,
+      "minItems": 1
+    },
+    "dimensiones": {
+      "type": "array",
+      "items": [
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ],
+      "description": "Coordenadas 2D, como [[x1, y1], [x2, y2]]"
+    },
+    "propiedadesExtra": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "properties": {
+        "color": { "type": "string" },
+        "peso": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "estadoCivil": {
       "type": "string",
-      "enum": ["active", "inactive", "pending"]
-    },
-    "preferences": {
-      "$ref": "#/$defs/preferences"
-    },
-    "subscription": {
-      "oneOf": [
-        { "$ref": "#/$defs/freeSubscription" },
-        { "$ref": "#/$defs/premiumSubscription" }
-      ]
-    },
-    "matrix": {
-      "$ref": "#/$defs/matrix"
+      "enum": ["soltero", "casado", "divorciado", "viudo"],
+      "default": "soltero"
     }
   },
-  
-  "$defs": {
-    "person": {
-      "type": "object",
-      "required": ["name", "age", "address"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 1
-        },
-        "age": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "gender": {
-          "type": "string",
-          "enum": ["male", "female", "other"]
-        },
-        "address": {
-          "$ref": "#/$defs/address"
-        }
-      }
+  "required": ["nombre", "precio"],
+  "additionalProperties": false,
+  "if": {
+    "properties": { "precio": { "minimum": 1000 } }
+  },
+  "then": {
+    "properties": { "estadoCivil": { "const": "casado" } }
+  },
+  "else": {
+    "properties": { "estadoCivil": { "const": "soltero" } }
+  },
+  "anyOf": [
+    {
+      "required": ["precio"]
     },
-    "address": {
-      "type": "object",
-      "required": ["street", "city", "zipcode"],
-      "properties": {
-        "street": { "type": "string" },
-        "city": { "type": "string" },
-        "zipcode": { 
-          "type": "string", 
-          "pattern": "^[0-9]{5}(-[0-9]{4})?$" 
-        }
-      }
-    },
-    "preferences": {
-      "type": "object",
-      "properties": {
-        "newsletter": {
-          "type": "boolean",
-          "default": false
-        },
-        "theme": {
-          "type": "string",
-          "enum": ["light", "dark"]
-        }
-      }
-    },
-    "freeSubscription": {
-      "type": "object",
-      "properties": {
-        "type": { "const": "free" },
-        "expiryDate": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": ["type", "expiryDate"]
-    },
-    "premiumSubscription": {
-      "type": "object",
-      "properties": {
-        "type": { "const": "premium" },
-        "startDate": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "features": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1
-        }
-      },
-      "required": ["type", "startDate", "features"]
-    },
-    "matrix": {
-      "type": "array",
-      "description": "A 2D array of integers representing a grid or table",
-      "items": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "minItems": 2,
-      "maxItems": 5,
-      "description": "A matrix with 2 to 5 rows of integers, each row being an array of integers"
+    {
+      "required": ["tags"]
     }
-  }
+  ],
+  "allOf": [
+    { "properties": { "precio": { "minimum": 0 } } },
+    { "properties": { "nombre": { "minLength": 1 } } }
+  ]
 }
 

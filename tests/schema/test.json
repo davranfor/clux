@@ -1,32 +1,12 @@
 {
-  "id": "user-789",
-  "person": {
-    "name": "Alex Johnson",
-    "age": 45,
-    "gender": "other",
-    "address": {
-      "street": "789 Maple Ave",
-      "city": "San Francisco",
-      "zipcode": "94105"
-    }
+  "nombre": "Producto Ejemplo",
+  "precio": 1500,
+  "tags": ["nuevo", "oferta"],
+  "dimensiones": [[1, 2], [3, 4]],
+  "propiedadesExtra": {
+    "color": "rojo",
+    "peso": 1.2
   },
-  "status": "active",
-  "preferences": {
-    "newsletter": true,
-    "theme": "dark"
-  },
-  "subscription": {
-    "type": "premium",
-    "startDate": "2023-07-20T08:00:00Z",
-    "features": [
-      "4K streaming",
-      "Multiple devices"
-    ]
-  },
-  "matrix": [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-  ]
+  "estadoCivil": "casado"
 }
 

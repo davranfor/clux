@@ -1,28 +1,11 @@
 {
-  "id": 12345,
-  "person": {
-    "name": "",
-    "age": -5,
-    "gender": "unknown",
-    "address": {
-      "street": "789 Maple Ave",
-      "city": "San Francisco",
-      "zipcode": "9410"
-    }
+  "nombre": "",
+  "precio": 500,
+  "tags": [],
+  "dimensiones": [[1, 2], [3, 4]],
+  "propiedadesExtra": {
+    "color": "rojo",
+    "peso": 1.2
   },
-  "status": "unknown",
-  "preferences": {
-    "newsletter": "true",
-    "theme": "blue"
-  },
-  "subscription": {
-    "type": "premium",
-    "startDate": "2023-07-20",
-    "features": []
-  },
-  "matrix": [
-    [1, 2, "three"],
-    [4, 5, 6, 7, 8, 9]
-  ]
+  "estadoCivil": "casado"
 }
-

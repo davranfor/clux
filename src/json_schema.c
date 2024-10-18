@@ -1148,21 +1148,37 @@ static int test_if(const json_schema_t *schema,
 }
 
 static int test_branch(const json_schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+    const json_t *parent, unsigned *child, const json_t *node, int abortable)
 {
+    unsigned index = *child;
+    const json_t *rule = parent->child[index];
+
     if (rule->type != JSON_OBJECT)
     {
         return SCHEMA_ERROR;
     }
-    switch (validate(schema, rule, node, abortable))
+
+    int result = validate(schema, rule, node, abortable);
+
+    switch (result)
     {
         case SCHEMA_ERROR:
             return SCHEMA_ABORTED;
         case SCHEMA_INVALID:
-            return SCHEMA_FAILURE;
+            result = SCHEMA_FAILURE;
         default:
-            return SCHEMA_VALID;
+            break;
     }
+    if (parent->size > index + 1)
+    {
+        // Skip next branch if is 'else' or 'then' 
+        if (!strcmp(parent->child[index + 1]->key, "else") ||
+            !strcmp(parent->child[index + 1]->key, "then"))
+        {
+            *child += 1;
+        }
+    }
+    return result;
 }
 
 static int validate(const json_schema_t *schema,
@@ -1295,7 +1311,7 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_THEN:
             case SCHEMA_ELSE:
-                test = test_branch(schema, rule->child[i], node, abortable);
+                test = test_branch(schema, rule, &i, node, abortable);
                 break;
             // Rule not handled (shouldn't get here)
             default:
