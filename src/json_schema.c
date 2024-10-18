@@ -111,6 +111,7 @@ typedef struct test { const char *name; struct test *next; } test_t;
     _(SCHEMA_PATTERN,                   "pattern")              \
     _(SCHEMA_PATTERN_PROPERTIES,        "patternProperties")    \
     _(SCHEMA_PROPERTIES,                "properties")           \
+    _(SCHEMA_PROPERTY_NAMES,            "propertyNames")        \
     _(SCHEMA_READ_ONLY,                 "readOnly")             \
     _(SCHEMA_REF,                       "$ref")                 \
     _(SCHEMA_REQUIRED,                  "required")             \
@@ -369,6 +370,47 @@ static int test_pattern_properties(const json_schema_t *schema,
                 default:
                     break;
             }
+        }
+    }
+    return result;
+}
+
+static int test_property_names(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int result = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < node->size; i++)
+    {
+        const json_t name =
+        {
+            .key = rule->key,
+            .string = node->child[i]->key,
+            .type = JSON_STRING
+        };
+
+        switch (validate(schema, rule, &name, abortable))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_INVALID:
+                if (!abortable)
+                {
+                    return SCHEMA_FAILURE;
+                }
+                result = SCHEMA_FAILURE;
+                break;
+            default:
+                break;
         }
     }
     return result;
@@ -1155,6 +1197,9 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_PATTERN_PROPERTIES:
                 test = test_pattern_properties(schema, rule->child[i], node, abortable);
+                break;
+            case SCHEMA_PROPERTY_NAMES:
+                test = test_property_names(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_REQUIRED:
                 test = test_required(schema, rule->child[i], node, abortable);

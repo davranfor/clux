@@ -18,7 +18,6 @@ int json_compare_by_key(const void *pa, const void *pb)
     if ((a->key != NULL) && (b->key != NULL))
     {
         return strcmp(a->key, b->key);
-
     }
     return 0;
 }
