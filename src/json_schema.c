@@ -749,21 +749,15 @@ static int test_min_contains(const json_schema_t *schema,
     }
 
     const json_t *contains = json_find(parent, "contains");
+    size_t min = (size_t)rule->number;
 
     if (contains == NULL)
     {
         return SCHEMA_VALID;
     }
-    if (contains->type != JSON_OBJECT)
+    if ((contains->type != JSON_OBJECT) || (node->size < min))
     {
         return SCHEMA_ERROR;
-    }
-
-    size_t min = (size_t)rule->number;
-
-    if (node->size < min)
-    {
-        return SCHEMA_INVALID;
     }
     for (size_t valids = 0, i = 0; i < node->size; i++)
     {
