@@ -82,6 +82,7 @@ typedef struct test { const char *name; struct test *next; } test_t;
     _(SCHEMA_ALL_OF,                    "allOf")                \
     _(SCHEMA_ANY_OF,                    "anyOf")                \
     _(SCHEMA_CONST,                     "const")                \
+    _(SCHEMA_CONTAINS,                  "contains")             \
     _(SCHEMA_DEFAULT,                   "default")              \
     _(SCHEMA_DEFS,                      "$defs")                \
     _(SCHEMA_DEPENDENT_REQUIRED,        "dependentRequired")    \
@@ -97,14 +98,16 @@ typedef struct test { const char *name; struct test *next; } test_t;
     _(SCHEMA_ID,                        "$id")                  \
     _(SCHEMA_IF,                        "if")                   \
     _(SCHEMA_ITEMS,                     "items")                \
-    _(SCHEMA_MAXIMUM,                   "maximum")              \
+    _(SCHEMA_MAX_CONTAINS,              "maxContains")          \
     _(SCHEMA_MAX_ITEMS,                 "maxItems")             \
     _(SCHEMA_MAX_LENGTH,                "maxLength")            \
     _(SCHEMA_MAX_PROPERTIES,            "maxProperties")        \
-    _(SCHEMA_MINIMUM,                   "minimum")              \
+    _(SCHEMA_MAXIMUM,                   "maximum")              \
+    _(SCHEMA_MIN_CONTAINS,              "minContains")          \
     _(SCHEMA_MIN_ITEMS,                 "minItems")             \
     _(SCHEMA_MIN_LENGTH,                "minLength")            \
     _(SCHEMA_MIN_PROPERTIES,            "minProperties")        \
+    _(SCHEMA_MINIMUM,                   "minimum")              \
     _(SCHEMA_MULTIPLE_OF,               "multipleOf")           \
     _(SCHEMA_NOT,                       "not")                  \
     _(SCHEMA_ONE_OF,                    "oneOf")                \
@@ -178,6 +181,7 @@ static int get_test(const json_t *rule)
         case SCHEMA_DEFAULT:
             return SCHEMA_VALID;
         case SCHEMA_DEFS:
+        case SCHEMA_CONTAINS:
             return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
             return rule->type == JSON_ARRAY ? SCHEMA_VALID : SCHEMA_ERROR;
@@ -730,6 +734,102 @@ static int test_unique_items(const json_t *rule, const json_t *node)
     return json_unique_children(node);
 }
 
+static int test_min_contains(const json_schema_t *schema,
+    const json_t *parent, unsigned child, const json_t *node, int abortable)
+{
+    const json_t *rule = parent->child[child];
+
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+    if ((node->type != JSON_ARRAY) || (rule->number == 0))
+    {
+        return SCHEMA_VALID;
+    }
+
+    const json_t *contains = json_find(parent, "contains");
+
+    if (contains == NULL)
+    {
+        return SCHEMA_VALID;
+    }
+    if (contains->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+
+    size_t min = (size_t)rule->number;
+
+    if (node->size < min)
+    {
+        return SCHEMA_INVALID;
+    }
+    for (size_t valids = 0, i = 0; i < node->size; i++)
+    {
+        switch (validate(schema, contains, node->child[i], abortable))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_VALID:
+                if (++valids == min)
+                {
+                    return SCHEMA_VALID;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    return SCHEMA_INVALID;
+}
+
+static int test_max_contains(const json_schema_t *schema,
+    const json_t *parent, unsigned child, const json_t *node, int abortable)
+{
+    const json_t *rule = parent->child[child];
+
+    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    {
+        return SCHEMA_ERROR;
+    }
+
+    size_t max = (size_t)rule->number;
+
+    if ((node->type != JSON_ARRAY) || (max >= node->size))
+    {
+        return SCHEMA_VALID;
+    }
+
+    const json_t *contains = json_find(parent, "contains");
+
+    if (contains == NULL)
+    {
+        return SCHEMA_VALID;
+    }
+    if (contains->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    for (size_t valids = 0, i = 0; i < node->size; i++)
+    {
+        switch (validate(schema, contains, node->child[i], abortable))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_VALID:
+                if (++valids > max)
+                {
+                    return SCHEMA_INVALID;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    return SCHEMA_VALID;
+}
+
 static int test_min_items(const json_t *rule, const json_t *node)
 {
     if ((rule->type != JSON_INTEGER) || (rule->number < 0))
@@ -1241,6 +1341,12 @@ static int validate(const json_schema_t *schema,
                 break;
             case SCHEMA_UNIQUE_ITEMS:
                 test = test_unique_items(rule->child[i], node);
+                break;
+            case SCHEMA_MIN_CONTAINS:
+                test = test_min_contains(schema, rule, i, node, abortable);
+                break;
+            case SCHEMA_MAX_CONTAINS:
+                test = test_max_contains(schema, rule, i, node, abortable);
                 break;
             case SCHEMA_MIN_ITEMS:
                 test = test_min_items(rule->child[i], node);

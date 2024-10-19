@@ -48,6 +48,12 @@
       "type": "string",
       "enum": ["soltero", "casado", "divorciado", "viudo"],
       "default": "soltero"
+    },
+    "prueba": {
+      "type": "array",
+      "contains": { "type": "integer" },
+      "minContains": 5,
+      "maxContains": 5
     }
   },
   "required": ["nombre", "precio"],
