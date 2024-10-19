@@ -180,8 +180,8 @@ static int get_test(const json_t *rule)
     {
         case SCHEMA_DEFAULT:
             return SCHEMA_VALID;
-        case SCHEMA_DEFS:
         case SCHEMA_CONTAINS:
+        case SCHEMA_DEFS:
             return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
             return rule->type == JSON_ARRAY ? SCHEMA_VALID : SCHEMA_ERROR;
