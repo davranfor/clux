@@ -22,7 +22,7 @@
 struct active
 {
     const json_t *path[MAX_ACTIVE_PATHS];
-    unsigned item[MAX_ACTIVE_PATHS];
+    size_t item[MAX_ACTIVE_PATHS];
     int paths;
     int refs;
 };
@@ -43,21 +43,21 @@ static int validate(const json_schema_t *, const json_t *, const json_t *, int);
 static int callback(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    char str[255] = "$";
-    char *ptr = str + 1;
+    char str[255] = "/";
+    char *ptr = str;
 
-    for (int i = 1; i < schema->active->paths; i++)
+    for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
-        const json_t *path = schema->active->path[i];
         size_t size = sizeof(str) - (size_t)(ptr - str); 
+        const json_t *path = schema->active->path[i];
 
         if (path->key != NULL)
         {
-            ptr += snprintf(ptr, size, ".%s", path->key);
+            ptr += snprintf(ptr, size, "/%s", path->key);
         }
         else
         {
-            ptr += snprintf(ptr, size, "[]");
+            ptr += snprintf(ptr, size, "/%zu", schema->active->item[i]);
         }
     }
 
@@ -279,6 +279,20 @@ static int get_test(const json_t *rule)
     }
 }
 
+static int test_property(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable)
+{
+    if (schema->active->paths++ < MAX_ACTIVE_PATHS)
+    {
+        schema->active->path[schema->active->paths - 1] = node;
+    }
+
+    int result = validate(schema, rule, node, abortable);
+
+    schema->active->paths--;
+    return result;
+}
+
 static int test_properties(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -327,7 +341,7 @@ static int test_properties(const json_schema_t *schema,
         {
             continue;
         }
-        switch (validate(schema, rule->child[i], property, abortable))
+        switch (test_property(schema, rule->child[i], property, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -388,7 +402,7 @@ static int test_additional_properties(const json_schema_t *schema,
         {
             if (!json_find(properties, node->child[i]->key))
             { 
-                switch (validate(schema, rule, node->child[i], abortable))
+                switch (test_property(schema, rule, node->child[i], abortable))
                 {
                     case SCHEMA_ERROR:
                         return SCHEMA_ABORTED;
@@ -438,7 +452,7 @@ static int test_pattern_properties(const json_schema_t *schema,
             {
                 continue;
             };
-            switch (validate(schema, rule->child[i], node->child[j], abortable))
+            switch (test_property(schema, rule->child[i], node->child[j], abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -475,7 +489,7 @@ static int test_property_names(const json_schema_t *schema,
     {
         const json_t name =
         {
-            .key = rule->key,
+            .key = "propertyName",
             .string = node->child[i]->key,
             .type = JSON_STRING
         };
@@ -676,6 +690,21 @@ static int test_max_properties(const json_t *rule, const json_t *node)
     return (size_t)rule->number >= node->size;
 }
 
+static int test_item(const json_schema_t *schema,
+    const json_t *rule, const json_t *parent, size_t child, int abortable)
+{
+    if (schema->active->paths++ < MAX_ACTIVE_PATHS)
+    {
+        schema->active->path[schema->active->paths - 1] = parent->child[child];
+        schema->active->item[schema->active->paths - 1] = child;
+    }
+
+    int result = validate(schema, rule, parent->child[child], abortable);
+
+    schema->active->paths--;
+    return result;
+}
+
 static int test_items(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -709,7 +738,7 @@ static int test_items(const json_schema_t *schema,
     {
         for (unsigned i = 0; i < node->size; i++)
         {
-            switch (validate(schema, rule, node->child[i], abortable))
+            switch (test_item(schema, rule, node, i, abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -733,7 +762,7 @@ static int test_items(const json_schema_t *schema,
             {
                 return SCHEMA_ERROR;
             }
-            switch (validate(schema, rule->child[i], node->child[i], abortable))
+            switch (test_item(schema, rule->child[i], node, i, abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -780,7 +809,7 @@ static int test_additional_items(const json_schema_t *schema,
 
         for (unsigned i = items->size; i < node->size; i++)
         {
-            switch (validate(schema, rule, node->child[i], abortable))
+            switch (test_item(schema, rule, node, i, abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -839,7 +868,7 @@ static int test_min_contains(const json_schema_t *schema,
     }
     for (size_t valids = 0, i = 0; i < node->size; i++)
     {
-        switch (validate(schema, contains, node->child[i], abortable))
+        switch (test_item(schema, contains, node, i, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -885,7 +914,7 @@ static int test_max_contains(const json_schema_t *schema,
     }
     for (size_t valids = 0, i = 0; i < node->size; i++)
     {
-        switch (validate(schema, contains, node->child[i], abortable))
+        switch (test_item(schema, contains, node, i, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;

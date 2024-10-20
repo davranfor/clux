@@ -2,9 +2,9 @@
   "nombre": "",
   "precio": 500,
   "tags": [],
-  "dimensiones": [[1, 2], [3, 4]],
+  "dimensiones": [[1, 2], [3, "4"]],
   "propiedadesExtra": {
-    "color": "rojo",
+    "1color": "rojo",
     "peso": 1.2
   },
   "estadoCivil": "casado"

@@ -23,14 +23,11 @@
     },
     "dimensiones": {
       "type": "array",
-      "items": [
-        {
-          "type": "array",
+      "items": {
           "items": { "type": "number" },
           "minItems": 2,
           "maxItems": 2
-        }
-      ],
+      },
       "description": "Coordenadas 2D, como [[x1, y1], [x2, y2]]"
     },
     "propiedadesExtra": {
