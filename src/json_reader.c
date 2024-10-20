@@ -258,6 +258,16 @@ json_t *json_tail(const json_t *node)
     return NULL;
 }
 
+/* Return node at position 'index' */
+json_t *json_at(const json_t *node, size_t index)
+{
+    if ((node != NULL) && (node->size > index))
+    {
+        return node->child[index];
+    }
+    return NULL;
+}
+
 /* Locates a child by key */
 json_t *json_find(const json_t *node, const char *key)
 {
@@ -275,29 +285,40 @@ json_t *json_find(const json_t *node, const char *key)
 }
 
 /* Locates a child by node */
-json_t *json_locate(const json_t *node, const json_t *what)
+json_t *json_locate(const json_t *parent, const json_t *child)
 {
-    if ((node != NULL) && (what != NULL))
+    if ((parent != NULL) && (child != NULL))
     {
-        for (unsigned index = 0; index < node->size; index++)
+        for (unsigned index = 0; index < parent->size; index++)
         {
-            if (json_equal(node->child[index], what))
+            if (json_equal(parent->child[index], child))
             {
-                return node->child[index];
+                return parent->child[index];
             }
         }
     }
     return NULL;
 }
 
-/* Return node at position 'index' */
-json_t *json_at(const json_t *node, size_t index)
+/* Return 1 if child is unique, 0 otherwise */
+int json_is_unique(const json_t *parent, const json_t *child)
 {
-    if ((node != NULL) && (node->size > index))
+    if ((parent == NULL) || (child == NULL))
     {
-        return node->child[index];
+        return 0;
     }
-    return NULL;
+    for (unsigned i = 0; i < parent->size; i++)
+    {
+        if (parent->child[i] == child)
+        {
+            continue;
+        }
+        if (json_equal(parent->child[i], child))
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 /* Return 1 if all nodes are unique, 0 otherwise */
