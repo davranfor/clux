@@ -25,27 +25,14 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_t *node, const json_t *rule,
-    int event, void *data)
+static int on_validate(const json_t *node, int event, void *data)
 {
-    const char **path = data;
-    const char *msg[] =
-    {
-        "Warning. Unknown schema rule",
-        "Invalid. Doesn't validate against schema rule",
-        "Aborted. Malformed schema"
-    };
+    (void)event;
 
-    fprintf(stderr, "\nTarget: %s\nSchema: %s\n%s\n",
-            path[0], path[1], msg[event]
-    );
-    if ((event == JSON_SCHEMA_INVALID) && json_is_scalar(node))
-    {
-        fprintf(stderr, "Node:\n");
-        json_write(node, stderr, 2);
-    }
-    fprintf(stderr, "Rule\n");
-    json_write(rule, stderr, 2);
+    const char **path = data;
+
+    fprintf(stderr, "\nTarget: %s\nSchema: %s\n", path[0], path[1]);
+    json_write(node, stderr, 2);
     return JSON_SCHEMA_CONTINUE;
 }
 

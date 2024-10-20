@@ -4,9 +4,10 @@
  *  \copyright GNU Public License.
  */
 
-#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 #include "clib_test.h"
 #include "clib_string.h"
@@ -15,20 +16,97 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
+#define MAX_ACTIVE_PATHS 8
 #define MAX_ACTIVE_REFS 128
+
+struct active
+{
+    const json_t *path[MAX_ACTIVE_PATHS];
+    unsigned item[MAX_ACTIVE_PATHS];
+    int paths;
+    int refs;
+};
 
 typedef struct
 {
-    // Object containing rules
+    // Schema root
     const json_t *root;
     // User data
     json_validate_callback callback;
     void *data;
-    // Detect cyclic references
-    int *active_refs;
+    // Detect paths and cyclic references
+    struct active *active;
 } json_schema_t;
 
 static int validate(const json_schema_t *, const json_t *, const json_t *, int);
+
+static int callback(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int event)
+{
+    char str[255] = "$";
+    char *ptr = str + 1;
+
+    for (int i = 1; i < schema->active->paths; i++)
+    {
+        const json_t *path = schema->active->path[i];
+        size_t size = sizeof(str) - (size_t)(ptr - str); 
+
+        if (path->key != NULL)
+        {
+            ptr += snprintf(ptr, size, ".%s", path->key);
+        }
+        else
+        {
+            ptr += snprintf(ptr, size, "[]");
+        }
+    }
+
+    char *events[] =
+    {
+        "Warning. Unknown schema rule",
+        "Invalid. Doesn't validate against schema rule",
+        "Aborted. Malformed schema"
+    };
+
+    json_t cb_event =
+    {
+        .key = "event",
+        .string = events[event],
+        .type = JSON_STRING
+    };
+    json_t cb_path =
+    {
+        .key = "path",
+        .string = str,
+        .type = JSON_STRING
+    };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    json_t cb_node =
+    {
+        .key = "node",
+        .child = (json_t *[]){(json_t *)node},
+        .size = 1,
+        .type = node->key ? JSON_OBJECT : JSON_ARRAY
+    };
+    json_t cb_rule =
+    {
+        .key = "rule",
+        .child = (json_t *[]){(json_t *)rule},
+        .size = 1,
+        .type = rule->key ? JSON_OBJECT : JSON_ARRAY
+    };
+#pragma GCC diagnostic pop
+
+    const json_t note =
+    {
+        .child = (json_t *[]){&cb_event, &cb_path, &cb_node, &cb_rule},
+        .size = 4,
+        .type = JSON_OBJECT
+    };
+
+    return !schema->callback(&note, event, schema->data);
+}
 
 static int notify(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
@@ -37,7 +115,7 @@ static int notify(const json_schema_t *schema,
 
     if (schema->callback)
     {
-        return schema->callback(node, rule, event, schema->data) == 0;
+        return callback(schema, rule, node, event);
     }
     return stop;
 }
@@ -1063,12 +1141,12 @@ static int test_ref(const json_schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    if (++(*schema->active_refs) >= MAX_ACTIVE_REFS)
+    if (++schema->active->refs >= MAX_ACTIVE_REFS)
     {
         const json_t note =
         {
-            .key = "Max active #refs reached",
-            .number = *schema->active_refs,
+            .key = "maxActiveRefs",
+            .number = schema->active->refs,
             .type = JSON_INTEGER
         };
 
@@ -1078,7 +1156,7 @@ static int test_ref(const json_schema_t *schema,
 
     int result = validate(schema, rule, node, abortable);
 
-    (*schema->active_refs)--;
+    schema->active->refs--;
     switch (result)
     {
         case SCHEMA_ERROR:
@@ -1446,13 +1524,17 @@ static int validate(const json_schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    int active_refs = 0;
+    struct active active =
+    {
+        .path[0] = node,
+        .paths = 1
+    };
     const json_schema_t schema =
     {
         .root = rule,
         .callback = callback,
         .data = data,
-        .active_refs = &active_refs
+        .active = &active
     };
 
     if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
