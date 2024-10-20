@@ -61,6 +61,7 @@ static int callback(const json_schema_t *schema,
         }
     }
 
+    // cppcheck-suppress constVariable
     char *events[] =
     {
         "Warning. Unknown schema rule",
