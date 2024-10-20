@@ -383,40 +383,42 @@ static int test_additional_properties(const json_schema_t *schema,
     {
         for (unsigned i = 0; i < node->size; i++)
         {
-            if (!json_find(properties, node->child[i]->key))
+            if (json_find(properties, node->child[i]->key))
             { 
-                if (!abortable)
-                {
-                    return SCHEMA_FAILURE;
-                }
-                if (abort_on_failure(schema, rule, node->child[i]))
-                {
-                    return SCHEMA_ABORTED;
-                }
-                result = SCHEMA_FAILURE;
+                continue;
             }
+            if (!abortable)
+            {
+                return SCHEMA_FAILURE;
+            }
+            if (abort_on_failure(schema, rule, node->child[i]))
+            {
+                return SCHEMA_ABORTED;
+            }
+            result = SCHEMA_FAILURE;
         }
     }
     else // if (rule->type == JSON_OBJECT)
     {
         for (unsigned i = 0; i < node->size; i++)
         {
-            if (!json_find(properties, node->child[i]->key))
+            if (json_find(properties, node->child[i]->key))
             { 
-                switch (test_property(schema, rule, node->child[i], abortable))
-                {
-                    case SCHEMA_ERROR:
-                        return SCHEMA_ABORTED;
-                    case SCHEMA_INVALID:
-                        if (!abortable)
-                        {
-                            return SCHEMA_FAILURE;
-                        }
-                        result = SCHEMA_FAILURE;
-                        break;
-                    default:
-                        break;
-                }
+                continue;
+            }
+            switch (test_property(schema, rule, node->child[i], abortable))
+            {
+                case SCHEMA_ERROR:
+                    return SCHEMA_ABORTED;
+                case SCHEMA_INVALID:
+                    if (!abortable)
+                    {
+                        return SCHEMA_FAILURE;
+                    }
+                    result = SCHEMA_FAILURE;
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -533,27 +535,28 @@ static int test_required(const json_schema_t *schema,
         {
             return SCHEMA_ERROR;
         }
-        if (!json_find(node, rule->child[i]->string))
+        if (json_find(node, rule->child[i]->string))
         {
-            if (abortable)
+            continue;
+        }
+        if (abortable)
+        {
+            const json_t note =
             {
-                const json_t note =
-                {
-                    .key = rule->key,
-                    .string = rule->child[i]->string,
-                    .type = JSON_STRING
-                };
+                .key = rule->key,
+                .string = rule->child[i]->string,
+                .type = JSON_STRING
+            };
 
-                if (abort_on_failure(schema, &note, node))
-                {
-                    return SCHEMA_ABORTED;
-                }
-                result = SCHEMA_FAILURE;
-            }
-            else
+            if (abort_on_failure(schema, &note, node))
             {
-                return SCHEMA_FAILURE;
+                return SCHEMA_ABORTED;
             }
+            result = SCHEMA_FAILURE;
+        }
+        else
+        {
+            return SCHEMA_FAILURE;
         }
     }
     return result;
@@ -591,28 +594,29 @@ static int test_dependent_required(const json_schema_t *schema,
             {
                 return SCHEMA_ERROR;
             }
-            if (!json_find(node, keys->child[j]->string))
+            if (json_find(node, keys->child[j]->string))
             {
-                if (abortable)
+                continue;
+            }
+            if (abortable)
+            {
+                const json_t note =
                 {
-                    const json_t note =
-                    {
-                        .key = rule->key,
-                        .child = (json_t *[]){rule->child[i]},
-                        .size = 1,
-                        .type = JSON_OBJECT
-                    };
+                    .key = rule->key,
+                    .child = (json_t *[]){rule->child[i]},
+                    .size = 1,
+                    .type = JSON_OBJECT
+                };
 
-                    if (abort_on_failure(schema, &note, node))
-                    {
-                        return SCHEMA_ABORTED;
-                    }
-                    result = SCHEMA_FAILURE;
-                }
-                else
+                if (abort_on_failure(schema, &note, node))
                 {
-                    return SCHEMA_FAILURE;
+                    return SCHEMA_ABORTED;
                 }
+                result = SCHEMA_FAILURE;
+            }
+            else
+            {
+                return SCHEMA_FAILURE;
             }
         }
     }
