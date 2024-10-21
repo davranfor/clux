@@ -42,7 +42,7 @@ typedef struct
 
 static int validate(const json_schema_t *, const json_t *, const json_t *, int);
 
-static int callback(const json_schema_t *schema,
+static int notify_user(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
     char str[255] = "/";
@@ -90,14 +90,14 @@ static int callback(const json_schema_t *schema,
         .key = node->key,
         .type = node->type == JSON_OBJECT ? JSON_OBJECT
                 : node->type == JSON_ARRAY ? JSON_ARRAY
-                : JSON_NULL
+                : JSON_UNDEFINED
     };
     json_t cb_node =
     {
         .key = "node",
         .child = (json_t *[])
         {
-            alt_node.type != JSON_NULL ? &alt_node : (json_t *)node
+            alt_node.type != JSON_UNDEFINED ? &alt_node : (json_t *)node
         },
         .size = 1,
         .type = node->key ? JSON_OBJECT : JSON_ARRAY
@@ -105,17 +105,17 @@ static int callback(const json_schema_t *schema,
     json_t alt_rule =
     {
         .key = rule->key,
-        .type = rule->flags & FLAG_FORCE_RULE ? JSON_NULL
+        .type = rule->flags & FLAG_FORCE_RULE ? JSON_UNDEFINED
                 : rule->type == JSON_OBJECT ? JSON_OBJECT
                 : rule->type == JSON_ARRAY ? JSON_ARRAY
-                : JSON_NULL
+                : JSON_UNDEFINED
     };
     json_t cb_rule =
     {
         .key = "rule",
         .child = (json_t *[])
         {
-            alt_rule.type != JSON_NULL ? &alt_rule : (json_t *)rule
+            alt_rule.type != JSON_UNDEFINED ? &alt_rule : (json_t *)rule
         },
         .size = 1,
         .type = rule->key ? JSON_OBJECT : JSON_ARRAY
@@ -135,13 +135,7 @@ static int callback(const json_schema_t *schema,
 static int notify(const json_schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    int stop = 0;
-
-    if (schema->callback)
-    {
-        return callback(schema, rule, node, event);
-    }
-    return stop;
+    return schema->callback ? notify_user(schema, rule, node, event) : 0;
 }
 
 static int abort_on_warning(const json_schema_t *schema,
