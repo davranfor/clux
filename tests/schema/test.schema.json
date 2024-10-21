@@ -24,7 +24,7 @@
     "dimensiones": {
       "type": "array",
       "items": {
-          "items": { "type": "number" },
+          "items": { "type": ["number", "boolean" ] },
           "minItems": 2,
           "maxItems": 2
       },

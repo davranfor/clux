@@ -16,8 +16,10 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
-#define MAX_ACTIVE_PATHS 8
+#define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
+
+#define FLAG_FORCE_RULE 0x1
 
 struct active
 {
@@ -71,7 +73,7 @@ static int callback(const json_schema_t *schema,
 
     json_t cb_event =
     {
-        .key = "event",
+        .key = "$msg",
         .string = events[event],
         .type = JSON_STRING
     };
@@ -83,17 +85,38 @@ static int callback(const json_schema_t *schema,
     };
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
+    json_t alt_node =
+    {
+        .key = node->key,
+        .type = node->type == JSON_OBJECT ? JSON_OBJECT
+                : node->type == JSON_ARRAY ? JSON_ARRAY
+                : JSON_NULL
+    };
     json_t cb_node =
     {
         .key = "node",
-        .child = (json_t *[]){(json_t *)node},
+        .child = (json_t *[])
+        {
+            alt_node.type != JSON_NULL ? &alt_node : (json_t *)node
+        },
         .size = 1,
         .type = node->key ? JSON_OBJECT : JSON_ARRAY
+    };
+    json_t alt_rule =
+    {
+        .key = rule->key,
+        .type = rule->flags & FLAG_FORCE_RULE ? JSON_NULL
+                : rule->type == JSON_OBJECT ? JSON_OBJECT
+                : rule->type == JSON_ARRAY ? JSON_ARRAY
+                : JSON_NULL
     };
     json_t cb_rule =
     {
         .key = "rule",
-        .child = (json_t *[]){(json_t *)rule},
+        .child = (json_t *[])
+        {
+            alt_rule.type != JSON_NULL ? &alt_rule : (json_t *)rule
+        },
         .size = 1,
         .type = rule->key ? JSON_OBJECT : JSON_ARRAY
     };
@@ -605,6 +628,7 @@ static int test_dependent_required(const json_schema_t *schema,
                     .key = rule->key,
                     .child = (json_t *[]){rule->child[i]},
                     .size = 1,
+                    .flags = FLAG_FORCE_RULE,
                     .type = JSON_OBJECT
                 };
 
@@ -613,6 +637,7 @@ static int test_dependent_required(const json_schema_t *schema,
                     return SCHEMA_ABORTED;
                 }
                 result = SCHEMA_FAILURE;
+                continue;
             }
             else
             {
@@ -1111,7 +1136,8 @@ static unsigned add_type(const char *type, unsigned mask)
     return 0;
 }
 
-static int test_type(const json_t *rule, const json_t *node)
+static int test_type(const json_schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable)
 {
     unsigned mask = 0;
 
@@ -1139,10 +1165,33 @@ static int test_type(const json_t *rule, const json_t *node)
 
     unsigned type = node->type;
 
-    /* Reduce JSON_FALSE and JSON_NULL in order to match types */
-    return (mask & (1u << (type < JSON_FALSE ? type : type - 1)))
-        /* 'integer' validates as true when type is 'number' */
-        || ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
+    /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
+    int result = (mask & (1u << (type < JSON_FALSE ? type : type - 1))) ||
+                /* 'integer' validates as true when type is 'number' */
+                ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
+
+
+    if ((result == SCHEMA_INVALID) && (rule->type == JSON_ARRAY))
+    {
+        if (abortable)
+        {
+            const json_t note =
+            {
+                .key = rule->key,
+                .child = rule->child,
+                .size = rule->size,
+                .type = rule->type,
+                .flags = FLAG_FORCE_RULE
+            };
+
+            if (abort_on_failure(schema, &note, node))
+            {
+                return SCHEMA_ABORTED;
+            }
+        }
+        return SCHEMA_FAILURE;
+    }
+    return result;
 }
 
 static int test_ref(const json_schema_t *schema,
@@ -1497,7 +1546,7 @@ static int validate(const json_schema_t *schema,
                 test = test_enum(rule->child[i], node);
                 break;
             case SCHEMA_TYPE:
-                test = test_type(rule->child[i], node);
+                test = test_type(schema, rule->child[i], node, abortable);
                 break;
             // Validate special case 'ref'
             case SCHEMA_REF:
