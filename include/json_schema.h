@@ -9,7 +9,7 @@
 
 #include "json_header.h"
 
-enum {JSON_SCHEMA_STOP, JSON_SCHEMA_CONTINUE};
+enum {JSON_SCHEMA_ABORT, JSON_SCHEMA_CONTINUE};
 enum {JSON_SCHEMA_WARNING, JSON_SCHEMA_INVALID, JSON_SCHEMA_ERROR};
 
 typedef int (*json_validate_callback)(const json_t *, int, void *);

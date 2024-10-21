@@ -1158,7 +1158,6 @@ static int test_type(const json_schema_t *schema,
     }
 
     unsigned type = node->type;
-
     /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
     int result = (mask & (1u << (type < JSON_FALSE ? type : type - 1))) ||
                 /* 'integer' validates as true when type is 'number' */
