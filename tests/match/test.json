@@ -5,12 +5,12 @@
     {"test": "time", "a-valid-time": "00:00:00"},
     {"test": "time", "invalid-time": "24:00:00"},
 
-    {"test": "datetime", "a-valid-date-time-1": "2001-01-01T00:00:00"},
-    {"test": "datetime", "a-valid-date-time-2": "2001-01-01T00:00:00+00:00"},
-    {"test": "datetime", "a-valid-date-time-3": "2001-01-01T00:00:00-00:00"},
-    {"test": "datetime", "a-valid-date-time-4": "2001-01-01T00:00:00Z"},
-    {"test": "datetime", "invalid-date-time-1": "2001-01-01T24:00"},
-    {"test": "datetime", "invalid-date-time-2": "2001-01-01T00:00X"},
+    {"test": "date-time", "a-valid-date-time-1": "2001-01-01T00:00:00"},
+    {"test": "date-time", "a-valid-date-time-2": "2001-01-01T00:00:00+00:00"},
+    {"test": "date-time", "a-valid-date-time-3": "2001-01-01T00:00:00-00:00"},
+    {"test": "date-time", "a-valid-date-time-4": "2001-01-01T00:00:00Z"},
+    {"test": "date-time", "invalid-date-time-1": "2001-01-01T24:00"},
+    {"test": "date-time", "invalid-date-time-2": "2001-01-01T00:00X"},
 
     {"test": "hostname", "a-valid-hostname": "some.host.com"},
     {"test": "hostname", "invalid-hostname": "!"},
