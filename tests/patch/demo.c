@@ -25,18 +25,6 @@ int main(void)
 
     json_delete(a);
     json_delete(b);
-
-/*
-    json_t *a = json_parse("{\"a\": 0, \"b\": 1, \"c\": 2, \"d\": 3, \"e\": 4, \"f\": 5}", NULL);
-    json_t *b = json_parse("[0, 1, 2, 3, 4]", NULL);
-
-    json_move(b, 3, 1);
-    json_print(b);
-
-    json_delete(a);
-    json_delete(b);
-*/
-
     return 0;
 }
 

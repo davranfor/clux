@@ -20,35 +20,35 @@ int main(void)
 {
     srand((unsigned)time(NULL));
 
-    json_t *root = json_new_array();
+    json_t *array = json_new_array();
 
     for (int i = 0; i <= 25; i++)
     {
-        json_push_back(root, json_new_number(rand() % 100));
+        json_push_back(array, json_new_number(rand() % 100));
         if ((i % 5) == 0)
         {
-            json_push_back(root, json_new_null());
+            json_push_back(array, json_new_null());
         }
     }
 
     puts("Unsorted:");
-    json_print(root);
+    json_print(array);
 
     // Sort (default)
     puts("Sorted:");
-    json_sort(root, NULL);
-    json_print(root);
+    json_sort(array, NULL);
+    json_print(array);
 
     // Sort by user-defined callback
     puts("Sorted (nulls first):");
-    json_sort(root, nulls_first);
-    json_print(root);
+    json_sort(array, nulls_first);
+    json_print(array);
 
     puts("Reversed:");
-    json_reverse(root);
-    json_print(root);
+    json_reverse(array);
+    json_print(array);
 
-    json_delete(root);
+    json_delete(array);
     return 0;
 }
 
