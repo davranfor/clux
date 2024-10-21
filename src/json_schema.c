@@ -169,7 +169,7 @@ static unsigned long hash_str(const unsigned char *key)
     return hash;
 }
 
-typedef struct test { const char *name; struct test *next; } test_t;
+typedef struct test { const char *key; struct test *next; } test_t;
 
 /* X macro indexing enum and array of tests */
 #define TEST(_)                                                 \
@@ -229,8 +229,8 @@ enum
     DEFS, TEST(TEST_ENUM) NTESTS
 };
 
-#define TEST_NAME(a, b) {.name = b},
-static test_t tests[] = {TEST(TEST_NAME)};
+#define TEST_KEY(a, b) {.key = b},
+static test_t tests[] = {TEST(TEST_KEY)};
 
 enum {TABLE_SIZE = NTESTS - DEFS - 1};
 static test_t *table[TABLE_SIZE];
@@ -239,7 +239,7 @@ __attribute__((constructor)) static void table_load(void)
 {
     for (size_t i = 0; i < TABLE_SIZE; i++)
     {
-        unsigned long index = hash(tests[i].name) % TABLE_SIZE;
+        unsigned long index = hash(tests[i].key) % TABLE_SIZE;
 
         tests[i].next = table[index];
         table[index] = &tests[i];
@@ -253,7 +253,7 @@ static int table_get_test(const char *key)
 
     while (test != NULL)
     {
-        if (!strcmp(test->name, key))
+        if (!strcmp(test->key, key))
         {
             return (int)(test - tests) + DEFS + 1;
         }
