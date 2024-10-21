@@ -83,26 +83,14 @@ static int notify_user(const json_schema_t *schema,
         .string = str,
         .type = JSON_STRING
     };
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-    json_t alt_node =
+    json_t it_node =
     {
         .key = node->key,
         .type = node->type == JSON_OBJECT ? JSON_OBJECT
                 : node->type == JSON_ARRAY ? JSON_ARRAY
                 : JSON_UNDEFINED
     };
-    json_t cb_node =
-    {
-        .key = "node",
-        .child = (json_t *[])
-        {
-            alt_node.type != JSON_UNDEFINED ? &alt_node : (json_t *)node
-        },
-        .size = 1,
-        .type = node->key ? JSON_OBJECT : JSON_ARRAY
-    };
-    json_t alt_rule =
+    json_t it_rule =
     {
         .key = rule->key,
         .type = rule->flags & FLAG_FORCE_RULE ? JSON_UNDEFINED
@@ -110,12 +98,24 @@ static int notify_user(const json_schema_t *schema,
                 : rule->type == JSON_ARRAY ? JSON_ARRAY
                 : JSON_UNDEFINED
     };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    json_t cb_node =
+    {
+        .key = "node",
+        .child = (json_t *[])
+        {
+            it_node.type != JSON_UNDEFINED ? &it_node : (json_t *)node
+        },
+        .size = 1,
+        .type = node->key ? JSON_OBJECT : JSON_ARRAY
+    };
     json_t cb_rule =
     {
         .key = "rule",
         .child = (json_t *[])
         {
-            alt_rule.type != JSON_UNDEFINED ? &alt_rule : (json_t *)rule
+            it_rule.type != JSON_UNDEFINED ? &it_rule : (json_t *)rule
         },
         .size = 1,
         .type = rule->key ? JSON_OBJECT : JSON_ARRAY
