@@ -56,7 +56,7 @@ static void map_destroy(void)
     json_map_destroy(map, json_free);
 }
 
-static int request_done(const char *str, size_t size)
+static int request_ready(const char *str, size_t size)
 {
     const char *end = strstr(str, header_end);
 
@@ -270,7 +270,7 @@ static char *request_content(char *header, const char *content,
     }
 }
 
-static void request_handle(struct poolfd *pool, char *buffer, size_t size)
+static void request_reply(struct poolfd *pool, char *buffer, size_t size)
 {
     enum method method = NONE;
     char *content = strstr(pool->data, header_end);
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
         perror("json_map_create");
         exit(EXIT_FAILURE);
     }
-    server_init(port, request_done, request_handle);
+    server_init(port, request_ready, request_reply);
     return 0;
 }
 

@@ -23,8 +23,8 @@
 
 static char buffer[BUFFER_SIZE];
 
-static int (*request_done)(const char *, size_t);
-static void (*request_handle)(struct poolfd *, char *, size_t);
+static int (*request_ready)(const char *, size_t);
+static void (*request_reply)(struct poolfd *, char *, size_t);
  
 static volatile sig_atomic_t stop;
 
@@ -135,7 +135,7 @@ static ssize_t conn_recv(struct pollfd *conn, struct poolfd *pool)
 
     int bufferable = pool->data == NULL;
     
-    if (bufferable && request_done(buffer, rcvd))
+    if (bufferable && request_ready(buffer, rcvd))
     {
         pool_set(pool, buffer, rcvd);
     }
@@ -146,7 +146,7 @@ static ssize_t conn_recv(struct pollfd *conn, struct poolfd *pool)
             perror("pool_put");
             return 0;
         }
-        if (bufferable || !request_done(pool->data, pool->size))
+        if (bufferable || !request_ready(pool->data, pool->size))
         {
             return -1;
         }
@@ -210,7 +210,7 @@ static void conn_handle(struct pollfd *conn, struct poolfd *pool)
                 default:
                     puts("");
                     puts(pool->data);
-                    request_handle(pool, buffer, BUFFER_SIZE);
+                    request_reply(pool, buffer, BUFFER_SIZE);
                     break;
             }
         }
@@ -313,11 +313,11 @@ static void server_loop(uint16_t port)
 }
 
 void server_init(uint16_t port,
-    int (*cb_request_done)(const char *, size_t),
-    void (*cb_request_handle)(struct poolfd *, char *, size_t))
+    int (*cb_request_ready)(const char *, size_t),
+    void (*cb_request_reply)(struct poolfd *, char *, size_t))
 {
-    request_done = cb_request_done;
-    request_handle = cb_request_handle;
+    request_ready = cb_request_ready;
+    request_reply = cb_request_reply;
     signal_connect();
     server_loop(port);
 }

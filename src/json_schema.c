@@ -36,7 +36,7 @@ typedef struct
     // User data
     json_validate_callback callback;
     void *data;
-    // Detect paths and cyclic references
+    // Paths and references
     struct active *active;
 } json_schema_t;
 
