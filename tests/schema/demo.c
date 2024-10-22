@@ -50,7 +50,7 @@ int main(void)
 {
     setlocale(LC_CTYPE, "");
 
-    const char *path[] = {"test.invalid.json", "test.schema.json"};
+    const char *path[] = {"test.json", "test.schema.json"};
 
     json_t *target = parse_file(path[0]);
 

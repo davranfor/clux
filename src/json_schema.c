@@ -70,17 +70,17 @@ static int notify_user(const schema_t *schema,
     const json_t cb_node =
     {
         .key = node->key,
-        .type = node->type == JSON_OBJECT ? JSON_OBJECT
-                : node->type == JSON_ARRAY ? JSON_ARRAY
-                : JSON_UNDEFINED
+        .type = node->type == JSON_OBJECT ? JSON_OBJECT :
+                node->type == JSON_ARRAY ? JSON_ARRAY :
+                JSON_UNDEFINED
     };
     const json_t cb_rule =
     {
         .key = rule->key,
-        .type = rule->flags & FLAG_FORCE_RULE ? JSON_UNDEFINED
-                : rule->type == JSON_OBJECT ? JSON_OBJECT
-                : rule->type == JSON_ARRAY ? JSON_ARRAY
-                : JSON_UNDEFINED
+        .type = rule->flags & FLAG_FORCE_RULE ? JSON_UNDEFINED :
+                rule->type == JSON_OBJECT ? JSON_OBJECT :
+                rule->type == JSON_ARRAY ? JSON_ARRAY :
+                JSON_UNDEFINED
     };
     const json_schema_t note =
     {
@@ -315,10 +315,6 @@ static int test_properties(const schema_t *schema,
         {
             return SCHEMA_ERROR;
         }
-        if (rule->child[i]->size == 0)
-        {
-            continue;
-        }
         switch (test_property(schema, rule->child[i], property, abortable))
         {
             case SCHEMA_ERROR:
@@ -421,10 +417,6 @@ static int test_pattern_properties(const schema_t *schema,
         if (rule->child[i]->type != JSON_OBJECT)
         {
             return SCHEMA_ERROR;
-        }
-        if (rule->child[i]->size == 0)
-        {
-            continue;
         }
         for (unsigned j = 0; j < node->size; j++)
         {
@@ -783,33 +775,35 @@ static int test_additional_items(const schema_t *schema,
 
     const json_t *items = json_find(parent, "items");
 
+    if ((items == NULL) || (items->type != JSON_ARRAY))
+    {
+        return SCHEMA_VALID;
+    }
     if (rule->type == JSON_FALSE)
     {
         return node->size <= items->size;
     }
-    else // if (rule->type == JSON_OBJECT)
-    {
-        int result = SCHEMA_VALID;
 
-        for (unsigned i = items->size; i < node->size; i++)
+    int result = SCHEMA_VALID;
+
+    for (unsigned i = items->size; i < node->size; i++)
+    {
+        switch (test_item(schema, rule, node, i, abortable))
         {
-            switch (test_item(schema, rule, node, i, abortable))
-            {
-                case SCHEMA_ERROR:
-                    return SCHEMA_ABORTED;
-                case SCHEMA_INVALID:
-                    if (!abortable)
-                    {
-                        return SCHEMA_FAILURE;
-                    }
-                    result = SCHEMA_FAILURE;
-                    break;
-                default:
-                    break;
-            }
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_INVALID:
+                if (!abortable)
+                {
+                    return SCHEMA_FAILURE;
+                }
+                result = SCHEMA_FAILURE;
+                break;
+            default:
+                break;
         }
-        return result;
     }
+    return result;
 }
 
 static int test_unique_items(const json_t *rule, const json_t *node)
