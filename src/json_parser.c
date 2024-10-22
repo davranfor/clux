@@ -66,11 +66,6 @@ static void set_error(json_error_t *error, const char *str, const char *end)
 
 static json_t *append(json_t *parent, json_t *child)
 {
-    if (child == NULL)
-    {
-        return NULL;
-    }
-
     unsigned size = next_size(parent->size);
 
     if (size > parent->size) 
@@ -222,7 +217,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
 
         json_t *child = parse(str, depth + 1);
 
-        if (!append(parent, child))
+        if (!child || !append(parent, child))
         {
             json_delete(parent);
             json_delete(child);
@@ -272,7 +267,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
 
         json_t *child = parse(str, depth + 1);
 
-        if (!append(parent, child))
+        if (!child || !append(parent, child))
         {
             json_delete(parent);
             json_delete(child);

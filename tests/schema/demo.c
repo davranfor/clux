@@ -25,14 +25,24 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_t *node, int event, void *data)
+static int on_validate(const json_schema_t *schema, int event, void *data)
 {
-    (void)event;
-
+    const char *events[] =
+    {
+        "Warning. Unknown schema rule",
+        "Invalid. Doesn't validate against schema rule",
+        "Aborted. Malformed schema"
+    };
     const char **path = data;
 
     fprintf(stderr, "\nTarget: %s\nSchema: %s\n", path[0], path[1]);
-    json_write(node, stderr, 2);
+    fprintf(stderr, "Path: ");
+    json_write(schema->path, stderr, 2);
+    fprintf(stderr, "Node: ");
+    json_write(schema->node, stderr, 2);
+    fprintf(stderr, "Rule: ");
+    json_write(schema->rule, stderr, 2);
+    fprintf(stderr, "%s\n", events[event]);
     return JSON_SCHEMA_CONTINUE;
 }
 
@@ -40,7 +50,7 @@ int main(void)
 {
     setlocale(LC_CTYPE, "");
 
-    const char *path[] = {"test.json", "test.schema.json"};
+    const char *path[] = {"test.invalid.json", "test.schema.json"};
 
     json_t *target = parse_file(path[0]);
 
