@@ -1085,7 +1085,14 @@ static int test_type(const schema_t *schema,
 {
     unsigned mask = 0;
 
-    if ((rule->type == JSON_ARRAY) && (rule->size > 0))
+    if (rule->type == JSON_STRING)
+    {
+        if (!(mask = add_type(rule->string, mask)))
+        {
+            return SCHEMA_ERROR;
+        }
+    }
+    else if (rule->type == JSON_ARRAY)
     {
         for (unsigned i = 0; i < rule->size; i++)
         {
@@ -1093,13 +1100,6 @@ static int test_type(const schema_t *schema,
             {
                 return SCHEMA_ERROR;
             }
-        }
-    }
-    else if (rule->type == JSON_STRING)
-    {
-        if (!(mask = add_type(rule->string, mask)))
-        {
-            return SCHEMA_ERROR;
         }
     }
     else
