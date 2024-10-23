@@ -534,7 +534,7 @@ static int test_required(const schema_t *schema,
 static int test_dependent_required(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
-    if ((rule->type != JSON_OBJECT) || (rule->size == 0))
+    if (rule->type != JSON_OBJECT)
     {
         return SCHEMA_ERROR;
     }
@@ -702,10 +702,6 @@ static int test_items(const schema_t *schema,
     if (rule->type == JSON_FALSE)
     {
         return node->size == 0;
-    }
-    if (rule->size == 0)
-    {
-        return SCHEMA_VALID;
     }
 
     int result = SCHEMA_VALID;
