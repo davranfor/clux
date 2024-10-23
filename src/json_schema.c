@@ -614,10 +614,6 @@ static int test_dependent_schemas(const schema_t *schema,
         {
             return SCHEMA_ERROR;
         }
-        if (rule->child[i]->size == 0)
-        {
-            continue;
-        }
         if (!json_find(node, rule->child[i]->key))
         {
             continue;
