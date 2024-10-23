@@ -549,7 +549,7 @@ static int test_dependent_required(const schema_t *schema,
     {
         const json_t *keys = rule->child[i];
 
-        if ((keys->type != JSON_ARRAY) || (keys->size == 0))
+        if (keys->type != JSON_ARRAY)
         {
             return SCHEMA_ERROR;
         }
@@ -1218,7 +1218,7 @@ static int test_not(const schema_t *schema,
 static int test_any_of(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
+    if (rule->type != JSON_ARRAY)
     {
         return SCHEMA_ERROR;
     }
@@ -1244,7 +1244,7 @@ static int test_any_of(const schema_t *schema,
 static int test_one_of(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
+    if (rule->type != JSON_ARRAY)
     {
         return SCHEMA_ERROR;
     }
@@ -1277,7 +1277,7 @@ static int test_one_of(const schema_t *schema,
 static int test_all_of(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_ARRAY) || (rule->size == 0))
+    if (rule->type != JSON_ARRAY)
     {
         return SCHEMA_ERROR;
     }
