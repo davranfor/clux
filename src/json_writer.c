@@ -104,10 +104,10 @@ json_t *json_new_integer(double number)
 
     if (node != NULL)
     {
-        node->type = is_safe_integer(number)
+        node->number = trunc(number);
+        node->type = IS_SAFE_INTEGER(node->number)
             ? JSON_INTEGER
             : JSON_REAL;
-        node->number = trunc(number);
     }
     return node;
 }

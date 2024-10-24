@@ -270,7 +270,8 @@
     "favoriteFruit": "strawberry",
     "UES example": "ñ = \u00f1",
     "empty_object": {},
-    "empty_array": []
+    "empty_array": [],
+    "unsafe_integers": [-9007199254740992, 9007199254740992]
   }
 ]
 
