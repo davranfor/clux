@@ -46,11 +46,15 @@ static int on_validate(const json_schema_t *schema, int event, void *data)
     return JSON_SCHEMA_CONTINUE;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
     setlocale(LC_CTYPE, "");
 
-    const char *path[] = {"test.json", "test.schema.json"};
+    const char *path[] =
+    {
+        argc > 1 ? argv[1] : "test.json",
+        argc > 2 ? argv[2] : "test.schema.json"
+    };
 
     json_t *target = parse_file(path[0]);
 
