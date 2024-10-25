@@ -205,7 +205,7 @@ static int buffer_print_node(json_buffer *buffer, const json_t *node,
             default:
                 break;
         }
-        if (trailing_comma != 0)
+        if (trailing_comma)
         {
             CHECK(buffer_write(buffer, ","));
         }
@@ -237,7 +237,7 @@ static int buffer_print_pair(json_buffer *buffer, const json_t *node,
             default:
                 break;
         }
-        if (trailing_comma != 0)
+        if (trailing_comma)
         {
             CHECK(buffer_write(buffer, ","));
         }

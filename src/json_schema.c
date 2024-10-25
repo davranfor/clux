@@ -119,7 +119,7 @@ static void raise_error(const schema_t *schema,
 #define hash(key) hash_str((const unsigned char *)(key))
 static unsigned long hash_str(const unsigned char *key)
 {
-    unsigned long hash = 5381;
+    unsigned long hash = 842174;
     unsigned char chr;
 
     while ((chr = *key++))
