@@ -326,8 +326,6 @@ static int test_properties(const schema_t *schema,
                 }
                 result = SCHEMA_FAILURE;
                 break;
-            default:
-                break;
         }
     }
     return result;
@@ -390,8 +388,6 @@ static int test_additional_properties(const schema_t *schema,
                     }
                     result = SCHEMA_FAILURE;
                     break;
-                default:
-                    break;
             }
         }
     }
@@ -435,8 +431,6 @@ static int test_pattern_properties(const schema_t *schema,
                     }
                     result = SCHEMA_FAILURE;
                     break;
-                default:
-                    break;
             }
         }
     }
@@ -476,8 +470,6 @@ static int test_property_names(const schema_t *schema,
                     return SCHEMA_FAILURE;
                 }
                 result = SCHEMA_FAILURE;
-                break;
-            default:
                 break;
         }
     }
@@ -629,8 +621,6 @@ static int test_dependent_schemas(const schema_t *schema,
                 }
                 result = SCHEMA_FAILURE;
                 break;
-            default:
-                break;
         }
     }
     return result;
@@ -717,8 +707,6 @@ static int test_items(const schema_t *schema,
                     }
                     result = SCHEMA_FAILURE;
                     break;
-                default:
-                    break;
             }
         }
     }
@@ -740,8 +728,6 @@ static int test_items(const schema_t *schema,
                         return SCHEMA_FAILURE;
                     }
                     result = SCHEMA_FAILURE;
-                    break;
-                default:
                     break;
             }
         }
@@ -790,8 +776,6 @@ static int test_additional_items(const schema_t *schema,
                     return SCHEMA_FAILURE;
                 }
                 result = SCHEMA_FAILURE;
-                break;
-            default:
                 break;
         }
     }
@@ -848,8 +832,6 @@ static int test_min_contains(const schema_t *schema,
                     return SCHEMA_VALID;
                 }
                 break;
-            default:
-                break;
         }
     }
     return SCHEMA_INVALID;
@@ -893,8 +875,6 @@ static int test_max_contains(const schema_t *schema,
                 {
                     return SCHEMA_INVALID;
                 }
-                break;
-            default:
                 break;
         }
     }
@@ -1230,8 +1210,6 @@ static int test_any_of(const schema_t *schema,
                 return SCHEMA_ABORTED;
             case SCHEMA_VALID:
                 return SCHEMA_VALID;
-            default:
-                break; 
         }
     }
     return SCHEMA_INVALID;
@@ -1263,8 +1241,6 @@ static int test_one_of(const schema_t *schema,
                     return SCHEMA_INVALID;
                 }
                 break;
-            default:
-                break; 
         }
     }
     return count == 1;
@@ -1289,8 +1265,6 @@ static int test_all_of(const schema_t *schema,
                 return SCHEMA_ABORTED;
             case SCHEMA_INVALID:
                 return SCHEMA_INVALID;
-            default:
-                break; 
         }
     }
     return SCHEMA_VALID;
@@ -1360,8 +1334,6 @@ static int test_branch(const schema_t *schema,
             return SCHEMA_ABORTED;
         case SCHEMA_INVALID:
             result = SCHEMA_FAILURE;
-        default:
-            break;
     }
     if (parent->size > index + 1)
     {
@@ -1536,8 +1508,6 @@ static int validate(const schema_t *schema,
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;
-            default:
-                break;
         }
     }
     return result;

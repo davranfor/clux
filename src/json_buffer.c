@@ -189,8 +189,6 @@ static int buffer_print_node(json_buffer *buffer, const json_t *node,
         case JSON_NULL:
             CHECK(buffer_write(buffer, "null"));
             break;
-        default:
-            break;
     }
     if (node->size == 0)
     {
@@ -201,8 +199,6 @@ static int buffer_print_node(json_buffer *buffer, const json_t *node,
                 break;
             case JSON_ARRAY:
                 CHECK(buffer_write(buffer, "]"));
-                break;
-            default:
                 break;
         }
         if (trailing_comma)
@@ -233,8 +229,6 @@ static int buffer_print_pair(json_buffer *buffer, const json_t *node,
                 break;
             case JSON_ARRAY:
                 CHECK(buffer_write(buffer, "]"));
-                break;
-            default:
                 break;
         }
         if (trailing_comma)
@@ -270,8 +264,8 @@ static int buffer_print_tree(json_buffer *buffer,const json_t *node,
 }
 
 /**
- * The cast from 'const json_t *' to 'json_t *' is needed to set/fake the children, so
- * we don't need to check if the node has depth 0 on each iteration of print_tree().
+ * The cast from 'const json_t *' to 'json_t *' is needed to set/fake the children,
+ * so we don't need to check if the node has depth 0 on each iteration of print_tree().
  *
  * If the passed node IS a property -----> [{key: value}]
  * If the paseed node IS NOT a property -> [value]
