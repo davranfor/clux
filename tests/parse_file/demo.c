@@ -24,10 +24,10 @@ static void parse_file(const char *path)
     }
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
     setlocale(LC_CTYPE, "");
-    parse_file("test.json");
+    parse_file(argc > 1 ? argv[1] : "test.json");
     return 0;
 }
 
