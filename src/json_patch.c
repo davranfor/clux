@@ -29,7 +29,7 @@ int json_patch(json_t *source, json_t *target)
                 {
                     // Delete repeated keys in the list
                     json_swap(source, index, count);
-                    json_delete_child(source, index);
+                    json_delete(source, index);
                 }
                 else
                 {

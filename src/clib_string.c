@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clib_unicode.h"
 #include "clib_string.h"
 
 /* Returns a duplicate of the string */
@@ -54,8 +55,6 @@ char *string_vprint(const char *fmt, va_list args)
     }
     return str;
 }
-
-#define is_utf8(c) (((c) & 0xc0) != 0x80)
 
 /* Returns the number of multibytes of a string */
 size_t string_length(const char *str)

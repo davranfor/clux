@@ -71,7 +71,7 @@ static json_t *find_index(const json_t *node, const char *path, const char *end)
     return NULL;
 }
 
-static json_t *pointer(json_t *node, const char *path)
+static const json_t *pointer(const json_t *node, const char *path)
 {
     while (node != NULL)
     {
@@ -109,7 +109,7 @@ json_t *json_pointer(const json_t *node, const char *path)
     switch (path[0])
     {
         case '/':
-            return pointer((json_t *)node, path + 1);
+            return (json_t *)pointer(node, path + 1);
         case '\0':
             return (json_t *)node;
         default:
