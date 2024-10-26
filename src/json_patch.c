@@ -29,7 +29,7 @@ int json_patch(json_t *source, json_t *target)
                 {
                     // Delete repeated keys in the list
                     json_swap(source, index, count);
-                    json_delete(source, index);
+                    json_delete_child(source, index);
                 }
                 else
                 {
@@ -41,7 +41,7 @@ int json_patch(json_t *source, json_t *target)
                 if (!json_move(source, count, target, JSON_TAIL))
                 {
                     // Undo changes
-                    while (json_delete(source, count));
+                    while (json_delete_child(source, count));
                     json_unpatch(source, target, inserts);
                     return -1;
                 }
