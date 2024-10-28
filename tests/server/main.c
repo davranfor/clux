@@ -374,7 +374,12 @@ static int populate_schemas(void)
 
         char path[255];
 
-        snprintf(path, sizeof path, "schemas/%s", dir->d_name);
+        if (snprintf(path, sizeof path, "schemas/%s", dir->d_name) < 0)
+        {
+            fprintf(stderr, "'%s' is not a valid file name\n", dir->d_name);
+            fail = 1;
+            break;
+        }
 
         json_error_t error;
         json_t *node = json_parse_file(path, &error);
