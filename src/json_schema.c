@@ -137,7 +137,7 @@ json_t *json_schema_get(const char *schema)
     return json_map_search(map, schema);
 }
 
-static void map_delete(void)
+static void map_destroy(void)
 {
     json_map_destroy(map, json_free);
 }
@@ -225,7 +225,7 @@ __attribute__((constructor)) static void schema_init(void)
 {
     if ((map = json_map_create(0)))
     {
-        atexit(map_delete);
+        atexit(map_destroy);
     }
     for (size_t i = 0; i < TABLE_SIZE; i++)
     {
