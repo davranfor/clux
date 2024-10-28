@@ -50,6 +50,13 @@ static const char *method_name[] = {
     "DELETE /",
 };
 
+struct { char *index; } static files;
+
+static void files_destroy(void)
+{
+    free(files.index);    
+}
+
 static json_map_t *map;
 
 static void map_destroy(void)
@@ -244,7 +251,7 @@ static char *request_content(char *header, const char *content,
     if (strstr(header, content_type_json) == NULL)
     {
         return strncmp(header, "GET / ", 6) == 0
-            ? file_read("www/index.html")
+            ? files.index
             : NULL;
     }
 
@@ -332,7 +339,10 @@ static void request_reply(struct poolfd *pool, char *buffer, size_t size)
                 pool_reset(pool);
             }
         }
-        free(content);
+        if (method != NONE)
+        {
+            free(content);
+        }
     }
 }
 
@@ -346,6 +356,17 @@ static uint16_t port_number(const char *str)
         return 0;
     }
     return (uint16_t)result;
+}
+
+static int populate_files(void)
+{
+    files.index = file_read("www/index.html");
+    if (files.index == NULL)
+    {
+        fprintf(stderr, "'www/index.html' must exist\n");
+        return 0;
+    }
+    return 1;
 }
 
 static int populate_schemas(void)
@@ -423,6 +444,11 @@ int main(int argc, char *argv[])
     if ((map = json_map_create(0)) == NULL)
     {
         perror("json_map_create");
+        exit(EXIT_FAILURE);
+    }
+    atexit(files_destroy);
+    if (!populate_files())
+    {
         exit(EXIT_FAILURE);
     }
     if (!populate_schemas())
