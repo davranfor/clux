@@ -145,7 +145,7 @@ static void map_destroy(void)
 #define hash(key) hash_str((const unsigned char *)(key))
 static unsigned long hash_str(const unsigned char *key)
 {
-    unsigned long hash = 842174;
+    unsigned long hash = 5381;
     unsigned char chr;
 
     while ((chr = *key++))
@@ -185,6 +185,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_MAX_LENGTH,                "maxLength")            \
     _(SCHEMA_MAX_PROPERTIES,            "maxProperties")        \
     _(SCHEMA_MAXIMUM,                   "maximum")              \
+    _(SCHEMA_META,                      "meta")                 \
     _(SCHEMA_MIN_CONTAINS,              "minContains")          \
     _(SCHEMA_MIN_ITEMS,                 "minItems")             \
     _(SCHEMA_MIN_LENGTH,                "minLength")            \
@@ -265,6 +266,7 @@ static int get_test(const json_t *rule)
     switch (test)
     {
         case SCHEMA_DEFAULT:
+        case SCHEMA_META:
             return SCHEMA_VALID;
         case SCHEMA_CONTAINS:
         case SCHEMA_DEFS:
