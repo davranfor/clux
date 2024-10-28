@@ -56,7 +56,7 @@ json_t *json_schema_map(json_t *node)
     {
         return NULL;
     }
-    return json_map_upsert(map, id, node);
+    return json_map_insert(map, id, node);
 }
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
