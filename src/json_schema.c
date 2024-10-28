@@ -42,30 +42,6 @@ typedef struct
     struct active *active;
 } schema_t;
 
-static json_map_t *map;
-
-static void map_delete(void)
-{
-    json_map_destroy(map, json_free);
-}
-
-json_t *json_schema_map(json_t *node)
-{
-    if ((node == NULL) || (node->type != JSON_OBJECT))
-    {
-        return NULL;
-    }
-
-    const char *id = json_string(json_find(node, "$id"));
-
-    return json_map_insert(map, id, node);
-}
-
-json_t *json_schema_get(const char *schema)
-{
-    return json_map_search(map, schema);
-}
-
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
 static int notify_user(const schema_t *schema,
@@ -140,6 +116,30 @@ static void raise_error(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
     notify(schema, rule, node, JSON_SCHEMA_ERROR);
+}
+
+static json_map_t *map;
+
+json_t *json_schema_map(json_t *node)
+{
+    if ((node == NULL) || (node->type != JSON_OBJECT))
+    {
+        return NULL;
+    }
+
+    const char *id = json_string(json_find(node, "$id"));
+
+    return json_map_insert(map, id, node);
+}
+
+json_t *json_schema_get(const char *schema)
+{
+    return json_map_search(map, schema);
+}
+
+static void map_delete(void)
+{
+    json_map_destroy(map, json_free);
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
