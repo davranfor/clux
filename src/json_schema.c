@@ -13,6 +13,7 @@
 #include "clib_string.h"
 #include "json_private.h"
 #include "json_reader.h"
+#include "json_map.h"
 #include "json_pointer.h"
 #include "json_schema.h"
 
@@ -39,6 +40,24 @@ typedef struct
     // Paths and references
     struct active *active;
 } schema_t;
+
+static json_map_t *map;
+
+json_t *json_schema_map(json_t *node)
+{
+    if ((node == NULL) || (node->type != JSON_OBJECT))
+    {
+        return NULL;
+    }
+
+    const char *id = json_string(json_find(node, "$id"));
+
+    if ((id == NULL) || ((map == NULL) && !(map = json_map_create(0))))
+    {
+        return NULL;
+    }
+    return json_map_upsert(map, id, node);
+}
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
@@ -1123,21 +1142,24 @@ static int test_ref(const schema_t *schema,
 
     const char *ref = rule->string;
 
-    if (ref[0] != '#')
+    if (ref[0] == '#')
     {
-        return SCHEMA_ERROR;
-    }
-    if (ref[1] == '\0')
-    {
-        rule = schema->root;
-    }
-    else if (ref[1] == '/')
-    {
-        rule = json_pointer(schema->root, ref + 1);
+        if (ref[1] == '/')
+        {
+            rule = json_pointer(schema->root, ref + 1);
+        }
+        else if (ref[1] == '\0')
+        {
+            rule = schema->root;
+        }
+        else
+        {
+            rule = NULL;
+        }
     }
     else
     {
-        return SCHEMA_ERROR;
+        rule = json_map_search(map, ref);
     }
     if ((rule == NULL) || (rule->type != JSON_OBJECT))
     {

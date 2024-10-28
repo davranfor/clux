@@ -70,7 +70,6 @@ int main(int argc, char *argv[])
         json_delete(target);
         exit(EXIT_FAILURE);
     }
-
     if (!json_validate(target, schema, on_validate, path))
     {
         fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
