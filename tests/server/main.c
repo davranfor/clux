@@ -389,6 +389,7 @@ static int populate_schemas(void)
         if (!json_schema_map(node))
         {
             fprintf(stderr, "Error mapping '%s' -> '$id' must exist\n", path);
+            json_delete(node);
             fail = 1;
             break;
         }
