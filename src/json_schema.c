@@ -61,6 +61,11 @@ json_t *json_schema_map(json_t *node)
     return json_map_insert(map, id, node);
 }
 
+json_t *json_schema_get(const char *schema)
+{
+    return json_map_search(map, schema);
+}
+
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
 static int notify_user(const schema_t *schema,
