@@ -12,8 +12,9 @@
 #include "clib_test.h"
 #include "clib_string.h"
 #include "json_private.h"
-#include "json_reader.h"
 #include "json_map.h"
+#include "json_reader.h"
+#include "json_writer.h"
 #include "json_pointer.h"
 #include "json_schema.h"
 
@@ -43,6 +44,11 @@ typedef struct
 
 static json_map_t *map;
 
+static void map_delete(void)
+{
+    json_map_destroy(map, json_free);
+}
+
 json_t *json_schema_map(json_t *node)
 {
     if ((node == NULL) || (node->type != JSON_OBJECT))
@@ -52,10 +58,6 @@ json_t *json_schema_map(json_t *node)
 
     const char *id = json_string(json_find(node, "$id"));
 
-    if ((id == NULL) || ((map == NULL) && !(map = json_map_create(0))))
-    {
-        return NULL;
-    }
     return json_map_insert(map, id, node);
 }
 
@@ -214,8 +216,12 @@ static test_t tests[] = {TEST(TEST_KEY)};
 enum {TABLE_SIZE = NTESTS - DEFS - 1};
 static test_t *table[TABLE_SIZE];
 
-__attribute__((constructor)) static void table_load(void)
+__attribute__((constructor)) static void schema_init(void)
 {
+    if ((map = json_map_create(0)))
+    {
+        atexit(map_delete);
+    }
     for (size_t i = 0; i < TABLE_SIZE; i++)
     {
         unsigned long index = hash(tests[i].key) % TABLE_SIZE;
