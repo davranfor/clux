@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include <locale.h>
 #include <clux/clib.h>
 #include <clux/json.h>
@@ -347,6 +348,55 @@ static uint16_t port_number(const char *str)
     return (uint16_t)result;
 }
 
+static int populate_schemas(void)
+{
+    struct dirent *dir;
+    DIR *schemas;
+
+    schemas = opendir("schemas");
+    if (schemas == NULL)
+    {
+        fprintf(stderr, "'schemas' dir must exist\n");
+        return 0;
+    }
+
+    const char ext[] = ".schema.json"; 
+    int fail = 0;
+
+    while ((dir = readdir(schemas)))
+    {
+        const char *d_name_ext = strstr(dir->d_name, ext);
+
+        if ((d_name_ext == NULL) || (strlen(d_name_ext) != sizeof(ext) -1))
+        {
+            continue;
+        }
+
+        char path[255];
+
+        snprintf(path, sizeof path, "schemas/%s", dir->d_name);
+
+        json_error_t error;
+        json_t *node = json_parse_file(path, &error);
+
+        if (node == NULL)
+        {
+            fprintf(stderr, "%s\n", path);
+            json_print_error(&error);
+            fail = 1;
+            break;
+        }
+        if (!json_schema_map(node))
+        {
+            fprintf(stderr, "Error mapping '%s' -> '$id' must exist\n", path);
+            fail = 1;
+            break;
+        }
+    }
+    closedir(schemas);
+    return !fail;
+}
+
 int main(int argc, char *argv[])
 {
     if ((argc == 2) && (strcmp(argv[1], "-h") == 0))
@@ -364,9 +414,13 @@ int main(int argc, char *argv[])
     }
     setlocale(LC_CTYPE, "");
     atexit(map_destroy);
-    if ((map = json_map_create(100)) == NULL)
+    if ((map = json_map_create(0)) == NULL)
     {
         perror("json_map_create");
+        exit(EXIT_FAILURE);
+    }
+    if (!populate_schemas())
+    {
         exit(EXIT_FAILURE);
     }
     server_init(port, request_ready, request_reply);
