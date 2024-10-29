@@ -7,7 +7,7 @@
 #ifndef SCHEMA_H
 #define SCHEMA_H
 
-int schema_init(void);
+int schema_load_files(void);
 
 #endif
 

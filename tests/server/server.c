@@ -312,7 +312,7 @@ static void server_loop(uint16_t port)
     }
 }
 
-void server_init(uint16_t port,
+void server_run(uint16_t port,
     int (*cb_request_ready)(const char *, size_t),
     void (*cb_request_reply)(struct poolfd *, char *, size_t))
 {

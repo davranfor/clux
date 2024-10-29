@@ -42,15 +42,15 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
-    if (!schema_init())
+    if (!schema_load_files())
     {
         exit(EXIT_FAILURE);
     }
-    if (!request_init())
+    if (!request_create_map())
     {
         exit(EXIT_FAILURE);
     }
-    server_init(port, request_ready, request_reply);
+    server_run(port, request_ready, request_reply);
     return 0;
 }
 

@@ -246,18 +246,18 @@ static int buffer_print_pair(json_buffer *buffer, const json_t *node,
 static int buffer_print_tree(json_buffer *buffer,const json_t *node,
     unsigned short depth, unsigned char indent)
 {
-    for (unsigned index = 0; index < node->size; index++)
+    for (unsigned i = 0; i < node->size; i++)
     {
-        unsigned char trailing_comma = index + 1 < node->size;
+        unsigned char trailing_comma = node->size > i + 1;
 
         CHECK(buffer_print_node(
-            buffer, node->child[index], depth, indent, trailing_comma));
-        if (node->child[index]->size > 0)
+            buffer, node->child[i], depth, indent, trailing_comma));
+        if (node->child[i]->size > 0)
         {
             CHECK(buffer_print_tree(
-                buffer, node->child[index], depth + 1, indent));
+                buffer, node->child[i], depth + 1, indent));
             CHECK(buffer_print_pair(
-                buffer, node->child[index], depth, indent, trailing_comma));
+                buffer, node->child[i], depth, indent, trailing_comma));
         }
     }
     return 1;

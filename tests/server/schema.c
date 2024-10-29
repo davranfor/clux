@@ -17,7 +17,7 @@ static void map_destroy(void)
     json_map_destroy(map, json_free);
 }
 
-int schema_init(void)
+int schema_load_files(void)
 {
     struct dirent *dir;
     DIR *schemas;

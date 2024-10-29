@@ -390,10 +390,10 @@ static int equal(const json_t *a, const json_t *b)
 
 static int equal_children(const json_t *a, const json_t *b)
 {
-    for (unsigned index = 0; index < a->size; index++)
+    for (unsigned i = 0; i < a->size; i++)
     {
-        const json_t *c = a->child[index];
-        const json_t *d = b->child[index];
+        const json_t *c = a->child[i];
+        const json_t *d = b->child[i];
 
         if (!equal(c, d))
         {
@@ -413,15 +413,11 @@ static int equal_children(const json_t *a, const json_t *b)
 
 int json_equal(const json_t *a, const json_t *b)
 {
-    if ((a != NULL) && (b != NULL)) 
+    if ((a != NULL) && (b != NULL))
     {
         if (!equal(a, b))
         {
             return 0;
-        }
-        if (a->size == 0)
-        {
-            return 1;
         }
         return equal_children(a, b);
     }
@@ -431,17 +427,17 @@ int json_equal(const json_t *a, const json_t *b)
 static int walk(const json_t *node, unsigned short depth,
     json_walk_callback callback, void *data)
 {
-    for (unsigned index = 0; index < node->size; index++)
+    for (unsigned i = 0; i < node->size; i++)
     {
         int rc;
 
-        if ((rc = callback(node->child[index], depth, data)) <= 0)
+        if ((rc = callback(node->child[i], depth, data)) <= 0)
         {
             return rc;
         }
-        if (node->child[index]->size > 0)
+        if (node->child[i]->size > 0)
         {
-            if ((rc = walk(node->child[index], depth + 1, callback, data)) <= 0)
+            if ((rc = walk(node->child[i], depth + 1, callback, data)) <= 0)
             {
                 return rc;
             }

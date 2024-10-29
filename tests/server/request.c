@@ -54,7 +54,7 @@ static void map_destroy(void)
     json_map_destroy(map, json_free);
 }
 
-int request_init(void)
+int request_create_map(void)
 {
     atexit(map_destroy);
     if (!(map = json_map_create(0)))

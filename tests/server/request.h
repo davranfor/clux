@@ -9,7 +9,7 @@
 
 #include "buffer.h"
 
-int request_init(void);
+int request_create_map(void);
 int request_ready(const char *, size_t);
 void request_reply(struct poolfd *, char *, size_t);
 
