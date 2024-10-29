@@ -10,7 +10,7 @@
 #include <locale.h>
 #include "config.h"
 #include "schema.h"
-#include "request.h"
+#include "worker.h"
 #include "server.h"
 
 static uint16_t port_number(const char *str)
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     {
         exit(EXIT_FAILURE);
     }
-    if (!request_create_map())
+    if (!worker_create_map())
     {
         exit(EXIT_FAILURE);
     }

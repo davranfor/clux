@@ -4,12 +4,12 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef REQUEST_H
-#define REQUEST_H
+#ifndef WORKER_H
+#define WORKER_H
 
 #include "buffer.h"
 
-int request_create_map(void);
+int worker_create_map(void);
 int request_ready(const char *, size_t);
 void request_reply(struct poolfd *, char *, size_t);
 
