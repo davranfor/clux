@@ -91,22 +91,8 @@ int request_ready(const char *str, size_t size)
     return size == (size_t)(end - str) + length;
 }
 
-static enum method request_method(const char *header)
-{
-    enum method method;
-
-    for (method = 0; method < METHODS; method++)
-    {
-        if (!strncmp(header, method_name[method], strlen(method_name[method])))
-        {
-            break;
-        }
-    }
-    return method;
-}
-
 // cppcheck-suppress constParameterPointer
-static const char *request_uri(char *header)
+static const char *parse_uri(char *header)
 {
     const char *uri = strchr(header, '/');
 
@@ -125,12 +111,26 @@ static const char *request_uri(char *header)
     return uri;
 }
 
-static char *request_get(const char *uri)
+static enum method parse_method(const char *header)
+{
+    enum method method;
+
+    for (method = 0; method < METHODS; method++)
+    {
+        if (!strncmp(header, method_name[method], strlen(method_name[method])))
+        {
+            break;
+        }
+    }
+    return method;
+}
+
+static char *api_get(const char *uri)
 {
     return json_encode(json_map_search(map, uri));
 }
 
-static char *request_post(const char *uri, const char *content)
+static char *api_post(const char *uri, const char *content)
 {
     json_t *node = json_parse(content, NULL);
 
@@ -157,7 +157,7 @@ static char *request_post(const char *uri, const char *content)
     return json_encode(node);
 }
 
-static char *request_put(const char *uri, const char *content)
+static char *api_put(const char *uri, const char *content)
 {
     json_t *old = json_map_search(map, uri);
 
@@ -181,7 +181,7 @@ static char *request_put(const char *uri, const char *content)
     return json_encode(new);
 }
 
-static char *request_patch(const char *uri, const char *content)
+static char *api_patch(const char *uri, const char *content)
 {
     json_t *target = json_map_search(map, uri);
 
@@ -213,13 +213,46 @@ static char *request_patch(const char *uri, const char *content)
     return json_encode(target);
 }
 
-static char *request_delete(const char *uri)
+static char *api_delete(const char *uri)
 {
     json_t *node = json_map_delete(map, uri);
     char *str = json_encode(node);
 
     json_delete(node);
     return str;
+}
+
+static char *do_request(char *header, const char *content,
+    enum method *method)
+{
+    if (strstr(header, content_type_json) == NULL)
+    {
+        return strncmp(header, "GET / ", 6) == 0
+            ? file_read("www/index.html")
+            : NULL;
+    }
+
+    const char *uri = parse_uri(header);
+
+    if (uri == NULL)
+    {
+        return NULL;
+    }
+    switch ((*method = parse_method(header)))
+    {
+        case GET:
+            return api_get(uri);
+        case POST:
+            return api_post(uri, content);
+        case PUT:
+            return api_put(uri, content);
+        case PATCH:
+            return api_patch(uri, content);
+        case DELETE:
+            return api_delete(uri);
+        default:
+            return NULL;
+    }
 }
 
 static const char *request_header_ok(enum method method)
@@ -246,54 +279,14 @@ static const char *request_header_ko(enum method method)
     }
 }
 
-static char *request_content(char *header, const char *content,
-    enum method *method)
-{
-    if (strstr(header, content_type_json) == NULL)
-    {
-        return strncmp(header, "GET / ", 6) == 0
-            ? file_read("www/index.html")
-            : NULL;
-    }
-
-    const char *uri = request_uri(header);
-
-    if (uri == NULL)
-    {
-        return NULL;
-    }
-    switch ((*method = request_method(header)))
-    {
-        case GET:
-            return request_get(uri);
-        case POST:
-            return request_post(uri, content);
-        case PUT:
-            return request_put(uri, content);
-        case PATCH:
-            return request_patch(uri, content);
-        case DELETE:
-            return request_delete(uri);
-        default:
-            return NULL;
-    }
-}
-
 void request_reply(struct poolfd *pool, char *buffer, size_t size)
 {
     enum method method = NONE;
     char *content = strstr(pool->data, header_end);
 
-    if (content[HEADER_END_LENGTH] != '\0')
-    {
-        content[0] = '\0';
-        content += HEADER_END_LENGTH;
-    }
-    else
-    {
-        content = NULL;
-    }
-    content = request_content(pool->data, content, &method);
+    content[0] = '\0';
+    content += HEADER_END_LENGTH;
+    content = do_request(pool->data, content, &method);
     if (content == NULL)
     {
         const char *header = request_header_ko(method);
