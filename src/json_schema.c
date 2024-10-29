@@ -12,9 +12,7 @@
 #include "clib_test.h"
 #include "clib_string.h"
 #include "json_private.h"
-#include "json_map.h"
 #include "json_reader.h"
-#include "json_writer.h"
 #include "json_pointer.h"
 #include "json_schema.h"
 
@@ -120,26 +118,14 @@ static void raise_error(const schema_t *schema,
 
 static json_map_t *map;
 
-json_t *json_schema_map(json_t *node)
+void json_schema_set_map(json_map_t *value)
 {
-    if ((node == NULL) || (node->type != JSON_OBJECT))
-    {
-        return NULL;
-    }
-
-    const char *id = json_string(json_find(node, "$id"));
-
-    return json_map_insert(map, id, node);
+    map = value;
 }
 
-json_t *json_schema_get(const char *schema)
+json_map_t *json_schema_get_map(void)
 {
-    return json_map_search(map, schema);
-}
-
-static void map_destroy(void)
-{
-    json_map_destroy(map, json_free);
+    return map;
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
@@ -222,12 +208,8 @@ static test_t tests[] = {TEST(TEST_KEY)};
 enum {TABLE_SIZE = NTESTS - DEFS - 1};
 static test_t *table[TABLE_SIZE];
 
-__attribute__((constructor)) static void schema_init(void)
+__attribute__((constructor)) static void table_load(void)
 {
-    if ((map = json_map_create(0)))
-    {
-        atexit(map_destroy);
-    }
     for (size_t i = 0; i < TABLE_SIZE; i++)
     {
         unsigned long index = hash(tests[i].key) % TABLE_SIZE;
