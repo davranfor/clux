@@ -22,12 +22,17 @@ int schema_load_files(void)
     struct dirent *dir;
     DIR *schemas;
 
-    schemas = opendir("schemas");
-    if (schemas == NULL)
+    if (!(schemas = opendir("schemas")))
     {
         fprintf(stderr, "'schemas' dir must exist\n");
         return 0;
     }
+    if (!(map = json_map_create(0)))
+    {
+        perror("json_map_create");
+        return 0;
+    }
+    json_schema_set_map(map);
     atexit(map_destroy);
 
     const char ext[] = ".schema.json"; 
@@ -71,9 +76,14 @@ int schema_load_files(void)
             fail = 1;
             break;
         }
-        json_map_insert(map, id, node);
+        if (json_map_insert(map, id, node) != node)
+        {
+            fprintf(stderr, "'%s' already mapped\n", id);
+            json_delete(node);
+            fail = 1;
+            break;
+        }
     }
-    json_schema_set_map(map);
     closedir(schemas);
     return !fail;
 }
