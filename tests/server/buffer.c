@@ -8,7 +8,7 @@
 #include <string.h>
 #include "buffer.h"
 
-char *pool_set(struct poolfd *pool, char *data, size_t size)
+char *pool_set(pool_t *pool, char *data, size_t size)
 {
     if (pool->type == POOL_ALLOCATED)
     {
@@ -20,7 +20,7 @@ char *pool_set(struct poolfd *pool, char *data, size_t size)
     return pool->data;
 }
 
-char *pool_put(struct poolfd *pool, const char *data, size_t size)
+char *pool_put(pool_t *pool, const char *data, size_t size)
 {
     if (pool->type == POOL_BUFFERED)
     {
@@ -41,12 +41,12 @@ char *pool_put(struct poolfd *pool, const char *data, size_t size)
     return temp;
 }
 
-void pool_sync(struct poolfd *pool, size_t sent)
+void pool_sync(pool_t *pool, size_t sent)
 {
     pool->sent += sent;
 }
 
-void pool_reset(struct poolfd *pool)
+void pool_reset(pool_t *pool)
 {
     if (pool->type == POOL_ALLOCATED)
     {

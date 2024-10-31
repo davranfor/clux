@@ -13,7 +13,7 @@
 void server_run(
     uint16_t,
     int (*)(const char *, size_t),
-    void (*)(struct poolfd *, char *, size_t)
+    void (*)(pool_t *, char *, size_t)
 );
 
 #endif

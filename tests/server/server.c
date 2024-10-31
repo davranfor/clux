@@ -21,10 +21,12 @@
 #include "config.h"
 #include "server.h"
 
+typedef struct pollfd conn_t;
+
 static char buffer[BUFFER_SIZE];
 
 static int (*request_ready)(const char *, size_t);
-static void (*request_reply)(struct poolfd *, char *, size_t);
+static void (*request_reply)(pool_t *, char *, size_t);
  
 static volatile sig_atomic_t stop;
 
@@ -98,20 +100,20 @@ static int server_socket(uint16_t port)
     return fd;
 }
 
-static void conn_attach(struct pollfd *conn, int fd)
+static void conn_attach(conn_t *conn, int fd)
 {
     conn->fd = fd;
     conn->events = POLLIN;
 }
 
-static void conn_reset(struct pollfd *conn)
+static void conn_reset(conn_t *conn)
 {
     close(conn->fd);
     conn->fd = -1;
     conn->events = 0;
 }
 
-static ssize_t conn_recv(struct pollfd *conn, struct poolfd *pool)
+static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 {
     ssize_t bytes = recv(conn->fd, buffer, BUFFER_SIZE - 1, 0);
 
@@ -154,7 +156,7 @@ static ssize_t conn_recv(struct pollfd *conn, struct poolfd *pool)
     return bytes;
 }
 
-static ssize_t conn_send(struct pollfd *conn, struct poolfd *pool)
+static ssize_t conn_send(conn_t *conn, pool_t *pool)
 {
     char *data = pool->data + pool->sent;
     size_t size = pool->size - pool->sent;
@@ -195,7 +197,7 @@ static ssize_t conn_send(struct pollfd *conn, struct poolfd *pool)
     return -1;
 }
 
-static void conn_handle(struct pollfd *conn, struct poolfd *pool)
+static void conn_handle(conn_t *conn, pool_t *pool)
 {
     if (!(conn->revents & ~(POLLIN | POLLOUT)))
     {
@@ -235,7 +237,7 @@ reset:
     pool_reset(pool);
 }
 
-static void conn_close(struct pollfd *conn, struct poolfd *pool)
+static void conn_close(conn_t *conn, pool_t *pool)
 {
     conn_reset(conn);
     pool_reset(pool);
@@ -244,8 +246,8 @@ static void conn_close(struct pollfd *conn, struct poolfd *pool)
 static void server_loop(uint16_t port)
 {
     enum {server = 0, maxfds = MAX_CLIENTS + 1};
-    struct poolfd pool[maxfds] = {0};
-    struct pollfd conn[maxfds] = {0};
+    conn_t conn[maxfds] = {0};
+    pool_t pool[maxfds] = {0};
 
     conn_attach(&conn[server], server_socket(port));
     for (nfds_t client = 1; client < maxfds; client++)
@@ -314,7 +316,7 @@ static void server_loop(uint16_t port)
 
 void server_run(uint16_t port,
     int (*cb_request_ready)(const char *, size_t),
-    void (*cb_request_reply)(struct poolfd *, char *, size_t))
+    void (*cb_request_reply)(pool_t *, char *, size_t))
 {
     request_ready = cb_request_ready;
     request_reply = cb_request_reply;

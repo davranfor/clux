@@ -9,19 +9,19 @@
 
 #define BUFFER_SIZE 32768
 
-struct poolfd
+typedef struct
 {
     char *data;
     size_t size, sent;
     unsigned type;
-};
+} pool_t;
 
 enum {POOL_BUFFERED = 1, POOL_ALLOCATED};
 
-char *pool_set(struct poolfd *, char *, size_t);
-char *pool_put(struct poolfd *, const char *, size_t);
-void pool_sync(struct poolfd *, size_t);
-void pool_reset(struct poolfd *);
+char *pool_set(pool_t *, char *, size_t);
+char *pool_put(pool_t *, const char *, size_t);
+void pool_sync(pool_t *, size_t);
+void pool_reset(pool_t *);
 
 #endif
 

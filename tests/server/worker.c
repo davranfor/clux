@@ -279,7 +279,7 @@ static const char *request_header_ko(enum method method)
     }
 }
 
-void request_reply(struct poolfd *pool, char *buffer, size_t size)
+void request_reply(pool_t *pool, char *buffer, size_t size)
 {
     enum method method = NONE;
     char *content = strstr(pool->data, header_end);
