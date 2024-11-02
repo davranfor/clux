@@ -27,12 +27,12 @@ static void destroy(void)
 int main(void)
 {
     srand((unsigned)time(NULL));
-    atexit(destroy);
     if (!(map = map_create(0)))
     {
         perror("map_create");
         exit(EXIT_FAILURE);
     }
+    atexit(destroy);
 
     enum {size = 100};
     json_t *node;

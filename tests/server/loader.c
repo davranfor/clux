@@ -9,32 +9,33 @@
 #include <dirent.h>
 #include <clux/clib.h>
 #include <clux/json.h>
-#include "schema.h"
+#include "loader.h"
 
 static map_t *map;
 
-static void schema_map_destroy(void)
+static void loader_destroy(void)
 {
     map_destroy(map, json_free);
 }
 
-int schema_load_files(void)
+void loader_run(void)
 {
+    if (!(map = map_create(0)))
+    {
+        perror("map_create");
+        exit(EXIT_FAILURE);
+    }
+    json_schema_set_map(map);
+    atexit(loader_destroy);
+
     struct dirent *dir;
     DIR *schemas;
 
     if (!(schemas = opendir("schemas")))
     {
         fprintf(stderr, "'schemas' dir must exist\n");
-        return 0;
+        exit(EXIT_FAILURE);
     }
-    if (!(map = map_create(0)))
-    {
-        perror("map_create");
-        return 0;
-    }
-    json_schema_set_map(map);
-    atexit(schema_map_destroy);
 
     const char ext[] = ".schema.json"; 
     int fail = 0;
@@ -86,6 +87,9 @@ int schema_load_files(void)
         }
     }
     closedir(schemas);
-    return !fail;
+    if (fail)
+    {
+        exit(EXIT_FAILURE);
+    }
 }
 

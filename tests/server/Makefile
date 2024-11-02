@@ -1,11 +1,16 @@
-CC = gcc
-CFLAGS = -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
+CC := gcc
+CFLAGS := -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
+SOURCE := $(wildcard *.c)
+HEADER := $(wildcard *.h)
+TARGET := demo 
 
-all: demo 
+all: $(TARGET)
 
-demo: main.c config.h buffer.c buffer.h schema.c schema.h worker.c worker.h server.c server.h
-	$(CC) $(CFLAGS) main.c buffer.c schema.c worker.c server.c -O2 -o demo -lclux
+$(TARGET): $(SOURCE) $(HEADER)
+	$(CC) $(CFLAGS) -o $@ $(SOURCE) -lclux
 
 clean:
-	rm -f demo
+	rm -f $(TARGET)
+
+.PHONY: all clean
 

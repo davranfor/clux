@@ -9,7 +9,7 @@
 #include <string.h>
 #include <locale.h>
 #include "config.h"
-#include "schema.h"
+#include "loader.h"
 #include "worker.h"
 #include "server.h"
 
@@ -42,14 +42,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
-    if (!schema_load_files())
-    {
-        exit(EXIT_FAILURE);
-    }
-    if (!worker_map_create())
-    {
-        exit(EXIT_FAILURE);
-    }
+    loader_run();
+    worker_run();
     server_run(port, request_ready, request_reply);
     return 0;
 }
