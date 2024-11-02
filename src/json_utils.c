@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "json_private.h"
-#include "json_sort.h"
+#include "json_utils.h"
 
 int json_compare_by_key(const void *pa, const void *pb)
 {

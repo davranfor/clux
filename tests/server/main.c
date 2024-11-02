@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     {
         exit(EXIT_FAILURE);
     }
-    if (!worker_create_map())
+    if (!worker_map_create())
     {
         exit(EXIT_FAILURE);
     }

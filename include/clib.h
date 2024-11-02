@@ -9,6 +9,7 @@
 
 #include "clib_stream.h"
 #include "clib_string.h"
+#include "clib_hashmap.h"
 
 #endif
 

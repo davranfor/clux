@@ -11,6 +11,7 @@
 #include <math.h>
 #include "clib_test.h"
 #include "clib_string.h"
+#include "clib_hashmap.h"
 #include "json_private.h"
 #include "json_reader.h"
 #include "json_pointer.h"
@@ -116,14 +117,14 @@ static void raise_error(const schema_t *schema,
     notify(schema, rule, node, JSON_SCHEMA_ERROR);
 }
 
-static json_map_t *map;
+static map_t *map;
 
-void json_schema_set_map(json_map_t *value)
+void json_schema_set_map(void *value)
 {
     map = value;
 }
 
-json_map_t *json_schema_get_map(void)
+void *json_schema_get_map(void)
 {
     return map;
 }
@@ -1154,7 +1155,7 @@ static int test_ref(const schema_t *schema,
     }
     else
     {
-        rule = json_map_search(map, ref);
+        rule = map_search(map, ref);
     }
     if ((rule == NULL) || (rule->type != JSON_OBJECT))
     {

@@ -47,19 +47,19 @@ static const char *method_name[] = {
     "DELETE /",
 };
 
-static json_map_t *map;
+static map_t *map;
 
-static void map_destroy(void)
+static void worker_map_destroy(void)
 {
-    json_map_destroy(map, json_free);
+    map_destroy(map, json_free);
 }
 
-int worker_create_map(void)
+int worker_map_create(void)
 {
-    atexit(map_destroy);
-    if (!(map = json_map_create(0)))
+    atexit(worker_map_destroy);
+    if (!(map = map_create(0)))
     {
-        perror("json_map_create");
+        perror("map_create");
         return 0;
     }
     return 1;
@@ -127,7 +127,7 @@ static enum method parse_method(const char *header)
 
 static char *api_get(const char *uri)
 {
-    return json_encode(json_map_search(map, uri));
+    return json_encode(map_search(map, uri));
 }
 
 static char *api_post(const char *uri, const char *content)
@@ -144,7 +144,7 @@ static char *api_post(const char *uri, const char *content)
     char key[64];
 
     snprintf(key, sizeof key, "%s/%zu", uri, id);
-    if ((json_map_insert(map, key, node) != node) ||
+    if ((map_insert(map, key, node) != node) ||
         !json_push_front(node, "id", json_new_number(id)))
     {
         json_delete(node);
@@ -159,7 +159,7 @@ static char *api_post(const char *uri, const char *content)
 
 static char *api_put(const char *uri, const char *content)
 {
-    json_t *old = json_map_search(map, uri);
+    json_t *old = map_search(map, uri);
 
     if (old == NULL)
     {
@@ -169,7 +169,7 @@ static char *api_put(const char *uri, const char *content)
     json_t *new = json_parse(content, NULL);
 
     if (!json_equal(json_find(new, "id"), json_find(old, "id")) ||
-        !json_map_update(map, uri, new))
+        !map_update(map, uri, new))
     {
         json_delete(new);
         new = NULL;
@@ -183,7 +183,7 @@ static char *api_put(const char *uri, const char *content)
 
 static char *api_patch(const char *uri, const char *content)
 {
-    json_t *target = json_map_search(map, uri);
+    json_t *target = map_search(map, uri);
 
     if (target == NULL)
     {
@@ -215,7 +215,7 @@ static char *api_patch(const char *uri, const char *content)
 
 static char *api_delete(const char *uri)
 {
-    json_t *node = json_map_delete(map, uri);
+    json_t *node = map_delete(map, uri);
     char *str = json_encode(node);
 
     json_delete(node);

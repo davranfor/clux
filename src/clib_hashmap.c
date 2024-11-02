@@ -1,24 +1,24 @@
 /*!
- *  \brief     clux - json_t and json-schema library for C
+ *  \brief     clux - t and json-schema library for C
  *  \author    David Ranieri <davranfor@gmail.com>
  *  \copyright GNU Public License.
  */
 
 #include <stdlib.h>
 #include <string.h>
-#include "json_map.h"
+#include "clib_hashmap.h"
 
 struct node
 {
     struct node *next;
-    json_t *data;
+    void *data;
     char key[];
 };
 
-struct json_map
+struct hmap
 {
     struct node **list;
-    json_map_t *next;
+    map_t *next;
     size_t room;
     size_t size;
 };
@@ -36,7 +36,7 @@ static const size_t primes[] =
     805306457, 1610612741, 3221225473, 4294967291
 };
 
-json_map_t *json_map_create(size_t size)
+map_t *map_create(size_t size)
 {
     enum {NPRIMES = sizeof primes / sizeof *primes};
 
@@ -49,7 +49,7 @@ json_map_t *json_map_create(size_t size)
         }
     }
 
-    json_map_t *map = calloc(1, sizeof *map);
+    map_t *map = calloc(1, sizeof *map);
 
     if (map != NULL)
     {
@@ -77,9 +77,9 @@ static unsigned long hash_str(const unsigned char *key)
     return hash;
 }
 
-static void reset(json_map_t *map)
+static void reset(map_t *map)
 {
-    json_map_t *next = map->next;
+    map_t *next = map->next;
 
     free(map->list);
     map->list = next->list;
@@ -89,7 +89,7 @@ static void reset(json_map_t *map)
     free(next);
 }
 
-static void move(json_map_t *map, struct node *node)
+static void move(map_t *map, struct node *node)
 {
     struct node **head = map->list + hash(node->key) % map->room;
 
@@ -98,7 +98,7 @@ static void move(json_map_t *map, struct node *node)
     map->size++;
 }
 
-static json_map_t *rehash(json_map_t *map, unsigned long hash)
+static map_t *rehash(map_t *map, unsigned long hash)
 {
     while (map->next != NULL)
     {
@@ -126,7 +126,7 @@ static json_map_t *rehash(json_map_t *map, unsigned long hash)
     return map;
 }
 
-static struct node *push_node(struct node *next, const char *key, json_t *data)
+static struct node *push_node(struct node *next, const char *key, void *data)
 {
     size_t size = strlen(key) + 1;
     struct node *node = malloc(sizeof *node + size);
@@ -140,7 +140,7 @@ static struct node *push_node(struct node *next, const char *key, json_t *data)
     return node;
 }
 
-static json_t *push(json_map_t *map, const char *key, json_t *data, int request)
+static void *push(map_t *map, const char *key, void *data, int request)
 {
     if ((map != NULL) && (key != NULL) && (data != NULL))
     {
@@ -155,7 +155,7 @@ static json_t *push(json_map_t *map, const char *key, json_t *data, int request)
         {
             if (strcmp(node->key, key) == 0)
             {
-                json_t *result = node->data;
+                void *result = node->data;
 
                 if (request != INSERT)
                 {
@@ -173,7 +173,7 @@ static json_t *push(json_map_t *map, const char *key, json_t *data, int request)
         {
             if (++map->size > map->room - map->room / 4)
             {
-                map->next = json_map_create(map->room);
+                map->next = map_create(map->room);
                 if (map->next == NULL)
                 {
                     return NULL;
@@ -185,22 +185,22 @@ static json_t *push(json_map_t *map, const char *key, json_t *data, int request)
     return NULL;
 }
 
-json_t *json_map_update(json_map_t *map, const char *key, json_t *data)
+void *map_update(map_t *map, const char *key, void *data)
 {
     return push(map, key, data, UPDATE);
 }
 
-json_t *json_map_insert(json_map_t *map, const char *key, json_t *data)
+void *map_insert(map_t *map, const char *key, void *data)
 {
     return push(map, key, data, INSERT);
 }
 
-json_t *json_map_upsert(json_map_t *map, const char *key, json_t *data)
+void *map_upsert(map_t *map, const char *key, void *data)
 {
     return push(map, key, data, UPSERT);
 }
 
-json_t *json_map_delete(json_map_t *map, const char *key)
+void *map_delete(map_t *map, const char *key)
 {
     if ((map != NULL) && (key != NULL))
     {
@@ -215,7 +215,7 @@ json_t *json_map_delete(json_map_t *map, const char *key)
         {
             if (strcmp(node->key, key) == 0)
             {
-                json_t *data = node->data;
+                void *data = node->data;
 
                 if (prev != NULL)
                 {
@@ -236,7 +236,7 @@ json_t *json_map_delete(json_map_t *map, const char *key)
     return NULL;
 }
 
-json_t *json_map_search(const json_map_t *map, const char *key)
+void *map_search(const map_t *map, const char *key)
 {
     if ((map != NULL) && (key != NULL))
     {
@@ -260,8 +260,7 @@ json_t *json_map_search(const json_map_t *map, const char *key)
     return NULL;
 }
 
-json_t *json_map_walk(const json_map_t *map, json_map_callback callback,
-    void *data)
+void *map_walk(const map_t *map, map_callback callback, void *data)
 {
     size_t iter = 0;
 
@@ -286,7 +285,7 @@ json_t *json_map_walk(const json_map_t *map, json_map_callback callback,
     return NULL;
 }
 
-size_t json_map_size(const json_map_t *map)
+size_t map_size(const map_t *map)
 {
     size_t size = 0;
 
@@ -298,7 +297,7 @@ size_t json_map_size(const json_map_t *map)
     return size;
 }
 
-void json_map_destroy(json_map_t *map, void (*callback)(json_t *))
+void map_destroy(map_t *map, void (*callback)(void *))
 {
     while (map != NULL)
     {
@@ -320,7 +319,7 @@ void json_map_destroy(json_map_t *map, void (*callback)(json_t *))
             }
         }
 
-        json_map_t *next = map->next;
+        map_t *next = map->next;
 
         free(map->list);
         free(map);

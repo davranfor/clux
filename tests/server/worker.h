@@ -9,7 +9,7 @@
 
 #include "buffer.h"
 
-int worker_create_map(void);
+int worker_map_create(void);
 int request_ready(const char *, size_t);
 void request_reply(pool_t *, char *, size_t);
 

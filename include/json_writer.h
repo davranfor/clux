@@ -83,7 +83,7 @@ int json_object_delete(json_t *, const char *);
 int json_array_delete(json_t *, size_t);
 int json_delete_child(json_t *, size_t);
 int json_delete_root(json_t *);
-void json_free(json_t *);
+void json_free(void *);
 
 #endif
 

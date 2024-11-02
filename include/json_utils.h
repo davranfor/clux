@@ -4,8 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef JSON_SORT_H
-#define JSON_SORT_H
+#ifndef JSON_UTILS_H
+#define JSON_UTILS_H
 
 #include "json_header.h"
 

@@ -7,14 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <clux/clib.h>
 #include <clux/json.h>
 #include "schema.h"
 
-static json_map_t *map;
+static map_t *map;
 
-static void map_destroy(void)
+static void schema_map_destroy(void)
 {
-    json_map_destroy(map, json_free);
+    map_destroy(map, json_free);
 }
 
 int schema_load_files(void)
@@ -27,13 +28,13 @@ int schema_load_files(void)
         fprintf(stderr, "'schemas' dir must exist\n");
         return 0;
     }
-    if (!(map = json_map_create(0)))
+    if (!(map = map_create(0)))
     {
-        perror("json_map_create");
+        perror("map_create");
         return 0;
     }
     json_schema_set_map(map);
-    atexit(map_destroy);
+    atexit(schema_map_destroy);
 
     const char ext[] = ".schema.json"; 
     int fail = 0;
@@ -76,7 +77,7 @@ int schema_load_files(void)
             fail = 1;
             break;
         }
-        if (json_map_insert(map, id, node) != node)
+        if (map_insert(map, id, node) != node)
         {
             fprintf(stderr, "'%s' already mapped\n", id);
             json_delete(node);

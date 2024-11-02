@@ -473,9 +473,9 @@ int json_delete_root(json_t *node)
     return 1;
 }
 
-void json_free(json_t *node)
+void json_free(void *node)
 {
-    if (!node || node->packed)
+    if (!node || ((json_t *)node)->packed)
     {
         return;
     }

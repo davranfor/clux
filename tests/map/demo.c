@@ -6,11 +6,12 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <clux/clib.h>
 #include <clux/json.h>
 
-static json_map_t *map;
+static map_t *map;
 
-static int map_print(json_t *node, size_t iter, void *data)
+static int print(void *node, size_t iter, void *data)
 {
     (void)iter;
     (void)data;
@@ -18,19 +19,18 @@ static int map_print(json_t *node, size_t iter, void *data)
     return 1;
 }
 
-static void map_destroy(void)
+static void destroy(void)
 {
-    json_map_destroy(map, json_free);
+    map_destroy(map, json_free);
 }
 
 int main(void)
 {
     srand((unsigned)time(NULL));
-    atexit(map_destroy);
-    map = json_map_create(0);
-    if (map == NULL)
+    atexit(destroy);
+    if (!(map = map_create(0)))
     {
-        perror("json_map_create");
+        perror("map_create");
         exit(EXIT_FAILURE);
     }
 
@@ -43,10 +43,10 @@ int main(void)
 
         json_push_back(root, "code", json_new_format("%05d", rand() % size));
         json_push_back(root, "func", json_new_string("insert"));
-        node = json_map_insert(map, json_string(json_head(root)), root);
+        node = map_insert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
-            perror("json_map_insert");
+            perror("map_insert");
             exit(EXIT_FAILURE);
         }
         if (node != root)
@@ -60,10 +60,10 @@ int main(void)
 
         json_push_back(root, "code", json_new_format("%05d", rand() % size));
         json_push_back(root, "func", json_new_string("upsert"));
-        node = json_map_upsert(map, json_string(json_head(root)), root);
+        node = map_upsert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
-            perror("json_map_upsert");
+            perror("map_upsert");
             exit(EXIT_FAILURE);
         }
         if (node != root)
@@ -77,7 +77,7 @@ int main(void)
 
         snprintf(str, sizeof str, "%05d", rand() % size);
         printf("Searching node %s: ", str);
-        node = json_map_search(map, str);
+        node = map_search(map, str);
         if (node != NULL)
         {
             json_write_line(node, stdout);
@@ -93,7 +93,7 @@ int main(void)
 
         snprintf(str, sizeof str, "%05d", rand() % size);
         printf("Deleting node %s: ", str);
-        node = json_map_delete(map, str);
+        node = map_delete(map, str);
         if (node != NULL)
         {
             json_write_line(node, stdout);
@@ -105,7 +105,7 @@ int main(void)
         }
     }
     puts("Printing map ...");
-    json_map_walk(map, map_print, NULL);
+    map_walk(map, print, NULL);
     return 0;
 }
 
