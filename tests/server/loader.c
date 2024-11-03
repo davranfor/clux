@@ -18,27 +18,10 @@ static void loader_destroy(void)
     map_destroy(map, json_free);
 }
 
-void loader_run(void)
+static int loader_fill(DIR *schemas)
 {
-    if (!(map = map_create(0)))
-    {
-        perror("map_create");
-        exit(EXIT_FAILURE);
-    }
-    json_schema_set_map(map);
-    atexit(loader_destroy);
-
     struct dirent *dir;
-    DIR *schemas;
-
-    if (!(schemas = opendir("schemas")))
-    {
-        fprintf(stderr, "'schemas' dir must exist\n");
-        exit(EXIT_FAILURE);
-    }
-
     const char ext[] = ".schema.json"; 
-    int fail = 0;
 
     while ((dir = readdir(schemas)))
     {
@@ -54,8 +37,7 @@ void loader_run(void)
         if (snprintf(path, sizeof path, "schemas/%s", dir->d_name) < 0)
         {
             fprintf(stderr, "'%s' is not a valid file name\n", dir->d_name);
-            fail = 1;
-            break;
+            return 0;
         }
 
         json_error_t error;
@@ -65,8 +47,7 @@ void loader_run(void)
         {
             fprintf(stderr, "%s\n", path);
             json_print_error(&error);
-            fail = 1;
-            break;
+            return 0;
         }
 
         const char *id = json_string(json_find(node, "$id"));
@@ -75,19 +56,40 @@ void loader_run(void)
         {
             fprintf(stderr, "Error mapping '%s' -> '$id' must exist\n", path);
             json_delete(node);
-            fail = 1;
-            break;
+            return 0;
         }
         if (map_insert(map, id, node) != node)
         {
             fprintf(stderr, "'%s' already mapped\n", id);
             json_delete(node);
-            fail = 1;
-            break;
+            return 0;
         }
     }
+    return 1;
+}
+
+void loader_run(void)
+{
+    if (!(map = map_create(0)))
+    {
+        perror("map_create");
+        exit(EXIT_FAILURE);
+    }
+    json_schema_set_map(map);
+    atexit(loader_destroy);
+
+    DIR *schemas;
+
+    if (!(schemas = opendir("schemas")))
+    {
+        fprintf(stderr, "'schemas' dir must exist\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int done = loader_fill(schemas);
+
     closedir(schemas);
-    if (fail)
+    if (!done)
     {
         exit(EXIT_FAILURE);
     }
