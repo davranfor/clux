@@ -137,7 +137,7 @@ static char *api_post(const char *uri, const char *content)
     {
         return NULL;
     }
-    json_delete(node, "id");
+    json_delete_child(node, "id");
 
     static size_t id = 1;
     char key[64];

@@ -228,7 +228,7 @@ json_t *json_array_push(json_t *parent, size_t index, json_t *child)
     return NULL;
 }
 
-json_t *json_push_child(json_t *parent, size_t index, json_t *child)
+json_t *json_push_at(json_t *parent, size_t index, json_t *child)
 {
     if ((parent == NULL) || (child == NULL))
     {
@@ -290,7 +290,7 @@ json_t *json_array_pop(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
-json_t *json_pop_child(json_t *parent, size_t index)
+json_t *json_pop_at(json_t *parent, size_t index)
 {
     if ((parent == NULL) || (parent->size == 0))
     {
@@ -368,7 +368,7 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
     return temp;
 }
 
-json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
+json_t *json_move(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (source->size == 0) || (target == NULL))
     {
@@ -393,7 +393,7 @@ json_t *json_move_child(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
-json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
+json_t *json_swap(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (target == NULL) || (source->type != target->type))
     {
@@ -420,17 +420,17 @@ json_t *json_swap_child(json_t *source, size_t a, json_t *target, size_t b)
 
 int json_object_delete(json_t *parent, const char *key)
 {
-    return json_delete_root(json_object_pop(parent, key));
+    return json_delete(json_object_pop(parent, key));
 }
 
 int json_array_delete(json_t *parent, size_t index)
 {
-    return json_delete_root(json_array_pop(parent, index));
+    return json_delete(json_array_pop(parent, index));
 }
 
-int json_delete_child(json_t *parent, size_t index)
+int json_delete_at(json_t *parent, size_t index)
 {
-    return json_delete_root(json_pop_child(parent, index));
+    return json_delete(json_pop_at(parent, index));
 }
 
 static void delete_node(json_t *node)
@@ -463,7 +463,7 @@ static void delete_tree(json_t *node)
     delete_node(node);
 }
 
-int json_delete_root(json_t *node)
+int json_delete(json_t *node)
 {
     if (!node || node->packed)
     {
