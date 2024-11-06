@@ -4,12 +4,10 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef JSON_REGEX_H
-#define JSON_REGEX_H
+#ifndef CLIB_REGEX_H
+#define CLIB_REGEX_H
 
-#include "json_header.h"
-
-int json_regex(const json_t *, const char *);
+int test_regex(const char *, const char *);
 
 #endif
 

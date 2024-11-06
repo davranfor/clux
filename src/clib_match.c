@@ -7,10 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <regex.h>
 #include "clib_date.h"
 #include "clib_unicode.h"
-#include "clib_test.h"
+#include "clib_match.h"
 
 static const char *test_mask(const char *text, const char *mask)
 {
@@ -357,18 +356,5 @@ int test_match(const char *text, const char *pattern)
         !strcmp(pattern, "url") ? test_is_url : NULL;
 
     return test != NULL ? test(text) : 0;
-}
-
-int test_regex(const char *text, const char *pattern)
-{
-    regex_t regex;
-    int valid = 0;
-
-    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB) == 0)
-    {
-        valid = regexec(&regex, text, 0, NULL, 0) == 0;
-    }
-    regfree(&regex);
-    return valid;
 }
 

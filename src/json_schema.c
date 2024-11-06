@@ -9,9 +9,10 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#include "clib_test.h"
 #include "clib_string.h"
 #include "clib_hashmap.h"
+#include "clib_match.h"
+#include "clib_regex.h"
 #include "json_private.h"
 #include "json_reader.h"
 #include "json_pointer.h"
@@ -96,7 +97,9 @@ static int notify_user(const schema_t *schema,
 static int notify(const schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    return schema->callback ? notify_user(schema, rule, node, event) : 0;
+    return schema->callback
+        ? notify_user(schema, rule, node, event)
+        : event == JSON_SCHEMA_INVALID;
 }
 
 static int abort_on_warning(const schema_t *schema,
