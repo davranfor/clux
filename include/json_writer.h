@@ -9,18 +9,17 @@
 
 #include "json_header.h"
 
-/* Macros deducing the 'number' type */
+/* Macros deducing the type of 'number' */
 #define json_new_number(number) _Generic((number),  \
     long double: json_new_real,                     \
     double: json_new_real,                          \
     float: json_new_real,                           \
     default: json_new_integer)((double)(number))
 
-
 /**
  * Macros deducing the parameter (property or index) and calling
- * json_object_func(property) or json_func_at(index)
- * depending on the passed parameter.
+ * json_object_func(property) or json_func_at(index) depending
+ * on the passed parameter.
  */
 #define JSON_PUSH(_1, _2, _3, _4, NAME, ...) NAME
 #define json_push_child(...) \
@@ -31,9 +30,9 @@
 #define json_push_back(parent, ...) \
     json_push_child(parent, JSON_TAIL, __VA_ARGS__)
 
-#define json_pop_child(parent, what) _Generic((what), \
-    char *: json_object_pop,                    \
-    void *: json_object_pop,                    \
+#define json_pop_child(parent, what) _Generic((what),   \
+    char *: json_object_pop,                            \
+    void *: json_object_pop,                            \
     default: json_pop_at)((parent), (what))
 
 #define json_pop_front(parent) \

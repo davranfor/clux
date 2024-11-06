@@ -63,12 +63,9 @@ static json_t *find_index(const json_t *node, const char *path, const char *end)
     if (errno == ERANGE)
     {
         errno = 0;
+        return NULL;
     }
-    else if (index < node->size)
-    {
-        return node->child[index];
-    }
-    return NULL;
+    return index < node->size ? node->child[index] : NULL;
 }
 
 static const json_t *pointer(const json_t *node, const char *path)
@@ -85,14 +82,11 @@ static const json_t *pointer(const json_t *node, const char *path)
         {
             node = find_index(node, path, end);
         }
-        if (*end == '/')
-        {
-            path = end + 1;
-        }
-        else
+        if (*end != '/')
         {
             return node;
         }
+        path = end + 1;
     }
     return NULL;
 }
