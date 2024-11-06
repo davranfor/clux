@@ -10,6 +10,38 @@
 #include "json_private.h"
 #include "json_pointer.h"
 
+/*
+---------------------------------------------------------------------
+JavaScript Object Notation (JSON) Pointer
+---------------------------------------------------------------------
+Evaluation of a JSON Pointer begins with a reference to the root
+value of a JSON document and completes with a reference to some value
+within the document. Each reference token in the JSON Pointer is
+evaluated sequentially.
+
+Evaluation of each reference token begins by decoding any escaped
+character sequence. This is performed by first transforming any
+occurrence of the sequence '~1' to '/', and then transforming any
+occurrence of the sequence '~0' to '~'. By performing the
+substitutions in this order, an implementation avoids the error of
+turning '~01' first into '~1' and then into '/', which would be
+incorrect (the string '~01' correctly becomes '~1' after
+transformation).
+
+The reference token then modifies which value is referenced according
+to the following scheme:
+
+- If the currently referenced value is a JSON object, the new
+  referenced value is the object member with the name identified by
+  the reference token. The member name is equal to the token if it
+  has the same number of Unicode characters as the token and their
+  code points are byte-by-byte equal. No Unicode character
+  normalization is performed. If a referenced member name is not
+  unique in an object, the member that is referenced is undefined,
+  and evaluation fails.
+---------------------------------------------------------------------
+*/
+
 static int compare(const char *key, const char *path, const char *end)
 {
     for (; path < end; key++, path++)
@@ -58,12 +90,8 @@ static json_t *find_index(const json_t *node, const char *path, const char *end)
         return NULL;
     }
 
-    size_t index = strtoul(path, NULL, 10);
+    unsigned long index = strtoul(path, NULL, 10);
 
-    if (errno == ERANGE)
-    {
-        errno = 0;
-    }
     return index < node->size ? node->child[index] : NULL;
 }
 
