@@ -63,7 +63,6 @@ static json_t *find_index(const json_t *node, const char *path, const char *end)
     if (errno == ERANGE)
     {
         errno = 0;
-        return NULL;
     }
     return index < node->size ? node->child[index] : NULL;
 }
