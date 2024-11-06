@@ -127,7 +127,7 @@ static char *new_string(const char *str, const char *end)
     return text;
 }
 
-static const char *skip_whitespaces(const char *str)
+static const char *skip_spaces(const char *str)
 {
     while (is_space(*str))
     {
@@ -177,12 +177,12 @@ static char *parse_key(const char **str)
         *str = end;
         return NULL;
     }
-    *str = skip_whitespaces(end + 1);
+    *str = skip_spaces(end + 1);
     if (**str != ':')
     {
         return NULL;
     }
-    *str = skip_whitespaces(++*str);
+    *str = skip_spaces(++*str);
     return new_string(key, end);
 }
 
@@ -195,7 +195,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
         return NULL;
     }
 
-    *str = skip_whitespaces(++*str);
+    *str = skip_spaces(++*str);
 
     int trailing_comma = 0;
 
@@ -227,7 +227,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
         child->key = key;
         if (**str == ',')
         {
-            *str = skip_whitespaces(++*str);
+            *str = skip_spaces(++*str);
             trailing_comma = 1;
         }
         else
@@ -240,7 +240,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
         json_delete(parent);
         return NULL;
     }
-    *str = skip_whitespaces(++*str);
+    *str = skip_spaces(++*str);
     return parent; 
 }
 
@@ -253,7 +253,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
         return NULL;
     }
 
-    *str = skip_whitespaces(++*str);
+    *str = skip_spaces(++*str);
 
     int trailing_comma = 0;
 
@@ -275,7 +275,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
         }
         if (**str == ',')
         {
-            *str = skip_whitespaces(++*str);
+            *str = skip_spaces(++*str);
             trailing_comma = 1;
         }
         else
@@ -288,7 +288,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
         json_delete(parent);
         return NULL;
     }
-    *str = skip_whitespaces(++*str);
+    *str = skip_spaces(++*str);
     return parent; 
 }
 
@@ -317,7 +317,7 @@ static json_t *parse_string(const char **str)
         return NULL;
     }
     node->string = string;
-    *str = skip_whitespaces(end + 1);
+    *str = skip_spaces(end + 1);
     return node;
 }
 
@@ -328,7 +328,6 @@ static json_t *parse_number(const char **str)
 
     if (errno == ERANGE)
     {
-        errno = 0;
         return NULL;
     }
     if (isnan(number) || isinf(number))
@@ -346,7 +345,7 @@ static json_t *parse_number(const char **str)
     node->type = (*str + strspn(*str, "-0123456789") >= end)
         ? IS_SAFE_INTEGER(number) ? JSON_INTEGER : JSON_REAL
         : JSON_REAL;
-    *str = skip_whitespaces(end);
+    *str = skip_spaces(end);
     return node; 
 }
 
@@ -356,7 +355,7 @@ static json_t *parse_true(const char **str)
     {
         return NULL;
     }
-    *str = skip_whitespaces(*str + 4);
+    *str = skip_spaces(*str + 4);
     return new_node(JSON_TRUE);
 }
 
@@ -366,7 +365,7 @@ static json_t *parse_false(const char **str)
     {
         return NULL;
     }
-    *str = skip_whitespaces(*str + 5);
+    *str = skip_spaces(*str + 5);
     return new_node(JSON_FALSE);
 }
 
@@ -376,7 +375,7 @@ static json_t *parse_null(const char **str)
     {
         return NULL;
     }
-    *str = skip_whitespaces(*str + 4);
+    *str = skip_spaces(*str + 4);
     return new_node(JSON_NULL);
 }
 
@@ -414,7 +413,7 @@ json_t *json_parse(const char *str, json_error_t *error)
         return NULL;
     }
 
-    const char *end = skip_whitespaces(str);
+    const char *end = skip_spaces(str);
     json_t *node = parse(&end, 0);
 
     if ((node == NULL) || (*end != '\0'))
