@@ -21,14 +21,7 @@ static unsigned short max_depth = (unsigned short)-1;
 
 void json_parser_set_max_depth(unsigned short depth)
 {
-    if (depth == 0)
-    {
-        max_depth = (unsigned short)-1;
-    }
-    else
-    {
-        max_depth = depth;
-    }
+    max_depth = depth;
 }
 
 unsigned short json_parser_get_max_depth(void)
