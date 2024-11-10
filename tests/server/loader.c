@@ -13,12 +13,12 @@
 
 static map_t *map;
 
-static void loader_destroy(void)
+static void destroy(void)
 {
     map_destroy(map, json_free);
 }
 
-static int loader_fill(DIR *schemas)
+static int load(DIR *schemas)
 {
     struct dirent *dir;
     const char ext[] = ".schema.json"; 
@@ -76,7 +76,7 @@ void loader_run(void)
         exit(EXIT_FAILURE);
     }
     json_schema_set_map(map);
-    atexit(loader_destroy);
+    atexit(destroy);
 
     DIR *schemas;
 
@@ -86,7 +86,7 @@ void loader_run(void)
         exit(EXIT_FAILURE);
     }
 
-    int done = loader_fill(schemas);
+    int done = load(schemas);
 
     closedir(schemas);
     if (!done)
