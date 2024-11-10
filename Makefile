@@ -31,7 +31,7 @@ $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) $(LDLIBS) $(LINKER) -o $(TARGET)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
-	$(CC) -I$(INCDIR) $(CFLAGS) -MMD -MP -fPIC -D=USE_SAFE_INTEGER -c $< -o $@
+	$(CC) -I$(INCDIR) $(CFLAGS) -MMD -MP -fPIC -c $< -o $@
 
 $(OBJDIR):
 	@mkdir -p $@
