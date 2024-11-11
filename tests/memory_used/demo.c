@@ -5,8 +5,7 @@
  */
 
 #if __linux__
-#define <malloc.h>
-#include <malloc/malloc.h>
+#include <malloc.h>
 #define MALLOC_SIZE(mem) malloc_usable_size((void *)mem)
 #elif __APPLE__
 #include <malloc/malloc.h>
