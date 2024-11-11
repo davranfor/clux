@@ -4,9 +4,19 @@
  *  \copyright GNU Public License.
  */
 
+#if __linux__
+#define <malloc.h>
+#include <malloc/malloc.h>
+#define MALLOC_SIZE(mem) malloc_usable_size((void *)mem)
+#elif __APPLE__
+#include <malloc/malloc.h>
+#define MALLOC_SIZE(mem) malloc_size(mem)
+#else
+#error "Unsupported system"
+#endif
+
 #include <stdlib.h>
 #include <string.h>
-#include <malloc/malloc.h>
 #include <clux/clib.h>
 #include <clux/json.h>
 
@@ -18,19 +28,22 @@ static int sum_memory_used(const json_t *node, size_t depth, void *data)
 
     size_t size = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
     if (json_key(node) != NULL)
     {
-        size += malloc_size(json_key(node));
+        size += MALLOC_SIZE(json_key(node));
     }
     if (json_type(node) == JSON_STRING)
     {
-        size += malloc_size(json_string(node));
+        size += MALLOC_SIZE(json_string(node));
     }
     if (json_size(node) > 0)
     {
-        size += malloc_size(json_child(node));
+        size += MALLOC_SIZE(json_child(node));
     }
-    size += malloc_size(node);
+    size += MALLOC_SIZE(node);
+#pragma GCC diagnostic pop
     *(size_t *)data += size;
     return 1;
 }

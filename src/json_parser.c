@@ -319,11 +319,7 @@ static json_t *parse_number(const char **str)
     char *end;
     double number = strtod(*str, &end);
 
-    if (errno == ERANGE)
-    {
-        return NULL;
-    }
-    if (isnan(number) || isinf(number))
+    if ((errno == ERANGE) || isnan(number) || isinf(number))
     {
         return NULL;
     }

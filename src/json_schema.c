@@ -212,7 +212,8 @@ static test_t tests[] = {TEST(TEST_KEY)};
 enum {TABLE_SIZE = NTESTS - DEFS - 1};
 static test_t *table[TABLE_SIZE];
 
-__attribute__((constructor)) static void table_load(void)
+__attribute__((constructor))
+static void table_load(void)
 {
     for (size_t i = 0; i < TABLE_SIZE; i++)
     {
