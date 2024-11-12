@@ -210,6 +210,26 @@ enum json_type json_type(const json_t *node)
     return node != NULL ? node->type : JSON_UNDEFINED;
 }
 
+/* json_height helper */
+static int tree_height(const json_t *node, size_t depth, void *height)
+{
+    (void)node;
+    if (depth > *(size_t *)height)
+    {
+        *(size_t *)height = depth;
+    }
+    return 1;
+}
+
+/* Number of edges from the leaf node to the passed node */
+size_t json_height(const json_t *node)
+{
+    size_t height = 0;
+
+    json_walk(node, tree_height, &height);
+    return height;
+}
+
 unsigned json_size(const json_t *node)
 {
     return node != NULL ? node->size : 0;

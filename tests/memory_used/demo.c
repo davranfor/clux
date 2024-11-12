@@ -11,7 +11,7 @@
 #include <malloc/malloc.h>
 #define MALLOC_SIZE(mem) malloc_size(mem)
 #else
-#error "Unsupported system"
+#error "Unsupported system for this test"
 #endif
 
 #include <stdlib.h>
