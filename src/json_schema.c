@@ -14,7 +14,9 @@
 #include "clib_match.h"
 #include "clib_regex.h"
 #include "json_private.h"
+#include "json_parser.h"
 #include "json_reader.h"
+#include "json_writer.h"
 #include "json_pointer.h"
 #include "json_schema.h"
 
@@ -157,6 +159,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_CONST,                     "const")                \
     _(SCHEMA_CONTENT_ENCODING,          "contentEncoding")      \
     _(SCHEMA_CONTENT_MEDIA_TYPE,        "contentMediaType")     \
+    _(SCHEMA_CONTENT_SCHEMA,            "contentSchema")        \
     _(SCHEMA_CONTAINS,                  "contains")             \
     _(SCHEMA_DEFAULT,                   "default")              \
     _(SCHEMA_DEFS,                      "$defs")                \
@@ -932,6 +935,30 @@ static int test_max_items(const json_t *rule, const json_t *node)
     return (size_t)rule->number >= node->size;
 }
 
+static int test_content_schema(const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_STRING)
+    {
+        return SCHEMA_VALID;
+    }
+
+    json_t *subschema = json_parse(node->string, NULL);
+
+    if (subschema == NULL)
+    {
+        return SCHEMA_INVALID;
+    }
+
+    int result = json_validate(subschema, rule, NULL, NULL);
+
+    json_delete(subschema);
+    return result;
+}
+
 static int test_format(const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_STRING)
@@ -1449,6 +1476,9 @@ static int validate(const schema_t *schema,
                 test = test_max_items(rule->child[i], node);
                 break;
             // Validate string related tests
+            case SCHEMA_CONTENT_SCHEMA:
+                test = test_content_schema(rule->child[i], node);
+                break;
             case SCHEMA_FORMAT:
                 test = test_format(rule->child[i], node);
                 break;
