@@ -153,7 +153,10 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_ADDITIONAL_PROPERTIES,     "additionalProperties") \
     _(SCHEMA_ALL_OF,                    "allOf")                \
     _(SCHEMA_ANY_OF,                    "anyOf")                \
+    _(SCHEMA_COMMENT,                   "$comment")             \
     _(SCHEMA_CONST,                     "const")                \
+    _(SCHEMA_CONTENT_ENCODING,          "contentEncoding")      \
+    _(SCHEMA_CONTENT_MEDIA_TYPE,        "contentMediaType")     \
     _(SCHEMA_CONTAINS,                  "contains")             \
     _(SCHEMA_DEFAULT,                   "default")              \
     _(SCHEMA_DEFS,                      "$defs")                \
@@ -260,6 +263,9 @@ static int get_test(const json_t *rule)
             return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
             return rule->type == JSON_ARRAY ? SCHEMA_VALID : SCHEMA_ERROR;
+        case SCHEMA_COMMENT:
+        case SCHEMA_CONTENT_ENCODING:
+        case SCHEMA_CONTENT_MEDIA_TYPE:
         case SCHEMA_DESCRIPTION:
         case SCHEMA_ID:
         case SCHEMA_SCHEMA:
