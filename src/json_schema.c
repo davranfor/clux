@@ -1212,7 +1212,7 @@ static int test_anchor(const schema_t *schema,
     {
         return SCHEMA_VALID;
     }
-    if ((duplicated != NULL) && (duplicated != parent))
+    if (duplicated != NULL)
     {
         const json_t note =
         {
