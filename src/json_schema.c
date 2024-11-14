@@ -1176,7 +1176,7 @@ static int test_type(const schema_t *schema,
     return result;
 }
 
-static const json_t *find_anchor(const struct anchor *anchor,
+static const json_t *get_anchor(const struct anchor *anchor,
     const char *name)
 {
     for (int i = 0; i < anchor->size; i++)
@@ -1205,7 +1205,7 @@ static int test_anchor(const schema_t *schema,
     }
 
     struct anchor *anchor = schema->anchor;
-    const json_t *duplicated = find_anchor(anchor, rule->string);
+    const json_t *duplicated = get_anchor(anchor, rule->string);
 
     if (duplicated == parent)
     {
@@ -1263,7 +1263,7 @@ static int test_ref(const schema_t *schema,
         }
         else
         {
-            rule = find_anchor(schema->anchor, ref + 1);
+            rule = get_anchor(schema->anchor, ref + 1);
         }
     }
     else
