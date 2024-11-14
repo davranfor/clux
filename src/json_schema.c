@@ -373,69 +373,6 @@ static int test_properties(const schema_t *schema,
     return result;
 }
 
-static int test_additional_properties(const schema_t *schema,
-    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
-{
-    if (rule->type == JSON_TRUE)
-    {
-        return SCHEMA_VALID;
-    }
-    if ((rule->type != JSON_FALSE) && (rule->type != JSON_OBJECT))
-    {
-        return SCHEMA_ERROR;
-    } 
-    if (node->type != JSON_OBJECT)
-    {
-        return SCHEMA_VALID;
-    }
-
-    const json_t *properties = json_find(parent, "properties");
-    int result = SCHEMA_VALID;
-
-    if (rule->type == JSON_FALSE)
-    {
-        for (unsigned i = 0; i < node->size; i++)
-        {
-            if (json_find(properties, node->child[i]->key))
-            { 
-                continue;
-            }
-            if (!abortable)
-            {
-                return SCHEMA_FAILURE;
-            }
-            if (abort_on_failure(schema, rule, node->child[i]))
-            {
-                return SCHEMA_ABORTED;
-            }
-            result = SCHEMA_FAILURE;
-        }
-    }
-    else // if (rule->type == JSON_OBJECT)
-    {
-        for (unsigned i = 0; i < node->size; i++)
-        {
-            if (json_find(properties, node->child[i]->key))
-            { 
-                continue;
-            }
-            switch (test_property(schema, rule, node->child[i], abortable))
-            {
-                case SCHEMA_ERROR:
-                    return SCHEMA_ABORTED;
-                case SCHEMA_INVALID:
-                    if (!abortable)
-                    {
-                        return SCHEMA_FAILURE;
-                    }
-                    result = SCHEMA_FAILURE;
-                    break;
-            }
-        }
-    }
-    return result;
-}
-
 static int test_pattern_properties(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -474,6 +411,76 @@ static int test_pattern_properties(const schema_t *schema,
                     result = SCHEMA_FAILURE;
                     break;
             }
+        }
+    }
+    return result;
+}
+
+static int test_additional_properties(const schema_t *schema,
+    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
+{
+    if (rule->type == JSON_TRUE)
+    {
+        return SCHEMA_VALID;
+    }
+    if ((rule->type != JSON_FALSE) && (rule->type != JSON_OBJECT))
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_OBJECT)
+    {
+        return SCHEMA_VALID;
+    }
+
+    const json_t *properties = json_find(parent, "properties");
+    const json_t *patterns = json_find(parent, "patternProperties");
+    unsigned patterns_size = json_is_object(patterns) ? patterns->size : 0;
+    int result = SCHEMA_VALID;
+
+    for (unsigned i = 0; i < node->size; i++)
+    {
+        if (json_find(properties, node->child[i]->key))
+        {
+            continue;
+        }
+
+        int found = 0;
+
+        for (unsigned j = 0; j < patterns_size; j++)
+        {
+            if (test_regex(node->child[i]->key, patterns->child[j]->key))
+            {
+                found = 1;
+                break;
+            };
+        }
+        if (found == 1)
+        {
+            continue;
+        }
+        if (rule->type == JSON_FALSE)
+        {
+            if (!abortable)
+            {
+                return SCHEMA_FAILURE;
+            }
+            if (abort_on_failure(schema, rule, node->child[i]))
+            {
+                return SCHEMA_ABORTED;
+            }
+            result = SCHEMA_FAILURE;
+        }
+        else switch (test_property(schema, rule, node->child[i], abortable))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_INVALID:
+                if (!abortable)
+                {
+                    return SCHEMA_FAILURE;
+                }
+                result = SCHEMA_FAILURE;
+                break;
         }
     }
     return result;
@@ -1508,11 +1515,11 @@ static int validate(const schema_t *schema,
             case SCHEMA_PROPERTIES:
                 test = test_properties(schema, rule->child[i], node, abortable);
                 break;
-            case SCHEMA_ADDITIONAL_PROPERTIES:
-                test = test_additional_properties(schema, rule, rule->child[i], node, abortable);
-                break;
             case SCHEMA_PATTERN_PROPERTIES:
                 test = test_pattern_properties(schema, rule->child[i], node, abortable);
+                break;
+            case SCHEMA_ADDITIONAL_PROPERTIES:
+                test = test_additional_properties(schema, rule, rule->child[i], node, abortable);
                 break;
             case SCHEMA_PROPERTY_NAMES:
                 test = test_property_names(schema, rule->child[i], node, abortable);

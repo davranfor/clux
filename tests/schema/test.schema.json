@@ -39,6 +39,9 @@
         "color": { "type": "string" },
         "peso": { "type": "number" }
       },
+      "patternProperties":{
+        "^[a-zA-Z][a-zA-Z0-9]*$": { "type": [ "string", "number" ] }
+      },
       "additionalProperties": false
     },
     "estadoCivil": {
