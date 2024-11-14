@@ -3,26 +3,26 @@
   "$id": "https://ejemplo.com/producto.schema.json",
   "title": "Producto",
   "description": "Esquema para validar un producto",
-  "type": "object",
+  "type": ["object"],
   "properties": {
     "nombre": {
-      "type": "string",
+      "type": ["string"],
       "minLength": 1,
       "maxLength": 100
     },
     "precio": {
-      "type": "number",
+      "type": ["number"],
       "minimum": 0
     },
     "tags": {
-      "type": "array",
-      "items": { "type": "string" },
+      "type": ["array"],
+      "items": { "type": ["string"] },
       "uniqueItems": true,
       "maxItems": 10,
       "minItems": 1
     },
     "dimensiones": {
-      "type": "array",
+      "type": ["array"],
       "items": {
           "items": { "type": ["number", "boolean" ] },
           "minItems": 2,
@@ -31,27 +31,27 @@
       "description": "Coordenadas 2D, como [[x1, y1], [x2, y2]]"
     },
     "propiedadesExtra": {
-      "type": "object",
+      "type": ["object"],
       "propertyNames": {
         "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
       },
       "properties": {
-        "color": { "type": "string" },
-        "peso": { "type": "number" }
+        "color": { "type": ["string"] },
+        "peso": { "type": ["number"] }
       },
       "patternProperties":{
-        "^[a-zA-Z][a-zA-Z0-9]*$": { "type": [ "string", "number" ] }
+        "^[a-zA-Z][a-zA-Z0-9]*$": { "type": ["string", "number"] }
       },
       "additionalProperties": false
     },
     "estadoCivil": {
-      "type": "string",
+      "type": ["string"],
       "enum": ["soltero", "casado", "divorciado", "viudo"],
       "default": "soltero"
     },
     "prueba": {
-      "type": "array",
-      "contains": { "type": "integer" },
+      "type": ["array"],
+      "contains": { "type": ["integer"] },
       "minContains": 5,
       "maxContains": 5
     }

@@ -1132,28 +1132,19 @@ static unsigned add_type(const char *type, unsigned mask)
 static int test_type(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
+    if (rule->type != JSON_ARRAY)
+    {
+        return SCHEMA_ERROR;
+    }
+
     unsigned mask = 0;
 
-    if (rule->type == JSON_STRING)
+    for (unsigned i = 0; i < rule->size; i++)
     {
-        if (!(mask = add_type(rule->string, mask)))
+        if (!(mask = add_type(json_text(rule->child[i]), mask)))
         {
             return SCHEMA_ERROR;
         }
-    }
-    else if (rule->type == JSON_ARRAY)
-    {
-        for (unsigned i = 0; i < rule->size; i++)
-        {
-            if (!(mask = add_type(json_text(rule->child[i]), mask)))
-            {
-                return SCHEMA_ERROR;
-            }
-        }
-    }
-    else
-    {
-        return SCHEMA_ERROR;
     }
 
     unsigned type = node->type;
@@ -1162,8 +1153,7 @@ static int test_type(const schema_t *schema,
                 /* 'integer' validates as true when type is 'number' */
                 ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
 
-
-    if ((result == SCHEMA_INVALID) && (rule->type == JSON_ARRAY))
+    if (result == SCHEMA_INVALID)
     {
         if (abortable)
         {
