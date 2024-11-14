@@ -214,6 +214,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_TITLE,                     "title")                \
     _(SCHEMA_TYPE,                      "type")                 \
     _(SCHEMA_UNIQUE_ITEMS,              "uniqueItems")          \
+    _(SCHEMA_VOCABULARY,                "$vocabulary")          \
     _(SCHEMA_WRITE_ONLY,                "writeOnly")
 
 #define TEST_ENUM(a, b) a,
@@ -275,6 +276,7 @@ static int get_test(const json_t *rule)
             return SCHEMA_VALID;
         case SCHEMA_CONTAINS:
         case SCHEMA_DEFS:
+        case SCHEMA_VOCABULARY:
             return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
             return rule->type == JSON_ARRAY ? SCHEMA_VALID : SCHEMA_ERROR;
