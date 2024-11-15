@@ -419,13 +419,15 @@ static int test_pattern_properties(const schema_t *schema,
 static int test_additional_properties(const schema_t *schema,
     const json_t *parent, const json_t *rule, const json_t *node, int abortable)
 {
-    if (rule->type == JSON_TRUE)
+    switch (rule->type)
     {
-        return SCHEMA_VALID;
-    }
-    if ((rule->type != JSON_FALSE) && (rule->type != JSON_OBJECT))
-    {
-        return SCHEMA_ERROR;
+        case JSON_TRUE:
+            return SCHEMA_VALID;
+        case JSON_FALSE:
+        case JSON_OBJECT:
+            break;
+        default:
+            return SCHEMA_ERROR;
     }
     if (node->type != JSON_OBJECT)
     {
@@ -458,28 +460,32 @@ static int test_additional_properties(const schema_t *schema,
         {
             continue;
         }
-        if (rule->type == JSON_FALSE)
+        switch (rule->type)
         {
-            if (!abortable)
-            {
-                return SCHEMA_FAILURE;
-            }
-            if (abort_on_failure(schema, rule, node->child[i]))
-            {
-                return SCHEMA_ABORTED;
-            }
-            result = SCHEMA_FAILURE;
-        }
-        else switch (test_property(schema, rule, node->child[i], abortable))
-        {
-            case SCHEMA_ERROR:
-                return SCHEMA_ABORTED;
-            case SCHEMA_INVALID:
+            case JSON_FALSE:
                 if (!abortable)
                 {
                     return SCHEMA_FAILURE;
                 }
+                if (abort_on_failure(schema, rule, node->child[i]))
+                {
+                    return SCHEMA_ABORTED;
+                }
                 result = SCHEMA_FAILURE;
+                break;
+            case JSON_OBJECT:
+                switch (test_property(schema, rule, node->child[i], abortable))
+                {
+                    case SCHEMA_ERROR:
+                        return SCHEMA_ABORTED;
+                    case SCHEMA_INVALID:
+                        if (!abortable)
+                        {
+                            return SCHEMA_FAILURE;
+                        }
+                        result = SCHEMA_FAILURE;
+                        break;
+                }
                 break;
         }
     }
