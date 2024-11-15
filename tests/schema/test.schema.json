@@ -1,22 +1,83 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/person.schema.json",
-  "$defs": {
-    "name": {
-      "$anchor": "name",
-      "type": ["string"],
-      "minLength": 1,
-      "description": "A person's name"
-    }
-  },
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://ejemplo.com/producto.schema.json",
+  "title": "Producto",
+  "description": "Esquema para validar un producto",
   "type": ["object"],
   "properties": {
-    "firstName": {
-      "$ref": "#name"
+    "nombre": {
+      "type": ["string"],
+      "minLength": 1,
+      "maxLength": 100
     },
-    "lastName": {
-      "$ref": "#name"
+    "precio": {
+      "type": ["number"],
+      "minimum": 0
+    },
+    "tags": {
+      "type": ["array"],
+      "items": { "type": ["string"] },
+      "uniqueItems": true,
+      "maxItems": 10,
+      "minItems": 1
+    },
+    "dimensiones": {
+      "type": ["array"],
+      "items": {
+          "items": { "type": ["number", "boolean" ] },
+          "minItems": 2,
+          "maxItems": 2
+      },
+      "description": "Coordenadas 2D, como [[x1, y1], [x2, y2]]"
+    },
+    "propiedadesExtra": {
+      "type": ["object"],
+      "propertyNames": {
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "properties": {
+        "color": { "type": ["string"] },
+        "peso": { "type": ["number"] }
+      },
+      "patternProperties":{
+         "^[a-zA-Z][a-zA-Z0-9]*$": { "type" : [ "string", "number"] }
+      },
+      "additionalProperties": false
+    },
+    "estadoCivil": {
+      "type": ["string"],
+      "enum": ["soltero", "casado", "divorciado", "viudo"],
+      "default": "soltero"
+    },
+    "prueba": {
+      "type": ["array"],
+      "contains": { "type": ["integer"] },
+      "minContains": 5,
+      "maxContains": 5
     }
-  }
+  },
+  "required": ["nombre", "precio"],
+  "additionalProperties": false,
+  "if": {
+    "properties": { "precio": { "minimum": 1000 } }
+  },
+  "then": {
+    "properties": { "estadoCivil": { "const": "casado" } }
+  },
+  "else": {
+    "properties": { "estadoCivil": { "const": "soltero" } }
+  },
+  "anyOf": [
+    {
+      "required": ["precio"]
+    },
+    {
+      "required": ["tags"]
+    }
+  ],
+  "allOf": [
+    { "properties": { "precio": { "minimum": 0 } } },
+    { "properties": { "nombre": { "minLength": 1 } } }
+  ]
 }
 

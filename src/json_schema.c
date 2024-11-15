@@ -23,10 +23,6 @@
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
 
-#define MAX_ANCHORS 32
-#define ERR_MAX_ANCHORS 1
-#define ERR_DUPLICATED_ANCHOR 2
-
 #define FLAG_FORCE_RULE 0x1
 
 struct active
@@ -35,20 +31,6 @@ struct active
     size_t item[MAX_ACTIVE_PATHS];
     int paths;
     int refs;
-};
-
-struct anchor_node
-{
-    const char *key;
-    const json_t *value;
-    struct anchor_node *next;
-};
-
-struct anchor
-{
-    struct anchor_node node[MAX_ANCHORS];
-    struct anchor_node *map[MAX_ANCHORS];
-    int size;
 };
 
 typedef struct
@@ -60,8 +42,6 @@ typedef struct
     void *data;
     // Paths and references
     struct active *active;
-    // Local references
-    struct anchor *anchor;
 } schema_t;
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
@@ -174,7 +154,8 @@ typedef struct test { const char *key; struct test *next; } test_t;
  * Schema (Draft 2020-12) keywords
  * https://json-schema.org/understanding-json-schema/keywords
  * ------------------------------------------------------------------
- * Unsupported keywords (requires malloc slowing down the validation)
+ * Unsupported keywords
+ * - $anchor
  * - $dynamicAnchor 
  * - $dynamicRef
  * - unevaluatedProperties
@@ -295,7 +276,6 @@ static int get_test(const json_t *rule)
     {
         // Rules that doesn't need to be tested
         case SCHEMA_DEFAULT:
-        case SCHEMA_META:
             return SCHEMA_VALID;
         case SCHEMA_CONTAINS:
         case SCHEMA_DEFS:
@@ -317,7 +297,11 @@ static int get_test(const json_t *rule)
             return (rule->type == JSON_TRUE) || (rule->type == JSON_FALSE)
                 ? SCHEMA_VALID
                 : SCHEMA_ERROR;
+        // Extensions
+        case SCHEMA_META:
+            return SCHEMA_VALID;
         // Not supported
+        case SCHEMA_ANCHOR:
         case SCHEMA_DYNAMIC_ANCHOR:
         case SCHEMA_DYNAMIC_REF:
         case SCHEMA_UNEVALUATED_ITEMS:
@@ -1241,94 +1225,6 @@ static int test_type(const schema_t *schema,
     return result;
 }
 
-static int set_anchor(struct anchor *anchor,
-    const char *key, const json_t *value)
-{
-    unsigned long index = hash(key) % MAX_ANCHORS;
-    struct anchor_node *node = anchor->map[index];
-
-    while (node != NULL)
-    {
-        if (strcmp(node->key, key) == 0)
-        {
-            return node->value != value
-                ? ERR_DUPLICATED_ANCHOR
-                : 0;
-        }
-        node = node->next;
-    }
-    if (anchor->size >= MAX_ANCHORS)
-    {
-        return ERR_MAX_ANCHORS;
-    }
-    anchor->node[anchor->size].key = key;
-    anchor->node[anchor->size].value = value;
-    anchor->node[anchor->size].next = node;
-    anchor->map[index] = &anchor->node[anchor->size];
-    anchor->size++;
-    return 0;
-}
-
-static const json_t *get_anchor(const struct anchor *anchor, const char *key)
-{
-    unsigned long index = hash(key) % MAX_ANCHORS;
-    struct anchor_node *node = anchor->map[index];
-
-    while (node != NULL)
-    {
-        if (strcmp(node->key, key) == 0)
-        {
-            return node->value;
-        }
-        node = node->next;
-    }
-    return NULL;
-}
-
-static int test_anchor(const schema_t *schema,
-    const json_t *parent, unsigned child, const json_t *node)
-{
-    if (parent->type != JSON_OBJECT)
-    {
-        return SCHEMA_ERROR;
-    }
-
-    const json_t *rule = parent->child[child];
-
-    if (rule->type != JSON_STRING) 
-    {
-        return SCHEMA_ERROR;
-    }
-    switch (set_anchor(schema->anchor, rule->string, parent))
-    {
-        case ERR_MAX_ANCHORS:
-        {
-            const json_t note =
-            {
-                .key = "maxAnchors",
-                .number = MAX_ANCHORS,
-                .type = JSON_INTEGER
-            };
-
-            raise_error(schema, &note, node);
-            return SCHEMA_ABORTED;
-        }
-        case ERR_DUPLICATED_ANCHOR:
-        {
-            const json_t note =
-            {
-                .key = "Duplicated $anchor",
-                .string = rule->string,
-                .type = JSON_STRING
-            };
-
-            raise_error(schema, &note, node);
-            return SCHEMA_ABORTED;
-        }
-    }
-    return SCHEMA_VALID;
-}
-
 static int test_ref(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -1341,17 +1237,13 @@ static int test_ref(const schema_t *schema,
 
     if (ref[0] == '#')
     {
-        if (ref[1] == '\0')
-        {
-            rule = schema->root;
-        }
-        else if (ref[1] == '/')
+        if (ref[1] == '/')
         {
             rule = json_pointer(schema->root, ref + 1);
         }
-        else
+        else if (ref[1] == '\0')
         {
-            rule = get_anchor(schema->anchor, ref + 1);
+            rule = schema->root;
         }
     }
     else
@@ -1682,9 +1574,6 @@ static int validate(const schema_t *schema,
                 test = test_type(schema, rule->child[i], node, abortable);
                 break;
             // Validate references
-            case SCHEMA_ANCHOR:
-                test = test_anchor(schema, rule, i, node);
-                break;
             case SCHEMA_REF:
                 test = test_ref(schema, rule->child[i], node, abortable);
                 break;
@@ -1741,15 +1630,17 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    struct active active = {.path[0] = node, .paths = 1};
-    struct anchor anchor = {0};
+    struct active active =
+    {
+        .path[0] = node,
+        .paths = 1
+    };
     const schema_t schema =
     {
         .root = rule,
         .callback = callback,
         .data = data,
-        .active = &active,
-        .anchor = &anchor
+        .active = &active
     };
 
     if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
