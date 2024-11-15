@@ -160,61 +160,75 @@ static unsigned long hash_str(const unsigned char *key)
 
 typedef struct test { const char *key; struct test *next; } test_t;
 
-/* X macro indexing enum and array of tests */
-#define TEST(_)                                                 \
-    _(SCHEMA_ADDITIONAL_ITEMS,          "additionalItems")      \
-    _(SCHEMA_ADDITIONAL_PROPERTIES,     "additionalProperties") \
-    _(SCHEMA_ALL_OF,                    "allOf")                \
-    _(SCHEMA_ANCHOR,                    "$anchor")              \
-    _(SCHEMA_ANY_OF,                    "anyOf")                \
-    _(SCHEMA_COMMENT,                   "$comment")             \
-    _(SCHEMA_CONST,                     "const")                \
-    _(SCHEMA_CONTENT_ENCODING,          "contentEncoding")      \
-    _(SCHEMA_CONTENT_MEDIA_TYPE,        "contentMediaType")     \
-    _(SCHEMA_CONTENT_SCHEMA,            "contentSchema")        \
-    _(SCHEMA_CONTAINS,                  "contains")             \
-    _(SCHEMA_DEFAULT,                   "default")              \
-    _(SCHEMA_DEFS,                      "$defs")                \
-    _(SCHEMA_DEPENDENT_REQUIRED,        "dependentRequired")    \
-    _(SCHEMA_DEPENDENT_SCHEMAS,         "dependentSchemas")     \
-    _(SCHEMA_DEPRECATED,                "deprecated")           \
-    _(SCHEMA_DESCRIPTION,               "description")          \
-    _(SCHEMA_ELSE,                      "else")                 \
-    _(SCHEMA_ENUM,                      "enum")                 \
-    _(SCHEMA_EXAMPLES,                  "examples")             \
-    _(SCHEMA_EXCLUSIVE_MAXIMUM,         "exclusiveMaximum")     \
-    _(SCHEMA_EXCLUSIVE_MINIMUM,         "exclusiveMinimum")     \
-    _(SCHEMA_FORMAT,                    "format")               \
-    _(SCHEMA_ID,                        "$id")                  \
-    _(SCHEMA_IF,                        "if")                   \
-    _(SCHEMA_ITEMS,                     "items")                \
-    _(SCHEMA_MAX_CONTAINS,              "maxContains")          \
-    _(SCHEMA_MAX_ITEMS,                 "maxItems")             \
-    _(SCHEMA_MAX_LENGTH,                "maxLength")            \
-    _(SCHEMA_MAX_PROPERTIES,            "maxProperties")        \
-    _(SCHEMA_MAXIMUM,                   "maximum")              \
-    _(SCHEMA_META,                      "meta")                 \
-    _(SCHEMA_MIN_CONTAINS,              "minContains")          \
-    _(SCHEMA_MIN_ITEMS,                 "minItems")             \
-    _(SCHEMA_MIN_LENGTH,                "minLength")            \
-    _(SCHEMA_MIN_PROPERTIES,            "minProperties")        \
-    _(SCHEMA_MINIMUM,                   "minimum")              \
-    _(SCHEMA_MULTIPLE_OF,               "multipleOf")           \
-    _(SCHEMA_NOT,                       "not")                  \
-    _(SCHEMA_ONE_OF,                    "oneOf")                \
-    _(SCHEMA_PATTERN,                   "pattern")              \
-    _(SCHEMA_PATTERN_PROPERTIES,        "patternProperties")    \
-    _(SCHEMA_PROPERTIES,                "properties")           \
-    _(SCHEMA_PROPERTY_NAMES,            "propertyNames")        \
-    _(SCHEMA_READ_ONLY,                 "readOnly")             \
-    _(SCHEMA_REF,                       "$ref")                 \
-    _(SCHEMA_REQUIRED,                  "required")             \
-    _(SCHEMA_SCHEMA,                    "$schema")              \
-    _(SCHEMA_THEN,                      "then")                 \
-    _(SCHEMA_TITLE,                     "title")                \
-    _(SCHEMA_TYPE,                      "type")                 \
-    _(SCHEMA_UNIQUE_ITEMS,              "uniqueItems")          \
-    _(SCHEMA_VOCABULARY,                "$vocabulary")          \
+/**
+ * X macro indexing enum and array of tests
+ * Schema (Draft 2020-12) keywords
+ * https://json-schema.org/understanding-json-schema/keywords
+ * ------------------------------------------------------------------
+ * Unsupported keywords (requires malloc slowing down the validation)
+ * - $dynamicAnchor 
+ * - $dynamicRef
+ * - unevaluatedProperties
+ * - unevaluatedItems
+ */
+#define TEST(_)                                                     \
+    _(SCHEMA_ADDITIONAL_ITEMS,          "additionalItems")          \
+    _(SCHEMA_ADDITIONAL_PROPERTIES,     "additionalProperties")     \
+    _(SCHEMA_ALL_OF,                    "allOf")                    \
+    _(SCHEMA_ANCHOR,                    "$anchor")                  \
+    _(SCHEMA_ANY_OF,                    "anyOf")                    \
+    _(SCHEMA_COMMENT,                   "$comment")                 \
+    _(SCHEMA_CONST,                     "const")                    \
+    _(SCHEMA_CONTENT_ENCODING,          "contentEncoding")          \
+    _(SCHEMA_CONTENT_MEDIA_TYPE,        "contentMediaType")         \
+    _(SCHEMA_CONTENT_SCHEMA,            "contentSchema")            \
+    _(SCHEMA_CONTAINS,                  "contains")                 \
+    _(SCHEMA_DEFAULT,                   "default")                  \
+    _(SCHEMA_DEFS,                      "$defs")                    \
+    _(SCHEMA_DEPENDENT_REQUIRED,        "dependentRequired")        \
+    _(SCHEMA_DEPENDENT_SCHEMAS,         "dependentSchemas")         \
+    _(SCHEMA_DEPRECATED,                "deprecated")               \
+    _(SCHEMA_DESCRIPTION,               "description")              \
+    _(SCHEMA_DYNAMIC_ANCHOR,            "$dynamicAnchor")           \
+    _(SCHEMA_DYNAMIC_REF,               "$dynamicRef")              \
+    _(SCHEMA_ELSE,                      "else")                     \
+    _(SCHEMA_ENUM,                      "enum")                     \
+    _(SCHEMA_EXAMPLES,                  "examples")                 \
+    _(SCHEMA_EXCLUSIVE_MAXIMUM,         "exclusiveMaximum")         \
+    _(SCHEMA_EXCLUSIVE_MINIMUM,         "exclusiveMinimum")         \
+    _(SCHEMA_FORMAT,                    "format")                   \
+    _(SCHEMA_ID,                        "$id")                      \
+    _(SCHEMA_IF,                        "if")                       \
+    _(SCHEMA_ITEMS,                     "items")                    \
+    _(SCHEMA_MAX_CONTAINS,              "maxContains")              \
+    _(SCHEMA_MAX_ITEMS,                 "maxItems")                 \
+    _(SCHEMA_MAX_LENGTH,                "maxLength")                \
+    _(SCHEMA_MAX_PROPERTIES,            "maxProperties")            \
+    _(SCHEMA_MAXIMUM,                   "maximum")                  \
+    _(SCHEMA_META,                      "meta")                     \
+    _(SCHEMA_MIN_CONTAINS,              "minContains")              \
+    _(SCHEMA_MIN_ITEMS,                 "minItems")                 \
+    _(SCHEMA_MIN_LENGTH,                "minLength")                \
+    _(SCHEMA_MIN_PROPERTIES,            "minProperties")            \
+    _(SCHEMA_MINIMUM,                   "minimum")                  \
+    _(SCHEMA_MULTIPLE_OF,               "multipleOf")               \
+    _(SCHEMA_NOT,                       "not")                      \
+    _(SCHEMA_ONE_OF,                    "oneOf")                    \
+    _(SCHEMA_PATTERN,                   "pattern")                  \
+    _(SCHEMA_PATTERN_PROPERTIES,        "patternProperties")        \
+    _(SCHEMA_PROPERTIES,                "properties")               \
+    _(SCHEMA_PROPERTY_NAMES,            "propertyNames")            \
+    _(SCHEMA_READ_ONLY,                 "readOnly")                 \
+    _(SCHEMA_REF,                       "$ref")                     \
+    _(SCHEMA_REQUIRED,                  "required")                 \
+    _(SCHEMA_SCHEMA,                    "$schema")                  \
+    _(SCHEMA_THEN,                      "then")                     \
+    _(SCHEMA_TITLE,                     "title")                    \
+    _(SCHEMA_TYPE,                      "type")                     \
+    _(SCHEMA_UNEVALUATED_ITEMS,         "unevaluatedItems")         \
+    _(SCHEMA_UNEVALUATED_PROPERTIES,    "unevaluatedProperties")    \
+    _(SCHEMA_UNIQUE_ITEMS,              "uniqueItems")              \
+    _(SCHEMA_VOCABULARY,                "$vocabulary")              \
     _(SCHEMA_WRITE_ONLY,                "writeOnly")
 
 #define TEST_ENUM(a, b) a,
@@ -268,9 +282,9 @@ static int get_test(const json_t *rule)
 
     int test = table_get_test(rule->key);
 
-    // Validate very simple rules that doesn't need to be tested
     switch (test)
     {
+        // Rules that doesn't need to be tested
         case SCHEMA_DEFAULT:
         case SCHEMA_META:
             return SCHEMA_VALID;
@@ -294,6 +308,13 @@ static int get_test(const json_t *rule)
             return (rule->type == JSON_TRUE) || (rule->type == JSON_FALSE)
                 ? SCHEMA_VALID
                 : SCHEMA_ERROR;
+        // Not supported
+        case SCHEMA_DYNAMIC_ANCHOR:
+        case SCHEMA_DYNAMIC_REF:
+        case SCHEMA_UNEVALUATED_ITEMS:
+        case SCHEMA_UNEVALUATED_PROPERTIES:
+            return SCHEMA_ERROR;
+        // Rules that need to be tested 
         default:
             return test;
     }
@@ -389,9 +410,9 @@ static int test_pattern_properties(const schema_t *schema,
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        if (rule->child[i]->type != JSON_OBJECT)
+        if (rule->child[i]->type == JSON_TRUE)
         {
-            return SCHEMA_ERROR;
+            continue;
         }
         for (unsigned j = 0; j < node->size; j++)
         {
@@ -399,6 +420,33 @@ static int test_pattern_properties(const schema_t *schema,
             {
                 continue;
             };
+            if (rule->child[i]->type == JSON_FALSE)
+            {
+                if (!abortable)
+                {
+                    return SCHEMA_FAILURE;
+                }
+
+                const json_t note =
+                {
+                    .key = rule->key,
+                    .child = (json_t *[]){rule->child[i]},
+                    .size = 1,
+                    .flags = FLAG_FORCE_RULE,
+                    .type = JSON_OBJECT
+                };
+
+                if (abort_on_failure(schema, &note, node->child[j]))
+                {
+                    return SCHEMA_ABORTED;
+                }
+                result = SCHEMA_FAILURE;
+                continue;
+            }
+            if (rule->child[i]->type != JSON_OBJECT)
+            {
+                return SCHEMA_ERROR;
+            }
             switch (test_property(schema, rule->child[i], node->child[j], abortable))
             {
                 case SCHEMA_ERROR:
@@ -793,14 +841,16 @@ static int test_items(const schema_t *schema,
 static int test_additional_items(const schema_t *schema,
     const json_t *parent, const json_t *rule, const json_t *node, int abortable)
 {
-    if (rule->type == JSON_TRUE)
+    switch (rule->type)
     {
-        return SCHEMA_VALID;
+        case JSON_TRUE:
+            return SCHEMA_VALID;
+        case JSON_FALSE:
+        case JSON_OBJECT:
+            break;
+        default:
+            return SCHEMA_ERROR;
     }
-    if ((rule->type != JSON_FALSE) && (rule->type != JSON_OBJECT))
-    {
-        return SCHEMA_ERROR;
-    } 
     if (node->type != JSON_ARRAY)
     {
         return SCHEMA_VALID;
