@@ -23,7 +23,9 @@
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
 
-#define MAX_ANCHORS 16
+#define MAX_ANCHORS 32
+#define ERR_MAX_ANCHORS 1
+#define ERR_DUPLICATED_ANCHOR 2
 
 #define FLAG_FORCE_RULE 0x1
 
@@ -35,10 +37,17 @@ struct active
     int refs;
 };
 
+struct anchor_node
+{
+    const char *key;
+    const json_t *value;
+    struct anchor_node *next;
+};
+
 struct anchor
 {
-    const json_t *node[MAX_ANCHORS];
-    const char *name[MAX_ANCHORS];
+    struct anchor_node node[MAX_ANCHORS];
+    struct anchor_node *map[MAX_ANCHORS];
     int size;
 };
 
@@ -1232,15 +1241,46 @@ static int test_type(const schema_t *schema,
     return result;
 }
 
-static const json_t *get_anchor(const struct anchor *anchor,
-    const char *name)
+static int set_anchor(struct anchor *anchor,
+    const char *key, const json_t *value)
 {
-    for (int i = 0; i < anchor->size; i++)
+    unsigned long index = hash(key) % MAX_ANCHORS;
+    struct anchor_node *node = anchor->map[index];
+
+    while (node != NULL)
     {
-        if (!strcmp(anchor->name[i], name))
+        if (strcmp(node->key, key) == 0)
         {
-            return anchor->node[i];
+            return node->value != value
+                ? ERR_DUPLICATED_ANCHOR
+                : 0;
         }
+        node = node->next;
+    }
+    if (anchor->size >= MAX_ANCHORS)
+    {
+        return ERR_MAX_ANCHORS;
+    }
+    anchor->node[anchor->size].key = key;
+    anchor->node[anchor->size].value = value;
+    anchor->node[anchor->size].next = node;
+    anchor->map[index] = &anchor->node[anchor->size];
+    anchor->size++;
+    return 0;
+}
+
+static const json_t *get_anchor(const struct anchor *anchor, const char *key)
+{
+    unsigned long index = hash(key) % MAX_ANCHORS;
+    struct anchor_node *node = anchor->map[index];
+
+    while (node != NULL)
+    {
+        if (strcmp(node->key, key) == 0)
+        {
+            return node->value;
+        }
+        node = node->next;
     }
     return NULL;
 }
@@ -1259,41 +1299,33 @@ static int test_anchor(const schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-
-    struct anchor *anchor = schema->anchor;
-    const json_t *duplicated = get_anchor(anchor, rule->string);
-
-    if (duplicated == parent)
+    switch (set_anchor(schema->anchor, rule->string, parent))
     {
-        return SCHEMA_VALID;
-    }
-    if (duplicated != NULL)
-    {
-        const json_t note =
+        case ERR_MAX_ANCHORS:
         {
-            .key = "Duplicated $anchor",
-            .string = rule->string,
-            .type = JSON_STRING
-        };
+            const json_t note =
+            {
+                .key = "maxAnchors",
+                .number = MAX_ANCHORS,
+                .type = JSON_INTEGER
+            };
 
-        raise_error(schema, &note, node);
-        return SCHEMA_ABORTED;
-    }
-    if (anchor->size >= MAX_ANCHORS)
-    {
-        const json_t note =
+            raise_error(schema, &note, node);
+            return SCHEMA_ABORTED;
+        }
+        case ERR_DUPLICATED_ANCHOR:
         {
-            .key = "maxAnchors",
-            .number = MAX_ANCHORS,
-            .type = JSON_INTEGER
-        };
+            const json_t note =
+            {
+                .key = "Duplicated $anchor",
+                .string = rule->string,
+                .type = JSON_STRING
+            };
 
-        raise_error(schema, &note, node);
-        return SCHEMA_ABORTED;
+            raise_error(schema, &note, node);
+            return SCHEMA_ABORTED;
+        }
     }
-    anchor->node[anchor->size] = parent;
-    anchor->name[anchor->size] = rule->string;
-    anchor->size++;
     return SCHEMA_VALID;
 }
 
@@ -1709,17 +1741,8 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    struct active active =
-    {
-        .path[0] = node,
-        .paths = 1
-    };
-    struct anchor anchor =
-    {
-        .node = {0},
-        .name = {0},
-        .size = 0
-    };
+    struct active active = {.path[0] = node, .paths = 1};
+    struct anchor anchor = {0};
     const schema_t schema =
     {
         .root = rule,

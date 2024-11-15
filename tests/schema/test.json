@@ -1,14 +1,5 @@
 {
-  "nombre": "Producto Ejemplo",
-  "precio": 1500,
-  "tags": ["nuevo", "oferta"],
-  "dimensiones": [[1, 2], [3, 4]],
-  "propiedadesExtra": {
-    "color": "rojo",
-    "peso": 1.2,
-    "edad": 42
-  },
-  "estadoCivil": "casado",
-  "prueba": [1, 2, 3, 4, 5]
+  "firstName": "John",
+  "lastName": "Doe"
 }
 
