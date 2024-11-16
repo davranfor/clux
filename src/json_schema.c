@@ -486,8 +486,8 @@ static int test_additional_properties(const schema_t *schema,
 {
     switch (rule->type)
     {
-        case JSON_FALSE:
         case JSON_OBJECT:
+        case JSON_FALSE:
             break;
         case JSON_TRUE:
             return SCHEMA_VALID;
@@ -807,18 +807,18 @@ static int test_items(const schema_t *schema,
     }
 
     const json_t *prefixes = json_find(parent, "prefixItems");
-    unsigned size = json_items(prefixes);
+    unsigned offset = json_items(prefixes);
 
     if (rule->type == JSON_FALSE)
     {
-        return node->size <= size;
+        return node->size <= offset;
     }
 
     int result = SCHEMA_VALID;
 
     if (rule->type == JSON_OBJECT)
     {
-        for (unsigned i = size; i < node->size; i++)
+        for (unsigned i = offset; i < node->size; i++)
         {
             switch (test_item(schema, rule, node, i, abortable))
             {
@@ -836,7 +836,7 @@ static int test_items(const schema_t *schema,
     }
     else // if (rule->type == JSON_ARRAY)
     {
-        for (unsigned i = size; (i < rule->size) && (i < node->size); i++)
+        for (unsigned i = offset; (i < rule->size) && (i < node->size); i++)
         {
             if (rule->child[i]->type != JSON_OBJECT)
             {
@@ -900,8 +900,8 @@ static int test_additional_items(const schema_t *schema,
 {
     switch (rule->type)
     {
-        case JSON_FALSE:
         case JSON_OBJECT:
+        case JSON_FALSE:
             break;
         case JSON_TRUE:
             return SCHEMA_VALID;
@@ -921,20 +921,20 @@ static int test_additional_items(const schema_t *schema,
     }
 
     const json_t *prefixes = json_find(parent, "prefixItems");
-    unsigned size = json_size(items) + json_items(prefixes);
+    unsigned offset = json_size(items) + json_items(prefixes);
 
-    if (size == 0)
+    if (offset == 0)
     {
         return SCHEMA_VALID;
     }
     if (rule->type == JSON_FALSE)
     {
-        return node->size <= size;
+        return node->size <= offset;
     }
 
     int result = SCHEMA_VALID;
 
-    for (unsigned i = size; i < node->size; i++)
+    for (unsigned i = offset; i < node->size; i++)
     {
         switch (test_item(schema, rule, node, i, abortable))
         {
