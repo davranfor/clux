@@ -9,6 +9,7 @@
     "edad": 42
   },
   "estadoCivil": "casado",
-  "prueba": [1, 2, 3, 4, 5]
+  "varios": [1, 2, 3, 4, 5],
+  "data": "{\"name\": \"Alice\", \"age\": 28}"
 }
 

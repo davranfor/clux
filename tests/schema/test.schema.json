@@ -49,11 +49,23 @@
       "enum": ["soltero", "casado", "divorciado", "viudo"],
       "default": "soltero"
     },
-    "prueba": {
+    "varios": {
       "type": ["array"],
       "contains": { "type": ["integer"] },
       "minContains": 5,
       "maxContains": 5
+    },
+    "data": {
+      "type": ["string"],
+      "contentMediaType": "application/json",
+      "contentSchema": {
+        "type": ["object"],
+        "properties": {
+          "name": { "type": ["string"] },
+          "age": { "type": ["integer"] }
+        },
+        "required": ["name", "age"]
+      }
     }
   },
   "required": ["nombre", "precio"],

@@ -230,11 +230,25 @@ size_t json_height(const json_t *node)
     return height;
 }
 
+/* Number of nodes of an iterable */
 unsigned json_size(const json_t *node)
 {
     return node != NULL ? node->size : 0;
 }
 
+/* Number of nodes of an object */
+unsigned json_properties(const json_t *node)
+{
+    return (node != NULL) && (node->type == JSON_OBJECT) ? node->size : 0;
+}
+
+/* Number of nodes of an array */
+unsigned json_items(const json_t *node)
+{
+    return (node != NULL) && (node->type == JSON_ARRAY) ? node->size : 0;
+}
+
+/* Position in an object given a key */
 unsigned json_index(const json_t *node, const char *key)
 {
     if ((node != NULL) && (node->type == JSON_OBJECT) && (key != NULL))

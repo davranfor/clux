@@ -46,6 +46,29 @@ typedef struct
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
+static int validate_schema(const json_t *rule, const json_t *node,
+    json_validate_callback callback, void *data, int abortable)
+{
+    struct active active =
+    {
+        .path[0] = node,
+        .paths = 1
+    };
+    const schema_t schema =
+    {
+        .root = rule,
+        .callback = callback,
+        .data = data,
+        .active = &active
+    };
+
+    if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
+    {
+        return -1;
+    }
+    return validate(&schema, rule, node, abortable);
+}
+
 static int notify_user(const schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
@@ -206,6 +229,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_ONE_OF,                    "oneOf")                    \
     _(SCHEMA_PATTERN,                   "pattern")                  \
     _(SCHEMA_PATTERN_PROPERTIES,        "patternProperties")        \
+    _(SCHEMA_PREFIX_ITEMS,              "prefixItems")              \
     _(SCHEMA_PROPERTIES,                "properties")               \
     _(SCHEMA_PROPERTY_NAMES,            "propertyNames")            \
     _(SCHEMA_READ_ONLY,                 "readOnly")                 \
@@ -462,11 +486,11 @@ static int test_additional_properties(const schema_t *schema,
 {
     switch (rule->type)
     {
-        case JSON_TRUE:
-            return SCHEMA_VALID;
         case JSON_FALSE:
         case JSON_OBJECT:
             break;
+        case JSON_TRUE:
+            return SCHEMA_VALID;
         default:
             return SCHEMA_ERROR;
     }
@@ -477,7 +501,7 @@ static int test_additional_properties(const schema_t *schema,
 
     const json_t *properties = json_find(parent, "properties");
     const json_t *patterns = json_find(parent, "patternProperties");
-    unsigned patterns_size = json_is_object(patterns) ? patterns->size : 0;
+    unsigned patterns_size = json_properties(patterns);
     int result = SCHEMA_VALID;
 
     for (unsigned i = 0; i < node->size; i++)
@@ -749,7 +773,7 @@ static int test_max_properties(const json_t *rule, const json_t *node)
 }
 
 static int test_item(const schema_t *schema,
-    const json_t *rule, const json_t *parent, size_t child, int abortable)
+    const json_t *rule, const json_t *parent, unsigned child, int abortable)
 {
     if (schema->active->paths++ < MAX_ACTIVE_PATHS)
     {
@@ -764,7 +788,7 @@ static int test_item(const schema_t *schema,
 }
 
 static int test_items(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
 {
     switch (rule->type)
     {
@@ -781,16 +805,20 @@ static int test_items(const schema_t *schema,
     {
         return SCHEMA_VALID;
     }
+
+    const json_t *prefixes = json_find(parent, "prefixItems");
+    unsigned size = json_items(prefixes);
+
     if (rule->type == JSON_FALSE)
     {
-        return node->size == 0;
+        return node->size <= size;
     }
 
     int result = SCHEMA_VALID;
 
     if (rule->type == JSON_OBJECT)
     {
-        for (unsigned i = 0; i < node->size; i++)
+        for (unsigned i = size; i < node->size; i++)
         {
             switch (test_item(schema, rule, node, i, abortable))
             {
@@ -808,7 +836,7 @@ static int test_items(const schema_t *schema,
     }
     else // if (rule->type == JSON_ARRAY)
     {
-        for (unsigned i = 0; (i < rule->size) && (i < node->size); i++)
+        for (unsigned i = size; (i < rule->size) && (i < node->size); i++)
         {
             if (rule->child[i]->type != JSON_OBJECT)
             {
@@ -831,16 +859,52 @@ static int test_items(const schema_t *schema,
     return result;
 }
 
+static int test_prefix_items(const schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable)
+{
+    if (rule->type != JSON_ARRAY)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_ARRAY)
+    {
+        return SCHEMA_VALID;
+    }
+
+    int result = SCHEMA_VALID;
+
+    for (unsigned i = 0; (i < rule->size) && (i < node->size); i++)
+    {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
+        switch (test_item(schema, rule->child[i], node, i, abortable))
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_INVALID:
+                if (!abortable)
+                {
+                    return SCHEMA_FAILURE;
+                }
+                result = SCHEMA_FAILURE;
+                break;
+        }
+    }
+    return result;
+}
+
 static int test_additional_items(const schema_t *schema,
     const json_t *parent, const json_t *rule, const json_t *node, int abortable)
 {
     switch (rule->type)
     {
-        case JSON_TRUE:
-            return SCHEMA_VALID;
         case JSON_FALSE:
         case JSON_OBJECT:
             break;
+        case JSON_TRUE:
+            return SCHEMA_VALID;
         default:
             return SCHEMA_ERROR;
     }
@@ -851,18 +915,26 @@ static int test_additional_items(const schema_t *schema,
 
     const json_t *items = json_find(parent, "items");
 
-    if ((items == NULL) || (items->type != JSON_ARRAY))
+    if (json_is_object(items))
+    {
+        return SCHEMA_VALID;
+    }
+
+    const json_t *prefixes = json_find(parent, "prefixItems");
+    unsigned size = json_size(items) + json_items(prefixes);
+
+    if (size == 0)
     {
         return SCHEMA_VALID;
     }
     if (rule->type == JSON_FALSE)
     {
-        return node->size <= items->size;
+        return node->size <= size;
     }
 
     int result = SCHEMA_VALID;
 
-    for (unsigned i = items->size; i < node->size; i++)
+    for (unsigned i = size; i < node->size; i++)
     {
         switch (test_item(schema, rule, node, i, abortable))
         {
@@ -918,7 +990,7 @@ static int test_min_contains(const schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    for (size_t valids = 0, i = 0; i < node->size; i++)
+    for (unsigned valids = 0, i = 0; i < node->size; i++)
     {
         switch (test_item(schema, contains, node, i, abortable))
         {
@@ -962,7 +1034,7 @@ static int test_max_contains(const schema_t *schema,
     {
         return SCHEMA_ERROR;
     }
-    for (size_t valids = 0, i = 0; i < node->size; i++)
+    for (unsigned valids = 0, i = 0; i < node->size; i++)
     {
         switch (test_item(schema, contains, node, i, abortable))
         {
@@ -1016,16 +1088,16 @@ static int test_content_schema(const json_t *rule, const json_t *node)
         return SCHEMA_VALID;
     }
 
-    json_t *subschema = json_parse(node->string, NULL);
+    json_t *temp = json_parse(node->string, NULL);
 
-    if (subschema == NULL)
+    if (temp == NULL)
     {
         return SCHEMA_INVALID;
     }
 
-    int result = json_validate(subschema, rule, NULL, NULL);
+    int result = validate_schema(rule, temp, NULL, NULL, 1) > 0;
 
-    json_delete(subschema);
+    json_delete(temp);
     return result;
 }
 
@@ -1225,6 +1297,38 @@ static int test_type(const schema_t *schema,
     return result;
 }
 
+static int test_external_ref(const schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable)
+{
+    if (++schema->active->refs >= MAX_ACTIVE_REFS)
+    {
+        const json_t note =
+        {
+            .key = "maxActiveRefs",
+            .number = MAX_ACTIVE_REFS,
+            .type = JSON_INTEGER
+        };
+
+        raise_error(schema, &note, node);
+        return SCHEMA_ABORTED;
+    }
+
+    int result = validate_schema(
+        rule, node, schema->callback, schema->data, abortable
+    );
+
+    schema->active->refs--;
+    switch (result)
+    {
+        case SCHEMA_ERROR:
+            return SCHEMA_ABORTED;
+        case SCHEMA_INVALID:
+            return SCHEMA_FAILURE;
+        default:
+            return SCHEMA_VALID;
+    }
+}
+
 static int test_ref(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -1249,6 +1353,7 @@ static int test_ref(const schema_t *schema,
     else
     {
         rule = map_search(map, ref);
+        return test_external_ref(schema, rule, node, abortable);
     }
     if ((rule == NULL) || (rule->type != JSON_OBJECT))
     {
@@ -1511,7 +1616,10 @@ static int validate(const schema_t *schema,
                 break;
             // Validate array related tests
             case SCHEMA_ITEMS:
-                test = test_items(schema, rule->child[i], node, abortable);
+                test = test_items(schema, rule, rule->child[i], node, abortable);
+                break;
+            case SCHEMA_PREFIX_ITEMS:
+                test = test_prefix_items(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_ADDITIONAL_ITEMS:
                 test = test_additional_items(schema, rule, rule->child[i], node, abortable);
@@ -1630,23 +1738,6 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    struct active active =
-    {
-        .path[0] = node,
-        .paths = 1
-    };
-    const schema_t schema =
-    {
-        .root = rule,
-        .callback = callback,
-        .data = data,
-        .active = &active
-    };
-
-    if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
-    {
-        return 0;
-    }
-    return validate(&schema, rule, node, 1) > 0;
+    return validate_schema(rule, node, callback, data, 1) > 0;
 }
 
