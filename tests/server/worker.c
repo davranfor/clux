@@ -49,19 +49,19 @@ static const char *method_name[] = {
 
 static map_t *map;
 
-static void worker_destroy(void)
+static void worker_unload(void)
 {
     map_destroy(map, json_free);
 }
 
-void worker_run(void)
+void worker_load(void)
 {
     if (!(map = map_create(0)))
     {
         perror("map_create");
         exit(EXIT_FAILURE);
     }
-    atexit(worker_destroy);
+    atexit(worker_unload);
 }
 
 int request_ready(const char *str, size_t size)

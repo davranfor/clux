@@ -9,7 +9,7 @@
 
 #include "buffer.h"
 
-void worker_run(void);
+void worker_load(void);
 int request_ready(const char *, size_t);
 void request_reply(pool_t *, char *, size_t);
 

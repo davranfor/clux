@@ -9,11 +9,11 @@
 #include <dirent.h>
 #include <clux/clib.h>
 #include <clux/json.h>
-#include "loader.h"
+#include "schema.h"
 
 static map_t *map;
 
-static void destroy(void)
+static void unload(void)
 {
     map_destroy(map, json_free);
 }
@@ -25,9 +25,11 @@ static int load(DIR *schemas)
 
     while ((dir = readdir(schemas)))
     {
-        const char *d_name_ext = strstr(dir->d_name, ext);
+        size_t length = strlen(dir->d_name);
 
-        if ((d_name_ext == NULL) || (strlen(d_name_ext) != sizeof(ext) -1))
+        // File name must end with ".schema.json"
+        if ((length < sizeof(ext)) ||
+            (strcmp(dir->d_name + length - sizeof(ext) + 1, ext) != 0))
         {
             continue;
         }
@@ -64,11 +66,12 @@ static int load(DIR *schemas)
             json_delete(node);
             return 0;
         }
+        printf("Loading %s\n", path);
     }
     return 1;
 }
 
-void loader_run(void)
+void schema_load(void)
 {
     if (!(map = map_create(0)))
     {
@@ -76,7 +79,7 @@ void loader_run(void)
         exit(EXIT_FAILURE);
     }
     json_schema_set_map(map);
-    atexit(destroy);
+    atexit(unload);
 
     DIR *schemas;
 

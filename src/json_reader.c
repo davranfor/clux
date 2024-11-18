@@ -292,7 +292,7 @@ json_t *json_tail(const json_t *node)
     return NULL;
 }
 
-/* Return node at position 'index' */
+/* Returns node at position 'index' */
 json_t *json_at(const json_t *node, size_t index)
 {
     if ((node != NULL) && (node->size > index))
@@ -334,7 +334,7 @@ json_t *json_locate(const json_t *parent, const json_t *child)
     return NULL;
 }
 
-/* Return 1 if child is unique, 0 otherwise */
+/* Returns 1 if child is unique, 0 otherwise */
 int json_is_unique(const json_t *parent, const json_t *child)
 {
     if ((parent == NULL) || (child == NULL))
@@ -355,7 +355,7 @@ int json_is_unique(const json_t *parent, const json_t *child)
     return 1;
 }
 
-/* Return 1 if all nodes are unique, 0 otherwise */
+/* Returns 1 if all nodes are unique, 0 otherwise */
 int json_unique_children(const json_t *node)
 {
     if (node == NULL)

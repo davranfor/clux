@@ -323,7 +323,7 @@ static int get_test(const json_t *rule)
                 : SCHEMA_ERROR;
         // Extensions
         case SCHEMA_META:
-            return SCHEMA_VALID;
+            return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         // Not supported
         case SCHEMA_ANCHOR:
         case SCHEMA_DYNAMIC_ANCHOR:
