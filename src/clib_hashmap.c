@@ -4,6 +4,22 @@
  *  \copyright GNU Public License.
  */
 
+/*
+--------------------------------------------------------
+Map of key/value pairs
+--------------------------------------------------------
+Keys (strings) are copied as a flexible array member
+Values are references (void *) to data
+
+- Uses Dan Berstein's djb2 algorithm as hash function
+  http://www.cse.yorku.ca/~oz/hash.html
+- Nodes that colides are handled in a singly linked list
+- The size of the map is duplicated when 75% is occupied
+- Nodes in old maps are moved (rehashed) to new maps
+  on insertion/deletion (search doesn't alter the map)
+--------------------------------------------------------
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include "clib_hashmap.h"

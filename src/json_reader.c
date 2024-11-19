@@ -274,6 +274,7 @@ const json_t * const *json_child(const json_t *node)
     return NULL;
 }
 
+/* First node of an iterable */
 json_t *json_head(const json_t *node)
 {
     if ((node != NULL) && (node->size > 0))
@@ -283,6 +284,7 @@ json_t *json_head(const json_t *node)
     return NULL;
 }
 
+/* Last node of an iterable */
 json_t *json_tail(const json_t *node)
 {
     if ((node != NULL) && (node->size > 0))
@@ -404,6 +406,7 @@ int json_compare(const json_t *a, const json_t *b)
     }
 }
 
+/* json_equal helper */
 static int equal(const json_t *a, const json_t *b)
 {
     if ((a->type != b->type) || (a->size != b->size))
@@ -422,6 +425,7 @@ static int equal(const json_t *a, const json_t *b)
     }
 }
 
+/* json_equal helper */
 static int equal_children(const json_t *a, const json_t *b)
 {
     for (unsigned i = 0; i < a->size; i++)
@@ -445,6 +449,7 @@ static int equal_children(const json_t *a, const json_t *b)
     return 1;
 }
 
+/* Returns 1 if 'a' and 'b' and his children are equal, 0 otherwise */
 int json_equal(const json_t *a, const json_t *b)
 {
     if ((a != NULL) && (b != NULL))
@@ -458,6 +463,7 @@ int json_equal(const json_t *a, const json_t *b)
     return 0;
 }
 
+/* json_walk recursive helper sending 'node' along with 'depth' and 'data' */
 static int walk(const json_t *node, unsigned short depth,
     json_walk_callback callback, void *data)
 {
@@ -480,6 +486,10 @@ static int walk(const json_t *node, unsigned short depth,
     return 1;
 }
 
+/**
+ * Traverses a json tree and send all nodes to a callback
+ * Uses a temporary parent in order to avoid checking the parent in helper
+ */
 int json_walk(const json_t *node, json_walk_callback callback, void *data)
 {
     if (node != NULL) 

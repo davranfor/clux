@@ -9,7 +9,7 @@
 #include <string.h>
 #include "clib_unicode.h"
 
-/* Returns 1 on escape code or 0 otherwise */
+/* Returns 1 on escape code, 0 otherwise */
 int is_esc(const char *str)
 {
     switch (*str)
@@ -28,7 +28,7 @@ int is_esc(const char *str)
     }
 }
 
-/* Decode escape code and return its value */
+/* Decodes escape code and return its value */
 char decode_esc(const char *str)
 {
     switch (*str)
@@ -42,7 +42,7 @@ char decode_esc(const char *str)
     }
 }
 
-/* Converts escape to char  */
+/* Converts escape to char */
 char encode_esc(const char *str)
 {
     switch (*str)
@@ -58,7 +58,7 @@ char encode_esc(const char *str)
     }
 }
 
-/* Returns 1 on unicode escape sequence or 0 otherwise */
+/* Returns 1 on unicode escape sequence, 0 otherwise */
 int is_hex(const char *str)
 {
     return (('u') == str[0])
