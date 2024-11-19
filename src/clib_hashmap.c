@@ -9,7 +9,7 @@
 Map of key/value pairs
 --------------------------------------------------------
 Keys (strings) are copied as a flexible array member
-Values are references (void *) to data
+Values are references to data (generic type void *)
 
 - Uses Dan Berstein's djb2 algorithm as hash function
   http://www.cse.yorku.ca/~oz/hash.html
