@@ -9,6 +9,11 @@
 #include "json_writer.h"
 #include "json_patch.h"
 
+/**
+ * Moves or replaces keys already present in 'source' from 'target'
+ * Both nodes must be objects
+ * Returns the number of nodes moved (keys not matching in 'target')
+ */
 int json_patch(json_t *source, json_t *target)
 {
     if (json_is_object(source) && json_is_object(target))
@@ -53,6 +58,11 @@ int json_patch(json_t *source, json_t *target)
     return -1;
 }
 
+/**
+ * Undo json_patch replacing nodes from 'source' to 'target'
+ * Deletes 'inserts' nodes from 'target'
+ * Both nodes must be objects
+ */
 void json_unpatch(json_t *source, json_t *target, int inserts)
 {
     if (json_is_object(source) && json_is_object(target))

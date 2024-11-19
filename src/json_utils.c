@@ -10,6 +10,7 @@
 #include "json_private.h"
 #include "json_utils.h"
 
+/* Default comparison function for objects */
 int json_compare_by_key(const void *pa, const void *pb)
 {
     const json_t *a = *(json_t * const *)pa;
@@ -22,6 +23,7 @@ int json_compare_by_key(const void *pa, const void *pb)
     return 0;
 }
 
+/* Default comparison function for arrays */
 int json_compare_by_value(const void *pa, const void *pb)
 {
     const json_t *a = *(json_t * const *)pa;
@@ -43,6 +45,12 @@ int json_compare_by_value(const void *pa, const void *pb)
     }
 }
 
+/**
+ * Sorts a json iterable using qsort
+ * If a callback comparison function is not provided:
+ * - json_compare_by_key() is used for json objects
+ * - json_compare_by_value() is used for json arrays
+ */
 void json_sort(json_t *node, json_sort_callback callback)
 {
     if ((node != NULL) && (node->size > 1))
@@ -57,6 +65,7 @@ void json_sort(json_t *node, json_sort_callback callback)
     }
 }
 
+/* Reverses a json iterable */
 void json_reverse(json_t *node)
 {
     if ((node != NULL) && (node->size > 1))

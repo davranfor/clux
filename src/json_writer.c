@@ -14,6 +14,7 @@
 #include "json_reader.h"
 #include "json_writer.h"
 
+/* Returns a new allocated node with an empty object */
 json_t *json_new_object(void)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -25,6 +26,7 @@ json_t *json_new_object(void)
     return node;
 }
 
+/* Returns a new allocated node with an empty array */
 json_t *json_new_array(void)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -36,6 +38,7 @@ json_t *json_new_array(void)
     return node;
 }
 
+/* Returns a new allocated node with a string */
 json_t *json_new_string(const char *text)
 {
     if (text == NULL)
@@ -64,6 +67,7 @@ json_t *json_new_string(const char *text)
     return node;
 }
 
+/* Returns a new allocated node with a string using printf format */
 json_t *json_new_format(const char *fmt, ...)
 {
     if (fmt == NULL)
@@ -98,6 +102,10 @@ json_t *json_new_format(const char *fmt, ...)
     return node;
 }
 
+/**
+ * Returns a new allocated node with an integeror
+ * or a double if 'number' exceeds +-2^52
+ */
 json_t *json_new_integer(double number)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -112,6 +120,7 @@ json_t *json_new_integer(double number)
     return node;
 }
 
+/* Returns a new allocated node with a double */
 json_t *json_new_real(double number)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -124,6 +133,7 @@ json_t *json_new_real(double number)
     return node;
 }
 
+/* Returns a new allocated node with a boolean 'true' or 'false' */
 json_t *json_new_boolean(int number)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -137,6 +147,7 @@ json_t *json_new_boolean(int number)
     return node;
 }
 
+/* Returns a new allocated node with a 'null' value */
 json_t *json_new_null(void)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -148,9 +159,11 @@ json_t *json_new_null(void)
     return node;
 }
 
+/* Push 'child' into 'parent' at position 'index' with an optional 'key' */
 static json_t *push(json_t *parent, unsigned index, const char *name,
     json_t *child)
 {
+    // Can't push itself and can't push a node with parent
     if ((parent == child) || child->packed)
     {
         return NULL;
@@ -171,6 +184,7 @@ static json_t *push(json_t *parent, unsigned index, const char *name,
         return NULL;
     }
 
+    // Space for inner nodes is incremented when size is a power of 2
     unsigned size = next_size(parent->size);
 
     if (size > parent->size) 
@@ -201,6 +215,7 @@ static json_t *push(json_t *parent, unsigned index, const char *name,
     return child;    
 }
 
+/* Push 'child' into 'parent' at position 'index' with a 'key' */ 
 json_t *json_object_push(json_t *parent, size_t index, const char *key,
     json_t *child)
 {
@@ -215,6 +230,7 @@ json_t *json_object_push(json_t *parent, size_t index, const char *key,
     return NULL;
 }
 
+/* Push 'child' into 'parent' at position 'index' if parent is array */ 
 json_t *json_array_push(json_t *parent, size_t index, json_t *child)
 {
     if ((parent == NULL) || (child == NULL))
@@ -228,6 +244,7 @@ json_t *json_array_push(json_t *parent, size_t index, json_t *child)
     return NULL;
 }
 
+/* Push 'child' into 'parent' at position 'index' */ 
 json_t *json_push_at(json_t *parent, size_t index, json_t *child)
 {
     if ((parent == NULL) || (child == NULL))
@@ -242,6 +259,7 @@ json_t *json_push_at(json_t *parent, size_t index, json_t *child)
     return NULL;
 }
 
+/* Pop node at position 'index' */
 static json_t *pop(json_t *parent, unsigned index)
 {
     if (index >= parent->size)
@@ -270,6 +288,7 @@ static json_t *pop(json_t *parent, unsigned index)
     return child;
 }
 
+/* Pop node matching 'key' */
 json_t *json_object_pop(json_t *parent, const char *key)
 {
     unsigned index = json_index(parent, key);
@@ -281,6 +300,7 @@ json_t *json_object_pop(json_t *parent, const char *key)
     return pop(parent, index);
 }
 
+/* Pop node from 'parent' at position 'index' if parent is array */
 json_t *json_array_pop(json_t *parent, size_t index)
 {
     if ((parent == NULL) || (parent->type != JSON_ARRAY) || (parent->size == 0))
@@ -290,6 +310,7 @@ json_t *json_array_pop(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
+/* Pop node from 'parent' at position 'index' */
 json_t *json_pop_at(json_t *parent, size_t index)
 {
     if ((parent == NULL) || (parent->size == 0))
@@ -299,6 +320,7 @@ json_t *json_pop_at(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
+/* Moves nodes from 'target' to 'source' on distinct iterables */
 static json_t *move(json_t *source, unsigned source_index,
     json_t *target, unsigned index)
 {
@@ -339,6 +361,7 @@ static json_t *move(json_t *source, unsigned source_index,
     return child;    
 }
 
+/* Moves nodes from 'target' to 'source' on the same iterable */
 static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
 {
     if (a >= parent->size)
@@ -368,6 +391,7 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
     return temp;
 }
 
+/* Moves nodes from 'target' to 'source' */
 json_t *json_move(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (source->size == 0) || (target == NULL))
@@ -393,6 +417,7 @@ json_t *json_move(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
+/* Swap nodes from 'target' to 'source' (parents must have the same type) */
 json_t *json_swap(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (target == NULL) || (source->type != target->type))
@@ -418,21 +443,25 @@ json_t *json_swap(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
+/* Deletes the node matching 'key' */
 int json_object_delete(json_t *parent, const char *key)
 {
     return json_delete(json_object_pop(parent, key));
 }
 
+/* Deletes node at position 'index' if 'parent' is an array */
 int json_array_delete(json_t *parent, size_t index)
 {
     return json_delete(json_array_pop(parent, index));
 }
 
+/* Deletes node at position 'index' */
 int json_delete_at(json_t *parent, size_t index)
 {
     return json_delete(json_pop_at(parent, index));
 }
 
+/* json_delete helper */
 static void delete_node(json_t *node)
 {
     if (node->type == JSON_STRING)
@@ -447,6 +476,7 @@ static void delete_node(json_t *node)
     free(node);
 }
 
+/* json_delete recursive helper */
 static void delete_tree(json_t *node)
 {
     for (unsigned i = 0; i < node->size; i++)
@@ -463,6 +493,7 @@ static void delete_tree(json_t *node)
     delete_node(node);
 }
 
+/* Deletes a non internal node, returns 1 on success or 0 if node is a child */
 int json_delete(json_t *node)
 {
     if (!node || node->packed)
@@ -473,6 +504,7 @@ int json_delete(json_t *node)
     return 1;
 }
 
+/* Deletes a non internal node (useful to pass as destructor callback) */
 void json_free(void *node)
 {
     if (!node || ((json_t *)node)->packed)

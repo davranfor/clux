@@ -266,7 +266,6 @@ static int buffer_print_tree(json_buffer *buffer,const json_t *node,
 /**
  * The cast from 'const json_t *' to 'json_t *' is needed to set/fake the children,
  * so we don't need to check if the node has depth 0 on each iteration of print_tree().
- *
  * If the passed node IS a property -----> [{key: value}]
  * If the paseed node IS NOT a property -> [value]
  */ 
