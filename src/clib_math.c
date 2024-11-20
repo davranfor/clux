@@ -6,7 +6,7 @@
 
 #include "clib_math.h"
 
-/* Returns the smallest power of two that is greater than or equal to size */
+/* Returns the smallest power of 2 that is greater than or equal to size */
 size_t next_pow2(size_t number)
 {
     number -= 1;
@@ -23,7 +23,7 @@ size_t next_pow2(size_t number)
     return number;
 }
 
-/* Returns the next power of two if size is a power of two, size otherwise */
+/* Returns the next power of 2 if 'size' is a power of 2, 'size' otherwise */
 unsigned next_size(unsigned size)
 {
     if (size == 0)
