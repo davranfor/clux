@@ -67,7 +67,7 @@ json_t *json_new_string(const char *text)
     return node;
 }
 
-/* Returns a new allocated json string using printf format style */
+/* Returns a new allocated json string using printf-style formatting */
 json_t *json_new_format(const char *fmt, ...)
 {
     if (fmt == NULL)
@@ -105,7 +105,7 @@ json_t *json_new_format(const char *fmt, ...)
 /**
  * Returns a new allocated
  * - json integer if 'number' can be represented as a safe integer
- * - json real if 'number' can't be represented as a safe integer
+ * - json real otherwise
  * Safe integers are numbers within a range of -2^52 to +2^52 (inclusive)
  */
 json_t *json_new_integer(double number)

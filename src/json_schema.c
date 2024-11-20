@@ -25,6 +25,8 @@
 
 #define FLAG_FORCE_RULE 0x1
 
+enum {NOT_ABORTABLE, ABORTABLE};
+
 struct active
 {
     const json_t *path[MAX_ACTIVE_PATHS];
@@ -43,6 +45,7 @@ typedef struct
     // Paths and references
     struct active *active;
 } schema_t;
+
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
@@ -1095,7 +1098,7 @@ static int test_content_schema(const json_t *rule, const json_t *node)
         return SCHEMA_INVALID;
     }
 
-    int result = validate_schema(rule, temp, NULL, NULL, 1) > 0;
+    int result = validate_schema(rule, temp, NULL, NULL, ABORTABLE) > 0;
 
     json_delete(temp);
     return result;
@@ -1398,7 +1401,7 @@ static int test_not(const schema_t *schema,
         return SCHEMA_INVALID;
     }
  
-    int result = validate(schema, rule, node, 0);
+    int result = validate(schema, rule, node, NOT_ABORTABLE);
 
     if (result == SCHEMA_ERROR)
     {
@@ -1420,7 +1423,7 @@ static int test_any_of(const schema_t *schema,
         {
             return SCHEMA_ERROR;
         }
-        switch (validate(schema, rule->child[i], node, 0))
+        switch (validate(schema, rule->child[i], node, NOT_ABORTABLE))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -1447,7 +1450,7 @@ static int test_one_of(const schema_t *schema,
         {
             return SCHEMA_ERROR;
         }
-        switch (validate(schema, rule->child[i], node, 0))
+        switch (validate(schema, rule->child[i], node, NOT_ABORTABLE))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -1475,7 +1478,7 @@ static int test_all_of(const schema_t *schema,
         {
             return SCHEMA_ERROR;
         }
-        switch (validate(schema, rule->child[i], node, 0))
+        switch (validate(schema, rule->child[i], node, NOT_ABORTABLE))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -1518,7 +1521,7 @@ static int test_if(const schema_t *schema,
         return SCHEMA_ERROR;
     }
 
-    int result = validate(schema, rule, node, 0);
+    int result = validate(schema, rule, node, NOT_ABORTABLE);
 
     if (result == SCHEMA_ERROR)
     {
@@ -1738,6 +1741,6 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    return validate_schema(rule, node, callback, data, 1) > 0;
+    return validate_schema(rule, node, callback, data, ABORTABLE) > 0;
 }
 
