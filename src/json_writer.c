@@ -14,7 +14,7 @@
 #include "json_reader.h"
 #include "json_writer.h"
 
-/* Returns a new allocated node with an empty object */
+/* Returns a new allocated json object */
 json_t *json_new_object(void)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -26,7 +26,7 @@ json_t *json_new_object(void)
     return node;
 }
 
-/* Returns a new allocated node with an empty array */
+/* Returns a new allocated json array */
 json_t *json_new_array(void)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -38,7 +38,7 @@ json_t *json_new_array(void)
     return node;
 }
 
-/* Returns a new allocated node with a string */
+/* Returns a new allocated json string */
 json_t *json_new_string(const char *text)
 {
     if (text == NULL)
@@ -67,7 +67,7 @@ json_t *json_new_string(const char *text)
     return node;
 }
 
-/* Returns a new allocated node with a string using printf format */
+/* Returns a new allocated json string using printf format */
 json_t *json_new_format(const char *fmt, ...)
 {
     if (fmt == NULL)
@@ -103,8 +103,9 @@ json_t *json_new_format(const char *fmt, ...)
 }
 
 /**
- * Returns a new allocated node with an integeror
- * or a double if 'number' exceeds +-2^52
+ * Returns
+ * - new allocated json integer if number is a safe integer or
+ * - new allocated json real if 'number' exceeds +-2^52
  */
 json_t *json_new_integer(double number)
 {
@@ -120,7 +121,7 @@ json_t *json_new_integer(double number)
     return node;
 }
 
-/* Returns a new allocated node with a double */
+/* Returns a new allocated json real */
 json_t *json_new_real(double number)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -133,7 +134,7 @@ json_t *json_new_real(double number)
     return node;
 }
 
-/* Returns a new allocated node with a boolean 'true' or 'false' */
+/* Returns a new allocated json boolean */
 json_t *json_new_boolean(int number)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -147,7 +148,7 @@ json_t *json_new_boolean(int number)
     return node;
 }
 
-/* Returns a new allocated node with a 'null' value */
+/* Returns a new allocated json null */
 json_t *json_new_null(void)
 {
     json_t *node = calloc(1, sizeof *node);
@@ -163,7 +164,7 @@ json_t *json_new_null(void)
 static json_t *push(json_t *parent, unsigned index, const char *name,
     json_t *child)
 {
-    // Can't push itself and can't push a node with parent
+    // Can't push itself nor a node with parent
     if ((parent == child) || child->packed)
     {
         return NULL;
@@ -320,7 +321,7 @@ json_t *json_pop_at(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
-/* Moves nodes from 'target' to 'source' on distinct iterables */
+/* Move node from 'target' to 'source' on distinct iterables */
 static json_t *move(json_t *source, unsigned source_index,
     json_t *target, unsigned index)
 {
@@ -361,7 +362,7 @@ static json_t *move(json_t *source, unsigned source_index,
     return child;    
 }
 
-/* Moves nodes from 'target' to 'source' on the same iterable */
+/* Move node from 'target' to 'source' on the same iterable */
 static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
 {
     if (a >= parent->size)
@@ -391,7 +392,7 @@ static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
     return temp;
 }
 
-/* Moves nodes from 'target' to 'source' */
+/* Move node from 'target' to 'source' */
 json_t *json_move(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (source->size == 0) || (target == NULL))
@@ -417,7 +418,10 @@ json_t *json_move(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
-/* Swap nodes from 'target' to 'source' (parents must have the same type) */
+/**
+ * Swap node at position 'a' in 'source' with node at position 'b' in 'target'
+ * Parents must have the same type
+ */
 json_t *json_swap(json_t *source, size_t a, json_t *target, size_t b)
 {
     if ((source == NULL) || (target == NULL) || (source->type != target->type))
@@ -443,7 +447,7 @@ json_t *json_swap(json_t *source, size_t a, json_t *target, size_t b)
     return NULL;
 }
 
-/* Deletes the node matching 'key' */
+/* Deletes the first node matching 'key' */
 int json_object_delete(json_t *parent, const char *key)
 {
     return json_delete(json_object_pop(parent, key));
@@ -493,7 +497,7 @@ static void delete_tree(json_t *node)
     delete_node(node);
 }
 
-/* Deletes a non internal node, returns 1 on success or 0 if node is a child */
+/* Deletes a non internal node */
 int json_delete(json_t *node)
 {
     if (!node || node->packed)
@@ -504,7 +508,10 @@ int json_delete(json_t *node)
     return 1;
 }
 
-/* Deletes a non internal node (useful to pass as destructor callback) */
+/**
+ * Deletes a non internal node
+ * Useful for destructors with a callback expecting a 'void *' as param
+ */  
 void json_free(void *node)
 {
     if (!node || ((json_t *)node)->packed)

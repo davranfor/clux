@@ -487,7 +487,7 @@ static int walk(const json_t *node, unsigned short depth,
 }
 
 /**
- * Traverses a json tree and send all nodes to a callback
+ * Traverses a json tree sendng all nodes to a callback
  * Uses a temporary parent in order to avoid checking the parent in helper
  */
 int json_walk(const json_t *node, json_walk_callback callback, void *data)
