@@ -66,7 +66,7 @@ static int load(DIR *schemas)
             json_delete(node);
             return 0;
         }
-        printf("Loading %s\n", path);
+        printf("Loading '%s'\n", path);
     }
     return 1;
 }
@@ -92,6 +92,7 @@ void schema_load(void)
     int done = load(schemas);
 
     closedir(schemas);
+    // Something went wrong
     if (!done)
     {
         exit(EXIT_FAILURE);

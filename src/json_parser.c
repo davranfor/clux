@@ -16,6 +16,12 @@
 #include "json_writer.h"
 #include "json_parser.h"
 
+/**
+ * The library does not store the parent of each node. As a result,
+ * it requires traversing the hierarchy through recursive calls to
+ * process the data correctly.
+ * A very high depth limit is set to protect against recursive attacks.
+ */
 static unsigned short max_depth = (unsigned short)-1;
 
 void json_parser_set_max_depth(unsigned short depth)
@@ -329,16 +335,20 @@ static json_t *parse_number(const char **str)
         return NULL;
     }
 
-    json_t *node = new_node(JSON_UNDEFINED);
+    json_t *node = new_node(JSON_REAL);
 
     if (node == NULL)
     {
         return NULL;
     }
     node->number = number;
-    node->type = (*str + strspn(*str, "-0123456789") >= end)
-        ? IS_SAFE_INTEGER(number) ? JSON_INTEGER : JSON_REAL
-        : JSON_REAL;
+    // Differs from the standard, which only considers 'number' as a numeric
+    // type. Here, we classify nodes as either 'real' or 'integer'.
+    // Safe integers are numbers within the range of -2^52 to +2^52 (inclusive)
+    if ((*str + strspn(*str, "-0123456789") >= end) && IS_SAFE_INTEGER(number))
+    {
+        node->type = JSON_INTEGER;
+    }
     *str = skip_spaces(end);
     return node; 
 }

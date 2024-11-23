@@ -221,7 +221,7 @@ static int tree_height(const json_t *node, size_t depth, void *height)
     return 1;
 }
 
-/* Number of edges from the leaf node to the passed node */
+/* Longest path from the root node to any leaf node */
 size_t json_height(const json_t *node)
 {
     size_t height = 0;
