@@ -296,6 +296,16 @@ static int buffer_loop(json_buffer *buffer, const json_t *node, int indent)
     return 0;
 }
 
+/**
+ * Serializes a JSON structure or a single node into a compact string without
+ * applying any indentation or whitespace for formatting.
+ * The output is suitable for scenarios where minimizing size is important,
+ * such as network transmission or storage.
+ * Returns a dynamically allocated string containing the JSON representation,
+ * or NULL on failure.
+ *
+ * Note: The caller is responsible for freeing the returned string.
+ */
 char *json_encode(const json_t *node)
 {
     json_buffer buffer = {NULL, 0, 0};
@@ -312,6 +322,7 @@ char *json_encode(const json_t *node)
     return text;
 }
 
+/* json_encode with indentation */
 char *json_indent(const json_t *node, int indent)
 {
     json_buffer buffer = {NULL, 0, 0};
