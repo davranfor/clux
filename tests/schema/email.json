@@ -1,6 +1,0 @@
-{
-  "$id": "email",
-  "type": ["string"],
-  "format": "email"
-}
-
