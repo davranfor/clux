@@ -303,8 +303,7 @@ static int buffer_loop(json_buffer *buffer, const json_t *node, int indent)
  * such as network transmission or storage.
  * Returns a dynamically allocated string containing the JSON representation,
  * or NULL on failure.
- *
- * Note: The caller is responsible for freeing the returned string.
+ * The caller is responsible for freeing the returned string.
  */
 char *json_encode(const json_t *node)
 {
@@ -322,7 +321,7 @@ char *json_encode(const json_t *node)
     return text;
 }
 
-/* json_encode with indentation */
+/* json_encode with indentation (truncated to 0 ... 8 spaces) */
 char *json_indent(const json_t *node, int indent)
 {
     json_buffer buffer = {NULL, 0, 0};
@@ -339,6 +338,7 @@ char *json_indent(const json_t *node, int indent)
     return text;
 }
 
+/* json_indent to a file, returns 1 on success, 0 otherwise */
 int json_write(const json_t *node, FILE *file, int indent)
 {
     int rc = 0;
@@ -356,6 +356,7 @@ int json_write(const json_t *node, FILE *file, int indent)
     return rc;
 }
 
+/* json_encode to a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
     int rc = 0;
@@ -373,6 +374,7 @@ int json_write_line(const json_t *node, FILE *file)
     return rc;
 }
 
+/* json_indent to a path, returns 1 on success, 0 otherwise */
 int json_write_file(const json_t *node, const char *path, int indent)
 {
     FILE *file;
@@ -392,11 +394,16 @@ int json_write_file(const json_t *node, const char *path, int indent)
     return rc;
 }
 
+/* json_indent to stdout (2 spaces) */
 int json_print(const json_t *node)
 {
     return json_write(node, stdout, 2);
 }
 
+/**
+ * Returns an encoded json string
+ * The caller is responsible for freeing the returned string
+ */
 char *json_quote(const char *str)
 {
     if (str == NULL)
