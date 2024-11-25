@@ -161,6 +161,148 @@ json_t *json_new_null(void)
     return node;
 }
 
+/* Cleanup the passed node */
+static void clear(json_t *node)
+{
+    switch (node->type)
+    {
+        case JSON_OBJECT:
+        case JSON_ARRAY:
+            json_delete_children(node);
+            break;
+        case JSON_STRING:
+            free(node->string);
+            break;
+        case JSON_INTEGER:
+        case JSON_REAL:
+            node->number = 0.0;
+            break;
+    }
+}
+
+/* Modifies and returns a json object */
+json_t *json_set_object(json_t *node)
+{
+    if (node != NULL)
+    {
+        clear(node);
+        node->type = JSON_OBJECT;
+    }
+    return node;
+}
+
+/* Modifies and returns a json array */
+json_t *json_set_array(json_t *node)
+{
+    if (node != NULL)
+    {
+        clear(node);
+        node->type = JSON_ARRAY;
+    }
+    return node;
+}
+
+/* Modifies and returns a json string */
+json_t *json_set_string(json_t *node, const char *text)
+{
+    if ((node == NULL) || (text == NULL))
+    {
+        return NULL;
+    }
+
+    char *string = string_clone(text);
+
+    if (string == NULL)
+    {
+        return NULL;
+    }
+    clear(node);
+    node->type = JSON_STRING;
+    node->string = string;
+    return node;
+}
+
+/* Modifies and returns a json string using printf-style formatting */
+json_t *json_set_format(json_t *node, const char *fmt, ...)
+{
+    if ((node == NULL) || (fmt == NULL))
+    {
+        return NULL;
+    }
+
+    va_list args;
+
+    va_start(args, fmt);
+
+    char *string = string_vprint(fmt, args);
+
+    va_end(args);
+
+    if (string == NULL)
+    {
+        return NULL;
+    }
+    clear(node);
+    node->type = JSON_STRING;
+    node->string = string;
+    return node;
+}
+
+/**
+ * Modifies and returns
+ * - json integer if 'number' can be represented as a safe integer
+ * - json real otherwise
+ * Safe integers are numbers within a range of -2^52 to +2^52 (inclusive)
+ */
+json_t *json_set_integer(json_t *node, double number)
+{
+    if (node != NULL)
+    {
+        clear(node);
+        node->number = trunc(number);
+        node->type = IS_SAFE_INTEGER(node->number)
+            ? JSON_INTEGER
+            : JSON_REAL;
+    }
+    return node;
+}
+
+/* Modifies and returns a json real */
+json_t *json_set_real(json_t *node, double number)
+{
+    if (node != NULL)
+    {
+        clear(node);
+        node->type = JSON_REAL;
+        node->number = number;
+    }
+    return node;
+}
+
+/* Modifies and returns a json boolean */
+json_t *json_set_boolean(json_t *node, int number)
+{
+    if (node != NULL)
+    {
+        clear(node);
+        node->type = number != 0
+            ? JSON_TRUE
+            : JSON_FALSE;
+    }
+    return node;
+}
+
+/* Modifies and returns a json null */
+json_t *json_set_null(json_t *node)
+{
+    if (node != NULL)
+    {
+        clear(node);
+        node->type = JSON_NULL;
+    }
+    return node;
+}
+
 /* Push 'child' into 'parent' at position 'index' with an optional 'key' */
 static json_t *push(json_t *parent, unsigned index, const char *name,
     json_t *child)
@@ -498,6 +640,28 @@ static void delete_tree(json_t *node)
         }
     }
     delete_node(node);
+}
+
+/* Deletes internal nodes */
+int json_delete_children(json_t *node)
+{
+    for (unsigned i = 0; i < node->size; i++)
+    {
+        if (node->child[i]->size > 0)
+        {
+            delete_tree(node->child[i]);
+        }
+        else
+        {
+            delete_node(node->child[i]);
+        }
+    }
+    if (node->size > 0)
+    {
+        node->size = 0;
+        return 1;
+    }
+    return 0;
 }
 
 /**
