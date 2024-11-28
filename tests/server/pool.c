@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "buffer.h"
+#include "pool.h"
 
 char *pool_set(pool_t *pool, char *data, size_t size)
 {

@@ -9,7 +9,7 @@
 #include <string.h>
 #include "clib_stream.h"
 
-static char *file_read_helper(FILE *file, size_t size)
+static char *read(FILE *file, size_t size)
 {
     char *str = malloc(size + 1);
 
@@ -50,7 +50,7 @@ char *file_read(const char *path)
 
         if ((size != -1L) && (fseek(file, 0L, SEEK_SET) == 0))
         {
-            str = file_read_helper(file, (size_t)size);
+            str = read(file, (size_t)size);
         }
     }
     fclose(file);

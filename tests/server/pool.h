@@ -4,10 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef BUFFER_H
-#define BUFFER_H
-
-#define BUFFER_SIZE 32768
+#ifndef POOL_H
+#define POOL_H
 
 typedef struct
 {

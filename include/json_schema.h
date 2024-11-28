@@ -7,6 +7,7 @@
 #ifndef JSON_SCHEMA_H
 #define JSON_SCHEMA_H
 
+#include "clib_hashmap.h"
 #include "json_header.h"
 
 typedef struct
@@ -19,8 +20,9 @@ typedef struct
 enum {JSON_SCHEMA_ABORT, JSON_SCHEMA_CONTINUE};
 enum {JSON_SCHEMA_WARNING, JSON_SCHEMA_INVALID, JSON_SCHEMA_ERROR};
 
-void json_schema_set_map(void *);
-void *json_schema_get_map(void);
+json_t *json_schema(const char *);
+void json_schema_set_map(map_t *);
+map_t *json_schema_get_map(void);
 
 typedef int (*json_validate_callback)(const json_schema_t *, int, void *);
 int json_validate(const json_t *, const json_t *, json_validate_callback, void *);

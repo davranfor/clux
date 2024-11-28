@@ -9,7 +9,7 @@
 #include <string.h>
 #include <locale.h>
 #include "config.h"
-#include "schema.h"
+#include "loader.h"
 #include "worker.h"
 #include "server.h"
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
-    schema_load();
+    loader_load();
     worker_load();
     printf("Server waiting on port %u\n", port);
     server_run(port, request_ready, request_reply);

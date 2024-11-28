@@ -9,7 +9,7 @@
 #include <dirent.h>
 #include <clux/clib.h>
 #include <clux/json.h>
-#include "schema.h"
+#include "loader.h"
 
 static map_t *map;
 
@@ -71,7 +71,7 @@ static int load(DIR *schemas)
     return 1;
 }
 
-void schema_load(void)
+void loader_load(void)
 {
     if (!(map = map_create(0)))
     {

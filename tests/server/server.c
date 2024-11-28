@@ -21,9 +21,11 @@
 #include "config.h"
 #include "server.h"
 
-typedef struct pollfd conn_t;
+#define BUFFER_SIZE 32768
 
 static char buffer[BUFFER_SIZE];
+
+typedef struct pollfd conn_t;
 
 static int (*request_ready)(const char *, size_t);
 static void (*request_reply)(pool_t *, char *, size_t);

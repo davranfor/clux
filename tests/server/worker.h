@@ -7,7 +7,7 @@
 #ifndef WORKER_H
 #define WORKER_H
 
-#include "buffer.h"
+#include "pool.h"
 
 void worker_load(void);
 int request_ready(const char *, size_t);

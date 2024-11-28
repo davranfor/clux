@@ -4,10 +4,10 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef SCHEMA_H
-#define SCHEMA_H
+#ifndef LOADER_H
+#define LOADER_H
 
-void schema_load(void);
+void loader_load(void);
 
 #endif
 

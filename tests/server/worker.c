@@ -39,7 +39,8 @@ static const char *header_end =
 enum {HEADER_END_LENGTH = 4};
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
-static const char *method_name[] = {
+static const char *method_name[] =
+{
     "GET /",
     "POST /",
     "PUT /",

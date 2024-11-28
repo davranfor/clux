@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <math.h>
 #include "clib_string.h"
-#include "clib_hashmap.h"
 #include "clib_match.h"
 #include "clib_regex.h"
 #include "json_private.h"
@@ -150,12 +149,17 @@ static void raise_error(const schema_t *schema,
 
 static map_t *map;
 
-void json_schema_set_map(void *value)
+json_t *json_schema(const char *key)
+{
+    return map_search(map, key);
+}
+
+void json_schema_set_map(map_t *value)
 {
     map = value;
 }
 
-void *json_schema_get_map(void)
+map_t *json_schema_get_map(void)
 {
     return map;
 }
