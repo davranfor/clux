@@ -154,9 +154,9 @@ json_t *json_schema(const char *key)
     return map_search(map, key);
 }
 
-void json_schema_set_map(map_t *value)
+void json_schema_set_map(map_t *ptr)
 {
-    map = value;
+    map = ptr;
 }
 
 map_t *json_schema_get_map(void)
@@ -225,7 +225,6 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_MAX_LENGTH,                "maxLength")                \
     _(SCHEMA_MAX_PROPERTIES,            "maxProperties")            \
     _(SCHEMA_MAXIMUM,                   "maximum")                  \
-    _(SCHEMA_META,                      "meta")                     \
     _(SCHEMA_MIN_CONTAINS,              "minContains")              \
     _(SCHEMA_MIN_ITEMS,                 "minItems")                 \
     _(SCHEMA_MIN_LENGTH,                "minLength")                \
@@ -328,9 +327,6 @@ static int get_test(const json_t *rule)
             return (rule->type == JSON_TRUE) || (rule->type == JSON_FALSE)
                 ? SCHEMA_VALID
                 : SCHEMA_ERROR;
-        // Extensions
-        case SCHEMA_META:
-            return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         // Not supported
         case SCHEMA_ANCHOR:
         case SCHEMA_DYNAMIC_ANCHOR:
