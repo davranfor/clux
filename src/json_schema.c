@@ -118,7 +118,7 @@ static int notify_user(const schema_t *schema,
         .rule = cb_rule.type != JSON_UNDEFINED ? &cb_rule : rule
     };
 
-    return !schema->callback(&note, event, schema->data);
+    return schema->callback(&note, event, schema->data);
 }
 
 static int notify(const schema_t *schema,
@@ -132,13 +132,13 @@ static int notify(const schema_t *schema,
 static int abort_on_warning(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_WARNING);
+    return notify(schema, rule, node, JSON_SCHEMA_WARNING) == JSON_SCHEMA_ABORT;
 }
 
 static int abort_on_failure(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_INVALID);
+    return notify(schema, rule, node, JSON_SCHEMA_INVALID) == JSON_SCHEMA_ABORT;
 }
 
 static void raise_error(const schema_t *schema,

@@ -17,8 +17,8 @@ typedef struct
     const json_t *rule;
 } json_schema_t;
 
-enum {JSON_SCHEMA_ABORT, JSON_SCHEMA_CONTINUE};
 enum {JSON_SCHEMA_WARNING, JSON_SCHEMA_INVALID, JSON_SCHEMA_ERROR};
+enum {JSON_SCHEMA_ABORT, JSON_SCHEMA_CONTINUE};
 
 json_t *json_schema(const char *);
 void json_schema_set_map(map_t *);

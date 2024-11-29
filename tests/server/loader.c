@@ -20,7 +20,7 @@ static void unload(void)
 
 static int load(DIR *schemas)
 {
-    struct dirent *dir;
+    const struct dirent *dir;
     const char ext[] = ".schema.json"; 
 
     while ((dir = readdir(schemas)))
