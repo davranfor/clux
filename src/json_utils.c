@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clib_match.h"
+#include "clib_regex.h"
 #include "json_private.h"
 #include "json_utils.h"
 
@@ -78,5 +80,25 @@ void json_reverse(json_t *node)
             node->child[b] = temp;
         }
     }
+}
+
+/* Check if a json string match with format */
+int json_match(const json_t *node, const char *str)
+{
+    if ((node != NULL) && (node->type == JSON_STRING) && (str != NULL))
+    {
+        return test_match(node->string, str);
+    }
+    return 0;
+}
+
+/* Check if a json string match with pattern */
+int json_regex(const json_t *node, const char *str)
+{
+    if ((node != NULL) && (node->type == JSON_STRING) && (str != NULL))
+    {
+        return test_regex(node->string, str);
+    }
+    return 0;
 }
 
