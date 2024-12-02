@@ -11,34 +11,34 @@
 #include <clux/json.h>
 #include "loader.h"
 
-static map_t *map;
+static map_t *schemas;
 
-static void unload(void)
+static void unload_schemas(void)
 {
-    map_destroy(map, json_free);
+    map_destroy(schemas, json_free);
 }
 
-static int load(DIR *schemas)
+static int load_schemas(DIR *dir)
 {
-    const struct dirent *dir;
-    const char ext[] = ".schema.json"; 
+    const struct dirent *dirent;
+    const char ext[] = ".json";
 
-    while ((dir = readdir(schemas)))
+    while ((dirent = readdir(dir)))
     {
-        size_t length = strlen(dir->d_name);
+        size_t length = strlen(dirent->d_name);
 
-        // File name must end with ".schema.json"
+        // File name must end with ".json"
         if ((length < sizeof(ext)) ||
-            (strcmp(dir->d_name + length - sizeof(ext) + 1, ext) != 0))
+            (strcmp(dirent->d_name + length - sizeof(ext) + 1, ext) != 0))
         {
             continue;
         }
 
         char path[255];
 
-        if (snprintf(path, sizeof path, "schemas/%s", dir->d_name) < 0)
+        if (snprintf(path, sizeof path, "schemas/%s", dirent->d_name) < 0)
         {
-            fprintf(stderr, "'%s' is not a valid file name\n", dir->d_name);
+            fprintf(stderr, "'%s' is not a valid file name\n", dirent->d_name);
             return 0;
         }
 
@@ -60,7 +60,7 @@ static int load(DIR *schemas)
             json_delete(node);
             return 0;
         }
-        if (map_insert(map, id, node) != node)
+        if (map_insert(schemas, id, node) != node)
         {
             fprintf(stderr, "'%s' already mapped\n", id);
             json_delete(node);
@@ -73,25 +73,25 @@ static int load(DIR *schemas)
 
 void loader_load(void)
 {
-    if (!(map = map_create(0)))
+    if (!(schemas = map_create(0)))
     {
         perror("map_create");
         exit(EXIT_FAILURE);
     }
-    json_schema_set_map(map);
-    atexit(unload);
+    json_schema_set_map(schemas);
+    atexit(unload_schemas);
 
-    DIR *schemas;
+    DIR *dir;
 
-    if (!(schemas = opendir("schemas")))
+    if (!(dir = opendir("schemas")))
     {
         fprintf(stderr, "'schemas' dir must exist\n");
         exit(EXIT_FAILURE);
     }
 
-    int done = load(schemas);
+    int done = load_schemas(dir);
 
-    closedir(schemas);
+    closedir(dir);
     // Something went wrong
     if (!done)
     {

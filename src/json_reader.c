@@ -248,7 +248,7 @@ unsigned json_items(const json_t *node)
     return (node != NULL) && (node->type == JSON_ARRAY) ? node->size : 0;
 }
 
-/* Position in an object given a key */
+/* Position in an object given a key or -1 if not found */
 unsigned json_index(const json_t *node, const char *key)
 {
     if ((node != NULL) && (node->type == JSON_OBJECT) && (key != NULL))
@@ -294,7 +294,7 @@ json_t *json_tail(const json_t *node)
     return NULL;
 }
 
-/* Returns node at position 'index' */
+/* Child at position 'index' */
 json_t *json_at(const json_t *node, size_t index)
 {
     if ((node != NULL) && (node->size > index))
