@@ -40,11 +40,11 @@ static int on_validate(const json_schema_t *schema, int event, void *data)
     {
         fprintf(stderr, "\nTarget: %s\nSchema: %s\n", path[0], path[1]);
         fprintf(stderr, "Path: ");
-        json_write(schema->path, stderr, 2);
+        json_write_line(schema->path, stderr);
         fprintf(stderr, "Node: ");
-        json_write(schema->abbr.node, stderr, 2);
+        json_write_line(schema->node, stderr);
         fprintf(stderr, "Rule: ");
-        json_write(schema->abbr.rule, stderr, 2);
+        json_write_line(schema->rule, stderr);
         fprintf(stderr, "%s\n", events[event]);
     }
     return JSON_SCHEMA_CONTINUE;

@@ -15,7 +15,6 @@ typedef struct
     const json_t *path;
     const json_t *node;
     const json_t *rule;
-    struct { const json_t *node, *rule; } abbr;
 } json_schema_t;
 
 /* Events */

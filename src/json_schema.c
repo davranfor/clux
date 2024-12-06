@@ -22,8 +22,6 @@
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
 
-#define FLAG_NOT_ABBR 0x1
-
 enum {NOT_ABORTABLE, ABORTABLE};
 
 struct active
@@ -74,12 +72,12 @@ static int validate_schema(const json_t *rule, const json_t *node,
 static int notify_user(const schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    char path[256] = "/";
-    char *ptr = path;
+    char str[256] = "/";
+    char *ptr = str;
 
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
-        size_t size = sizeof(path) - (size_t)(ptr - path);
+        size_t size = sizeof(str) - (size_t)(ptr - str);
 
         if (schema->active->path[i]->key != NULL)
         {
@@ -91,34 +89,8 @@ static int notify_user(const schema_t *schema,
         }
     }
 
-    const json_t cb_path =
-    {
-        .string = path,
-        .type = JSON_STRING
-    };
-    const json_t cb_node =
-    {
-        .key = node->key,
-        .type = node->type == JSON_OBJECT ? JSON_OBJECT :
-                node->type == JSON_ARRAY ? JSON_ARRAY :
-                JSON_UNDEFINED
-    };
-    const json_t cb_rule =
-    {
-        .key = rule->key,
-        .type = rule->flags & FLAG_NOT_ABBR ? JSON_UNDEFINED :
-                rule->type == JSON_OBJECT ? JSON_OBJECT :
-                rule->type == JSON_ARRAY ? JSON_ARRAY :
-                JSON_UNDEFINED
-    };
-    const json_schema_t note =
-    {
-        .path = &cb_path,
-        .node = node,
-        .rule = rule,
-        .abbr.node = cb_node.type != JSON_UNDEFINED ? &cb_node : node,
-        .abbr.rule = cb_rule.type != JSON_UNDEFINED ? &cb_rule : rule
-    };
+    const json_t path = {.string = str, .type = JSON_STRING};
+    const json_schema_t note = {.path = &path, .node = node, .rule = rule};
 
     return schema->callback(&note, event, schema->data);
 }
@@ -317,6 +289,7 @@ static int get_test(const json_t *rule)
             return SCHEMA_NOTIFY;
         case SCHEMA_CONTAINS:
         case SCHEMA_DEFS:
+            return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
         case SCHEMA_VOCABULARY:
             return rule->type == JSON_OBJECT ? SCHEMA_NOTIFY : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
@@ -460,7 +433,6 @@ static int test_pattern_properties(const schema_t *schema,
                     .key = rule->key,
                     .child = (json_t *[]){rule->child[i]},
                     .size = 1,
-                    .flags = FLAG_NOT_ABBR,
                     .type = JSON_OBJECT
                 };
 
@@ -697,7 +669,6 @@ static int test_dependent_required(const schema_t *schema,
                     .key = rule->key,
                     .child = (json_t *[]){rule->child[i]},
                     .size = 1,
-                    .flags = FLAG_NOT_ABBR,
                     .type = JSON_OBJECT
                 };
 
@@ -1298,16 +1269,7 @@ static int test_type(const schema_t *schema,
     {
         if (abortable)
         {
-            const json_t note =
-            {
-                .key = rule->key,
-                .child = rule->child,
-                .size = rule->size,
-                .flags = FLAG_NOT_ABBR,
-                .type = rule->type
-            };
-
-            if (abort_on_failure(schema, &note, node))
+            if (abort_on_failure(schema, rule, node))
             {
                 return SCHEMA_ABORTED;
             }
@@ -1595,6 +1557,8 @@ static int validate(const schema_t *schema,
         switch (test)
         {
             // Validate very simple rules that doesn't need to be tested
+            case SCHEMA_VALID:
+                continue;
             case SCHEMA_NOTIFY:
                 if (abort_on_notify(schema, rule->child[i], node))
                 {
