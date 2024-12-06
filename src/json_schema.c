@@ -72,8 +72,8 @@ static int validate_schema(const json_t *rule, const json_t *node,
 static int notify_user(const schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    char str[256] = "/";
-    char *ptr = str;
+    char str[256] = "$";
+    char *ptr = str + 1;
 
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
@@ -81,11 +81,11 @@ static int notify_user(const schema_t *schema,
 
         if (schema->active->path[i]->key != NULL)
         {
-            ptr += snprintf(ptr, size, "/%s", schema->active->path[i]->key);
+            ptr += snprintf(ptr, size, ".%s", schema->active->path[i]->key);
         }
         else
         {
-            ptr += snprintf(ptr, size, "/%zu", schema->active->item[i]);
+            ptr += snprintf(ptr, size, "[%zu]", schema->active->item[i]);
         }
     }
 
