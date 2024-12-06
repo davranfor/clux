@@ -22,7 +22,7 @@
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
 
-#define FLAG_FORCE_RULE 0x1
+#define FLAG_NOT_ABBR 0x1
 
 enum {NOT_ABORTABLE, ABORTABLE};
 
@@ -106,7 +106,7 @@ static int notify_user(const schema_t *schema,
     const json_t cb_rule =
     {
         .key = rule->key,
-        .type = rule->flags & FLAG_FORCE_RULE ? JSON_UNDEFINED :
+        .type = rule->flags & FLAG_NOT_ABBR ? JSON_UNDEFINED :
                 rule->type == JSON_OBJECT ? JSON_OBJECT :
                 rule->type == JSON_ARRAY ? JSON_ARRAY :
                 JSON_UNDEFINED
@@ -114,8 +114,10 @@ static int notify_user(const schema_t *schema,
     const json_schema_t note =
     {
         .path = &cb_path,
-        .node = cb_node.type != JSON_UNDEFINED ? &cb_node : node,
-        .rule = cb_rule.type != JSON_UNDEFINED ? &cb_rule : rule
+        .node = node,
+        .rule = rule,
+        .abbr.node = cb_node.type != JSON_UNDEFINED ? &cb_node : node,
+        .abbr.rule = cb_rule.type != JSON_UNDEFINED ? &cb_rule : rule
     };
 
     return schema->callback(&note, event, schema->data);
@@ -126,7 +128,13 @@ static int notify(const schema_t *schema,
 {
     return schema->callback
         ? notify_user(schema, rule, node, event)
-        : event == JSON_SCHEMA_INVALID;
+        : event == JSON_SCHEMA_FAILURE;
+}
+
+static int abort_on_notify(const schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    return notify(schema, rule, node, JSON_SCHEMA_NOTIFY) == JSON_SCHEMA_ABORT;
 }
 
 static int abort_on_warning(const schema_t *schema,
@@ -138,13 +146,13 @@ static int abort_on_warning(const schema_t *schema,
 static int abort_on_failure(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_INVALID) == JSON_SCHEMA_ABORT;
+    return notify(schema, rule, node, JSON_SCHEMA_FAILURE) == JSON_SCHEMA_ABORT;
 }
 
 static void raise_error(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    notify(schema, rule, node, JSON_SCHEMA_ERROR);
+    notify(schema, rule, node, JSON_SCHEMA_ABORT);
 }
 
 static map_t *map;
@@ -255,7 +263,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
 enum
 {
     SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID,
-    SCHEMA_WARNING, SCHEMA_FAILURE, SCHEMA_ABORTED,
+    SCHEMA_NOTIFY, SCHEMA_WARNING, SCHEMA_FAILURE, SCHEMA_ABORTED,
     DEFS, TEST(TEST_ENUM) NTESTS
 };
 
@@ -306,13 +314,13 @@ static int get_test(const json_t *rule)
     {
         // Rules that doesn't need to be tested
         case SCHEMA_DEFAULT:
-            return SCHEMA_VALID;
+            return SCHEMA_NOTIFY;
         case SCHEMA_CONTAINS:
         case SCHEMA_DEFS:
         case SCHEMA_VOCABULARY:
-            return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
+            return rule->type == JSON_OBJECT ? SCHEMA_NOTIFY : SCHEMA_ERROR;
         case SCHEMA_EXAMPLES:
-            return rule->type == JSON_ARRAY ? SCHEMA_VALID : SCHEMA_ERROR;
+            return rule->type == JSON_ARRAY ? SCHEMA_NOTIFY : SCHEMA_ERROR;
         case SCHEMA_COMMENT:
         case SCHEMA_CONTENT_ENCODING:
         case SCHEMA_CONTENT_MEDIA_TYPE:
@@ -320,12 +328,12 @@ static int get_test(const json_t *rule)
         case SCHEMA_ID:
         case SCHEMA_SCHEMA:
         case SCHEMA_TITLE:
-            return rule->type == JSON_STRING ? SCHEMA_VALID : SCHEMA_ERROR;
+            return rule->type == JSON_STRING ? SCHEMA_NOTIFY : SCHEMA_ERROR;
         case SCHEMA_DEPRECATED:
         case SCHEMA_READ_ONLY:
         case SCHEMA_WRITE_ONLY:
             return (rule->type == JSON_TRUE) || (rule->type == JSON_FALSE)
-                ? SCHEMA_VALID
+                ? SCHEMA_NOTIFY
                 : SCHEMA_ERROR;
         // Not supported
         case SCHEMA_ANCHOR:
@@ -452,7 +460,7 @@ static int test_pattern_properties(const schema_t *schema,
                     .key = rule->key,
                     .child = (json_t *[]){rule->child[i]},
                     .size = 1,
-                    .flags = FLAG_FORCE_RULE,
+                    .flags = FLAG_NOT_ABBR,
                     .type = JSON_OBJECT
                 };
 
@@ -689,7 +697,7 @@ static int test_dependent_required(const schema_t *schema,
                     .key = rule->key,
                     .child = (json_t *[]){rule->child[i]},
                     .size = 1,
-                    .flags = FLAG_FORCE_RULE,
+                    .flags = FLAG_NOT_ABBR,
                     .type = JSON_OBJECT
                 };
 
@@ -1295,8 +1303,8 @@ static int test_type(const schema_t *schema,
                 .key = rule->key,
                 .child = rule->child,
                 .size = rule->size,
-                .type = rule->type,
-                .flags = FLAG_FORCE_RULE
+                .flags = FLAG_NOT_ABBR,
+                .type = rule->type
             };
 
             if (abort_on_failure(schema, &note, node))
@@ -1587,7 +1595,11 @@ static int validate(const schema_t *schema,
         switch (test)
         {
             // Validate very simple rules that doesn't need to be tested
-            case SCHEMA_VALID:
+            case SCHEMA_NOTIFY:
+                if (abort_on_notify(schema, rule->child[i], node))
+                {
+                    return SCHEMA_ERROR;
+                }
                 continue;
             case SCHEMA_WARNING:
                 if (abort_on_warning(schema, rule->child[i], node))
