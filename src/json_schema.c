@@ -82,11 +82,11 @@ static int notify_user(const schema_t *schema,
 
         if (schema->active->path[i]->key != NULL)
         {
-            ptr += json_pointer_add_key(schema->active->path[i]->key, ptr, size);
+            ptr += json_pointer_put_key(schema->active->path[i]->key, ptr, size);
         }
         else
         {
-            ptr += json_pointer_add_index(schema->active->item[i], ptr, size);
+            ptr += json_pointer_put_index(schema->active->item[i], ptr, size);
         }
     }
 

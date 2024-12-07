@@ -145,8 +145,10 @@ json_t *json_pointer(const json_t *node, const char *path)
  * The key is prefixed with a forward slash ('/').
  * The buffer must have enough space to hold the resulting key,
  * including the null terminator.
+ * Returns the number of characters written to buffer not counting the
+ * terminating null character.
  */
-size_t json_pointer_add_key(const char *key, char *buffer, size_t size)
+size_t json_pointer_put_key(const char *key, char *buffer, size_t size)
 {
     if ((key == NULL) || (size == 0))
     {
@@ -188,8 +190,10 @@ size_t json_pointer_add_key(const char *key, char *buffer, size_t size)
  * The index is prefixed with a forward slash ('/').
  * The buffer must have enough space to hold the resulting index,
  * including the null terminator.
+ * Returns the number of characters written to buffer not counting the
+ * terminating null character.
  */
-size_t json_pointer_add_index(size_t index, char *buffer, size_t size)
+size_t json_pointer_put_index(size_t index, char *buffer, size_t size)
 {
     if (size == 0)
     {
