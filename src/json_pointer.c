@@ -139,3 +139,78 @@ json_t *json_pointer(const json_t *node, const char *path)
 #pragma GCC diagnostic pop
 }
 
+/**
+ * Writes an encoded key into the specified buffer in a format compatible
+ * with the JSON Pointer specification.
+ * The key is prefixed with a forward slash ('/').
+ * The buffer must have enough space to hold the resulting key,
+ * including the null terminator.
+ */
+size_t json_pointer_add_key(const char *key, char *buffer, size_t size)
+{
+    if ((key == NULL) || (size == 0))
+    {
+        return 0;
+    }
+
+    size_t length = 0;
+
+    buffer[length++] = '/';
+    while ((*key != '\0') && (length < size - 1))
+    {
+        switch (*key)
+        {
+            case '~':
+                buffer[length++] = '~';
+                buffer[length++] = '0';
+                break;
+            case '/':
+                buffer[length++] = '~';
+                buffer[length++] = '1';
+                break;
+            default:
+                buffer[length++] = *key;
+                break;
+        }
+        key++;
+    }
+    if ((*key != '\0') || (length >= size))
+    {
+        *buffer = '\0';
+        return 0;
+    }
+    buffer[length] = '\0';
+    return length;
+}
+
+/**
+ * Writes an index as plain text into the specified buffer.
+ * The index is prefixed with a forward slash ('/').
+ * The buffer must have enough space to hold the resulting index,
+ * including the null terminator.
+ */
+size_t json_pointer_add_index(size_t index, char *buffer, size_t size)
+{
+    if (size == 0)
+    {
+        return 0;
+    }
+
+    size_t length = 0;
+
+    buffer[length++] = '/';
+    size--;
+    do
+    {
+        if (length >= size)
+        {
+            *buffer = '\0';
+            return 0;
+        }
+        buffer[length++] = '0' + (index % 10);
+        index /= 10;
+    } while (index > 0);
+    buffer[length] = '\0';
+    return length;
+}
+

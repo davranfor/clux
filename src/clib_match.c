@@ -342,6 +342,15 @@ int test_is_url(const char *str)
     return 0;
 }
 
+int test_is_function(const char *str)
+{
+    const char *allow = "abcdefghijklmnopqrstuvwxyz"
+                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        "0123456789";
+
+    return is_alpha(str[0]) && !str[strspn(str, allow)];
+}
+
 int test_match(const char *text, const char *pattern)
 {
     int (*test)(const char *) =
@@ -353,7 +362,8 @@ int test_match(const char *text, const char *pattern)
         !strcmp(pattern, "ipv4") ? test_is_ipv4 :
         !strcmp(pattern, "ipv6") ? test_is_ipv6 :
         !strcmp(pattern, "uuid") ? test_is_uuid :
-        !strcmp(pattern, "url") ? test_is_url : NULL;
+        !strcmp(pattern, "url") ? test_is_url :
+        !strcmp(pattern, "function") ? test_is_function : NULL;
 
     return test != NULL ? test(text) : 0;
 }

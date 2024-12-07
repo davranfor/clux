@@ -10,6 +10,8 @@
 #include "json_header.h"
 
 json_t *json_pointer(const json_t *, const char *);
+size_t json_pointer_add_key(const char *, char *, size_t);
+size_t json_pointer_add_index(size_t, char *, size_t);
 
 #endif
 

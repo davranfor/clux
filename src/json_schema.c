@@ -19,6 +19,7 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
+#define PATH_MAX_SIZE 512
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
 
@@ -72,8 +73,8 @@ static int validate_schema(const json_t *rule, const json_t *node,
 static int notify_user(const schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
-    char str[256] = "$";
-    char *ptr = str + 1;
+    char str[PATH_MAX_SIZE] = "/";
+    char *ptr = str;
 
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
@@ -81,11 +82,11 @@ static int notify_user(const schema_t *schema,
 
         if (schema->active->path[i]->key != NULL)
         {
-            ptr += snprintf(ptr, size, ".%s", schema->active->path[i]->key);
+            ptr += json_pointer_add_key(schema->active->path[i]->key, ptr, size);
         }
         else
         {
-            ptr += snprintf(ptr, size, "[%zu]", schema->active->item[i]);
+            ptr += json_pointer_add_index(schema->active->item[i], ptr, size);
         }
     }
 

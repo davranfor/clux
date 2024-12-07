@@ -27,17 +27,17 @@ static json_t *parse_file(const char *path)
 
 static int on_validate(const json_schema_t *schema, int event, void *data)
 {
-    const char *events[] =
-    {
-        "Aborted: Malformed schema",
-        "Notify: Annotation in schema",  
-        "Warning: Unknown schema rule",
-        "Invalid: Doesn't validate against schema rule",
-    };
-    const char **path = data;
-
     if (event != JSON_SCHEMA_NOTIFY)
     {
+        const char *events[] =
+        {
+            "Aborted: Malformed schema",
+            "Notify: Annotation in schema",  
+            "Warning: Unknown schema rule",
+            "Invalid: Doesn't validate against schema rule",
+        };
+        const char **path = data;
+
         fprintf(stderr, "\nTarget: %s\nSchema: %s\n", path[0], path[1]);
         fprintf(stderr, "Path: ");
         json_write_line(schema->path, stderr);
