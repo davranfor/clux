@@ -211,7 +211,7 @@ size_t json_pointer_put_index(size_t index, char *buffer, size_t size)
             *buffer = '\0';
             return 0;
         }
-        buffer[length++] = '0' + (index % 10);
+        buffer[length++] = '0' + (char)(index % 10);
         index /= 10;
     } while (index > 0);
     buffer[length] = '\0';
