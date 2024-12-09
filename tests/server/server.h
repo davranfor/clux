@@ -8,13 +8,8 @@
 #define SERVER_H
 
 #include <stdint.h>
-#include "pool.h" 
 
-void server_run(
-    uint16_t,
-    int (*)(const char *, size_t),
-    void (*)(pool_t *, char *, size_t)
-);
+void server_run(uint16_t);
 
 #endif
 

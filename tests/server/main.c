@@ -10,7 +10,6 @@
 #include <locale.h>
 #include "config.h"
 #include "loader.h"
-#include "worker.h"
 #include "server.h"
 
 static uint16_t port_number(const char *str)
@@ -43,9 +42,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     loader_load();
-    worker_load();
     printf("Server waiting on port %u\n", port);
-    server_run(port, request_ready, request_reply);
+    server_run(port);
     return 0;
 }
 

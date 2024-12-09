@@ -8,7 +8,7 @@
 #include <string.h>
 #include <clux/clib.h>
 #include <clux/json.h>
-#include "worker.h"
+#include "request.h"
 
 static const char *http_html_ok =
     "HTTP/1.1 200 OK\r\n"
@@ -50,19 +50,20 @@ static const char *method_name[] =
 
 static map_t *map;
 
-static void worker_unload(void)
+static void unload_map(void)
 {
     map_destroy(map, json_free);
 }
 
-void worker_load(void)
+__attribute__((constructor))
+static void load_map(void)
 {
     if (!(map = map_create(0)))
     {
         perror("map_create");
         exit(EXIT_FAILURE);
     }
-    atexit(worker_unload);
+    atexit(unload_map);
 }
 
 int request_ready(const char *str, size_t size)

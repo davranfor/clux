@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "config.h"
+#include "request.h"
 #include "server.h"
 
 #define BUFFER_SIZE 32768
@@ -27,9 +28,6 @@ static char buffer[BUFFER_SIZE];
 
 typedef struct pollfd conn_t;
 
-static int (*request_ready)(const char *, size_t);
-static void (*request_reply)(pool_t *, char *, size_t);
- 
 static volatile sig_atomic_t stop;
 
 static void signal_handle(int signum)
@@ -316,12 +314,8 @@ static void server_loop(uint16_t port)
     }
 }
 
-void server_run(uint16_t port,
-    int (*cb_request_ready)(const char *, size_t),
-    void (*cb_request_reply)(pool_t *, char *, size_t))
+void server_run(uint16_t port)
 {
-    request_ready = cb_request_ready;
-    request_reply = cb_request_reply;
     signal_connect();
     server_loop(port);
 }
