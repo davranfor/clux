@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cppcheck --language=c --std=c11 --enable=all --check-level=exhaustive \
+    --inline-suppr --suppress=missingIncludeSystem --suppress=checkersReport \
+    -I include .
+
