@@ -15,8 +15,6 @@ int json_compare_by_key(const void *, const void *);
 int json_compare_by_value(const void *, const void *);
 void json_sort(json_t *, json_sort_callback);
 void json_reverse(json_t *);
-int json_match(const json_t *, const char *);
-int json_regex(const json_t *, const char *);
 
 #endif
 

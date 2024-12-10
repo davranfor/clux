@@ -16,9 +16,15 @@
     float: json_new_real,                           \
     default: json_new_integer)((double)(number))
 
+#define json_set_number(node, number) _Generic((number),    \
+    long double: json_set_real,                             \
+    double: json_set_real,                                  \
+    float: json_set_real,                                   \
+    default: json_set_integer)(node, (double)(number))
+
 /**
  * Macros deducing the parameter (property or index) and calling
- * json_object_func(property) or json_func_at(index) depending
+ * json_object_xxx(property) or json_xxx_at(index) depending
  * on the passed parameter.
  */
 #define JSON_PUSH(_1, _2, _3, _4, NAME, ...) NAME
@@ -30,20 +36,20 @@
 #define json_push_back(parent, ...) \
     json_push_child(parent, JSON_TAIL, __VA_ARGS__)
 
-#define json_pop_child(parent, what) _Generic((what),   \
+#define json_pop_child(parent, child) _Generic((child), \
     char *: json_object_pop,                            \
     void *: json_object_pop,                            \
-    default: json_pop_at)((parent), (what))
+    default: json_pop_at)((parent), (child))
 
 #define json_pop_front(parent) \
     json_pop_child(parent, JSON_HEAD)
 #define json_pop_back(parent) \
     json_pop_child(parent, JSON_TAIL)
 
-#define json_delete_child(parent, what) _Generic((what),    \
+#define json_delete_child(parent, child) _Generic((child),  \
     char *: json_object_delete,                             \
     void *: json_object_delete,                             \
-    default: json_delete_at)((parent), (what))
+    default: json_delete_at)((parent), (child))
 
 #define json_delete_front(parent) \
     json_delete_child(parent, JSON_HEAD)

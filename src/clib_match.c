@@ -342,13 +342,13 @@ int test_is_url(const char *str)
     return 0;
 }
 
-int test_is_function(const char *str)
+int test_is_identifier(const char *str)
 {
     const char *allow = "abcdefghijklmnopqrstuvwxyz"
                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                        "0123456789";
+                        "0123456789_";
 
-    return is_alpha(str[0]) && !str[strspn(str, allow)];
+    return !is_digit(str[0]) && !str[strspn(str, allow)];
 }
 
 int test_match(const char *text, const char *pattern)
@@ -363,7 +363,7 @@ int test_match(const char *text, const char *pattern)
         !strcmp(pattern, "ipv6") ? test_is_ipv6 :
         !strcmp(pattern, "uuid") ? test_is_uuid :
         !strcmp(pattern, "url") ? test_is_url :
-        !strcmp(pattern, "function") ? test_is_function : NULL;
+        !strcmp(pattern, "identifier") ? test_is_identifier : NULL;
 
     return test != NULL ? test(text) : 0;
 }
