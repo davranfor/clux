@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
-    loader_load();
+    loader_run();
     printf("Server waiting on port %u\n", port);
     server_run(port);
     return 0;

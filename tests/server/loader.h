@@ -7,7 +7,7 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-void loader_load(void);
+void loader_run(void);
 
 #endif
 

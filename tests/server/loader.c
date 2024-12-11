@@ -71,7 +71,7 @@ static int load_schemas(DIR *dir)
     return 1;
 }
 
-void loader_load(void)
+void loader_run(void)
 {
     if (!(schemas = map_create(0)))
     {
