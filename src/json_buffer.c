@@ -213,7 +213,7 @@ static int buffer_print_node(json_buffer *buffer, const json_t *node,
     return 1;
 }
 
-static int buffer_print_pair(json_buffer *buffer, const json_t *node,
+static int buffer_print_edge(json_buffer *buffer, const json_t *node,
     unsigned short depth, unsigned char indent, unsigned char trailing_comma)
 {
     if (node->size != 0)
@@ -256,7 +256,7 @@ static int buffer_print_tree(json_buffer *buffer,const json_t *node,
         {
             CHECK(buffer_print_tree(
                 buffer, node->child[i], depth + 1, indent));
-            CHECK(buffer_print_pair(
+            CHECK(buffer_print_edge(
                 buffer, node->child[i], depth, indent, trailing_comma));
         }
     }
@@ -269,7 +269,7 @@ static int buffer_print_tree(json_buffer *buffer,const json_t *node,
  * If the passed node IS a property -----> [{key: value}]
  * If the paseed node IS NOT a property -> [value]
  */ 
-static int buffer_loop(json_buffer *buffer, const json_t *node, int indent)
+static int buffer_print(json_buffer *buffer, const json_t *node, int indent)
 {
     if (node != NULL) 
     {
@@ -310,7 +310,7 @@ char *json_encode(const json_t *node)
     json_buffer buffer = {NULL, 0, 0};
     char *text = NULL;
 
-    if (buffer_loop(&buffer, node, 0))
+    if (buffer_print(&buffer, node, 0))
     {
         text = buffer.text;
     }
@@ -327,7 +327,7 @@ char *json_indent(const json_t *node, int indent)
     json_buffer buffer = {NULL, 0, 0};
     char *text = NULL;
 
-    if (buffer_loop(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
+    if (buffer_print(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
     {
         text = buffer.text;
     }
