@@ -37,9 +37,9 @@ void json_set_encode(enum json_encode value)
     encode = value;
 }
 
-typedef struct { char *text; size_t length, size; } json_buffer;
+typedef struct { char *text; size_t length, size; } buffer_t;
 
-static char *buffer_realloc(json_buffer *buffer, size_t size)
+static char *buffer_realloc(buffer_t *buffer, size_t size)
 {
     char *text = realloc(buffer->text, size);
 
@@ -51,7 +51,7 @@ static char *buffer_realloc(json_buffer *buffer, size_t size)
     return text;
 }
 
-static char *buffer_resize(json_buffer *buffer, size_t length)
+static char *buffer_resize(buffer_t *buffer, size_t length)
 {
     size_t size = buffer->length + length + 1;
 
@@ -62,7 +62,7 @@ static char *buffer_resize(json_buffer *buffer, size_t length)
     return buffer->text;
 }
 
-static json_buffer *buffer_append(json_buffer *buffer, const char *text,
+static buffer_t *buffer_append(buffer_t *buffer, const char *text,
     size_t length)
 {
     CHECK(buffer_resize(buffer, length));
@@ -71,7 +71,7 @@ static json_buffer *buffer_append(json_buffer *buffer, const char *text,
     return buffer;
 }
 
-static json_buffer *buffer_write(json_buffer *buffer, const char *text)
+static buffer_t *buffer_write(buffer_t *buffer, const char *text)
 {
     return buffer_append(buffer, text, strlen(text));
 }
@@ -79,7 +79,7 @@ static json_buffer *buffer_write(json_buffer *buffer, const char *text)
 #define buffer_format(buffer, ...) (size_t) \
     snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
 
-static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
+static buffer_t *buffer_write_integer(buffer_t *buffer, double value)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
@@ -92,7 +92,7 @@ static json_buffer *buffer_write_integer(json_buffer *buffer, double value)
     return buffer;
 }
 
-static json_buffer *buffer_write_real(json_buffer *buffer, double value)
+static buffer_t *buffer_write_real(buffer_t *buffer, double value)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
@@ -108,7 +108,7 @@ static json_buffer *buffer_write_real(json_buffer *buffer, double value)
     return done ? buffer : buffer_write(buffer, ".0");
 }
 
-static int buffer_parse(json_buffer *buffer, const char *str)
+static int buffer_parse(buffer_t *buffer, const char *str)
 {
     const char *ptr = str;
 
@@ -143,7 +143,7 @@ static int buffer_parse(json_buffer *buffer, const char *str)
     return 1;
 }
 
-static int buffer_quote(json_buffer *buffer, const char *text)
+static int buffer_quote(buffer_t *buffer, const char *text)
 {
     CHECK(buffer_write(buffer, "\""));
     CHECK(buffer_parse(buffer, text));
@@ -151,7 +151,7 @@ static int buffer_quote(json_buffer *buffer, const char *text)
     return 1;
 }
 
-static int buffer_print_node(json_buffer *buffer, const json_t *node,
+static int buffer_print_node(buffer_t *buffer, const json_t *node,
     unsigned short depth, unsigned char indent, unsigned char trailing_comma)
 {
     for (unsigned i = 0; i < depth * indent; i++)
@@ -213,7 +213,7 @@ static int buffer_print_node(json_buffer *buffer, const json_t *node,
     return 1;
 }
 
-static int buffer_print_edge(json_buffer *buffer, const json_t *node,
+static int buffer_print_edge(buffer_t *buffer, const json_t *node,
     unsigned short depth, unsigned char indent, unsigned char trailing_comma)
 {
     if (node->size != 0)
@@ -243,7 +243,7 @@ static int buffer_print_edge(json_buffer *buffer, const json_t *node,
     return 1;
 }
 
-static int buffer_print_tree(json_buffer *buffer,const json_t *node,
+static int buffer_print_tree(buffer_t *buffer,const json_t *node,
     unsigned short depth, unsigned char indent)
 {
     for (unsigned i = 0; i < node->size; i++)
@@ -269,7 +269,7 @@ static int buffer_print_tree(json_buffer *buffer,const json_t *node,
  * If the passed node IS a property -----> [{key: value}]
  * If the paseed node IS NOT a property -> [value]
  */ 
-static int buffer_print(json_buffer *buffer, const json_t *node, int indent)
+static int buffer_print(buffer_t *buffer, const json_t *node, int indent)
 {
     if (node != NULL) 
     {
@@ -307,7 +307,7 @@ static int buffer_print(json_buffer *buffer, const json_t *node, int indent)
  */
 char *json_encode(const json_t *node)
 {
-    json_buffer buffer = {NULL, 0, 0};
+    buffer_t buffer = {NULL, 0, 0};
     char *text = NULL;
 
     if (buffer_print(&buffer, node, 0))
@@ -324,7 +324,7 @@ char *json_encode(const json_t *node)
 /* json_encode with indentation (truncated to 0 ... 8 spaces) */
 char *json_indent(const json_t *node, int indent)
 {
-    json_buffer buffer = {NULL, 0, 0};
+    buffer_t buffer = {NULL, 0, 0};
     char *text = NULL;
 
     if (buffer_print(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
@@ -411,7 +411,7 @@ char *json_quote(const char *str)
         return NULL;
     }
 
-    json_buffer buffer = {NULL, 0, 0};
+    buffer_t buffer = {NULL, 0, 0};
     char *text = NULL;
 
     if (buffer_quote(&buffer, str))
