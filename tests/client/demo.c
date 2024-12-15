@@ -29,21 +29,9 @@ CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo 
 #include <curl/curl.h>
 #include <clux/json.h>
 
-enum method
-{
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-    METHODS
-};
+enum method { GET, POST, PUT, PATCH, DELETE, METHODS };
 
-struct data
-{
-    size_t length, size;
-    char *text;
-};
+struct data { char *text; size_t length, size; };
 
 // cppcheck-suppress constParameterCallback
 static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)

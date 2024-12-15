@@ -25,6 +25,11 @@
 /* return 0 if buffer_realloc() fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
 
+/**
+ * 'encode' can take the following values:
+ * - JSON_ASCII: Control characters and non-ASCII characters are escaped.
+ * - JSON_UTF8:  Control characters are escaped.
+ */
 static enum json_encode encode = JSON_UTF8;
 
 enum json_encode json_get_encode(void)
@@ -243,7 +248,7 @@ static int buffer_print_edge(buffer_t *buffer, const json_t *node,
     return 1;
 }
 
-static int buffer_print_tree(buffer_t *buffer,const json_t *node,
+static int buffer_print_tree(buffer_t *buffer, const json_t *node,
     unsigned short depth, unsigned char indent)
 {
     for (unsigned i = 0; i < node->size; i++)
@@ -264,10 +269,10 @@ static int buffer_print_tree(buffer_t *buffer,const json_t *node,
 }
 
 /**
- * The cast from 'const json_t *' to 'json_t *' is needed to set/fake the children,
- * so we don't need to check if the node has depth 0 on each iteration of print_tree().
- * If the passed node IS a property -----> [{key: value}]
- * If the paseed node IS NOT a property -> [value]
+ * Fills/encodes a buffer with a passed node.
+ * The cast from 'const json_t *' to 'json_t *' is needed to pack the children.
+ * If the passed node IS a property, add parent and grandparent: [{key: value}]
+ * If the passed node IS NOT a property, add parent: [value]
  */ 
 static int buffer_print(buffer_t *buffer, const json_t *node, int indent)
 {
