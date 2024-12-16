@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "clib_math.h"
-#include "clib_string.h"
 #include "clib_unicode.h"
 #include "json_private.h"
 #include "json_buffer.h"
