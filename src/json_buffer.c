@@ -10,7 +10,6 @@
 #include "clib_string.h"
 #include "clib_unicode.h"
 #include "json_private.h"
-#include "json_reader.h"
 #include "json_buffer.h"
 
 /**
@@ -313,34 +312,26 @@ static int buffer_print(buffer_t *buffer, const json_t *node, int indent)
 char *json_encode(const json_t *node)
 {
     buffer_t buffer = {NULL, 0, 0};
-    char *text = NULL;
 
     if (buffer_print(&buffer, node, 0))
     {
-        text = buffer.text;
+        return buffer.text;
     }
-    else
-    {
-        free(buffer.text);
-    }
-    return text;
+    free(buffer.text);
+    return NULL;
 }
 
 /* json_encode with indentation (truncated to 0 ... 8 spaces) */
 char *json_indent(const json_t *node, int indent)
 {
     buffer_t buffer = {NULL, 0, 0};
-    char *text = NULL;
 
     if (buffer_print(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
     {
-        text = buffer.text;
+        return buffer.text;
     }
-    else
-    {
-        free(buffer.text);
-    }
-    return text;
+    free(buffer.text);
+    return NULL;
 }
 
 /* json_indent to a file, returns 1 on success, 0 otherwise */
@@ -417,16 +408,12 @@ char *json_quote(const char *str)
     }
 
     buffer_t buffer = {NULL, 0, 0};
-    char *text = NULL;
 
     if (buffer_quote(&buffer, str))
     {
-        text = buffer.text;
+        return buffer.text;
     }
-    else
-    {
-        free(buffer.text);
-    }
-    return text;
+    free(buffer.text);
+    return NULL;
 }
 
