@@ -6,27 +6,18 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "clib_math.h"
 #include "clib_unicode.h"
 #include "json_private.h"
 #include "json_buffer.h"
 
-/**
- * According to IEEE 754-1985, double can represent numbers with maximum
- * accuracy of 17 digits after point. Add to it both minuses for mantissa
- * and period, point, e-char and 3 digits of period (8 bit), and you will
- * get exact 24 chars.
- */
-#define MAX_DECIMALS 17
-#define NUMBER_CHARS 24
-
-/* return 0 if buffer_realloc() fails */
+/* return 0 if buffer allocation fails */
 #define CHECK(expr) do { if (!(expr)) return 0; } while (0)
 
 /**
- * 'encode' can take the following values:
- * - JSON_ASCII: Control characters and non-ASCII characters are escaped.
- * - JSON_UTF8:  Control characters are escaped.
+ * The 'encode' static global variable can take the following values:
+ * - JSON_ASCII: Escapes control characters and non-ASCII characters.
+ * - JSON_UTF8:  Escapes control characters only.
+ * The default value is JSON_UTF8.
  */
 static enum json_encode encode = JSON_UTF8;
 
@@ -40,49 +31,19 @@ void json_set_encode(enum json_encode value)
     encode = value;
 }
 
-typedef struct { char *text; size_t length, size; } buffer_t;
-
-static char *buffer_realloc(buffer_t *buffer, size_t size)
-{
-    char *text = realloc(buffer->text, size);
-
-    if (text != NULL)
-    {
-        buffer->text = text;
-        buffer->size = size;
-    }
-    return text;
-}
-
-static char *buffer_resize(buffer_t *buffer, size_t length)
-{
-    size_t size = buffer->length + length + 1;
-
-    if (size > buffer->size)
-    {
-        return buffer_realloc(buffer, next_pow2(size));
-    }
-    return buffer->text;
-}
-
-static buffer_t *buffer_append(buffer_t *buffer, const char *text,
-    size_t length)
-{
-    CHECK(buffer_resize(buffer, length));
-    memcpy(buffer->text + buffer->length, text, length + 1);
-    buffer->length += length;
-    return buffer;
-}
-
-static buffer_t *buffer_write(buffer_t *buffer, const char *text)
-{
-    return buffer_append(buffer, text, strlen(text));
-}
+/**
+ * According to IEEE 754-1985, double can represent numbers with maximum
+ * accuracy of 17 digits after point. Add to it both minuses for mantissa
+ * and period, point, e-char and 3 digits of period (8 bit), and you will
+ * get exact 24 chars.
+ */
+#define MAX_DECIMALS 17
+#define NUMBER_CHARS 24
 
 #define buffer_format(buffer, ...) (size_t) \
     snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
 
-static buffer_t *buffer_write_integer(buffer_t *buffer, double value)
+static char *buffer_write_integer(buffer_t *buffer, double value)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
@@ -92,10 +53,10 @@ static buffer_t *buffer_write_integer(buffer_t *buffer, double value)
     size_t length = buffer_format(buffer, "%.0f", value);
 
     buffer->length += length;
-    return buffer;
+    return buffer->text;
 }
 
-static buffer_t *buffer_write_real(buffer_t *buffer, double value)
+static char *buffer_write_real(buffer_t *buffer, double value)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
@@ -108,7 +69,7 @@ static buffer_t *buffer_write_real(buffer_t *buffer, double value)
 
     buffer->length += length;
     /* Write the fractional part if applicable */
-    return done ? buffer : buffer_write(buffer, ".0");
+    return done ? buffer->text : buffer_write(buffer, ".0");
 }
 
 static int buffer_parse(buffer_t *buffer, const char *str)
@@ -320,7 +281,7 @@ char *json_encode(const json_t *node)
     return NULL;
 }
 
-/* json_encode with indentation (truncated to 0 ... 8 spaces) */
+/* encode with indentation (truncated to 0 ... 8 spaces) */
 char *json_indent(const json_t *node, int indent)
 {
     buffer_t buffer = {NULL, 0, 0};
@@ -333,7 +294,22 @@ char *json_indent(const json_t *node, int indent)
     return NULL;
 }
 
-/* json_indent to a file, returns 1 on success, 0 otherwise */
+/* encode to a buffer */
+char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
+{
+    if (buffer != NULL)
+    {
+        indent = indent < 0 ? 0 : indent > 8 ? 8 : indent;
+        if (buffer_print(buffer, node, indent))
+        {
+            return indent > 0 ? buffer->text : buffer_write(buffer, "\n");
+        }
+        free(buffer->text);
+    }
+    return NULL;
+}
+
+/* encode to a file */
 int json_write(const json_t *node, FILE *file, int indent)
 {
     int rc = 0;
@@ -351,7 +327,7 @@ int json_write(const json_t *node, FILE *file, int indent)
     return rc;
 }
 
-/* json_encode to a file with a trailing newline */
+/* encode to a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
     int rc = 0;
@@ -369,7 +345,7 @@ int json_write_line(const json_t *node, FILE *file)
     return rc;
 }
 
-/* json_indent to a path, returns 1 on success, 0 otherwise */
+/* encode to a path */
 int json_write_file(const json_t *node, const char *path, int indent)
 {
     FILE *file;
@@ -389,7 +365,7 @@ int json_write_file(const json_t *node, const char *path, int indent)
     return rc;
 }
 
-/* json_indent to stdout (2 spaces) */
+/* encode to stdout (2 spaces) */
 int json_print(const json_t *node)
 {
     return json_write(node, stdout, 2);

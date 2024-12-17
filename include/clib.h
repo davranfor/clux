@@ -7,6 +7,7 @@
 #ifndef CLIB_H
 #define CLIB_H
 
+#include "clib_buffer.h"
 #include "clib_stream.h"
 #include "clib_string.h"
 #include "clib_hashmap.h"
