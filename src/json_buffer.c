@@ -281,7 +281,7 @@ char *json_encode(const json_t *node)
     return NULL;
 }
 
-/* encode with indentation (truncated to 0 ... 8 spaces) */
+/* Encode with indentation (truncated to 0 ... 8 spaces) */
 char *json_indent(const json_t *node, int indent)
 {
     buffer_t buffer = {NULL, 0, 0};
@@ -294,7 +294,7 @@ char *json_indent(const json_t *node, int indent)
     return NULL;
 }
 
-/* encode to a buffer */
+/* Encode to a buffer */
 char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
 {
     if (buffer != NULL)
@@ -302,14 +302,18 @@ char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
         indent = indent < 0 ? 0 : indent > 8 ? 8 : indent;
         if (buffer_print(buffer, node, indent))
         {
-            return indent > 0 ? buffer->text : buffer_write(buffer, "\n");
+            // Add a trailing newline if not indented
+            if (indent || buffer_write(buffer, "\n"))
+            {
+                return buffer->text;
+            }
         }
         free(buffer->text);
     }
     return NULL;
 }
 
-/* encode to a file */
+/* Encode to a file */
 int json_write(const json_t *node, FILE *file, int indent)
 {
     int rc = 0;
@@ -327,7 +331,7 @@ int json_write(const json_t *node, FILE *file, int indent)
     return rc;
 }
 
-/* encode to a file with a trailing newline */
+/* Encode to a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
     int rc = 0;
@@ -345,7 +349,7 @@ int json_write_line(const json_t *node, FILE *file)
     return rc;
 }
 
-/* encode to a path */
+/* Encode to a path */
 int json_write_file(const json_t *node, const char *path, int indent)
 {
     FILE *file;
@@ -365,7 +369,7 @@ int json_write_file(const json_t *node, const char *path, int indent)
     return rc;
 }
 
-/* encode to stdout (2 spaces) */
+/* Encode to stdout (2 spaces) */
 int json_print(const json_t *node)
 {
     return json_write(node, stdout, 2);
