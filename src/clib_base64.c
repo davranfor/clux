@@ -46,7 +46,7 @@ char *base64_encode(const unsigned char *data,
 }
 
 unsigned char *base64_decode(const char *data,
-size_t input_length, size_t *output_length)
+    size_t input_length, size_t *output_length)
 {
     static const unsigned char table[256] =
     {
