@@ -29,10 +29,10 @@ static int on_validate(const json_schema_t *schema, int event, void *data)
 {
     const char *events[] =
     {
-        "⛔ Aborted: Malformed schema",
-        "ℹ️  Notify: Annotation in schema",  
-        "⚠️  Warning: Unknown schema rule",
-        "❌ Invalid: Doesn't validate against schema rule",
+        "\u26D4 Aborted: Malformed schema",
+        "\u2755 Notify: Annotation in schema",  
+        "\u2757 Warning: Unknown schema rule",
+        "\u274C Invalid: Doesn't validate against schema rule",
     };
     const char **path = data;
 
