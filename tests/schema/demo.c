@@ -27,23 +27,23 @@ static json_t *parse_file(const char *path)
 
 static int on_validate(const json_schema_t *schema, int event, void *data)
 {
+    (void)data;
+
     const char *events[] =
     {
-        "\u26D4 Aborted: Malformed schema",
-        "\u2755 Notify: Annotation in schema",  
-        "\u2757 Warning: Unknown schema rule",
-        "\u274C Invalid: Doesn't validate against schema rule",
+        "\u26D4 Aborted. Malformed schema",
+        "\u2755 Notify. Annotation in schema",  
+        "\u2757 Warning. Unknown schema rule",
+        "\u274C Invalid. Doesn't validate against schema rule",
     };
-    const char **path = data;
 
-    fprintf(stderr, "\nTarget: %s\nSchema: %s\n", path[0], path[1]);
+    fprintf(stderr, "\nType: %s\n", events[event]);
     fprintf(stderr, "Path: ");
     json_write_line(schema->path, stderr);
     fprintf(stderr, "Node: ");
     json_write_line(schema->node, stderr);
     fprintf(stderr, "Rule: ");
     json_write_line(schema->rule, stderr);
-    fprintf(stderr, "%s\n", events[event]);
     return JSON_SCHEMA_CONTINUE;
 }
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         json_delete(target);
         exit(EXIT_FAILURE);
     }
-    if (!json_validate(target, schema, on_validate, path))
+    if (!json_validate(target, schema, on_validate, NULL))
     {
         fprintf(stderr, "\n%s doesn't validate against %s\n", path[0], path[1]);
     }
