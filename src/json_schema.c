@@ -1735,6 +1735,7 @@ static int validate(const schema_t *schema,
             default:
                 assert(0 && "Unhandled test case");
                 test = SCHEMA_ERROR;
+                break;
         }
         // Validate result
         switch (test)
