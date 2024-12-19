@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <math.h>
 #include "clib_string.h"
+#include "clib_base64.h"
 #include "clib_match.h"
 #include "clib_regex.h"
 #include "json_private.h"
@@ -1060,7 +1061,8 @@ static int test_max_items(const json_t *rule, const json_t *node)
     return (size_t)rule->number >= node->size;
 }
 
-static int test_content_schema(const json_t *rule, const json_t *node)
+static int test_content_schema(const schema_t *schema,
+    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -1071,17 +1073,50 @@ static int test_content_schema(const json_t *rule, const json_t *node)
         return SCHEMA_VALID;
     }
 
-    json_t *temp = json_parse(node->string, NULL);
+    const char *media_type = json_text(json_find(parent, "contentMediaType"));
 
+    if (strcmp(media_type, "application/json"))
+    {
+        return SCHEMA_VALID;
+    }
+
+    unsigned char *text = NULL;
+    json_t *temp;
+
+    const char *encoding = json_text(json_find(parent, "contentEncoding"));
+
+    if (!strcmp(encoding, "base64"))
+    {
+        size_t none;
+
+        text = base64_decode(node->string, strlen(node->string), &none, 1);
+        temp = json_parse((char *)text, NULL);
+    }
+    else
+    {
+        temp = json_parse(node->string, NULL);
+    }
     if (temp == NULL)
     {
+        free(text);
         return SCHEMA_INVALID;
     }
 
-    int result = validate_schema(rule, temp, NULL, NULL, ABORTABLE) > 0;
+    int result = validate_schema(
+        rule, temp, schema->callback, schema->data, abortable
+    );
 
+    free(text);
     json_delete(temp);
-    return result;
+    switch (result)
+    {
+        case SCHEMA_ERROR:
+            return SCHEMA_ABORTED;
+        case SCHEMA_INVALID:
+            return SCHEMA_FAILURE;
+        default:
+            return SCHEMA_VALID;
+    }
 }
 
 static int test_format(const json_t *rule, const json_t *node)
@@ -1630,7 +1665,7 @@ static int validate(const schema_t *schema,
                 break;
             // Validate string related tests
             case SCHEMA_CONTENT_SCHEMA:
-                test = test_content_schema(rule->child[i], node);
+                test = test_content_schema(schema, rule, rule->child[i], node, abortable);
                 break;
             case SCHEMA_FORMAT:
                 test = test_format(rule->child[i], node);
