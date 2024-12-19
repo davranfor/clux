@@ -281,7 +281,7 @@ char *json_encode(const json_t *node)
     return NULL;
 }
 
-/* Encode with indentation (truncated to 0 ... 8 spaces) */
+/* Serializes a JSON structure with indentation (truncated to 0 ... 8 spaces) */
 char *json_indent(const json_t *node, int indent)
 {
     buffer_t buffer = {NULL, 0, 0};
@@ -294,7 +294,7 @@ char *json_indent(const json_t *node, int indent)
     return NULL;
 }
 
-/* Encode to a buffer */
+/* Serializes a JSON structure into a provided buffer */
 char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
 {
     if (buffer != NULL)
@@ -313,7 +313,7 @@ char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
     return NULL;
 }
 
-/* Encode to a file */
+/* Serializes a JSON structure into a file */
 int json_write(const json_t *node, FILE *file, int indent)
 {
     int rc = 0;
@@ -331,7 +331,7 @@ int json_write(const json_t *node, FILE *file, int indent)
     return rc;
 }
 
-/* Encode to a file with a trailing newline */
+/* Serializes a JSON structure into a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
     int rc = 0;
@@ -349,7 +349,7 @@ int json_write_line(const json_t *node, FILE *file)
     return rc;
 }
 
-/* Encode to a path */
+/* Serializes a JSON structure into a FILE given a path */
 int json_write_file(const json_t *node, const char *path, int indent)
 {
     FILE *file;
@@ -369,7 +369,7 @@ int json_write_file(const json_t *node, const char *path, int indent)
     return rc;
 }
 
-/* Encode to stdout (2 spaces) */
+/* Serializes a JSON structure and sends the result to stdout (2 spaces) */
 int json_print(const json_t *node)
 {
     return json_write(node, stdout, 2);
