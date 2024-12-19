@@ -1087,9 +1087,9 @@ static int test_content_schema(const schema_t *schema,
 
     if (!strcmp(encoding, "base64"))
     {
-        size_t none;
+        size_t length;
 
-        text = base64_decode(node->string, strlen(node->string), &none, 1);
+        text = base64_decode(node->string, strlen(node->string), &length);
         temp = json_parse((char *)text, NULL);
     }
     else

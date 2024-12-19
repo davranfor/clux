@@ -36,7 +36,7 @@ char *base64_encode(const unsigned char *data, size_t input_length, size_t *outp
     return encoded;
 }
 
-unsigned char *base64_decode(const char *data, size_t input_length, size_t *output_length, int nul_terminated)
+unsigned char *base64_decode(const char *data, size_t input_length, size_t *output_length)
 {
     static const unsigned char table[256] =
     {
@@ -64,7 +64,7 @@ unsigned char *base64_decode(const char *data, size_t input_length, size_t *outp
         (*output_length)--;
     }
 
-    unsigned char *decoded = malloc(*output_length + (nul_terminated != 0));
+    unsigned char *decoded = malloc(*output_length + 1);
 
     if (decoded == NULL)
     {
@@ -95,10 +95,7 @@ unsigned char *base64_decode(const char *data, size_t input_length, size_t *outp
             decoded[j++] = (triple >> 0 * 8) & 0xFF;
         }
     }
-    if (nul_terminated)
-    {
-        decoded[*output_length] = '\0';
-    }
+    decoded[*output_length] = '\0';
     return decoded;
 }
 
