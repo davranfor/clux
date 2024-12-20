@@ -154,9 +154,9 @@ size_t json_pointer_put_key(const char *key, char *buffer, size_t size)
         return 0;
     }
 
-    size_t length = 0;
+    size_t length = 1;
 
-    buffer[length++] = '/';
+    buffer[0] = '/';
     while ((*key != '\0') && (length < size - 1))
     {
         switch (*key)
@@ -199,9 +199,9 @@ size_t json_pointer_put_index(size_t index, char *buffer, size_t size)
         return 0;
     }
 
-    size_t length = 0;
+    size_t length = 1;
 
-    buffer[length++] = '/';
+    buffer[0] = '/';
     size--;
     do
     {
