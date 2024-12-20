@@ -74,12 +74,12 @@ static int validate_schema(const json_t *rule, const json_t *node,
 static int notify_event(const schema_t *schema,
     const json_t *rule, const json_t *node, int type)
 {
-    char str[PATH_MAX_SIZE] = "/";
-    char *ptr = str;
+    char path[PATH_MAX_SIZE] = "/";
+    char *ptr = path;
 
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
-        size_t size = sizeof(str) - (size_t)(ptr - str);
+        size_t size = sizeof(path) - (size_t)(ptr - path);
 
         if (schema->active->path[i]->key != NULL)
         {
@@ -91,13 +91,9 @@ static int notify_event(const schema_t *schema,
         }
     }
 
-    const json_t path =
-    {
-        .string = str, .type = JSON_STRING
-    };
     const json_schema_event_t event =
     {
-        .type = type, .path = &path, .node = node, .rule = rule
+        .type = type, .path = path, .node = node, .rule = rule
     };
 
     return schema->callback(&event, schema->data);

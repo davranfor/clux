@@ -10,7 +10,13 @@
 #include "clib_hashmap.h"
 #include "json_header.h"
 
-typedef struct { int type; const json_t *path, *node, *rule; } json_schema_event_t;
+typedef struct
+{
+    int type;
+    const char *path;
+    const json_t *node, *rule;
+} json_schema_event_t;
+
 typedef int (*json_validate_callback)(const json_schema_event_t *, void *);
 
 /* Events */

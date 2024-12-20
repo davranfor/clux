@@ -38,8 +38,7 @@ static int on_validate(const json_schema_event_t *event, void *data)
 
     fprintf(stderr, "\nEvent received\n");
     fprintf(stderr, "Type: %s\n", events[event->type]);
-    fprintf(stderr, "Path: ");
-    json_write_line(event->path, stderr);
+    fprintf(stderr, "Path: %s\n", event->path);
     fprintf(stderr, "Node: ");
     json_write_line(event->node, stderr);
     fprintf(stderr, "Rule: ");
