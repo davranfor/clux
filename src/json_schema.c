@@ -75,19 +75,19 @@ static int notify_event(const schema_t *schema,
     const json_t *rule, const json_t *node, int type)
 {
     char path[PATH_MAX_SIZE] = "/";
-    char *ptr = path;
+    char *end = path;
 
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
-        size_t size = sizeof(path) - (size_t)(ptr - path);
+        size_t size = sizeof(path) - (size_t)(end - path);
 
         if (schema->active->path[i]->key != NULL)
         {
-            ptr += json_pointer_put_key(schema->active->path[i]->key, ptr, size);
+            end += json_pointer_put_key(end, size, schema->active->path[i]->key);
         }
         else
         {
-            ptr += json_pointer_put_index(schema->active->item[i], ptr, size);
+            end += json_pointer_put_index(end, size, schema->active->item[i]);
         }
     }
 

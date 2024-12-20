@@ -147,7 +147,7 @@ json_t *json_pointer(const json_t *node, const char *path)
  * Returns the number of characters written to buffer not counting the
  * terminating null character.
  */
-size_t json_pointer_put_key(const char *key, char *buffer, size_t size)
+size_t json_pointer_put_key(char *buffer, size_t size, const char *key)
 {
     if ((key == NULL) || (size == 0))
     {
@@ -192,7 +192,7 @@ size_t json_pointer_put_key(const char *key, char *buffer, size_t size)
  * Returns the number of characters written to buffer not counting the
  * terminating null character.
  */
-size_t json_pointer_put_index(size_t index, char *buffer, size_t size)
+size_t json_pointer_put_index(char *buffer, size_t size, size_t index)
 {
     if (size == 0)
     {
