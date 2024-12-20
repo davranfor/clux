@@ -25,7 +25,7 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_schema_t *schema, int event, void *data)
+static int on_validate(const json_schema_event_t *event, void *data)
 {
     (void)data;
 
@@ -37,13 +37,13 @@ static int on_validate(const json_schema_t *schema, int event, void *data)
     };
 
     fprintf(stderr, "\nEvent received\n");
-    fprintf(stderr, "Type: %s\n", events[event]);
+    fprintf(stderr, "Type: %s\n", events[event->type]);
     fprintf(stderr, "Path: ");
-    json_write_line(schema->path, stderr);
+    json_write_line(event->path, stderr);
     fprintf(stderr, "Node: ");
-    json_write_line(schema->node, stderr);
+    json_write_line(event->node, stderr);
     fprintf(stderr, "Rule: ");
-    json_write_line(schema->rule, stderr);
+    json_write_line(event->rule, stderr);
     return JSON_SCHEMA_CONTINUE;
 }
 

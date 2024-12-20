@@ -71,8 +71,8 @@ static int validate_schema(const json_t *rule, const json_t *node,
     return validate(&schema, rule, node, abortable);
 }
 
-static int notify_user(const schema_t *schema,
-    const json_t *rule, const json_t *node, int event)
+static int notify_event(const schema_t *schema,
+    const json_t *rule, const json_t *node, int type)
 {
     char str[PATH_MAX_SIZE] = "/";
     char *ptr = str;
@@ -91,17 +91,23 @@ static int notify_user(const schema_t *schema,
         }
     }
 
-    const json_t path = {.string = str, .type = JSON_STRING};
-    const json_schema_t note = {.path = &path, .node = node, .rule = rule};
+    const json_t path =
+    {
+        .string = str, .type = JSON_STRING
+    };
+    const json_schema_event_t event =
+    {
+        .type = type, .path = &path, .node = node, .rule = rule
+    };
 
-    return schema->callback(&note, event, schema->data);
+    return schema->callback(&event, schema->data);
 }
 
 static int notify(const schema_t *schema,
     const json_t *rule, const json_t *node, int event)
 {
     return schema->callback
-        ? notify_user(schema, rule, node, event)
+        ? notify_event(schema, rule, node, event)
         : event == JSON_SCHEMA_FAILURE;
 }
 
@@ -1100,7 +1106,7 @@ static int test_content_schema(const schema_t *schema,
     );
 
     free(text);
-    json_delete(temp);
+    json_free(temp);
     switch (result)
     {
         case SCHEMA_ERROR:
