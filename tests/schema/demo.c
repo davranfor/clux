@@ -31,13 +31,13 @@ static int on_validate(const json_schema_t *schema, int event, void *data)
 
     const char *events[] =
     {
-        "\u26D4 Aborted. Malformed schema",
-        "\u2755 Notify. Annotation in schema",  
-        "\u2757 Warning. Unknown schema rule",
-        "\u274C Invalid. Doesn't validate against schema rule",
+        "Warning. Unknown schema rule",
+        "Failure. Doesn't validate against schema rule",
+        "Aborted. Malformed schema",
     };
 
-    fprintf(stderr, "\nType: %s\n", events[event]);
+    fprintf(stderr, "\nEvent received\n");
+    fprintf(stderr, "Type: %s\n", events[event]);
     fprintf(stderr, "Path: ");
     json_write_line(schema->path, stderr);
     fprintf(stderr, "Node: ");
