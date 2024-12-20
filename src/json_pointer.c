@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include "json_private.h"
 #include "json_pointer.h"
 
