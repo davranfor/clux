@@ -71,6 +71,7 @@ static int validate_schema(const json_t *rule, const json_t *node,
     return validate(&schema, rule, node, abortable);
 }
 
+/* Writes the current path and notifies an event to the user-defined callback */
 static int notify_event(const schema_t *schema,
     const json_t *rule, const json_t *node, int type)
 {
@@ -80,14 +81,15 @@ static int notify_event(const schema_t *schema,
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
         size_t size = sizeof(path) - (size_t)(end - path);
+        const char *pointer = end;
 
-        if (schema->active->path[i]->key != NULL)
+        end += schema->active->path[i]->key != NULL
+            ? json_pointer_put_key(end, size, schema->active->path[i]->key)
+            : json_pointer_put_index(end, size, schema->active->item[i]);
+        if (end == pointer)
         {
-            end += json_pointer_put_key(end, size, schema->active->path[i]->key);
-        }
-        else
-        {
-            end += json_pointer_put_index(end, size, schema->active->item[i]);
+            // Doesn't fit, try adding '...' to the path 
+            end += json_pointer_put_key(end, size, "...");
         }
     }
 
