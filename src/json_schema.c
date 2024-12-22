@@ -106,7 +106,9 @@ static int notify(const schema_t *schema,
 {
     return schema->callback
         ? notify_event(schema, rule, node, event)
-        : event == JSON_SCHEMA_FAILURE;
+        : event == JSON_SCHEMA_FAILURE
+            ? JSON_SCHEMA_ABORT
+            : JSON_SCHEMA_CONTINUE;
 }
 
 static int abort_on_warning(const schema_t *schema,
