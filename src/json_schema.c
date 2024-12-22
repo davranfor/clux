@@ -112,13 +112,13 @@ static int notify(const schema_t *schema,
 static int abort_on_warning(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_WARNING) == JSON_SCHEMA_STOP;
+    return notify(schema, rule, node, JSON_SCHEMA_WARNING) == JSON_SCHEMA_ABORT;
 }
 
 static int abort_on_failure(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_FAILURE) == JSON_SCHEMA_STOP;
+    return notify(schema, rule, node, JSON_SCHEMA_FAILURE) == JSON_SCHEMA_ABORT;
 }
 
 static void raise_error(const schema_t *schema,
