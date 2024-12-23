@@ -48,7 +48,7 @@ char *base64_encode(const unsigned char *data,
 unsigned char *base64_decode(const char *data,
     size_t input_length, size_t *output_length)
 {
-    static const unsigned char table[256] =
+    static const uint8_t table[256] =
     {
         ['A'] =  0, ['B'] =  1, ['C'] =  2, ['D'] =  3,
         ['E'] =  4, ['F'] =  5, ['G'] =  6, ['H'] =  7,
@@ -90,10 +90,10 @@ unsigned char *base64_decode(const char *data,
     }
     for (size_t i = 0, j = 0; i < input_length;)
     {
-        uint32_t sextet_a = data[i] == '=' ? 0 & i++ : table[(uint8_t)data[i++]];
-        uint32_t sextet_b = data[i] == '=' ? 0 & i++ : table[(uint8_t)data[i++]];
-        uint32_t sextet_c = data[i] == '=' ? 0 & i++ : table[(uint8_t)data[i++]];
-        uint32_t sextet_d = data[i] == '=' ? 0 & i++ : table[(uint8_t)data[i++]];
+        uint32_t sextet_a = data[i] == '=' ? 0 : table[(uint8_t)data[i]]; i++;
+        uint32_t sextet_b = data[i] == '=' ? 0 : table[(uint8_t)data[i]]; i++;
+        uint32_t sextet_c = data[i] == '=' ? 0 : table[(uint8_t)data[i]]; i++;
+        uint32_t sextet_d = data[i] == '=' ? 0 : table[(uint8_t)data[i]]; i++;
 
         uint32_t triple = (sextet_a << 3 * 6)
                         + (sextet_b << 2 * 6)
