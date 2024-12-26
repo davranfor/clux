@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    buffer_t events = { 0 };
+    buffer_t events = {0};
 
     if (!json_validate(target, schema, on_validate, &events))
     {

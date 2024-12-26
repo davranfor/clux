@@ -172,46 +172,6 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     }
     buffer_write(buffer, "rule: ");
     json_buffer_write(buffer, event->rule, 0);
-
-/*
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-    json_t type =
-    {
-        .key = "type",
-        .string = events[event->type],
-        .type = JSON_STRING
-    };
-    json_t path =
-    {
-        .key = "path",
-        .string = (char *)event->path,
-        .type = JSON_STRING
-    };
-    json_t node =
-    {
-        .key = "node",
-        .child = (json_t *[]){ (json_t *)event->node },
-        .type = event->node->key ? JSON_OBJECT : JSON_ARRAY,
-        .size = 1
-    };
-    json_t rule =
-    {
-        .key = "rule",
-        .child = (json_t *[]){ (json_t *)event->rule },
-        .type = event->rule->key ? JSON_OBJECT : JSON_ARRAY,
-        .size = 1
-    };
-#pragma GCC diagnostic pop
-    const json_t parent =
-    {
-        .child = (json_t *[]){ &type, &path, &node, &rule },
-        .type = JSON_OBJECT,
-        .size =  4
-    };
-
-    return json_buffer_write(buffer, &parent, 2) != NULL;
-*/
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
