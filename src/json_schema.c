@@ -144,7 +144,7 @@ map_t *json_schema_get_map(void)
 
 void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 {
-    char *events[] =
+    static const char *events[] =
     {
         "Warning. Unknown schema rule",
         "Failure. Doesn't validate against schema rule",
@@ -156,22 +156,23 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_write(buffer, "\npath: ");
     buffer_write(buffer, event->path);
     buffer_write(buffer, "\nnode: ");
-    if (json_is_scalar(event->node))
-    {
-        json_buffer_write(buffer, event->node, 0);
-    }
-    else
+    if (!json_is_scalar(event->node))
     {
         char str[32];
 
-        snprintf(str, sizeof str, "%s (%u elements)\n",
+        snprintf(str, sizeof str, "%s (%u elements)",
             json_is_object(event->node) ? "Object" : "Array",
             event->node->size
         );
         buffer_write(buffer, str);
     }
-    buffer_write(buffer, "rule: ");
+    else
+    {
+        json_buffer_write(buffer, event->node, 0);
+    }
+    buffer_write(buffer, "\nrule: ");
     json_buffer_write(buffer, event->rule, 0);
+    buffer_write(buffer, "\n");
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))

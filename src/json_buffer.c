@@ -297,18 +297,9 @@ char *json_indent(const json_t *node, int indent)
 /* Serializes a JSON structure into a provided buffer */
 char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
 {
-    if (buffer != NULL)
+    if (buffer_print(buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
     {
-        indent = indent < 0 ? 0 : indent > 8 ? 8 : indent;
-        if (buffer_print(buffer, node, indent))
-        {
-            // Add a trailing newline if not indented
-            if (indent || buffer_write(buffer, "\n"))
-            {
-                return buffer->text;
-            }
-        }
-        free(buffer->text);
+        return buffer->text;
     }
     return NULL;
 }
