@@ -17,6 +17,7 @@
 #include "json_parser.h"
 #include "json_reader.h"
 #include "json_writer.h"
+#include "json_buffer.h"
 #include "json_pointer.h"
 #include "json_schema.h"
 
@@ -131,19 +132,86 @@ static void raise_error(const schema_t *schema,
 
 static map_t *map;
 
-json_t *json_schema(const char *key)
+void json_schema_set_map(map_t *pmap)
 {
-    return map_search(map, key);
-}
-
-void json_schema_set_map(map_t *ptr)
-{
-    map = ptr;
+    map = pmap;
 }
 
 map_t *json_schema_get_map(void)
 {
     return map;
+}
+
+void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
+{
+    char *events[] =
+    {
+        "Warning. Unknown schema rule",
+        "Failure. Doesn't validate against schema rule",
+        "Aborted. Malformed schema",
+    };
+
+    buffer_write(buffer, "\ntype: ");
+    buffer_write(buffer, events[event->type]);
+    buffer_write(buffer, "\npath: ");
+    buffer_write(buffer, event->path);
+    buffer_write(buffer, "\nnode: ");
+    if (json_is_scalar(event->node))
+    {
+        json_buffer_write(buffer, event->node, 0);
+    }
+    else
+    {
+        char str[32];
+
+        snprintf(str, sizeof str, "%s (%u elements)\n",
+            json_is_object(event->node) ? "Object" : "Array",
+            event->node->size
+        );
+        buffer_write(buffer, str);
+    }
+    buffer_write(buffer, "rule: ");
+    json_buffer_write(buffer, event->rule, 0);
+
+/*
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    json_t type =
+    {
+        .key = "type",
+        .string = events[event->type],
+        .type = JSON_STRING
+    };
+    json_t path =
+    {
+        .key = "path",
+        .string = (char *)event->path,
+        .type = JSON_STRING
+    };
+    json_t node =
+    {
+        .key = "node",
+        .child = (json_t *[]){ (json_t *)event->node },
+        .type = event->node->key ? JSON_OBJECT : JSON_ARRAY,
+        .size = 1
+    };
+    json_t rule =
+    {
+        .key = "rule",
+        .child = (json_t *[]){ (json_t *)event->rule },
+        .type = event->rule->key ? JSON_OBJECT : JSON_ARRAY,
+        .size = 1
+    };
+#pragma GCC diagnostic pop
+    const json_t parent =
+    {
+        .child = (json_t *[]){ &type, &path, &node, &rule },
+        .type = JSON_OBJECT,
+        .size =  4
+    };
+
+    return json_buffer_write(buffer, &parent, 2) != NULL;
+*/
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
