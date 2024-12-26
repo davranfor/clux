@@ -146,10 +146,9 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_write(buffer, "\nnode: ");
     if (!json_is_scalar(event->node))
     {
-        buffer_format(buffer, "%s (%u elements)",
-            json_is_object(event->node) ? "Object" : "Array",
-            event->node->size
-        );
+        const char *type = json_is_object(event->node) ? "Object" : "Array";
+
+        buffer_format(buffer, "%s (%u elements)", type, event->node->size);
     }
     else
     {
