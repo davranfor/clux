@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
         }
         fprintf(stderr, "\n%s doesn't validate against %s\n", path[0], path[1]);
     }
-    json_delete(target);
-    json_delete(schema);
+    json_free(target);
+    json_free(schema);
     free(events.text);
     return 0;
 }
