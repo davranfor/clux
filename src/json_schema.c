@@ -130,18 +130,6 @@ static void raise_error(const schema_t *schema,
     notify(schema, rule, node, JSON_SCHEMA_ABORTED);
 }
 
-static map_t *map;
-
-void json_schema_set_map(map_t *pmap)
-{
-    map = pmap;
-}
-
-map_t *json_schema_get_map(void)
-{
-    return map;
-}
-
 void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 {
     static const char *events[] =
@@ -173,6 +161,18 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_write(buffer, "\nrule: ");
     json_buffer_write(buffer, event->rule, 0);
     buffer_write(buffer, "\n");
+}
+
+static map_t *map;
+
+void json_schema_set_map(map_t *pmap)
+{
+    map = pmap;
+}
+
+map_t *json_schema_get_map(void)
+{
+    return map;
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
