@@ -146,13 +146,10 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_write(buffer, "\nnode: ");
     if (!json_is_scalar(event->node))
     {
-        char str[32];
-
-        snprintf(str, sizeof str, "%s (%u elements)",
+        buffer_format(buffer, "%s (%u elements)",
             json_is_object(event->node) ? "Object" : "Array",
             event->node->size
         );
-        buffer_write(buffer, str);
     }
     else
     {
