@@ -144,10 +144,8 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
         "Aborted. Malformed schema",
     };
 
-    buffer_write(buffer, "\ntype: ");
-    buffer_write(buffer, events[event->type]);
-    buffer_write(buffer, "\npath: ");
-    buffer_write(buffer, event->path);
+    buffer_print(buffer, "\ntype: %s", events[event->type]);
+    buffer_print(buffer, "\npath: %s", event->path);
     buffer_write(buffer, "\nnode: ");
     if (!json_is_scalar(event->node))
     {
@@ -157,11 +155,11 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 
         if (event->node->key != NULL)
         {
-            buffer_format(buffer, "%s '%s' (%u elements)", type, name, size);
+            buffer_print(buffer, "%s '%s' (%u elements)", type, name, size);
         }
         else
         {
-            buffer_format(buffer, "%s (%u elements)", type, size);
+            buffer_print(buffer, "%s (%u elements)", type, size);
         }
     }
     else

@@ -34,26 +34,6 @@ char *buffer_resize(buffer_t *buffer, size_t length)
     return buffer->text;
 }
 
-char *buffer_format(buffer_t *buffer, const char *fmt, ...)
-{
-    va_list args;
-
-    va_start(args, fmt);
-
-    size_t length = (size_t)vsnprintf(NULL, 0, fmt, args);
-
-    va_end(args);
-    if (buffer_resize(buffer, length) == NULL)
-    {
-        return NULL;
-    }
-    va_start(args, fmt);
-    vsnprintf(buffer->text + buffer->length, length + 1, fmt, args);
-    va_end(args);
-    buffer->length += length;
-    return buffer->text;
-}
-
 char *buffer_append(buffer_t *buffer, const char *text, size_t length)
 {
     if (buffer_resize(buffer, length) == NULL)
@@ -77,4 +57,25 @@ char *buffer_write(buffer_t *buffer, const char *text)
     buffer->length += length;
     return buffer->text;
 }
+
+char *buffer_print(buffer_t *buffer, const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+
+    size_t length = (size_t)vsnprintf(NULL, 0, fmt, args);
+
+    va_end(args);
+    if (buffer_resize(buffer, length) == NULL)
+    {
+        return NULL;
+    }
+    va_start(args, fmt);
+    vsnprintf(buffer->text + buffer->length, length + 1, fmt, args);
+    va_end(args);
+    buffer->length += length;
+    return buffer->text;
+}
+
 

@@ -228,12 +228,12 @@ static int buffer_print_tree(buffer_t *buffer, const json_t *node,
 }
 
 /**
- * Fills/encodes a buffer with a passed node.
+ * Encodes a node into a provided buffer.
  * The cast from 'const json_t *' to 'json_t *' is needed to pack the children.
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */ 
-static int buffer_print(buffer_t *buffer, const json_t *node, int indent)
+static int buffer_encode(buffer_t *buffer, const json_t *node, int indent)
 {
     if (node != NULL) 
     {
@@ -273,7 +273,7 @@ char *json_encode(const json_t *node)
 {
     buffer_t buffer = {NULL, 0, 0};
 
-    if (buffer_print(&buffer, node, 0))
+    if (buffer_encode(&buffer, node, 0))
     {
         return buffer.text;
     }
@@ -286,7 +286,7 @@ char *json_indent(const json_t *node, int indent)
 {
     buffer_t buffer = {NULL, 0, 0};
 
-    if (buffer_print(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
+    if (buffer_encode(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
     {
         return buffer.text;
     }
@@ -297,7 +297,7 @@ char *json_indent(const json_t *node, int indent)
 /* Serializes a JSON structure into a provided buffer */
 char *json_buffer_write(buffer_t *buffer, const json_t *node, int indent)
 {
-    if (buffer_print(buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
+    if (buffer_encode(buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
     {
         return buffer->text;
     }
