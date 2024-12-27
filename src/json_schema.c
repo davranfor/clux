@@ -171,7 +171,7 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_write(buffer, "\nrule: ");
 
     size_t length = buffer->length;
-    enum {max_length = 256};
+    enum {max_length = 192};
 
     json_buffer_write(buffer, event->rule, 0);
     if (buffer->length > length + max_length)

@@ -60,8 +60,8 @@ char *buffer_format(buffer_t *buffer, const char *fmt, ...)
     }
     va_start(args, fmt);
     vsnprintf(buffer->text + buffer->length, length + 1, fmt, args);
-    buffer->length += length;
     va_end(args);
+    buffer->length += length;
     return buffer->text;
 }
 
