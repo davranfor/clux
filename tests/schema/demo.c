@@ -60,15 +60,15 @@ int main(int argc, char *argv[])
 
     if (!json_validate(target, schema, on_validate, &events))
     {
-        if (events.text != NULL)
-        {
-            fprintf(stderr, "%s", events.text);
-        }
-        fprintf(stderr, "\n%s doesn't validate against %s\n", path[0], path[1]);
+        fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
     }
-    json_free(target);
-    json_free(schema);
-    free(events.text);
+    if (events.text != NULL)
+    {
+        fprintf(stderr, "%s", events.text);
+        free(events.text);
+    }
+    json_delete(target);
+    json_delete(schema);
     return 0;
 }
 

@@ -21,7 +21,7 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
-#define PATH_MAX_SIZE 512
+#define PATH_MAX_SIZE 256
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
 
@@ -130,6 +130,11 @@ static void raise_error(const schema_t *schema,
     notify(schema, rule, node, JSON_SCHEMA_ABORTED);
 }
 
+/**
+ * Writes an event to a provided buffer
+ * event->node: Inner nodes are omitted
+ * event->rule: Cropped to the first ':' before max_length
+ */
 void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 {
     static const char *events[] =
@@ -147,15 +152,39 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     if (!json_is_scalar(event->node))
     {
         const char *type = json_is_object(event->node) ? "Object" : "Array";
+        const char *name = json_name(event->node);
+        unsigned size = event->node->size;
 
-        buffer_format(buffer, "%s (%u elements)", type, event->node->size);
+        if (event->node->key != NULL)
+        {
+            buffer_format(buffer, "%s '%s' (%u elements)", type, name, size);
+        }
+        else
+        {
+            buffer_format(buffer, "%s (%u elements)", type, size);
+        }
     }
     else
     {
         json_buffer_write(buffer, event->node, 0);
     }
     buffer_write(buffer, "\nrule: ");
+
+    size_t length = buffer->length;
+    enum {max_length = 256};
+
     json_buffer_write(buffer, event->rule, 0);
+    if (buffer->length > length + max_length)
+    {
+        length += max_length;
+        while (buffer->text[length] != ':')
+        {
+            length--;
+        }
+        buffer->length = length;
+        buffer->text[length] = '\0';
+        buffer_write(buffer, ": ...");
+    }
     buffer_write(buffer, "\n");
 }
 
