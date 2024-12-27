@@ -135,7 +135,7 @@ static void raise_error(const schema_t *schema,
  * event->node: Inner nodes are omitted
  * event->rule: Cropped to the first ':' before max_length
  */
-void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
+char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 {
     static const char *events[] =
     {
@@ -183,7 +183,7 @@ void json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
         buffer->text[length] = '\0';
         buffer_write(buffer, ": ...");
     }
-    buffer_write(buffer, "\n");
+    return buffer_write(buffer, "\n");
 }
 
 static map_t *map;
