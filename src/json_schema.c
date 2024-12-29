@@ -341,7 +341,6 @@ static int get_test(const json_t *rule)
         // Rules that doesn't need to be tested
         case SCHEMA_DEFAULT:
             return SCHEMA_VALID;
-        case SCHEMA_CONTAINS:
         case SCHEMA_DEFS:
         case SCHEMA_VOCABULARY:
             return rule->type == JSON_OBJECT ? SCHEMA_VALID : SCHEMA_ERROR;
@@ -1000,90 +999,85 @@ static int test_unique_items(const json_t *rule, const json_t *node)
     return json_unique_children(node);
 }
 
-static int test_min_contains(const schema_t *schema,
-    const json_t *parent, unsigned child, const json_t *node, int abortable)
+static int test_min_max_contains(const json_t *rule)
 {
-    const json_t *rule = parent->child[child];
-
-    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
-    {
-        return SCHEMA_ERROR;
-    }
-    if ((node->type != JSON_ARRAY) || (rule->number == 0))
-    {
-        return SCHEMA_VALID;
-    }
-
-    const json_t *contains = json_find(parent, "contains");
-    size_t min = (size_t)rule->number;
-
-    if (contains == NULL)
-    {
-        return SCHEMA_VALID;
-    }
-    if ((contains->type != JSON_OBJECT) || (node->size < min))
-    {
-        return SCHEMA_ERROR;
-    }
-    for (unsigned valids = 0, i = 0; i < node->size; i++)
-    {
-        switch (test_item(schema, contains, node, i, abortable))
-        {
-            case SCHEMA_ERROR:
-                return SCHEMA_ABORTED;
-            case SCHEMA_VALID:
-                if (++valids == min)
-                {
-                    return SCHEMA_VALID;
-                }
-                break;
-        }
-    }
-    return SCHEMA_INVALID;
+    return ((rule->type == JSON_INTEGER) && (rule->number >= 0))
+        ? SCHEMA_VALID
+        : SCHEMA_ERROR;
 }
 
-static int test_max_contains(const schema_t *schema,
-    const json_t *parent, unsigned child, const json_t *node, int abortable)
+static int test_contains(const schema_t *schema,
+    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
 {
-    const json_t *rule = parent->child[child];
-
-    if ((rule->type != JSON_INTEGER) || (rule->number < 0))
+    if (rule->type != JSON_OBJECT)
     {
         return SCHEMA_ERROR;
     }
-
-    size_t max = (size_t)rule->number;
-
-    if ((node->type != JSON_ARRAY) || (max >= node->size))
+    if (node->type != JSON_ARRAY)
     {
         return SCHEMA_VALID;
     }
 
-    const json_t *contains = json_find(parent, "contains");
+    const json_t *min_contains = json_find(parent, "minContains");
+    int min_defined = min_contains != NULL;
 
-    if (contains == NULL)
+    if (min_defined && !test_min_max_contains(min_contains))
     {
-        return SCHEMA_VALID;
+        raise_error(schema, min_contains, node);
+        return SCHEMA_ABORTED;
     }
-    if (contains->type != JSON_OBJECT)
+
+    const json_t *max_contains = json_find(parent, "maxContains");
+    int max_defined = max_contains != NULL;
+
+    if (max_defined && !test_min_max_contains(max_contains))
     {
-        return SCHEMA_ERROR;
+        raise_error(schema, max_contains, node);
+        return SCHEMA_ABORTED;
     }
-    for (unsigned valids = 0, i = 0; i < node->size; i++)
+
+    size_t min = min_defined ? (size_t)min_contains->number : 0;
+    size_t max = max_defined ? (size_t)max_contains->number : (size_t)-1;
+    size_t matches = 0;
+
+    for (unsigned i = 0; (i < node->size) && (matches <= max); i++)
     {
-        switch (test_item(schema, contains, node, i, abortable))
+        switch (test_item(schema, rule, node, i, NOT_ABORTABLE))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
             case SCHEMA_VALID:
-                if (++valids > max)
-                {
-                    return SCHEMA_INVALID;
-                }
+                matches++;
                 break;
         }
+        if ((matches >= min) && (node->size - i - 1 + matches <= max))
+        {
+            return SCHEMA_VALID;
+        }
     }
-    return SCHEMA_VALID;
+    if (!min_defined && !max_defined)
+    {
+        return matches > 0;
+    }
+    if ((matches >= min) || (matches <= max))
+    {
+        return SCHEMA_VALID;
+    }
+    if (min_defined && (matches < min))
+    {
+        if (abortable && abort_on_failure(schema, min_contains, node))
+        {
+            return SCHEMA_ABORTED;
+        }
+    }
+    if (max_defined && (matches > max))
+    {
+        if (abortable && abort_on_failure(schema, max_contains, node))
+        {
+            return SCHEMA_ABORTED;
+        }
+    }
+    return SCHEMA_FAILURE;
 }
 
 static int test_min_items(const json_t *rule, const json_t *node)
@@ -1319,8 +1313,7 @@ static unsigned add_type(const char *type, unsigned mask)
     return 0;
 }
 
-static int test_type(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_type(const json_t *rule, const json_t *node)
 {
     unsigned mask = 0;
 
@@ -1347,23 +1340,11 @@ static int test_type(const schema_t *schema,
     }
 
     unsigned type = node->type;
-    /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
-    int result = (mask & (1u << (type < JSON_FALSE ? type : type - 1))) ||
-                /* 'integer' validates as true when type is 'number' */
-                ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
 
-    if ((result == SCHEMA_INVALID) && (rule->type == JSON_ARRAY))
-    {
-        if (abortable)
-        {
-            if (abort_on_failure(schema, rule, node))
-            {
-                return SCHEMA_ABORTED;
-            }
-        }
-        return SCHEMA_FAILURE;
-    }
-    return result;
+    /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
+    return (mask & (1u << (type < JSON_FALSE ? type : type - 1))) ||
+          /* 'integer' validates as true when type is 'number' */
+          ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
 }
 
 static int test_external_ref(const schema_t *schema,
@@ -1696,11 +1677,12 @@ static int validate(const schema_t *schema,
             case SCHEMA_UNIQUE_ITEMS:
                 test = test_unique_items(rule->child[i], node);
                 break;
-            case SCHEMA_MIN_CONTAINS:
-                test = test_min_contains(schema, rule, i, node, abortable);
+            case SCHEMA_CONTAINS:
+                test = test_contains(schema, rule, rule->child[i], node, abortable);
                 break;
+            case SCHEMA_MIN_CONTAINS:
             case SCHEMA_MAX_CONTAINS:
-                test = test_max_contains(schema, rule, i, node, abortable);
+                test = test_min_max_contains(rule->child[i]);
                 break;
             case SCHEMA_MIN_ITEMS:
                 test = test_min_items(rule->child[i], node);
@@ -1748,7 +1730,7 @@ static int validate(const schema_t *schema,
                 test = test_enum(rule->child[i], node);
                 break;
             case SCHEMA_TYPE:
-                test = test_type(schema, rule->child[i], node, abortable);
+                test = test_type(rule->child[i], node);
                 break;
             // Validate references
             case SCHEMA_REF:
