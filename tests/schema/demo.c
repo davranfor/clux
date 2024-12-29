@@ -25,9 +25,9 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_schema_event_t *event, void *data)
+static int on_validate(const json_schema_event_t *event, void *events)
 {
-    json_schema_write_event(event, data);
+    json_schema_write_event(event, events);
     return JSON_SCHEMA_CONTINUE;
 }
 
