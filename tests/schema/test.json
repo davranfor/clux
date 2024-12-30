@@ -1,15 +1,26 @@
 {
-  "nombre": "Producto Ejemplo",
-  "precio": 1500,
-  "tags": ["nuevo", "oferta"],
-  "dimensiones": [[1, 2], [3, 4]],
-  "propiedadesExtra": {
-    "color": "rojo",
-    "peso": 1.2,
-    "edad": 42
+  "id": 1,
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "age": 25,
+  "is_verified": true,
+  "tags": ["example", "important", "schema"],
+  "address": {
+    "street_address": "1234 Main St",
+    "city": "Anytown",
+    "state": "CA"
   },
-  "estadoCivil": "casado",
-  "varios": [1, 2, 3, 4, 5],
-  "data": "{\"name\": \"Alice\", \"age\": 28}"
+  "friends": [
+    {
+      "id": 2,
+      "name": "Jane Smith"
+    }
+  ],
+  "credit_card": "1234567812345678",
+  "billing_address": {
+    "street_address": "1234 Main St",
+    "city": "Anytown",
+    "state": "CA"
+  }
 }
 

@@ -1,11 +1,26 @@
 {
-  "nombre": "",
-  "precio": 500,
-  "tags": [],
-  "dimensiones": [[1, 2], [3, "4"]],
-  "propiedadesExtra": {
-    "1color": "rojo",
-    "peso": 1.2
+  "id": "one",
+  "name": "",
+  "email": "john.doe[at]example.com",
+  "age": 130,
+  "is_verified": "true",
+  "tags": ["example", "example"],
+  "address": {
+    "street_address": "1234 Main St",
+    "city": "Anytown"
   },
-  "estadoCivil": "casado"
+  "friends": [
+    {
+      "id": 2
+    }
+  ],
+  "credit_card": "1234-5678-1234-5678",
+  "billing_address": {
+    "street_address": "1234 Main St",
+    "city": "Anytown",
+    "state": "CA"
+  },
+  "notExample": "This should not be here",
+  "extraProperty": "This property is not allowed"
 }
+
