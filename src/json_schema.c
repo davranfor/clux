@@ -669,7 +669,6 @@ static int test_dependencies(const schema_t *schema,
                         return SCHEMA_ABORTED;
                     }
                     result = SCHEMA_FAILURE;
-                    continue;
                 }
                 else
                 {
