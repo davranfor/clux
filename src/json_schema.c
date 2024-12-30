@@ -1034,7 +1034,8 @@ static int test_contains(const schema_t *schema,
         return SCHEMA_ABORTED;
     }
 
-    size_t min = min_contains ? (size_t)min_contains->number : 0;
+    // if min_contains is not defined then min = max_contains defined ? 0 : 1 
+    size_t min = min_contains ? (size_t)min_contains->number : !max_contains;
     size_t max = max_contains ? (size_t)max_contains->number : (size_t)-1;
     size_t matches = 0;
 
