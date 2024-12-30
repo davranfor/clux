@@ -475,20 +475,12 @@ static int test_additional_properties(const schema_t *schema,
         {
             continue;
         }
-
-        int found = 0;
-
         for (unsigned j = 0; j < patterns_size; j++)
         {
             if (test_regex(node->child[i]->key, patterns->child[j]->key))
             {
-                found = 1;
-                break;
-            };
-        }
-        if (found == 1)
-        {
-            continue;
+                goto jump;
+            }
         }
         switch (rule->type)
         {
@@ -518,6 +510,7 @@ static int test_additional_properties(const schema_t *schema,
                 }
                 break;
         }
+        jump:;
     }
     return result;
 }
