@@ -224,9 +224,9 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_ANY_OF,                    "anyOf")                    \
     _(SCHEMA_COMMENT,                   "$comment")                 \
     _(SCHEMA_CONST,                     "const")                    \
+    _(SCHEMA_CONTAINS,                  "contains")                 \
     _(SCHEMA_CONTENT_ENCODING,          "contentEncoding")          \
     _(SCHEMA_CONTENT_MEDIA_TYPE,        "contentMediaType")         \
-    _(SCHEMA_CONTAINS,                  "contains")                 \
     _(SCHEMA_DEFAULT,                   "default")                  \
     _(SCHEMA_DEFINITIONS,               "definitions")              \
     _(SCHEMA_DEPENDENCIES,              "dependencies")             \
@@ -642,15 +642,15 @@ static int test_dependencies(const schema_t *schema,
         }
         else
         {
-            const json_t *keys = rule->child[i];
+            const json_t *properties = rule->child[i];
 
-            for (unsigned j = 0; j < keys->size; j++)
+            for (unsigned j = 0; j < properties->size; j++)
             {
-                if (keys->child[j]->type != JSON_STRING)
+                if (properties->child[j]->type != JSON_STRING)
                 {
                     return SCHEMA_ERROR;
                 }
-                if (json_find(node, keys->child[j]->string))
+                if (json_find(node, properties->child[j]->string))
                 {
                     continue;
                 }
@@ -1175,10 +1175,6 @@ static int test_not(const schema_t *schema,
     if (rule->type != JSON_OBJECT)
     {
         return SCHEMA_ERROR;
-    }
-    if (rule->size == 0)
-    {
-        return SCHEMA_INVALID;
     }
  
     int result = validate(schema, rule, node, NOT_ABORTABLE);
