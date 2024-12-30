@@ -376,9 +376,9 @@ static int test_properties(const schema_t *schema,
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        if (rule->child[i]->type == JSON_TRUE)
+        if (rule->child[i]->type != JSON_OBJECT)
         {
-            continue;
+            return SCHEMA_ERROR;
         }
 
         const json_t *property = json_find(node, rule->child[i]->key);
@@ -386,23 +386,6 @@ static int test_properties(const schema_t *schema,
         if (property == NULL)
         {
             continue;
-        }
-        if (rule->child[i]->type == JSON_FALSE)
-        {
-            if (!abortable)
-            {
-                return SCHEMA_FAILURE;
-            }
-            if (abort_on_failure(schema, rule->child[i], property))
-            {
-                return SCHEMA_ABORTED;
-            }
-            result = SCHEMA_FAILURE;
-            continue;
-        }
-        if (rule->child[i]->type != JSON_OBJECT)
-        {
-            return SCHEMA_ERROR;
         }
         switch (test_property(schema, rule->child[i], property, abortable))
         {
@@ -436,42 +419,16 @@ static int test_pattern_properties(const schema_t *schema,
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        if (rule->child[i]->type == JSON_TRUE)
-        {
-            continue;
-        }
         for (unsigned j = 0; j < node->size; j++)
         {
-            if (!test_regex(node->child[j]->key, rule->child[i]->key))
-            {
-                continue;
-            };
-            if (rule->child[i]->type == JSON_FALSE)
-            {
-                if (!abortable)
-                {
-                    return SCHEMA_FAILURE;
-                }
-
-                const json_t note =
-                {
-                    .key = rule->key,
-                    .child = (json_t *[]){rule->child[i]},
-                    .size = 1,
-                    .type = JSON_OBJECT
-                };
-
-                if (abort_on_failure(schema, &note, node->child[j]))
-                {
-                    return SCHEMA_ABORTED;
-                }
-                result = SCHEMA_FAILURE;
-                continue;
-            }
             if (rule->child[i]->type != JSON_OBJECT)
             {
                 return SCHEMA_ERROR;
             }
+            if (!test_regex(node->child[j]->key, rule->child[i]->key))
+            {
+                continue;
+            };
             switch (test_property(schema, rule->child[i], node->child[j], abortable))
             {
                 case SCHEMA_ERROR:
@@ -775,24 +732,13 @@ static int test_item(const schema_t *schema,
 static int test_items(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
-    switch (rule->type)
+    if ((rule->type != JSON_OBJECT) && (rule->type != JSON_ARRAY))
     {
-        case JSON_OBJECT:
-        case JSON_ARRAY:
-        case JSON_FALSE:
-            break;
-        case JSON_TRUE:
-            return SCHEMA_VALID;
-        default:
-            return SCHEMA_ERROR;
+        return SCHEMA_ERROR;
     }
     if (node->type != JSON_ARRAY)
     {
         return SCHEMA_VALID;
-    }
-    if (rule->type == JSON_FALSE)
-    {
-        return node->size == 0;
     }
 
     int result = SCHEMA_VALID;
