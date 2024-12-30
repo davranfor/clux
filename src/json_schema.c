@@ -1019,25 +1019,23 @@ static int test_contains(const schema_t *schema,
     }
 
     const json_t *min_contains = json_find(parent, "minContains");
-    int min_defined = min_contains != NULL;
 
-    if (min_defined && !test_min_max_contains(min_contains))
+    if (min_contains && !test_min_max_contains(min_contains))
     {
         raise_error(schema, min_contains, node);
         return SCHEMA_ABORTED;
     }
 
     const json_t *max_contains = json_find(parent, "maxContains");
-    int max_defined = max_contains != NULL;
 
-    if (max_defined && !test_min_max_contains(max_contains))
+    if (max_contains && !test_min_max_contains(max_contains))
     {
         raise_error(schema, max_contains, node);
         return SCHEMA_ABORTED;
     }
 
-    size_t min = min_defined ? (size_t)min_contains->number : 0;
-    size_t max = max_defined ? (size_t)max_contains->number : (size_t)-1;
+    size_t min = min_contains ? (size_t)min_contains->number : 0;
+    size_t max = max_contains ? (size_t)max_contains->number : (size_t)-1;
     size_t matches = 0;
 
     for (unsigned i = 0; (i < node->size) && (matches <= max); i++)
@@ -1050,34 +1048,35 @@ static int test_contains(const schema_t *schema,
                 matches++;
                 break;
         }
-        if ((matches >= min) && (node->size - i - 1 + matches <= max))
+        if ((matches >= min) && (matches + node->size - i - 1 <= max))
         {
             return SCHEMA_VALID;
         }
     }
-    if (!min_defined && !max_defined)
+    if ((min_contains == NULL) && (max_contains == NULL))
     {
         return matches > 0;
     }
-    if ((matches >= min) || (matches <= max))
-    {
-        return SCHEMA_VALID;
-    }
-    if (min_defined && (matches < min))
+
+    int result = SCHEMA_VALID;
+
+    if ((min_contains != NULL) && (matches < min))
     {
         if (abortable && abort_on_failure(schema, min_contains, node))
         {
             return SCHEMA_ABORTED;
         }
+        result = SCHEMA_FAILURE;
     }
-    if (max_defined && (matches > max))
+    if ((max_contains != NULL) && (matches > max))
     {
         if (abortable && abort_on_failure(schema, max_contains, node))
         {
             return SCHEMA_ABORTED;
         }
+        result = SCHEMA_FAILURE;
     }
-    return SCHEMA_FAILURE;
+    return result;
 }
 
 static int test_min_items(const json_t *rule, const json_t *node)
