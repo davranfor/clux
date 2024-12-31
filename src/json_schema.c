@@ -798,25 +798,18 @@ static int test_additional_items(const schema_t *schema,
 
     const json_t *items = json_find(parent, "items");
 
-    if (json_is_object(items))
-    {
-        return SCHEMA_VALID;
-    }
-
-    unsigned offset = json_size(items);
-
-    if (offset == 0)
+    if (json_items(items) == 0)
     {
         return SCHEMA_VALID;
     }
     if (rule->type == JSON_FALSE)
     {
-        return node->size <= offset;
+        return node->size <= items->size;
     }
 
     int result = SCHEMA_VALID;
 
-    for (unsigned i = offset; i < node->size; i++)
+    for (unsigned i = items->size; i < node->size; i++)
     {
         switch (test_item(schema, rule, node, i, abortable))
         {
