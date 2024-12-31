@@ -104,9 +104,7 @@ static int notify(const schema_t *schema,
 {
     return schema->callback
         ? notify_event(schema, rule, node, event)
-        : event == JSON_SCHEMA_FAILURE
-            ? JSON_SCHEMA_ABORT
-            : JSON_SCHEMA_CONTINUE;
+        : event == JSON_SCHEMA_FAILURE ? JSON_SCHEMA_ABORT : JSON_SCHEMA_CONTINUE;
 }
 
 static int abort_on_warning(const schema_t *schema,
@@ -419,12 +417,12 @@ static int test_pattern_properties(const schema_t *schema,
 
     for (unsigned i = 0; i < rule->size; i++)
     {
+        if (rule->child[i]->type != JSON_OBJECT)
+        {
+            return SCHEMA_ERROR;
+        }
         for (unsigned j = 0; j < node->size; j++)
         {
-            if (rule->child[i]->type != JSON_OBJECT)
-            {
-                return SCHEMA_ERROR;
-            }
             if (!test_regex(node->child[j]->key, rule->child[i]->key))
             {
                 continue;
@@ -1043,34 +1041,31 @@ static int test_type(const json_t *rule, const json_t *node)
 {
     unsigned mask = 0;
 
-    if (rule->type == JSON_STRING)
+    switch (rule->type)
     {
-        if (!(mask = add_type(rule->string, mask)))
-        {
-            return SCHEMA_ERROR;
-        }
-    }
-    else if (rule->type == JSON_ARRAY)
-    {
-        for (unsigned i = 0; i < rule->size; i++)
-        {
-            if (!(mask = add_type(json_text(rule->child[i]), mask)))
+        case JSON_STRING:
+            if (!(mask = add_type(rule->string, mask)))
             {
                 return SCHEMA_ERROR;
             }
-        }
+            break;
+        case JSON_ARRAY:
+            for (unsigned i = 0; i < rule->size; i++)
+            {
+                if (!(mask = add_type(json_text(rule->child[i]), mask)))
+                {
+                    return SCHEMA_ERROR;
+                }
+            }
+            break;
+        default:
+            return SCHEMA_ERROR;
     }
-    else
-    {
-        return SCHEMA_ERROR;
-    }
-
-    unsigned type = node->type;
-
-    /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
-    return (mask & (1u << (type < JSON_FALSE ? type : type - 1))) ||
-          /* 'integer' validates as true when type is 'number' */
-          ((mask & (1u << JSON_REAL)) && (type == JSON_INTEGER));
+    return
+        /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
+        (mask & (1u << (node->type < JSON_FALSE ? node->type : node->type - 1))) ||
+        /* 'integer' validates as true when 'type' is 'number' */
+        ((mask & (1u << JSON_REAL)) && (node->type == JSON_INTEGER));
 }
 
 static int test_external_ref(const schema_t *schema,
@@ -1346,7 +1341,6 @@ static int validate(const schema_t *schema,
 
         switch (test)
         {
-            // Validate very simple rules that doesn't need to be tested
             case SCHEMA_VALID:
                 continue;
             case SCHEMA_WARNING:
@@ -1473,7 +1467,6 @@ static int validate(const schema_t *schema,
                 test = SCHEMA_ERROR;
                 break;
         }
-        // Validate result
         switch (test)
         {
             case SCHEMA_INVALID:
