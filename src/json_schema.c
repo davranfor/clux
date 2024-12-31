@@ -308,10 +308,7 @@ static int table_get_test(const char *key)
 
 static int get_test(const json_t *rule)
 {
-    if (rule->key == NULL)
-    {
-        return SCHEMA_ERROR;
-    }
+    assert(rule->key != NULL);
 
     int test = table_get_test(rule->key);
 
@@ -1069,9 +1066,13 @@ static int test_type(const json_t *rule, const json_t *node)
         ((mask & (1u << JSON_REAL)) && (node->type == JSON_INTEGER));
 }
 
-static int test_external_ref(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_pointer(const schema_t *schema,
+    const json_t *rule, const json_t *node, int abortable, int external)
 {
+    if ((rule == NULL) || (rule->type != JSON_OBJECT))
+    {
+        return SCHEMA_ERROR;
+    }
     if (++schema->active->refs >= MAX_ACTIVE_REFS)
     {
         const json_t note =
@@ -1085,9 +1086,10 @@ static int test_external_ref(const schema_t *schema,
         return SCHEMA_ABORTED;
     }
 
-    int result = validate_schema(
-        rule, node, schema->callback, schema->data, abortable
-    );
+    int result = external
+        ? validate_schema(rule, node, schema->callback, schema->data, abortable)
+        : validate(schema, rule, node, abortable);
+
 
     schema->active->refs--;
     switch (result)
@@ -1121,40 +1123,12 @@ static int test_ref(const schema_t *schema,
         {
             rule = schema->root;
         }
+        return test_pointer(schema, rule, node, abortable, 0);
     }
     else
     {
         rule = map_search(map, ref);
-        return test_external_ref(schema, rule, node, abortable);
-    }
-    if ((rule == NULL) || (rule->type != JSON_OBJECT))
-    {
-        return SCHEMA_ERROR;
-    }
-    if (++schema->active->refs >= MAX_ACTIVE_REFS)
-    {
-        const json_t note =
-        {
-            .key = "maxActiveRefs",
-            .number = MAX_ACTIVE_REFS,
-            .type = JSON_INTEGER
-        };
-
-        raise_error(schema, &note, node);
-        return SCHEMA_ABORTED;
-    }
-
-    int result = validate(schema, rule, node, abortable);
-
-    schema->active->refs--;
-    switch (result)
-    {
-        case SCHEMA_ERROR:
-            return SCHEMA_ABORTED;
-        case SCHEMA_INVALID:
-            return SCHEMA_FAILURE;
-        default:
-            return SCHEMA_VALID;
+        return test_pointer(schema, rule, node, abortable, 1);
     }
 }
 
