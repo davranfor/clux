@@ -1019,7 +1019,7 @@ static int test_enum(const json_t *rule, const json_t *node)
     return json_locate(rule, node) != NULL;
 }
 
-static unsigned add_type(const char *type, unsigned mask)
+static unsigned add_type(const char *type, unsigned *mask)
 {
     static const char *types[] =
     {
@@ -1031,7 +1031,8 @@ static unsigned add_type(const char *type, unsigned mask)
     {
         if (!strcmp(type, types[item]))
         {
-            return mask | (1u << (item + 1));
+            *mask |= (1u << (item + 1));
+            return 1;
         }
     }
     return 0;
@@ -1044,7 +1045,7 @@ static int test_type(const json_t *rule, const json_t *node)
     switch (rule->type)
     {
         case JSON_STRING:
-            if (!(mask = add_type(rule->string, mask)))
+            if (!add_type(rule->string, &mask))
             {
                 return SCHEMA_ERROR;
             }
@@ -1052,7 +1053,7 @@ static int test_type(const json_t *rule, const json_t *node)
         case JSON_ARRAY:
             for (unsigned i = 0; i < rule->size; i++)
             {
-                if (!(mask = add_type(json_text(rule->child[i]), mask)))
+                if (!add_type(json_text(rule->child[i]), &mask))
                 {
                     return SCHEMA_ERROR;
                 }
