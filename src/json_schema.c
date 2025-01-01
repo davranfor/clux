@@ -44,9 +44,18 @@ typedef struct
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
-static size_t active_item(const struct active *active, int item)
+static size_t write_path(char *buffer, size_t size, const json_t **path, int id)
 {
-    return (size_t)(active->path[item] - active->path[item - 1]->child[0]);
+    if (path[id]->key != NULL)
+    {
+        return json_pointer_put_key(buffer, size, path[id]->key);
+    }
+    else
+    {
+        size_t index = (size_t)(path[id] - *path[id - 1]->child);
+
+        return json_pointer_put_index(buffer, size, index);
+    }
 }
 
 /* Writes the current path and notifies an event to the user-defined callback */
@@ -61,12 +70,9 @@ static int notify_event(const schema_t *schema,
         size_t size = sizeof(path) - (size_t)(end - path);
         const char *pointer = end;
 
-        end += schema->active->path[i]->key != NULL
-            ? json_pointer_put_key(end, size, schema->active->path[i]->key)
-            : json_pointer_put_index(end, size, active_item(schema->active, i));
-        if (end == pointer)
+        if ((end += write_path(end, size, schema->active->path, i)) == pointer)
         {
-            // Doesn't fit, try adding '...' to the path 
+            // Doesn't fit, try adding '...' to the 'path' 
             end += json_pointer_put_key(end, size, "...");
         }
     }
