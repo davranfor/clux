@@ -26,7 +26,7 @@ enum {NOT_ABORTABLE, ABORTABLE};
 
 struct active
 {
-    const json_t *path[MAX_ACTIVE_PATHS];
+    unsigned path[MAX_ACTIVE_PATHS];
     int paths;
     int refs;
 };
@@ -34,7 +34,7 @@ struct active
 typedef struct
 {
     // Schema root
-    const json_t *root;
+    const json_t *rule, *node;
     // User data
     json_validate_callback callback;
     void *data;
@@ -44,37 +44,34 @@ typedef struct
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
-static size_t write_path(char *buffer, size_t size, const json_t **path, int id)
-{
-    if (path[id]->key != NULL)
-    {
-        return json_pointer_put_key(buffer, size, path[id]->key);
-    }
-    else
-    {
-        size_t index = (size_t)(path[id] - *path[id - 1]->child);
-
-        return json_pointer_put_index(buffer, size, index);
-    }
-}
-
 /* Writes the current path and notifies an event to the user-defined callback */
 static int notify_event(const schema_t *schema,
     const json_t *rule, const json_t *node, int type)
 {
+    const json_t *iter = schema->node;
     char path[PATH_MAX_SIZE] = "/";
     char *end = path;
 
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
         size_t size = sizeof(path) - (size_t)(end - path);
+        size_t index = schema->active->path[i];
         const char *pointer = end;
 
-        if ((end += write_path(end, size, schema->active->path, i)) == pointer)
+        if (iter->child[index]->key != NULL)
+        {
+            end += json_pointer_put_key(end, size, iter->child[index]->key);
+        }
+        else
+        {
+            end += json_pointer_put_index(end, size, index);
+        }
+        if (end == pointer)
         {
             // Doesn't fit, try adding '...' to the 'path' 
             end += json_pointer_put_key(end, size, "...");
         }
+        iter = iter->child[index];
     }
 
     const json_schema_event_t event =
@@ -328,14 +325,14 @@ static int get_test(const json_t *rule)
 }
 
 static int test_child(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+    const json_t *rule, const json_t *parent, unsigned child, int abortable)
 {
     if (schema->active->paths++ < MAX_ACTIVE_PATHS)
     {
-        schema->active->path[schema->active->paths - 1] = node;
+        schema->active->path[schema->active->paths - 1] = child;
     }
 
-    int result = validate(schema, rule, node, abortable);
+    int result = validate(schema, rule, parent->child[child], abortable);
 
     schema->active->paths--;
     return result;
@@ -362,13 +359,13 @@ static int test_properties(const schema_t *schema,
             return SCHEMA_ERROR;
         }
 
-        const json_t *property = json_find(node, rule->child[i]->key);
+        unsigned index = json_index(node, rule->child[i]->key);
 
-        if (property == NULL)
+        if (index == JSON_NOT_FOUND)
         {
             continue;
         }
-        switch (test_child(schema, rule->child[i], property, abortable))
+        switch (test_child(schema, rule->child[i], node, index, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -410,7 +407,7 @@ static int test_pattern_properties(const schema_t *schema,
             {
                 continue;
             };
-            switch (test_child(schema, rule->child[i], node->child[j], abortable))
+            switch (test_child(schema, rule->child[i], node, j, abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -477,7 +474,7 @@ static int test_additional_properties(const schema_t *schema,
                 result = SCHEMA_FAILURE;
                 break;
             case JSON_OBJECT:
-                switch (test_child(schema, rule, node->child[i], abortable))
+                switch (test_child(schema, rule, node, i, abortable))
                 {
                     case SCHEMA_ERROR:
                         return SCHEMA_ABORTED;
@@ -705,7 +702,7 @@ static int test_items(const schema_t *schema,
     {
         for (unsigned i = 0; i < node->size; i++)
         {
-            switch (test_child(schema, rule, node->child[i], abortable))
+            switch (test_child(schema, rule, node, i, abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -727,7 +724,7 @@ static int test_items(const schema_t *schema,
             {
                 return SCHEMA_ERROR;
             }
-            switch (test_child(schema, rule->child[i], node->child[i], abortable))
+            switch (test_child(schema, rule->child[i], node, i, abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -777,7 +774,7 @@ static int test_additional_items(const schema_t *schema,
 
     for (unsigned i = items->size; i < node->size; i++)
     {
-        switch (test_child(schema, rule, node->child[i], abortable))
+        switch (test_child(schema, rule, node, i, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -819,7 +816,7 @@ static int test_contains(const schema_t *schema,
     }
     for (unsigned i = 0; i < node->size; i++)
     {
-        switch (test_child(schema, rule, node->child[i], NOT_ABORTABLE))
+        switch (test_child(schema, rule, node, i, NOT_ABORTABLE))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -1051,11 +1048,11 @@ static int test_ref(const schema_t *schema,
     {
         if (ref[1] == '/')
         {
-            rule = json_pointer(schema->root, ref + 1);
+            rule = json_pointer(schema->rule, ref + 1);
         }
         else if (ref[1] == '\0')
         {
-            rule = schema->root;
+            rule = schema->rule;
         }
     }
     else
@@ -1428,14 +1425,11 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    struct active active =
-    {
-        .path[0] = node,
-        .paths = 1
-    };
+    struct active active = { .path[0] = 0, .paths = 1 };
     const schema_t schema =
     {
-        .root = rule,
+        .rule = rule,
+        .node = node,
         .callback = callback,
         .data = data,
         .active = &active
