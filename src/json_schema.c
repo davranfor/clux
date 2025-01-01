@@ -27,7 +27,6 @@ enum {NOT_ABORTABLE, ABORTABLE};
 struct active
 {
     const json_t *path[MAX_ACTIVE_PATHS];
-    size_t item[MAX_ACTIVE_PATHS];
     int paths;
     int refs;
 };
@@ -43,30 +42,11 @@ typedef struct
     struct active *active;
 } schema_t;
 
-
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
-static int validate_schema(const json_t *rule, const json_t *node,
-    json_validate_callback callback, void *data, int abortable)
+static size_t active_item(const struct active *active, int item)
 {
-    struct active active =
-    {
-        .path[0] = node,
-        .paths = 1
-    };
-    const schema_t schema =
-    {
-        .root = rule,
-        .callback = callback,
-        .data = data,
-        .active = &active
-    };
-
-    if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
-    {
-        return -1;
-    }
-    return validate(&schema, rule, node, abortable);
+    return (size_t)(active->path[item] - active->path[item - 1]->child[0]);
 }
 
 /* Writes the current path and notifies an event to the user-defined callback */
@@ -83,7 +63,7 @@ static int notify_event(const schema_t *schema,
 
         end += schema->active->path[i]->key != NULL
             ? json_pointer_put_key(end, size, schema->active->path[i]->key)
-            : json_pointer_put_index(end, size, schema->active->item[i]);
+            : json_pointer_put_index(end, size, active_item(schema->active, i));
         if (end == pointer)
         {
             // Doesn't fit, try adding '...' to the path 
@@ -341,7 +321,7 @@ static int get_test(const json_t *rule)
     }
 }
 
-static int test_property(const schema_t *schema,
+static int test_child(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
     if (schema->active->paths++ < MAX_ACTIVE_PATHS)
@@ -382,7 +362,7 @@ static int test_properties(const schema_t *schema,
         {
             continue;
         }
-        switch (test_property(schema, rule->child[i], property, abortable))
+        switch (test_child(schema, rule->child[i], property, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -424,7 +404,7 @@ static int test_pattern_properties(const schema_t *schema,
             {
                 continue;
             };
-            switch (test_property(schema, rule->child[i], node->child[j], abortable))
+            switch (test_child(schema, rule->child[i], node->child[j], abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -491,7 +471,7 @@ static int test_additional_properties(const schema_t *schema,
                 result = SCHEMA_FAILURE;
                 break;
             case JSON_OBJECT:
-                switch (test_property(schema, rule, node->child[i], abortable))
+                switch (test_child(schema, rule, node->child[i], abortable))
                 {
                     case SCHEMA_ERROR:
                         return SCHEMA_ABORTED;
@@ -701,21 +681,6 @@ static int test_max_properties(const json_t *rule, const json_t *node)
     return (size_t)rule->number >= node->size;
 }
 
-static int test_item(const schema_t *schema,
-    const json_t *rule, const json_t *parent, unsigned child, int abortable)
-{
-    if (schema->active->paths++ < MAX_ACTIVE_PATHS)
-    {
-        schema->active->path[schema->active->paths - 1] = parent->child[child];
-        schema->active->item[schema->active->paths - 1] = child;
-    }
-
-    int result = validate(schema, rule, parent->child[child], abortable);
-
-    schema->active->paths--;
-    return result;
-}
-
 static int test_items(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -734,7 +699,7 @@ static int test_items(const schema_t *schema,
     {
         for (unsigned i = 0; i < node->size; i++)
         {
-            switch (test_item(schema, rule, node, i, abortable))
+            switch (test_child(schema, rule, node->child[i], abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -756,7 +721,7 @@ static int test_items(const schema_t *schema,
             {
                 return SCHEMA_ERROR;
             }
-            switch (test_item(schema, rule->child[i], node, i, abortable))
+            switch (test_child(schema, rule->child[i], node->child[i], abortable))
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -806,7 +771,7 @@ static int test_additional_items(const schema_t *schema,
 
     for (unsigned i = items->size; i < node->size; i++)
     {
-        switch (test_item(schema, rule, node, i, abortable))
+        switch (test_child(schema, rule, node->child[i], abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -848,7 +813,7 @@ static int test_contains(const schema_t *schema,
     }
     for (unsigned i = 0; i < node->size; i++)
     {
-        switch (test_item(schema, rule, node, i, NOT_ABORTABLE))
+        switch (test_child(schema, rule, node->child[i], NOT_ABORTABLE))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -1066,43 +1031,6 @@ static int test_type(const json_t *rule, const json_t *node)
         ((mask & (1u << JSON_REAL)) && (node->type == JSON_INTEGER));
 }
 
-static int test_pointer(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable, int external)
-{
-    if ((rule == NULL) || (rule->type != JSON_OBJECT))
-    {
-        return SCHEMA_ERROR;
-    }
-    if (++schema->active->refs >= MAX_ACTIVE_REFS)
-    {
-        const json_t note =
-        {
-            .key = "maxActiveRefs",
-            .number = MAX_ACTIVE_REFS,
-            .type = JSON_INTEGER
-        };
-
-        raise_error(schema, &note, node);
-        return SCHEMA_ABORTED;
-    }
-
-    int result = external
-        ? validate_schema(rule, node, schema->callback, schema->data, abortable)
-        : validate(schema, rule, node, abortable);
-
-
-    schema->active->refs--;
-    switch (result)
-    {
-        case SCHEMA_ERROR:
-            return SCHEMA_ABORTED;
-        case SCHEMA_INVALID:
-            return SCHEMA_FAILURE;
-        default:
-            return SCHEMA_VALID;
-    }
-}
-
 static int test_ref(const schema_t *schema,
     const json_t *rule, const json_t *node, int abortable)
 {
@@ -1123,12 +1051,39 @@ static int test_ref(const schema_t *schema,
         {
             rule = schema->root;
         }
-        return test_pointer(schema, rule, node, abortable, 0);
     }
     else
     {
         rule = map_search(map, ref);
-        return test_pointer(schema, rule, node, abortable, 1);
+    }
+    if ((rule == NULL) || (rule->type != JSON_OBJECT))
+    {
+        return SCHEMA_ERROR;
+    }
+    if (++schema->active->refs >= MAX_ACTIVE_REFS)
+    {
+        const json_t note =
+        {
+            .key = "maxActiveRefs",
+            .number = MAX_ACTIVE_REFS,
+            .type = JSON_INTEGER
+        };
+
+        raise_error(schema, &note, node);
+        return SCHEMA_ABORTED;
+    }
+
+    int result = validate(schema, rule, node, abortable);
+
+    schema->active->refs--;
+    switch (result)
+    {
+        case SCHEMA_ERROR:
+            return SCHEMA_ABORTED;
+        case SCHEMA_INVALID:
+            return SCHEMA_FAILURE;
+        default:
+            return SCHEMA_VALID;
     }
 }
 
@@ -1467,6 +1422,23 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *node, const json_t *rule,
     json_validate_callback callback, void *data)
 {
-    return validate_schema(rule, node, callback, data, ABORTABLE) > 0;
+    struct active active =
+    {
+        .path[0] = node,
+        .paths = 1
+    };
+    const schema_t schema =
+    {
+        .root = rule,
+        .callback = callback,
+        .data = data,
+        .active = &active
+    };
+
+    if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
+    {
+        return SCHEMA_INVALID;
+    }
+    return validate(&schema, rule, node, ABORTABLE) == SCHEMA_VALID;
 }
 
