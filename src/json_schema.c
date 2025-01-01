@@ -509,14 +509,14 @@ static int test_property_names(const schema_t *schema,
 
     for (unsigned i = 0; i < node->size; i++)
     {
-        const json_t name =
+        const json_t note =
         {
             .key = "propertyName",
             .string = node->child[i]->key,
             .type = JSON_STRING
         };
 
-        switch (validate(schema, rule, &name, abortable))
+        switch (validate(schema, rule, &note, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
