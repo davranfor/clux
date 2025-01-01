@@ -4,12 +4,12 @@
  *  \copyright GNU Public License.
  */
 
-#if __linux__
-#include <malloc.h>
-#define MALLOC_SIZE(mem) malloc_usable_size((void *)mem)
-#elif __APPLE__
+#if __APPLE__
 #include <malloc/malloc.h>
 #define MALLOC_SIZE(mem) malloc_size(mem)
+#elif __unix__
+#include <malloc.h>
+#define MALLOC_SIZE(mem) malloc_usable_size((void *)mem)
 #else
 #error "Unsupported system for this test"
 #endif

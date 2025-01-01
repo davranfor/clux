@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <locale.h>
 #include <clux/json.h>
 #include <clux/json_regex.h>
 
@@ -23,8 +22,6 @@ static json_t *parse_file(const char *path)
 
 int main(void)
 {
-    setlocale(LC_CTYPE, "");
-
     json_t *root = parse_file("test.json");
 
     for (unsigned i = 0, n = json_is_array(root) ? json_size(root) : 0; i < n; i++)

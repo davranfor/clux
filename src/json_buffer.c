@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "clib_locale.h"
 #include "clib_unicode.h"
 #include "json_private.h"
 #include "json_buffer.h"
@@ -40,8 +41,9 @@ void json_set_encode(enum json_encode value)
 #define MAX_DECIMALS 17
 #define NUMBER_CHARS 24
 
-#define buffer_write_number(buffer, ...) (size_t) \
-    snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
+#define buffer_write_number(buffer, ...) (size_t)               \
+    snprintf_l(buffer->text + buffer->length, NUMBER_CHARS + 1, \
+        l_numeric(), __VA_ARGS__)
 
 static char *buffer_write_integer(buffer_t *buffer, double value)
 {

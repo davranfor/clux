@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <locale.h>
 #include "config.h"
 #include "loader.h"
 #include "server.h"
@@ -26,8 +25,6 @@ static uint16_t port_number(const char *str)
 
 int main(int argc, char *argv[])
 {
-    setlocale(LC_CTYPE, "");
-
     if ((argc == 2) && (strcmp(argv[1], "-h") == 0))
     {
         printf("Usage: %s [port]\n", argv[0]);

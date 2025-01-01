@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <locale.h>
 #include <stdlib.h>
 #include <clux/json.h>
 
@@ -33,8 +32,6 @@ static int on_validate(const json_schema_event_t *event, void *events)
 
 int main(int argc, char *argv[])
 {
-    setlocale(LC_CTYPE, "");
-
     const char *path[] =
     {
         argc > 1 ? argv[1] : "test.json",

@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <locale.h>
 #include <clux/json.h>
 
 static void parse_file(const char *path)
@@ -26,7 +25,6 @@ static void parse_file(const char *path)
 
 int main(int argc, char *argv[])
 {
-    setlocale(LC_CTYPE, "");
     parse_file(argc > 1 ? argv[1] : "test.json");
     return 0;
 }
