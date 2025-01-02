@@ -14,7 +14,6 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 #include "json_patch.h"
-#include "json_match.h"
 #include "json_utils.h"
 
 #endif

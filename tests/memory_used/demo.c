@@ -7,11 +7,9 @@
 #if __APPLE__
 #include <malloc/malloc.h>
 #define MALLOC_SIZE(mem) malloc_size(mem)
-#elif __unix__
+#else
 #include <malloc.h>
 #define MALLOC_SIZE(mem) malloc_usable_size((void *)mem)
-#else
-#error "Unsupported system for this test"
 #endif
 
 #include <stdlib.h>
