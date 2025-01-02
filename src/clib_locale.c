@@ -6,22 +6,22 @@
 
 #include "clib_locale.h"
 
-/* Make strtod independent of locales */
+/* Make strtod and snprintf independent of locales */
 static locale_t c_numeric;
 
 __attribute__((constructor))
-static void create_locale_numeric(void)
+static void locale_create_numeric(void)
 {
     c_numeric = newlocale(LC_NUMERIC_MASK, "C", NULL);
 }
 
 __attribute__((destructor))
-static void free_locale_numeric(void)
+static void locale_free_numeric(void)
 {
     freelocale(c_numeric);
 }
 
-locale_t l_numeric(void)
+locale_t locale_numeric(void)
 {
     return c_numeric;
 }

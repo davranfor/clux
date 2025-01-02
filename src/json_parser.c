@@ -324,7 +324,7 @@ static json_t *parse_string(const char **str)
 static json_t *parse_number(const char **str)
 {
     char *end;
-    double number = strtod_l(*str, &end, l_numeric());
+    double number = strtod_l(*str, &end, locale_numeric());
 
     if (errno == ERANGE)
     {

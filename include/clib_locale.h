@@ -15,7 +15,7 @@
 #error "Unsupported system"
 #endif
 
-locale_t l_numeric(void);
+locale_t locale_numeric(void);
 
 #endif
 

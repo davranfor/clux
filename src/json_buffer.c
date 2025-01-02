@@ -63,7 +63,7 @@ static char *buffer_write_real(buffer_t *buffer, double value)
     }
 
     size_t length = (size_t)snprintf_l(buffer->text + buffer->length,
-        NUMBER_CHARS + 1, l_numeric(), "%.*g", MAX_DECIMALS, value);
+        NUMBER_CHARS + 1, locale_numeric(), "%.*g", MAX_DECIMALS, value);
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 
