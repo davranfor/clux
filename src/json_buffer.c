@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "clib_locale.h"
 #include "clib_unicode.h"
 #include "json_private.h"
 #include "json_buffer.h"
@@ -41,6 +40,9 @@ void json_set_encode(enum json_encode value)
 #define MAX_DECIMALS 17
 #define NUMBER_CHARS 24
 
+#define buffer_write_number(buffer, ...) (size_t) \
+    snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
+
 static char *buffer_write_integer(buffer_t *buffer, double value)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
@@ -48,8 +50,7 @@ static char *buffer_write_integer(buffer_t *buffer, double value)
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = (size_t)snprintf(buffer->text + buffer->length,
-        NUMBER_CHARS + 1, "%.0f", value);
+    size_t length = buffer_write_number(buffer, "%.0f", value);
 
     buffer->length += length;
     return buffer->text;
@@ -62,8 +63,7 @@ static char *buffer_write_real(buffer_t *buffer, double value)
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = (size_t)snprintf_l(buffer->text + buffer->length,
-        NUMBER_CHARS + 1, locale_numeric(), "%.*g", MAX_DECIMALS, value);
+    size_t length = buffer_write_number(buffer, "%.*g", MAX_DECIMALS, value);
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 

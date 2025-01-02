@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <math.h>
 #include "clib_math.h"
-#include "clib_locale.h"
 #include "clib_stream.h"
 #include "clib_unicode.h"
 #include "json_private.h"
@@ -324,7 +323,7 @@ static json_t *parse_string(const char **str)
 static json_t *parse_number(const char **str)
 {
     char *end;
-    double number = strtod_l(*str, &end, locale_numeric());
+    double number = strtod(*str, &end);
 
     if (errno == ERANGE)
     {

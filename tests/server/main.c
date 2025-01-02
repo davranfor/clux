@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include "config.h"
 #include "loader.h"
 #include "server.h"
@@ -30,7 +31,6 @@ int main(int argc, char *argv[])
         printf("Usage: %s [port]\n", argv[0]);
         return 0;
     }
-
     uint16_t port = argc > 1 ? port_number(argv[1]) : SERVER_PORT;
 
     if (port == 0)
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
+    setlocale(LC_CTYPE, "");
     loader_run();
     printf("Server waiting on port %u\n", port);
     server_run(port);

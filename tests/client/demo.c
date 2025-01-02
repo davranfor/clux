@@ -24,6 +24,7 @@ CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <time.h>
 #include <curl/curl.h>
 #include <clux/json.h>
@@ -182,6 +183,7 @@ int main(void)
     struct data data = {0};
 
     srand((unsigned)time(NULL));
+    setlocale(LC_CTYPE, "");
 
     json_error_t error;
     json_t *users = json_parse_file("users.json", &error);
