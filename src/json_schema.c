@@ -122,10 +122,10 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
         "Aborted. Malformed schema",
     };
 
-    buffer_print(buffer, "\ntype: %s", events[event->type]);
-    buffer_print(buffer, "\npath: %s", event->path);
-    buffer_write(buffer, "\nnode: ");
-    if (!json_is_scalar(event->node))
+    buffer_format(buffer, "\ntype: %s", events[event->type]);
+    buffer_format(buffer, "\npath: %s", event->path);
+    buffer_append(buffer, "\nnode: ");
+    if (json_is_iterable(event->node))
     {
         const char *type = json_is_object(event->node) ? "Object" : "Array";
         const char *name = json_name(event->node);
@@ -133,23 +133,23 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
 
         if (event->node->key != NULL)
         {
-            buffer_print(buffer, "%s '%s' (%u elements)", type, name, size);
+            buffer_format(buffer, "%s '%s' (%u elements)", type, name, size);
         }
         else
         {
-            buffer_print(buffer, "%s (%u elements)", type, size);
+            buffer_format(buffer, "%s (%u elements)", type, size);
         }
     }
     else
     {
-        json_buffer_write(buffer, event->node, 0);
+        json_buffer_encode(buffer, event->node, 0);
     }
-    buffer_write(buffer, "\nrule: ");
+    buffer_append(buffer, "\nrule: ");
 
     size_t length = buffer->length;
     size_t max_length = 192;
 
-    json_buffer_write(buffer, event->rule, 0);
+    json_buffer_encode(buffer, event->rule, 0);
     if (buffer->length > length + max_length)
     {
         length += max_length;
@@ -159,9 +159,9 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
         }
         buffer->length = length;
         buffer->text[length] = '\0';
-        buffer_write(buffer, ": ...");
+        buffer_append(buffer, ": ...");
     }
-    return buffer_write(buffer, "\n");
+    return buffer_append(buffer, "\n");
 }
 
 static map_t *map;

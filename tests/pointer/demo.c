@@ -9,7 +9,7 @@
 
 static void print(const json_t *node, const char *path)
 {
-    char *text = json_encode(json_pointer(node, path));
+    char *text = json_stringify(json_pointer(node, path));
 
     printf("\"%s\": %s\n", path, text ? text : "Not found");
     free(text);

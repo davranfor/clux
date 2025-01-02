@@ -128,7 +128,7 @@ static enum method parse_method(const char *header)
 
 static char *api_get(const char *uri)
 {
-    return json_encode(map_search(map, uri));
+    return json_stringify(map_search(map, uri));
 }
 
 static char *api_post(const char *uri, const char *content)
@@ -155,7 +155,7 @@ static char *api_post(const char *uri, const char *content)
     {
         id += 1;
     }
-    return json_encode(node);
+    return json_stringify(node);
 }
 
 static char *api_put(const char *uri, const char *content)
@@ -179,7 +179,7 @@ static char *api_put(const char *uri, const char *content)
     {
         json_delete(old);
     }
-    return json_encode(new);
+    return json_stringify(new);
 }
 
 static char *api_patch(const char *uri, const char *content)
@@ -211,13 +211,13 @@ static char *api_patch(const char *uri, const char *content)
         target = NULL;
     }
     json_delete(source);
-    return json_encode(target);
+    return json_stringify(target);
 }
 
 static char *api_delete(const char *uri)
 {
     json_t *node = map_delete(map, uri);
-    char *str = json_encode(node);
+    char *str = json_stringify(node);
 
     json_delete(node);
     return str;

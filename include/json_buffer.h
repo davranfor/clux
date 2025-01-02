@@ -19,9 +19,9 @@ enum json_encode
 
 enum json_encode json_get_encode(void);
 void json_set_encode(enum json_encode);
-char *json_encode(const json_t *);
-char *json_indent(const json_t *, int);
-char *json_buffer_write(buffer_t *, const json_t *, int);
+char *json_stringify(const json_t *);
+char *json_encode(const json_t *, int);
+char *json_buffer_encode(buffer_t *, const json_t *, int);
 int json_write(const json_t *, FILE *, int);
 int json_write_line(const json_t *, FILE *);
 int json_write_file(const json_t *, const char *, int);

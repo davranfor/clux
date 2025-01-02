@@ -34,7 +34,18 @@ char *buffer_resize(buffer_t *buffer, size_t length)
     return buffer->text;
 }
 
-char *buffer_append(buffer_t *buffer, const char *text, size_t length)
+char *buffer_putchr(buffer_t *buffer, char chr)
+{
+    if (buffer_resize(buffer, 1) == NULL)
+    {
+        return NULL;
+    }
+    buffer->text[buffer->length] = chr;
+    buffer->length += 1;
+    return buffer->text;
+}
+
+char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
 {
     if (buffer_resize(buffer, length) == NULL)
     {
@@ -45,7 +56,7 @@ char *buffer_append(buffer_t *buffer, const char *text, size_t length)
     return buffer->text;
 }
 
-char *buffer_write(buffer_t *buffer, const char *text)
+char *buffer_append(buffer_t *buffer, const char *text)
 {
     size_t length = strlen(text);
 
@@ -58,7 +69,7 @@ char *buffer_write(buffer_t *buffer, const char *text)
     return buffer->text;
 }
 
-char *buffer_print(buffer_t *buffer, const char *fmt, ...)
+char *buffer_format(buffer_t *buffer, const char *fmt, ...)
 {
     va_list args;
 

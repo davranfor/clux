@@ -23,8 +23,8 @@ char *string_clone(const char *str)
     return ptr;
 }
 
-/* Returns an allocated printf */
-char *string_print(const char *fmt, ...)
+/* Returns an allocated string using printf style*/
+char *string_format(const char *fmt, ...)
 {
     va_list args;
 
@@ -36,7 +36,7 @@ char *string_print(const char *fmt, ...)
     return str;
 }
 
-/* Returns an allocated vprintf */
+/* Returns an allocated strung using vprintf style */
 char *string_vprint(const char *fmt, va_list args)
 {
     va_list copy;
