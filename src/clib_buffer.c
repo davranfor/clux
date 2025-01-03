@@ -56,9 +56,9 @@ char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
     return buffer->text;
 }
 
-char *buffer_insert(buffer_t *buffer, size_t offset, char *text)
+char *buffer_insert(buffer_t *buffer, size_t index, char *text)
 {
-    if (offset >= buffer->length)
+    if (index >= buffer->length)
     {
         return buffer_append(buffer, text);
     }
@@ -69,10 +69,10 @@ char *buffer_insert(buffer_t *buffer, size_t offset, char *text)
     {
         return NULL;
     }
-    memmove(buffer->text + offset + length,
-            buffer->text + offset,
-            buffer->length - offset);
-    memcpy(buffer->text + offset, text, length);
+    memmove(buffer->text + index + length,
+            buffer->text + index,
+            buffer->length - index);
+    memcpy(buffer->text + index, text, length);
     buffer->length += length;
     return buffer->text;
 }
