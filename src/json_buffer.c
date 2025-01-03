@@ -358,3 +358,24 @@ int json_print(const json_t *node)
     return json_write(node, stdout, 2);
 }
 
+/**
+ * Returns an encoded json string
+ * The caller is responsible for freeing the returned string
+ */
+char *json_quote(const char *str)
+{
+    if (str == NULL)
+    {
+        return NULL;
+    }
+
+    buffer_t buffer = {NULL, 0, 0};
+
+    if (buffer_write_string(&buffer, str))
+    {
+        return buffer.text;
+    }
+    free(buffer.text);
+    return NULL;
+}
+
