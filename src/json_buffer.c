@@ -72,7 +72,7 @@ static char *buffer_write_real(buffer_t *buffer, double value)
     return done ? buffer->text : buffer_append(buffer, ".0");
 }
 
-static int buffer_quote(buffer_t *buffer, const char *str)
+static int buffer_write_string(buffer_t *buffer, const char *str)
 {
     CHECK(buffer_putchr(buffer, '"'));
 
@@ -119,7 +119,7 @@ static int buffer_print_node(buffer_t *buffer, const json_t *node,
     }
     if (node->key != NULL)
     {
-        CHECK(buffer_quote(buffer, node->key));
+        CHECK(buffer_write_string(buffer, node->key));
         CHECK(buffer_append(buffer, indent == 0 ? ":" : ": "));
     }
     switch (node->type)
@@ -131,7 +131,7 @@ static int buffer_print_node(buffer_t *buffer, const json_t *node,
             CHECK(buffer_putchr(buffer, '['));
             break;
         case JSON_STRING:
-            CHECK(buffer_quote(buffer, node->string));
+            CHECK(buffer_write_string(buffer, node->string));
             break;
         case JSON_INTEGER:
             CHECK(buffer_write_integer(buffer, node->number));
@@ -302,16 +302,15 @@ char *json_buffer_encode(buffer_t *buffer, const json_t *node, int indent)
 /* Serializes a JSON structure into a file */
 int json_write(const json_t *node, FILE *file, int indent)
 {
+    buffer_t buffer = {NULL, 0, 0};
     int rc = 0;
 
     if (file != NULL)
     {
-        char *str = json_encode(node, indent);
-
-        if (str != NULL)
+        if (json_buffer_encode(&buffer, node, indent))
         {
-            rc = fputs(str, file) != EOF;
-            free(str);
+            rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
+            free(buffer.text);
         }
     }
     return rc;
@@ -320,17 +319,16 @@ int json_write(const json_t *node, FILE *file, int indent)
 /* Serializes a JSON structure into a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
+    buffer_t buffer = {NULL, 0, 0};
     int rc = 0;
 
     if (file != NULL)
     {
-        char *str = json_stringify(node);
-
-        if (str != NULL)
+        if (json_buffer_encode(&buffer, node, 0) && buffer_putchr(&buffer, '\n'))
         {
-            rc = fprintf(file, "%s\n", str);
-            free(str);
+            rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
         }
+        free(buffer.text);
     }
     return rc;
 }
@@ -338,17 +336,16 @@ int json_write_line(const json_t *node, FILE *file)
 /* Serializes a JSON structure into a FILE given a path */
 int json_write_file(const json_t *node, const char *path, int indent)
 {
+    buffer_t buffer = {NULL, 0, 0};
     FILE *file;
     int rc = 0;
 
     if ((path != NULL) && (file = fopen(path, "w")))
     {
-        char *str = json_encode(node, indent);
-
-        if (str != NULL)
+        if (json_buffer_encode(&buffer, node, indent))
         {
-            rc = fputs(str, file) != EOF;
-            free(str);
+            rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
+            free(buffer.text);
         }
         fclose(file);
     }
@@ -359,26 +356,5 @@ int json_write_file(const json_t *node, const char *path, int indent)
 int json_print(const json_t *node)
 {
     return json_write(node, stdout, 2);
-}
-
-/**
- * Returns an encoded json string
- * The caller is responsible for freeing the returned string
- */
-char *json_quote(const char *str)
-{
-    if (str == NULL)
-    {
-        return NULL;
-    }
-
-    buffer_t buffer = {NULL, 0, 0};
-
-    if (buffer_quote(&buffer, str))
-    {
-        return buffer.text;
-    }
-    free(buffer.text);
-    return NULL;
 }
 

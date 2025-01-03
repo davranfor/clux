@@ -26,7 +26,6 @@ int json_write(const json_t *, FILE *, int);
 int json_write_line(const json_t *, FILE *);
 int json_write_file(const json_t *, const char *, int);
 int json_print(const json_t *);
-char *json_quote(const char *);
 
 #endif
 
