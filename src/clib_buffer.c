@@ -56,6 +56,27 @@ char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
     return buffer->text;
 }
 
+char *buffer_insert(buffer_t *buffer, size_t offset, char *text)
+{
+    if (offset >= buffer->length)
+    {
+        return buffer_append(buffer, text);
+    }
+
+    size_t length = strlen(text);
+    
+    if (buffer_resize(buffer, length) == NULL)
+    {
+        return NULL;
+    }
+    memmove(buffer->text + offset + length,
+            buffer->text + offset,
+            buffer->length - offset);
+    memcpy(buffer->text + offset, text, length);
+    buffer->length += length;
+    return buffer->text;
+}
+
 char *buffer_append(buffer_t *buffer, const char *text)
 {
     size_t length = strlen(text);
