@@ -110,4 +110,3 @@ char *buffer_format(buffer_t *buffer, const char *fmt, ...)
     return buffer->text;
 }
 
-
