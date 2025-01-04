@@ -27,7 +27,7 @@ char *buffer_resize(buffer_t *buffer, size_t length)
 {
     size_t size = buffer->length + length + 1;
 
-    if (size > buffer->size)
+    if ((size > buffer->size) && ((length > 0) || (buffer->size == 0)))
     {
         return resize(buffer, next_pow2(size));
     }
@@ -40,8 +40,8 @@ char *buffer_putchr(buffer_t *buffer, char chr)
     {
         return NULL;
     }
-    buffer->text[buffer->length] = chr;
-    buffer->length += 1;
+    buffer->text[buffer->length++] = chr;
+    buffer->text[buffer->length] = '\0';
     return buffer->text;
 }
 
@@ -51,27 +51,25 @@ char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
     {
         return NULL;
     }
-    memcpy(buffer->text + buffer->length, text, length + 1);
+    ((char *)memcpy(buffer->text + buffer->length, text, length))[length] = '\0';
     buffer->length += length;
     return buffer->text;
 }
 
-char *buffer_insert(buffer_t *buffer, size_t index, char *text)
+char *buffer_insert(buffer_t *buffer, size_t index,
+    const char *text, size_t length)
 {
     if (index >= buffer->length)
     {
-        return buffer_append(buffer, text);
+        return buffer_attach(buffer, text, length);
     }
-
-    size_t length = strlen(text);
-    
     if (buffer_resize(buffer, length) == NULL)
     {
         return NULL;
     }
     memmove(buffer->text + index + length,
             buffer->text + index,
-            buffer->length - index);
+            buffer->length - index + 1);
     memcpy(buffer->text + index, text, length);
     buffer->length += length;
     return buffer->text;
