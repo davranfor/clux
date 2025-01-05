@@ -12,6 +12,7 @@
 #include "clib_string.h"
 #include "clib_match.h"
 #include "clib_regex.h"
+#include "clib_check.h"
 #include "json_private.h"
 #include "json_reader.h"
 #include "json_buffer.h"
@@ -122,9 +123,9 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
         "Aborted. Malformed schema",
     };
 
-    buffer_format(buffer, "\ntype: %s", events[event->type]);
-    buffer_format(buffer, "\npath: %s", event->path);
-    buffer_append(buffer, "\nnode: ");
+    CHECK(buffer_format(buffer, "\ntype: %s", events[event->type]));
+    CHECK(buffer_format(buffer, "\npath: %s", event->path));
+    CHECK(buffer_append(buffer, "\nnode: "));
     if (json_is_iterable(event->node))
     {
         const char *type = json_is_object(event->node) ? "Object" : "Array";
@@ -133,23 +134,23 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
 
         if (event->node->key != NULL)
         {
-            buffer_format(buffer, "%s '%s' (%u elements)", type, name, size);
+            CHECK(buffer_format(buffer, "%s '%s' (%u items)", type, name, size));
         }
         else
         {
-            buffer_format(buffer, "%s (%u elements)", type, size);
+            CHECK(buffer_format(buffer, "%s (%u items)", type, size));
         }
     }
     else
     {
-        json_buffer_encode(buffer, event->node, 0);
+        CHECK(json_buffer_encode(buffer, event->node, 0));
     }
-    buffer_append(buffer, "\nrule: ");
+    CHECK(buffer_append(buffer, "\nrule: "));
 
     size_t length = buffer->length;
     size_t max_length = 192;
 
-    json_buffer_encode(buffer, event->rule, 0);
+    CHECK(json_buffer_encode(buffer, event->rule, 0));
     if (buffer->length > length + max_length)
     {
         length += max_length;
@@ -159,7 +160,7 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
         }
         buffer->length = length;
         buffer->text[length] = '\0';
-        buffer_append(buffer, ": ...");
+        CHECK(buffer_append(buffer, ": ..."));
     }
     return buffer_append(buffer, "\n");
 }
