@@ -51,7 +51,8 @@ char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
     {
         return NULL;
     }
-    ((char *)memcpy(buffer->text + buffer->length, text, length))[length] = '\0';
+    memcpy(buffer->text + buffer->length, text, length);
+    buffer->text[buffer->length + length] = '\0';
     buffer->length += length;
     return buffer->text;
 }
