@@ -147,19 +147,17 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
     }
     CHECK(buffer_append(buffer, "\nrule: "));
 
-    size_t length = buffer->length;
-    size_t max_length = 192;
+    size_t max_length = buffer->length + 192;
 
     CHECK(json_buffer_encode(buffer, event->rule, 0));
-    if (buffer->length > length + max_length)
+    if (buffer->length > max_length)
     {
-        length += max_length;
-        while (buffer->text[length] != ':')
+        buffer->length = max_length;
+        while (buffer->text[buffer->length] != ':')
         {
-            length--;
+            buffer->length--;
         }
-        buffer->length = length;
-        buffer->text[length] = '\0';
+        buffer->text[buffer->length] = '\0';
         CHECK(buffer_append(buffer, ": ..."));
     }
     return buffer_append(buffer, "\n");
