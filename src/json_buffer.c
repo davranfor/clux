@@ -11,8 +11,6 @@
 #include "json_private.h"
 #include "json_buffer.h"
 
-#define MAX_INDENT 8
-
 /**
  * The 'encode' static global variable can take the following values:
  * - JSON_ASCII: Escapes control characters and non-ASCII characters.
@@ -222,6 +220,8 @@ static int buffer_print_tree(buffer_t *buffer, const json_t *node,
     return 1;
 }
 
+#define MAX_INDENT 8
+
 /**
  * Encodes a node into a provided buffer.
  * The cast from 'const json_t *' to 'json_t *' is needed to pack the children.
@@ -303,6 +303,9 @@ char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
     return NULL;
 }
 
+#define write_file(buffer, file) \
+    (fwrite(buffer.text, 1, buffer.length, file) == buffer.length)
+
 /* Serializes a JSON structure into a file */
 int json_write(const json_t *node, FILE *file, size_t indent)
 {
@@ -314,9 +317,9 @@ int json_write(const json_t *node, FILE *file, size_t indent)
 
         if (buffer_encode(&buffer, node, indent))
         {
-            rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
-            free(buffer.text);
+            rc = write_file(buffer, file);
         }
+        free(buffer.text);
     }
     return rc;
 }
@@ -332,7 +335,7 @@ int json_write_line(const json_t *node, FILE *file)
 
         if (buffer_encode(&buffer, node, 0) && buffer_putchr(&buffer, '\n'))
         {
-            rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
+            rc = write_file(buffer, file);
         }
         free(buffer.text);
     }
@@ -351,9 +354,9 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
 
         if (buffer_encode(&buffer, node, indent))
         {
-            rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
-            free(buffer.text);
+            rc = write_file(buffer, file);
         }
+        free(buffer.text);
         fclose(file);
     }
     return rc;
