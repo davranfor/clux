@@ -344,7 +344,7 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
     FILE *file;
     int rc = 0;
 
-    if ((path != NULL) && (file = fopen(path, "w")))
+    if ((node != NULL) && (path != NULL) && (file = fopen(path, "w")))
     {
         if (buffer_encode(&buffer, node, indent))
         {
