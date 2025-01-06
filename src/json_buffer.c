@@ -249,9 +249,9 @@ static int buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
         };
 #pragma GCC diagnostic pop
 
-        if (indent > 8)
+        if (indent > MAX_INDENT)
         {
-            indent = 8;
+            indent = MAX_INDENT;
         }
         node = is_property ? &grandparent : &parent; 
         return buffer_print_tree(buffer, node, 0, (unsigned char)indent);
@@ -311,7 +311,7 @@ int json_write(const json_t *node, FILE *file, size_t indent)
 
     if (file != NULL)
     {
-        if (json_buffer_encode(&buffer, node, indent))
+        if (buffer_encode(&buffer, node, indent))
         {
             rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
             free(buffer.text);
@@ -328,7 +328,7 @@ int json_write_line(const json_t *node, FILE *file)
 
     if (file != NULL)
     {
-        if (json_buffer_encode(&buffer, node, 0) && buffer_putchr(&buffer, '\n'))
+        if (buffer_encode(&buffer, node, 0) && buffer_putchr(&buffer, '\n'))
         {
             rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
         }
@@ -346,7 +346,7 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
 
     if ((path != NULL) && (file = fopen(path, "w")))
     {
-        if (json_buffer_encode(&buffer, node, indent))
+        if (buffer_encode(&buffer, node, indent))
         {
             rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
             free(buffer.text);
