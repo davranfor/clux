@@ -226,7 +226,7 @@ static int buffer_print_tree(buffer_t *buffer, const json_t *node,
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */ 
-static int buffer_encode(buffer_t *buffer, const json_t *node, int indent)
+static int buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 {
     if (node != NULL) 
     {
@@ -247,6 +247,10 @@ static int buffer_encode(buffer_t *buffer, const json_t *node, int indent)
         };
 #pragma GCC diagnostic pop
 
+        if (indent > 8)
+        {
+            indent = 8;
+        }
         node = is_property ? &grandparent : &parent; 
         return buffer_print_tree(buffer, node, 0, (unsigned char)indent);
     }
@@ -275,11 +279,11 @@ char *json_stringify(const json_t *node)
 }
 
 /* Serializes a JSON structure with indentation (truncated to 0 ... 8 spaces) */
-char *json_encode(const json_t *node, int indent)
+char *json_encode(const json_t *node, size_t indent)
 {
     buffer_t buffer = {NULL, 0, 0};
 
-    if (buffer_encode(&buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
+    if (buffer_encode(&buffer, node, indent))
     {
         return buffer.text;
     }
@@ -288,9 +292,9 @@ char *json_encode(const json_t *node, int indent)
 }
 
 /* Serializes a JSON structure into a provided buffer */
-char *json_buffer_encode(buffer_t *buffer, const json_t *node, int indent)
+char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 {
-    if (buffer_encode(buffer, node, indent < 0 ? 0 : indent > 8 ? 8 : indent))
+    if (buffer_encode(buffer, node, indent))
     {
         return buffer->text;
     }
@@ -298,7 +302,7 @@ char *json_buffer_encode(buffer_t *buffer, const json_t *node, int indent)
 }
 
 /* Serializes a JSON structure into a file */
-int json_write(const json_t *node, FILE *file, int indent)
+int json_write(const json_t *node, FILE *file, size_t indent)
 {
     buffer_t buffer = {NULL, 0, 0};
     int rc = 0;
@@ -332,7 +336,7 @@ int json_write_line(const json_t *node, FILE *file)
 }
 
 /* Serializes a JSON structure into a FILE given a path */
-int json_write_file(const json_t *node, const char *path, int indent)
+int json_write_file(const json_t *node, const char *path, size_t indent)
 {
     buffer_t buffer = {NULL, 0, 0};
     FILE *file;
