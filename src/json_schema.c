@@ -251,13 +251,13 @@ enum
 {
     SCHEMA_ERROR = -1, SCHEMA_INVALID, SCHEMA_VALID,
     SCHEMA_WARNING, SCHEMA_FAILURE, SCHEMA_ABORTED,
-    DEFS, TEST(TEST_ENUM) NTESTS
+    TESTS, TEST(TEST_ENUM) NTESTS
 };
 
 #define TEST_KEY(a, b) {.key = b},
 static test_t tests[] = {TEST(TEST_KEY)};
 
-enum {TABLE_SIZE = NTESTS - DEFS - 1};
+enum {TABLE_SIZE = NTESTS - TESTS - 1};
 static test_t *table[TABLE_SIZE];
 
 __attribute__((constructor))
@@ -281,7 +281,7 @@ static int table_get_test(const char *key)
     {
         if (!strcmp(test->key, key))
         {
-            return (int)(test - tests) + DEFS + 1;
+            return TESTS + (int)(test - tests) + 1;
         }
         test = test->next;
     }
