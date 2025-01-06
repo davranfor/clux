@@ -270,7 +270,7 @@ static int buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
  */
 char *json_stringify(const json_t *node)
 {
-    buffer_t buffer = {NULL, 0, 0};
+    buffer_t buffer = {0};
 
     if (buffer_encode(&buffer, node, 0))
     {
@@ -283,7 +283,7 @@ char *json_stringify(const json_t *node)
 /* Serializes a JSON structure with indentation (truncated to 0 ... 8 spaces) */
 char *json_encode(const json_t *node, size_t indent)
 {
-    buffer_t buffer = {NULL, 0, 0};
+    buffer_t buffer = {0};
 
     if (buffer_encode(&buffer, node, indent))
     {
@@ -306,11 +306,12 @@ char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 /* Serializes a JSON structure into a file */
 int json_write(const json_t *node, FILE *file, size_t indent)
 {
-    buffer_t buffer = {NULL, 0, 0};
     int rc = 0;
 
     if (file != NULL)
     {
+        buffer_t buffer = {0};
+
         if (buffer_encode(&buffer, node, indent))
         {
             rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
@@ -323,11 +324,12 @@ int json_write(const json_t *node, FILE *file, size_t indent)
 /* Serializes a JSON structure into a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
-    buffer_t buffer = {NULL, 0, 0};
     int rc = 0;
 
     if (file != NULL)
     {
+        buffer_t buffer = {0};
+
         if (buffer_encode(&buffer, node, 0) && buffer_putchr(&buffer, '\n'))
         {
             rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
@@ -340,12 +342,13 @@ int json_write_line(const json_t *node, FILE *file)
 /* Serializes a JSON structure into a FILE given a path */
 int json_write_file(const json_t *node, const char *path, size_t indent)
 {
-    buffer_t buffer = {NULL, 0, 0};
     FILE *file;
     int rc = 0;
 
     if ((node != NULL) && (path != NULL) && (file = fopen(path, "w")))
     {
+        buffer_t buffer = {0};
+
         if (buffer_encode(&buffer, node, indent))
         {
             rc = fwrite(buffer.text, 1, buffer.length, file) == buffer.length;
@@ -373,7 +376,7 @@ char *json_quote(const char *str)
         return NULL;
     }
 
-    buffer_t buffer = {NULL, 0, 0};
+    buffer_t buffer = {0};
 
     if (buffer_print_string(&buffer, str))
     {
