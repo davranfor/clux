@@ -12,7 +12,6 @@
 #include "clib_string.h"
 #include "clib_match.h"
 #include "clib_regex.h"
-#include "clib_check.h"
 #include "json_private.h"
 #include "json_reader.h"
 #include "json_buffer.h"
@@ -109,12 +108,13 @@ static void raise_error(const schema_t *schema,
     notify(schema, rule, node, JSON_SCHEMA_ABORTED);
 }
 
+#define EVENT_MAX_LENGTH 128
+
 /**
- * Writes an event to a provided buffer
- * event->node: Inner nodes are omitted
- * event->rule: Cropped to the first ':' before max_length
+ * Writes an event to a provided buffer.
+ * Limits the length to EVENT_PATH_LENGTH on iterables.
  */
-char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
+int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 {
     static const char *events[] =
     {
@@ -123,44 +123,28 @@ char *json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer
         "Aborted. Malformed schema",
     };
 
-    CHECK(buffer_format(buffer, "\ntype: %s", events[event->type]));
-    CHECK(buffer_format(buffer, "\npath: %s", event->path));
-    CHECK(buffer_append(buffer, "\nnode: "));
+    buffer_format(buffer, "\nType: %s", events[event->type]);
+    buffer_format(buffer, "\nPath: %s", event->path);
+    buffer_append(buffer, "\nNode: ");
     if (json_is_iterable(event->node))
     {
-        const char *type = json_is_object(event->node) ? "Object" : "Array";
-        const char *name = json_name(event->node);
-        unsigned size = event->node->size;
-
-        if (event->node->key != NULL)
-        {
-            CHECK(buffer_format(buffer, "%s '%s' (%u items)", type, name, size));
-        }
-        else
-        {
-            CHECK(buffer_format(buffer, "%s (%u items)", type, size));
-        }
+        json_buffer_encode_max(buffer, event->node, 0, EVENT_MAX_LENGTH);
     }
     else
     {
-        CHECK(json_buffer_encode(buffer, event->node, 0));
+        json_buffer_encode(buffer, event->node, 0);
     }
-    CHECK(buffer_append(buffer, "\nrule: "));
-
-    size_t max_length = buffer->length + 192;
-
-    CHECK(json_buffer_encode(buffer, event->rule, 0));
-    if (buffer->length > max_length)
+    buffer_append(buffer, "\nRule: ");
+    if (json_is_iterable(event->rule))
     {
-        buffer->length = max_length;
-        while (buffer->text[buffer->length] != ':')
-        {
-            buffer->length--;
-        }
-        buffer->text[buffer->length] = '\0';
-        CHECK(buffer_append(buffer, ": ..."));
+        json_buffer_encode_max(buffer, event->rule, 0, EVENT_MAX_LENGTH);
     }
-    return buffer_append(buffer, "\n");
+    else
+    {
+        json_buffer_encode(buffer, event->rule, 0);
+    }
+    buffer_append(buffer, "\n");
+    return !buffer->error;
 }
 
 static map_t *map;

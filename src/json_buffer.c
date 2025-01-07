@@ -113,38 +113,38 @@ static int buffer_print_node(buffer_t *buffer, const json_t *node,
 {
     for (unsigned i = 0; i < depth * indent; i++)
     {
-        CHECK(buffer_putchr(buffer, ' '));
+        buffer_putchr(buffer, ' ');
     }
     if (node->key != NULL)
     {
-        CHECK(buffer_print_string(buffer, node->key));
-        CHECK(buffer_append(buffer, indent == 0 ? ":" : ": "));
+        buffer_print_string(buffer, node->key);
+        buffer_append(buffer, indent == 0 ? ":" : ": ");
     }
     switch (node->type)
     {
         case JSON_OBJECT:
-            CHECK(buffer_putchr(buffer, '{'));
+            buffer_putchr(buffer, '{');
             break;
         case JSON_ARRAY:
-            CHECK(buffer_putchr(buffer, '['));
+            buffer_putchr(buffer, '[');
             break;
         case JSON_STRING:
-            CHECK(buffer_print_string(buffer, node->string));
+            buffer_print_string(buffer, node->string);
             break;
         case JSON_INTEGER:
-            CHECK(buffer_print_integer(buffer, node->number));
+            buffer_print_integer(buffer, node->number);
             break;
         case JSON_REAL:
-            CHECK(buffer_print_real(buffer, node->number));
+            buffer_print_real(buffer, node->number);
             break;
         case JSON_TRUE:
-            CHECK(buffer_append(buffer, "true"));
+            buffer_append(buffer, "true");
             break;
         case JSON_FALSE:
-            CHECK(buffer_append(buffer, "false"));
+            buffer_append(buffer, "false");
             break;
         case JSON_NULL:
-            CHECK(buffer_append(buffer, "null"));
+            buffer_append(buffer, "null");
             break;
     }
     if (node->size == 0)
@@ -152,22 +152,22 @@ static int buffer_print_node(buffer_t *buffer, const json_t *node,
         switch (node->type)
         {
             case JSON_OBJECT:
-                CHECK(buffer_putchr(buffer, '}'));
+                buffer_putchr(buffer, '}');
                 break;
             case JSON_ARRAY:
-                CHECK(buffer_putchr(buffer, ']'));
+                buffer_putchr(buffer, ']');
                 break;
         }
         if (trailing_comma)
         {
-            CHECK(buffer_putchr(buffer, ','));
+            buffer_putchr(buffer, ',');
         }
     }
     if (indent > 0)
     {
-        CHECK(buffer_putchr(buffer, '\n'));
+        buffer_putchr(buffer, '\n');
     }
-    return 1;
+    return !buffer->error;
 }
 
 static int buffer_print_edge(buffer_t *buffer, const json_t *node,
@@ -177,44 +177,54 @@ static int buffer_print_edge(buffer_t *buffer, const json_t *node,
     {
         for (unsigned i = 0; i < depth * indent; i++)
         {
-            CHECK(buffer_putchr(buffer, ' '));
+            buffer_putchr(buffer, ' ');
         }
         switch (node->type)
         {
             case JSON_OBJECT:
-                CHECK(buffer_putchr(buffer, '}'));
+                buffer_putchr(buffer, '}');
                 break;
             case JSON_ARRAY:
-                CHECK(buffer_putchr(buffer, ']'));
+                buffer_putchr(buffer, ']');
                 break;
         }
         if (trailing_comma)
         {
-            CHECK(buffer_putchr(buffer, ','));
+            buffer_putchr(buffer, ',');
         }
         if (indent > 0)
         {
-            CHECK(buffer_putchr(buffer, '\n'));
+            buffer_putchr(buffer, '\n');
         }
     }
-    return 1;
+    return !buffer->error;
 }
 
-static int buffer_print_tree(buffer_t *buffer, const json_t *node,
-    unsigned short depth, unsigned char indent)
+typedef struct
 {
-    for (unsigned i = 0; i < node->size; i++)
-    {
-        unsigned char trailing_comma = node->size > i + 1;
+    buffer_t *base;
+    size_t top_length;
+    size_t max_length;
+    unsigned char indent;
+} json_buffer_t;
 
+static int buffer_print_tree(json_buffer_t *buffer, const json_t *node,
+    unsigned short depth)
+{
+    for (unsigned i = 0;
+        (i < node->size) && (buffer->base->length <= buffer->max_length);
+        (i++))
+    {
+        unsigned char more = node->size > i + 1;
+
+        buffer->top_length = buffer->base->length;
         CHECK(buffer_print_node(
-            buffer, node->child[i], depth, indent, trailing_comma));
+            buffer->base, node->child[i], depth, buffer->indent, more));
         if (node->child[i]->size > 0)
         {
-            CHECK(buffer_print_tree(
-                buffer, node->child[i], depth + 1, indent));
+            CHECK(buffer_print_tree(buffer, node->child[i], depth + 1));
             CHECK(buffer_print_edge(
-                buffer, node->child[i], depth, indent, trailing_comma));
+                buffer->base, node->child[i], depth, buffer->indent, more));
         }
     }
     return 1;
@@ -228,9 +238,10 @@ static int buffer_print_tree(buffer_t *buffer, const json_t *node,
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */ 
-static int buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
+static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
+    size_t max_length)
 {
-    if (node != NULL) 
+    if (node != NULL)
     {
         int is_property = node->key != NULL;
 #pragma GCC diagnostic push
@@ -249,43 +260,33 @@ static int buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
         };
 #pragma GCC diagnostic pop
 
-        if (indent > MAX_INDENT)
+        json_buffer_t buffer =
         {
-            indent = MAX_INDENT;
-        }
+            .base = base,
+            .top_length = base->length,
+            .max_length = max_length ? base->length + max_length : (size_t)-1,
+            .indent = indent > MAX_INDENT ? MAX_INDENT : (unsigned char)indent
+        };
+
         node = is_property ? &grandparent : &parent; 
-        return buffer_print_tree(buffer, node, 0, (unsigned char)indent);
+        CHECK(buffer_print_tree(&buffer, node, 0));
+        if (base->length > buffer.max_length)
+        {
+            base->text[buffer.top_length] = '\0';
+            base->length = buffer.top_length;
+            buffer_append(base, indent ? "...\n" : "...");
+        }
+        return !base->error;
     }
     return 0;
 }
 
-/**
- * Serializes a JSON structure or a single node into a compact string without
- * applying any indentation or whitespace for formatting.
- * The output is suitable for scenarios where minimizing size is important,
- * such as network transmission or storage.
- * Returns a dynamically allocated string containing the JSON representation,
- * or NULL on failure.
- * The caller is responsible for freeing the returned string.
- */
-char *json_stringify(const json_t *node)
-{
-    buffer_t buffer = {0};
-
-    if (buffer_encode(&buffer, node, 0))
-    {
-        return buffer.text;
-    }
-    free(buffer.text);
-    return NULL;
-}
-
-/* Serializes a JSON structure with indentation (truncated to 0 ... 8 spaces) */
+/* Serializes a JSON structure or a single node into a compact string */
 char *json_encode(const json_t *node, size_t indent)
 {
     buffer_t buffer = {0};
 
-    if (buffer_encode(&buffer, node, indent))
+    if (buffer_encode(&buffer, node, indent, 0))
     {
         return buffer.text;
     }
@@ -293,20 +294,57 @@ char *json_encode(const json_t *node, size_t indent)
     return NULL;
 }
 
-/* Serializes a JSON structure into a provided buffer */
+/* Serializes and limits length */
+char *json_encode_max(const json_t *node, size_t indent, size_t max_length)
+{
+    buffer_t buffer = {0};
+
+    if (buffer_encode(&buffer, node, indent, max_length))
+    {
+        return buffer.text;
+    }
+    free(buffer.text);
+    return NULL;
+}
+
+/* Serializes into a provided buffer */
 char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 {
-    if (buffer_encode(buffer, node, indent))
+    if (buffer_encode(buffer, node, indent, 0))
     {
         return buffer->text;
     }
     return NULL;
 }
 
+/* Serializes into a provided buffer and limits length */
+char *json_buffer_encode_max(buffer_t *buffer, const json_t *node,
+    size_t indent, size_t max_length)
+{
+    if (buffer_encode(buffer, node, indent, max_length))
+    {
+        return buffer->text;
+    }
+    return NULL;
+}
+
+/* Serializes without indentation */
+char *json_stringify(const json_t *node)
+{
+    buffer_t buffer = {0};
+
+    if (buffer_encode(&buffer, node, 0, 0))
+    {
+        return buffer.text;
+    }
+    free(buffer.text);
+    return NULL;
+}
+
 #define write_file(buffer, file) \
     (fwrite(buffer.text, 1, buffer.length, file) == buffer.length)
 
-/* Serializes a JSON structure into a file */
+/* Serializes into a file */
 int json_write(const json_t *node, FILE *file, size_t indent)
 {
     int rc = 0;
@@ -315,7 +353,7 @@ int json_write(const json_t *node, FILE *file, size_t indent)
     {
         buffer_t buffer = {0};
 
-        if (buffer_encode(&buffer, node, indent))
+        if (buffer_encode(&buffer, node, indent, 0))
         {
             rc = write_file(buffer, file);
         }
@@ -324,7 +362,7 @@ int json_write(const json_t *node, FILE *file, size_t indent)
     return rc;
 }
 
-/* Serializes a JSON structure into a file with a trailing newline */
+/* Serializes into a file with a trailing newline */
 int json_write_line(const json_t *node, FILE *file)
 {
     int rc = 0;
@@ -333,7 +371,8 @@ int json_write_line(const json_t *node, FILE *file)
     {
         buffer_t buffer = {0};
 
-        if (buffer_encode(&buffer, node, 0) && buffer_putchr(&buffer, '\n'))
+        if (buffer_encode(&buffer, node, 0, 0) &&
+            buffer_putchr(&buffer, '\n'))
         {
             rc = write_file(buffer, file);
         }
@@ -342,7 +381,7 @@ int json_write_line(const json_t *node, FILE *file)
     return rc;
 }
 
-/* Serializes a JSON structure into a FILE given a path */
+/* Serializes into a FILE given a path */
 int json_write_file(const json_t *node, const char *path, size_t indent)
 {
     FILE *file;
@@ -352,7 +391,7 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
     {
         buffer_t buffer = {0};
 
-        if (buffer_encode(&buffer, node, indent))
+        if (buffer_encode(&buffer, node, indent, 0))
         {
             rc = write_file(buffer, file);
         }
@@ -362,16 +401,13 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
     return rc;
 }
 
-/* Serializes a JSON structure and sends the result to stdout (2 spaces) */
+/* Serializes and sends the result to stdout (2 spaces) */
 int json_print(const json_t *node)
 {
     return json_write(node, stdout, 2);
 }
 
-/**
- * Returns an encoded json string
- * The caller is responsible for freeing the returned string
- */
+/* Returns an encoded json string */
 char *json_quote(const char *str)
 {
     if (str == NULL)

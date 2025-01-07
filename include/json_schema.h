@@ -25,7 +25,7 @@ enum {JSON_SCHEMA_WARNING, JSON_SCHEMA_FAILURE, JSON_SCHEMA_ABORTED};
 /* Response */
 enum {JSON_SCHEMA_ABORT, JSON_SCHEMA_CONTINUE};
 
-char *json_schema_write_event(const json_schema_event_t *, buffer_t *);
+int json_schema_write_event(const json_schema_event_t *, buffer_t *);
 void json_schema_set_map(map_t *);
 map_t *json_schema_get_map(void);
 int json_validate(const json_t *, const json_t *, json_validate_callback, void *);

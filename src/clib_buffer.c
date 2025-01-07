@@ -13,13 +13,21 @@
 
 static char *resize(buffer_t *buffer, size_t size)
 {
+    if (buffer->error)
+    {
+        return NULL;
+    }
+
     char *text = realloc(buffer->text, size);
 
-    if (text != NULL)
+    if (text == NULL)
     {
-        buffer->text = text;
-        buffer->size = size;
+        buffer->error = 1;
+        buffer->size = 0;
+        return NULL;
     }
+    buffer->text = text;
+    buffer->size = size;
     return text;
 }
 
@@ -27,7 +35,7 @@ char *buffer_resize(buffer_t *buffer, size_t length)
 {
     size_t size = buffer->length + length + 1;
 
-    if ((size > buffer->size) && ((length > 0) || (buffer->size == 0)))
+    if ((size > buffer->size) || (buffer->size == 0))
     {
         return resize(buffer, next_pow2(size));
     }
