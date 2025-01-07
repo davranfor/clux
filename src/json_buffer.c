@@ -203,7 +203,6 @@ static int buffer_print_edge(buffer_t *buffer, const json_t *node,
 typedef struct
 {
     buffer_t *base;
-    size_t top_length;
     size_t max_length;
     unsigned char indent;
 } json_buffer_t;
@@ -217,7 +216,6 @@ static int buffer_print_tree(json_buffer_t *buffer, const json_t *node,
     {
         unsigned char more = node->size > i + 1;
 
-        buffer->top_length = buffer->base->length;
         CHECK(buffer_print_node(
             buffer->base, node->child[i], depth, buffer->indent, more));
         if (node->child[i]->size > 0)
@@ -263,7 +261,6 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
         json_buffer_t buffer =
         {
             .base = base,
-            .top_length = base->length,
             .max_length = max_length ? base->length + max_length : (size_t)-1,
             .indent = indent > MAX_INDENT ? MAX_INDENT : (unsigned char)indent
         };
@@ -272,8 +269,7 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
         CHECK(buffer_print_tree(&buffer, node, 0));
         if (base->length > buffer.max_length)
         {
-            base->text[buffer.top_length] = '\0';
-            base->length = buffer.top_length;
+            buffer_adjust(base, buffer.max_length);
             buffer_append(base, indent ? "...\n" : "...");
         }
         return !base->error;

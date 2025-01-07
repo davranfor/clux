@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "clib_math.h"
+#include "clib_unicode.h"
 #include "clib_buffer.h"
 
 static char *resize(buffer_t *buffer, size_t size)
@@ -114,6 +115,24 @@ char *buffer_format(buffer_t *buffer, const char *fmt, ...)
     vsnprintf(buffer->text + buffer->length, length + 1, fmt, args);
     va_end(args);
     buffer->length += length;
+    return buffer->text;
+}
+
+char *buffer_adjust(buffer_t *buffer, size_t index)
+{
+    if (buffer_resize(buffer, 0) == NULL)
+    {
+        return NULL;
+    }
+    if (index <= buffer->length)
+    {
+        while ((index > 0) && !is_utf8(buffer->text[index]))
+        {
+            index--;
+        }
+        buffer->text[index] = '\0';
+        buffer->length = index;
+    }
     return buffer->text;
 }
 

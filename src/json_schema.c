@@ -110,10 +110,7 @@ static void raise_error(const schema_t *schema,
 
 #define EVENT_MAX_LENGTH 128
 
-/**
- * Writes an event to a provided buffer.
- * Limits the length to EVENT_PATH_LENGTH on iterables.
- */
+/* Writes an event to a provided buffer */
 int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
 {
     static const char *events[] =
@@ -126,23 +123,9 @@ int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_format(buffer, "\nType: %s", events[event->type]);
     buffer_format(buffer, "\nPath: %s", event->path);
     buffer_append(buffer, "\nNode: ");
-    if (json_is_iterable(event->node))
-    {
-        json_buffer_encode_max(buffer, event->node, 0, EVENT_MAX_LENGTH);
-    }
-    else
-    {
-        json_buffer_encode(buffer, event->node, 0);
-    }
+    json_buffer_encode_max(buffer, event->node, 0, EVENT_MAX_LENGTH);
     buffer_append(buffer, "\nRule: ");
-    if (json_is_iterable(event->rule))
-    {
-        json_buffer_encode_max(buffer, event->rule, 0, EVENT_MAX_LENGTH);
-    }
-    else
-    {
-        json_buffer_encode(buffer, event->rule, 0);
-    }
+    json_buffer_encode_max(buffer, event->rule, 0, EVENT_MAX_LENGTH);
     buffer_append(buffer, "\n");
     return !buffer->error;
 }
