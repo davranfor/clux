@@ -431,7 +431,7 @@ json_t *json_parse(const char *str, json_error_t *error)
 
 json_t *json_parse_file(const char *path, json_error_t *error)
 {
-    char *str = file_read(path);
+    char *str = path ? file_read(path) : NULL;
     json_t *node = json_parse(str, error);
 
     free(str);

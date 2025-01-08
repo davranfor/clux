@@ -115,6 +115,11 @@ static void raise_error(const schema_t *schema,
 int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer,
     size_t encode_max)
 {
+    if ((event == NULL) || (buffer == NULL))
+    {
+        return 0;
+    }
+
     static const char *events[] =
     {
         "Warning. Unknown schema rule",

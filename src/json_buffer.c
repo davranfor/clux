@@ -310,7 +310,7 @@ char *json_encode_max(const json_t *node, size_t indent, size_t max_length)
 /* Serializes into a provided buffer */
 char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 {
-    if (buffer_encode(buffer, node, indent, 0))
+    if (buffer && buffer_encode(buffer, node, indent, 0))
     {
         return buffer->text;
     }
@@ -321,7 +321,7 @@ char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 char *json_buffer_encode_max(buffer_t *buffer, const json_t *node,
     size_t indent, size_t max_length)
 {
-    if (buffer_encode(buffer, node, indent, max_length))
+    if (buffer && buffer_encode(buffer, node, indent, max_length))
     {
         return buffer->text;
     }
@@ -428,7 +428,7 @@ char *json_quote(const char *str)
 /* Encodes a json string into a provided buffer */
 char *json_buffer_quote(buffer_t *buffer, const char *str)
 {
-    if (str == NULL)
+    if ((buffer == NULL) || (str == NULL))
     {
         return NULL;
     }
@@ -462,6 +462,10 @@ char *json_convert(double number, enum json_type type)
 /* Encodes a number as json string into a provided buffer */
 char *json_buffer_convert(buffer_t *buffer, double number, enum json_type type)
 {
+    if (buffer == NULL)
+    {
+        return NULL;
+    }
     if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
     {
         CHECK(encode_integer(buffer, number));

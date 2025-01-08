@@ -149,7 +149,7 @@ json_t *json_pointer(const json_t *node, const char *path)
  */
 size_t json_pointer_put_key(char *buffer, size_t size, const char *key)
 {
-    if ((key == NULL) || (size == 0))
+    if ((buffer == NULL) || (key == NULL) || (size == 0))
     {
         return 0;
     }
@@ -194,7 +194,7 @@ size_t json_pointer_put_key(char *buffer, size_t size, const char *key)
  */
 size_t json_pointer_put_index(char *buffer, size_t size, size_t index)
 {
-    if (size == 0)
+    if ((buffer == NULL) || (size == 0))
     {
         return 0;
     }
