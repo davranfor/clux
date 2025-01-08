@@ -14,7 +14,7 @@
 
 static char *resize(buffer_t *buffer, size_t size)
 {
-    if (buffer->error)
+    if (buffer->fail)
     {
         return NULL;
     }
@@ -23,8 +23,8 @@ static char *resize(buffer_t *buffer, size_t size)
 
     if (text == NULL)
     {
-        buffer->error = 1;
         buffer->size = 0;
+        buffer->fail = 1;
         return NULL;
     }
     buffer->text = text;

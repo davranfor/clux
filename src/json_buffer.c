@@ -167,7 +167,7 @@ static int buffer_print_node(buffer_t *buffer, const json_t *node,
     {
         buffer_putchr(buffer, '\n');
     }
-    return !buffer->error;
+    return !buffer->fail;
 }
 
 static int buffer_print_edge(buffer_t *buffer, const json_t *node,
@@ -197,7 +197,7 @@ static int buffer_print_edge(buffer_t *buffer, const json_t *node,
             buffer_putchr(buffer, '\n');
         }
     }
-    return !buffer->error;
+    return !buffer->fail;
 }
 
 typedef struct
@@ -272,7 +272,7 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
             buffer_adjust(base, buffer.max_length);
             buffer_append(base, indent ? "...\n" : "...");
         }
-        return !base->error;
+        return !base->fail;
     }
     return 0;
 }

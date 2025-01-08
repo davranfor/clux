@@ -108,10 +108,12 @@ static void raise_error(const schema_t *schema,
     notify(schema, rule, node, JSON_SCHEMA_ABORTED);
 }
 
-#define EVENT_MAX_LENGTH 128
-
-/* Writes an event to a provided buffer */
-int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
+/**
+ * Writes an event to a provided buffer from an user-defined callback
+ * Limits the buffer to 'encode_max' bytes when encoding (0 = no limit)
+ */
+int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer,
+    size_t encode_max)
 {
     static const char *events[] =
     {
@@ -123,11 +125,11 @@ int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer)
     buffer_format(buffer, "\nType: %s", events[event->type]);
     buffer_format(buffer, "\nPath: %s", event->path);
     buffer_append(buffer, "\nNode: ");
-    json_buffer_encode_max(buffer, event->node, 0, EVENT_MAX_LENGTH);
+    json_buffer_encode_max(buffer, event->node, 0, encode_max);
     buffer_append(buffer, "\nRule: ");
-    json_buffer_encode_max(buffer, event->rule, 0, EVENT_MAX_LENGTH);
+    json_buffer_encode_max(buffer, event->rule, 0, encode_max);
     buffer_append(buffer, "\n");
-    return !buffer->error;
+    return !buffer->fail;
 }
 
 static map_t *map;

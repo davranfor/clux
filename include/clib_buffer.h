@@ -7,7 +7,7 @@
 #ifndef CLIB_BUFFER_H
 #define CLIB_BUFFER_H
 
-typedef struct { char *text; size_t length, size; int error; } buffer_t;
+typedef struct { char *text; size_t length, size; int fail; } buffer_t;
 
 char *buffer_resize(buffer_t *, size_t);
 char *buffer_putchr(buffer_t *, char);
