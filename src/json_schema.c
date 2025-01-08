@@ -33,12 +33,14 @@ struct active
 
 typedef struct
 {
-    // Schema root
+    // Roots
     const json_t *rule, *node;
+    // External references
+    const map_t *map;
     // User data
     json_validate_callback callback;
     void *data;
-    // Paths and references
+    // Paths and counter references
     struct active *active;
 } schema_t;
 
@@ -74,7 +76,7 @@ static int notify_event(const schema_t *schema,
         iter = iter->child[index];
     }
 
-    const json_schema_event_t event =
+    const json_event_t event =
     {
         .type = type, .path = path, .node = node, .rule = rule
     };
@@ -87,32 +89,32 @@ static int notify(const schema_t *schema,
 {
     return schema->callback
         ? notify_event(schema, rule, node, event)
-        : event == JSON_SCHEMA_FAILURE ? JSON_SCHEMA_ABORT : JSON_SCHEMA_CONTINUE;
+        : event == JSON_FAILURE ? JSON_ABORT : JSON_CONTINUE;
 }
 
 static int abort_on_warning(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_WARNING) == JSON_SCHEMA_ABORT;
+    return notify(schema, rule, node, JSON_WARNING) == JSON_ABORT;
 }
 
 static int abort_on_failure(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_SCHEMA_FAILURE) == JSON_SCHEMA_ABORT;
+    return notify(schema, rule, node, JSON_FAILURE) == JSON_ABORT;
 }
 
 static void raise_error(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    notify(schema, rule, node, JSON_SCHEMA_ABORTED);
+    notify(schema, rule, node, JSON_ABORTED);
 }
 
 /**
  * Writes an event to a provided buffer from an user-defined callback
  * Limits the buffer to 'encode_max' bytes when encoding (0 = no limit)
  */
-int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer,
+int json_write_event(const json_event_t *event, buffer_t *buffer,
     size_t encode_max)
 {
     if ((event == NULL) || (buffer == NULL))
@@ -135,18 +137,6 @@ int json_schema_write_event(const json_schema_event_t *event, buffer_t *buffer,
     json_buffer_encode_max(buffer, event->rule, 0, encode_max);
     buffer_append(buffer, "\n");
     return !buffer->fail;
-}
-
-static map_t *map;
-
-void json_schema_set_map(map_t *pmap)
-{
-    map = pmap;
-}
-
-map_t *json_schema_get_map(void)
-{
-    return map;
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
@@ -1028,9 +1018,13 @@ static int test_ref(const schema_t *schema,
             rule = schema->rule;
         }
     }
+    else if (schema->map != NULL)
+    {
+        rule = map_search(schema->map, ref);
+    }
     else
     {
-        rule = map_search(map, ref);
+        rule = NULL;
     }
     if ((rule == NULL) || (rule->type != JSON_OBJECT))
     {
@@ -1395,7 +1389,7 @@ static int validate(const schema_t *schema,
     return result;
 }
 
-int json_validate(const json_t *node, const json_t *rule,
+int json_validate(const json_t *node, const json_t *rule, const map_t *map,
     json_validate_callback callback, void *data)
 {
     struct active active = { .path[0] = 0, .paths = 1 };
@@ -1403,6 +1397,7 @@ int json_validate(const json_t *node, const json_t *rule,
     {
         .rule = rule,
         .node = node,
+        .map = map,
         .callback = callback,
         .data = data,
         .active = &active

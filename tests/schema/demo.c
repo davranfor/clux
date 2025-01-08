@@ -25,10 +25,10 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_schema_event_t *event, void *events)
+static int on_validate(const json_event_t *event, void *buffer)
 {
-    json_schema_write_event(event, events, 128);
-    return JSON_SCHEMA_CONTINUE;
+    json_write_event(event, buffer, 128);
+    return JSON_CONTINUE;
 }
 
 int main(int argc, char *argv[])
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     buffer_t events = {0};
 
-    if (!json_validate(target, schema, on_validate, &events))
+    if (!json_validate(target, schema, NULL, on_validate, &events))
     {
         fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
     }

@@ -7,16 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include <clux/clib.h>
 #include <clux/json.h>
 #include "loader.h"
 
 static map_t *schemas;
-
-static void unload_schemas(void)
-{
-    map_destroy(schemas, json_free);
-}
 
 static int load_schemas(DIR *dir)
 {
@@ -71,6 +65,11 @@ static int load_schemas(DIR *dir)
     return 1;
 }
 
+static void unload_schemas(void)
+{
+    map_destroy(schemas, json_free);
+}
+
 void loader_run(void)
 {
     if (!(schemas = map_create(0)))
@@ -78,7 +77,6 @@ void loader_run(void)
         perror("map_create");
         exit(EXIT_FAILURE);
     }
-    json_schema_set_map(schemas);
     atexit(unload_schemas);
 
     DIR *dir;
