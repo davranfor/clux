@@ -207,7 +207,7 @@ typedef struct
     unsigned char indent;
 } json_buffer_t;
 
-static int buffer_print_tree(json_buffer_t *buffer, const json_t *node,
+static int buffer_print_tree(const json_buffer_t *buffer, const json_t *node,
     unsigned short depth)
 {
     for (unsigned i = 0;
@@ -258,7 +258,7 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
         };
 #pragma GCC diagnostic pop
 
-        json_buffer_t buffer =
+        const json_buffer_t buffer =
         {
             .base = base,
             .max_length = max_length ? base->length + max_length : (size_t)-1,
