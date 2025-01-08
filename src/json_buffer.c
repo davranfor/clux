@@ -200,6 +200,8 @@ static int buffer_print_edge(buffer_t *buffer, const json_t *node,
     return !buffer->fail;
 }
 
+#define MAX_INDENT 8
+
 typedef struct
 {
     buffer_t *base;
@@ -227,8 +229,6 @@ static int buffer_print_tree(const json_buffer_t *buffer, const json_t *node,
     }
     return 1;
 }
-
-#define MAX_INDENT 8
 
 /**
  * Encodes a node into a provided buffer.
