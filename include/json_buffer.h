@@ -11,10 +11,10 @@
 #include "clib_buffer.h"
 #include "json_header.h"
 
-enum json_encode {JSON_UTF8, JSON_ASCII};
+enum json_encoding {JSON_UTF8, JSON_ASCII};
 
-enum json_encode json_get_encode(void);
-void json_set_encode(enum json_encode);
+enum json_encoding json_get_encoding(void);
+void json_set_encoding(enum json_encoding);
 char *json_encode(const json_t *, size_t);
 char *json_encode_max(const json_t *, size_t, size_t);
 char *json_buffer_encode(buffer_t *, const json_t *, size_t);

@@ -39,14 +39,14 @@ json_t *json_new_array(void)
 }
 
 /* Returns a new allocated json string */
-json_t *json_new_string(const char *text)
+json_t *json_new_string(const char *str)
 {
-    if (text == NULL)
+    if (str == NULL)
     {
         return NULL;
     }
 
-    char *string = string_clone(text);
+    char *string = string_clone(str);
 
     if (string == NULL)
     {
@@ -203,14 +203,14 @@ json_t *json_set_array(json_t *node)
 }
 
 /* Modifies and returns a json string */
-json_t *json_set_string(json_t *node, const char *text)
+json_t *json_set_string(json_t *node, const char *str)
 {
-    if ((node == NULL) || (text == NULL))
+    if ((node == NULL) || (str == NULL))
     {
         return NULL;
     }
 
-    char *string = string_clone(text);
+    char *string = string_clone(str);
 
     if (string == NULL)
     {
