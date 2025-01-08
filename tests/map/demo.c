@@ -40,9 +40,14 @@ int main(void)
     for (size_t iter = 0; iter < size; iter++)
     {
         json_t *root = json_new_object();
+        int code = rand() % size;
 
-        json_push_back(root, "code", json_new_format("%05d", rand() % size));
-        json_push_back(root, "func", json_new_string("insert"));
+        if (!json_push_back(root, "code", json_new_format("%05d", code)) ||
+            !json_push_back(root, "func", json_new_string("insert")))
+        {
+            perror("json_push_back");
+            exit(EXIT_FAILURE);
+        }
         node = map_insert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
@@ -57,9 +62,14 @@ int main(void)
     for (size_t iter = 0; iter < size; iter++)
     {
         json_t *root = json_new_object();
+        int code = rand() % size;
 
-        json_push_back(root, "code", json_new_format("%05d", rand() % size));
-        json_push_back(root, "func", json_new_string("upsert"));
+        if (!json_push_back(root, "code", json_new_format("%05d", code)) ||
+            !json_push_back(root, "func", json_new_string("upsert")))
+        {
+            perror("json_push_back");
+            exit(EXIT_FAILURE);
+        }
         node = map_upsert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {

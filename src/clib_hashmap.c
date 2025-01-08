@@ -31,7 +31,7 @@ struct node
     char key[];
 };
 
-struct hmap
+struct map
 {
     struct node **list;
     map_t *next;

@@ -13,6 +13,7 @@
  * Moves or replaces keys already present in 'source' from 'target'
  * Both nodes must be objects
  * Returns the number of nodes moved (keys not matching in 'target')
+ * or -1 on any failure
  */
 int json_patch(json_t *source, json_t *target)
 {

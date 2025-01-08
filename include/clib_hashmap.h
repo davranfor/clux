@@ -7,7 +7,7 @@
 #ifndef CLIB_HASHMAP_H
 #define CLIB_HASHMAP_H
 
-typedef struct hmap map_t;
+typedef struct map map_t;
 typedef int (*map_callback)(void *, size_t, void *);
 
 map_t *map_create(size_t);
