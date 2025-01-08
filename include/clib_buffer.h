@@ -16,7 +16,7 @@ char *buffer_insert(buffer_t *, size_t, const char *, size_t);
 char *buffer_append(buffer_t *, const char *);
 char *buffer_format(buffer_t *, const char *fmt, ...)
     __attribute__ ((format (printf, 2, 3)));
-char *buffer_adjust(buffer_t *, size_t);
+void buffer_adjust(buffer_t *, size_t);
 
 #endif
 

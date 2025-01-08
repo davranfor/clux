@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "clib_math.h"
 #include "clib_check.h"
 #include "clib_unicode.h"
 #include "json_private.h"
@@ -419,5 +420,53 @@ char *json_quote(const char *str)
     }
     free(buffer.text);
     return NULL;
+}
+
+/* Encodes a json string into a provided buffer */
+char *json_buffer_quote(buffer_t *buffer, const char *str)
+{
+    if (str == NULL)
+    {
+        return NULL;
+    }
+    CHECK(buffer_print_string(buffer, str));
+    return buffer->text;
+}
+
+/* Returns an encoded json string from a number */
+char *json_convert(double number, enum json_type type)
+{
+    buffer_t buffer = {0};
+
+    if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
+    {
+        if (buffer_print_integer(&buffer, number))
+        {
+            return buffer.text;
+        }
+    }
+    else
+    {
+        if (buffer_print_real(&buffer, number))
+        {
+            return buffer.text;
+        }
+    }
+    free(buffer.text);
+    return NULL;
+}
+
+/* Encodes a number as json string into a provided buffer */
+char *json_buffer_convert(buffer_t *buffer, double number, enum json_type type)
+{
+    if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
+    {
+        CHECK(buffer_print_integer(buffer, number));
+    }
+    else
+    {
+        CHECK(buffer_print_real(buffer, number));
+    }
+    return buffer->text;
 }
 

@@ -118,13 +118,9 @@ char *buffer_format(buffer_t *buffer, const char *fmt, ...)
     return buffer->text;
 }
 
-char *buffer_adjust(buffer_t *buffer, size_t index)
+void buffer_adjust(buffer_t *buffer, size_t index)
 {
-    if (buffer_resize(buffer, 0) == NULL)
-    {
-        return NULL;
-    }
-    if (index <= buffer->length)
+    if ((index <= buffer->length) && (buffer->text != NULL))
     {
         while ((index > 0) && !is_utf8(buffer->text[index]))
         {
@@ -133,6 +129,5 @@ char *buffer_adjust(buffer_t *buffer, size_t index)
         buffer->text[index] = '\0';
         buffer->length = index;
     }
-    return buffer->text;
 }
 
