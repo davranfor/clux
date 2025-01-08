@@ -158,45 +158,42 @@ static struct node *push_node(struct node *next, const char *key, void *data)
 
 static void *push(map_t *map, const char *key, void *data, int request)
 {
-    if ((map != NULL) && (key != NULL) && (data != NULL))
+    unsigned long hash = hash(key);
+
+    map = rehash(map, hash);
+
+    struct node **head = map->list + hash % map->room;
+    struct node *node = *head;
+
+    while (node != NULL)
     {
-        unsigned long hash = hash(key);
-
-        map = rehash(map, hash);
-
-        struct node **head = map->list + hash % map->room;
-        struct node *node = *head;
-
-        while (node != NULL)
+        if (strcmp(node->key, key) == 0)
         {
-            if (strcmp(node->key, key) == 0)
+            void *result = node->data;
+
+            if (request != INSERT)
             {
-                void *result = node->data;
-
-                if (request != INSERT)
-                {
-                    node->data = data;
-                }
-                return result;
+                node->data = data;
             }
-            node = node->next;
+            return result;
         }
-        if (request == UPDATE)
+        node = node->next;
+    }
+    if (request == UPDATE)
+    {
+        return NULL;
+    }
+    if ((*head = push_node(*head, key, data)) != NULL)
+    {
+        if (++map->size > map->room - map->room / 4)
         {
-            return NULL;
-        }
-        if ((*head = push_node(*head, key, data)) != NULL)
-        {
-            if (++map->size > map->room - map->room / 4)
+            map->next = map_create(map->room);
+            if (map->next == NULL)
             {
-                map->next = map_create(map->room);
-                if (map->next == NULL)
-                {
-                    return NULL;
-                }
+                return NULL;
             }
-            return data;
         }
+        return data;
     }
     return NULL;
 }
@@ -218,61 +215,54 @@ void *map_upsert(map_t *map, const char *key, void *data)
 
 void *map_delete(map_t *map, const char *key)
 {
-    if ((map != NULL) && (key != NULL))
+    unsigned long hash = hash(key);
+
+    map = rehash(map, hash);
+
+    struct node **head = map->list + hash % map->room;
+    struct node *node = *head, *prev = NULL;
+
+    while (node != NULL)
     {
-        unsigned long hash = hash(key);
-
-        map = rehash(map, hash);
-
-        struct node **head = map->list + hash % map->room;
-        struct node *node = *head, *prev = NULL;
-
-        while (node != NULL)
+        if (strcmp(node->key, key) == 0)
         {
-            if (strcmp(node->key, key) == 0)
-            {
-                void *data = node->data;
+            void *data = node->data;
 
-                if (prev != NULL)
-                {
-                    prev->next = node->next;
-                }
-                else
-                {
-                    *head = node->next;
-                }
-                free(node);
-                map->size--;
-                return data;
+            if (prev != NULL)
+            {
+                prev->next = node->next;
             }
-            prev = node;
-            node = node->next;
+            else
+            {
+                *head = node->next;
+            }
+            free(node);
+            map->size--;
+            return data;
         }
+        prev = node;
+        node = node->next;
     }
     return NULL;
 }
 
 void *map_search(const map_t *map, const char *key)
 {
-    if ((map != NULL) && (key != NULL))
+    unsigned long hash = hash(key);
+
+    do
     {
-        unsigned long hash = hash(key);
+        const struct node *node = map->list[hash % map->room];
 
-        do
+        while (node != NULL)
         {
-            const struct node *node = map->list[hash % map->room];
-
-            while (node != NULL)
+            if (strcmp(node->key, key) == 0)
             {
-                if (strcmp(node->key, key) == 0)
-                {
-                    return node->data;
-                }
-                node = node->next;
+                return node->data;
             }
-        } while ((map = map->next));
-
-    }
+            node = node->next;
+        }
+    } while ((map = map->next));
     return NULL;
 }
 
