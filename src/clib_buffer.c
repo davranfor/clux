@@ -100,22 +100,25 @@ char *buffer_append(buffer_t *buffer, const char *text)
 
 char *buffer_format(buffer_t *buffer, const char *fmt, ...)
 {
-    va_list args;
+    va_list args, copy;
 
     va_start(args, fmt);
+    va_copy(copy, args);
 
-    size_t length = (size_t)vsnprintf(NULL, 0, fmt, args);
+    int bytes = vsnprintf(NULL, 0, fmt, copy);
 
-    va_end(args);
-    if (buffer_resize(buffer, length) == NULL)
+    va_end(copy);
+
+    size_t length = (size_t)bytes;
+    char *text = NULL;
+
+    if ((bytes >= 0) && (text = buffer_resize(buffer, length)))
     {
-        return NULL;
+        vsnprintf(text + buffer->length, length + 1, fmt, args);
+        buffer->length += length;
     }
-    va_start(args, fmt);
-    vsnprintf(buffer->text + buffer->length, length + 1, fmt, args);
     va_end(args);
-    buffer->length += length;
-    return buffer->text;
+    return text;
 }
 
 void buffer_adjust(buffer_t *buffer, size_t index)

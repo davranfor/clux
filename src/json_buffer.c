@@ -51,6 +51,10 @@ static char *encode_integer(buffer_t *buffer, double number)
 
     size_t length = encode_number(buffer, "%.0f", number);
 
+    if (length > NUMBER_CHARS)
+    {
+        return NULL;
+    }
     buffer->length += length;
     return buffer->text;
 }
@@ -63,6 +67,12 @@ static char *encode_real(buffer_t *buffer, double number)
     }
 
     size_t length = encode_number(buffer, "%.*g", MAX_DECIMALS, number);
+
+    if (length > NUMBER_CHARS)
+    {
+        return NULL;
+    }
+
     /* Dot followed by trailing zeros are removed when %g is used */
     int done = strspn(buffer->text + buffer->length, "-0123456789") != length;
 

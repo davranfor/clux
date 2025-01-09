@@ -43,10 +43,16 @@ char *string_vprint(const char *fmt, va_list args)
 
     va_copy(copy, args);
 
-    size_t size = 1 + (size_t)vsnprintf(NULL, 0, fmt, copy);
-
+    int bytes = vsnprintf(NULL, 0, fmt, copy);
+ 
     va_end(copy);
 
+    if (bytes < 0)
+    {
+        return NULL;
+    }
+
+    size_t size = (size_t)bytes + 1;
     char *str = malloc(size);
 
     if (str != NULL)
