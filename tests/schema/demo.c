@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     buffer_t events = {0};
 
-    if (!json_validate(target, schema, NULL, on_validate, &events))
+    if (!json_validate(schema, target, NULL, on_validate, &events))
     {
         fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
     }

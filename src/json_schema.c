@@ -24,7 +24,7 @@
 
 enum {NOT_ABORTABLE, ABORTABLE};
 
-struct active
+struct references
 {
     unsigned path[MAX_ACTIVE_PATHS];
     int paths;
@@ -33,15 +33,15 @@ struct active
 
 typedef struct
 {
-    // Roots
+    // Pointers to roots
     const json_t *rule, *node;
-    // External references
+    // External schema maps
     const map_t *map;
-    // User data
+    // User defined event handler
     json_validate_callback callback;
     void *data;
-    // Paths and counter references
-    struct active *active;
+    // Paths and reference counters
+    struct references * const active;
 } schema_t;
 
 static int validate(const schema_t *, const json_t *, const json_t *, int);
@@ -1389,17 +1389,17 @@ static int validate(const schema_t *schema,
     return result;
 }
 
-int json_validate(const json_t *node, const json_t *rule, const map_t *map,
+int json_validate(const json_t *rule, const json_t *node, const map_t *map,
     json_validate_callback callback, void *data)
 {
-    struct active active = { .path[0] = 0, .paths = 1 };
+    struct references active =
+    {
+        .path[0] = 0, .paths = 1
+    };
     const schema_t schema =
     {
-        .rule = rule,
-        .node = node,
-        .map = map,
-        .callback = callback,
-        .data = data,
+        .rule = rule, .node = node, .map = map,
+        .callback = callback, .data = data,
         .active = &active
     };
 

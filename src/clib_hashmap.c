@@ -56,11 +56,11 @@ map_t *map_create(size_t size)
 {
     enum {NPRIMES = sizeof primes / sizeof *primes};
 
-    for (size_t iter = 0; iter < NPRIMES; iter++)
+    for (size_t i = 0; i < NPRIMES; i++)
     {
-        if (size < primes[iter])
+        if (size < primes[i])
         {
-            size = primes[iter];
+            size = primes[i];
             break;
         }
     }
