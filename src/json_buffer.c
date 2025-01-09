@@ -189,31 +189,28 @@ static int encode_edge(buffer_t *buffer, const json_t *node,
     unsigned short depth, unsigned char indent,
     unsigned char trailing_comma)
 {
-    if (node->size != 0)
-    {
-        size_t spaces = depth * indent;
+    size_t spaces = depth * indent;
 
-        if (spaces > 0)
-        {
-            buffer_repeat(buffer, ' ', spaces);
-        }
-        switch (node->type)
-        {
-            case JSON_OBJECT:
-                buffer_putchr(buffer, '}');
-                break;
-            case JSON_ARRAY:
-                buffer_putchr(buffer, ']');
-                break;
-        }
-        if (trailing_comma)
-        {
-            buffer_putchr(buffer, ',');
-        }
-        if (indent > 0)
-        {
-            buffer_putchr(buffer, '\n');
-        }
+    if (spaces > 0)
+    {
+        buffer_repeat(buffer, ' ', spaces);
+    }
+    switch (node->type)
+    {
+        case JSON_OBJECT:
+            buffer_putchr(buffer, '}');
+            break;
+        case JSON_ARRAY:
+            buffer_putchr(buffer, ']');
+            break;
+    }
+    if (trailing_comma)
+    {
+        buffer_putchr(buffer, ',');
+    }
+    if (indent > 0)
+    {
+        buffer_putchr(buffer, '\n');
     }
     return !buffer->fail;
 }
