@@ -124,9 +124,11 @@ static int encode_node(buffer_t *buffer, const json_t *node,
     unsigned short depth, unsigned char indent,
     unsigned char trailing_comma)
 {
-    for (unsigned i = 0; i < depth * indent; i++)
+    size_t spaces = depth * indent;
+
+    if (spaces > 0)
     {
-        buffer_putchr(buffer, ' ');
+        buffer_repeat(buffer, ' ', spaces);
     }
     if (node->key != NULL)
     {
@@ -189,9 +191,11 @@ static int encode_edge(buffer_t *buffer, const json_t *node,
 {
     if (node->size != 0)
     {
-        for (unsigned i = 0; i < depth * indent; i++)
+        size_t spaces = depth * indent;
+
+        if (spaces > 0)
         {
-            buffer_putchr(buffer, ' ');
+            buffer_repeat(buffer, ' ', spaces);
         }
         switch (node->type)
         {

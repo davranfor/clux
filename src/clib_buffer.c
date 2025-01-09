@@ -54,6 +54,18 @@ char *buffer_putchr(buffer_t *buffer, char chr)
     return buffer->text;
 }
 
+char *buffer_repeat(buffer_t *buffer, char chr, size_t count)
+{
+    if (buffer_resize(buffer, count) == NULL)
+    {
+        return NULL;
+    }
+    memset(buffer->text + buffer->length, chr, count);
+    buffer->text[buffer->length + count] = '\0';
+    buffer->length += count;
+    return buffer->text;
+}
+
 char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
 {
     if (buffer_resize(buffer, length) == NULL)

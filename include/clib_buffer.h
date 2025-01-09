@@ -11,6 +11,7 @@ typedef struct { char *text; size_t length, size; int fail; } buffer_t;
 
 char *buffer_resize(buffer_t *, size_t);
 char *buffer_putchr(buffer_t *, char);
+char *buffer_repeat(buffer_t *, char, size_t);
 char *buffer_attach(buffer_t *, const char *, size_t);
 char *buffer_insert(buffer_t *, size_t, const char *, size_t);
 char *buffer_append(buffer_t *, const char *);
