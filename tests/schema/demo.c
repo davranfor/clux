@@ -15,7 +15,6 @@ static json_t *parse_file(const char *path)
 
     if (node == NULL)
     {
-        fprintf(stderr, "%s\n", path);
         json_print_error(&error);
     }
     else
@@ -41,12 +40,16 @@ int main(int argc, char *argv[])
         argc > 2 ? argv[2] : "test.schema.json"
     };
 
+    puts(path[0]);
+
     json_t *target = parse_file(path[0]);
 
     if (target == NULL)
     {
         exit(EXIT_FAILURE);
     }
+
+    puts(path[1]);
 
     json_t *schema = parse_file(path[1]);
 
@@ -57,10 +60,12 @@ int main(int argc, char *argv[])
     }
 
     buffer_t events = {0};
+    int rc = EXIT_SUCCESS;
 
     if (!json_validate(schema, target, NULL, on_validate, &events))
     {
         fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
+        rc = EXIT_FAILURE;
     }
     if (events.text != NULL)
     {
@@ -69,6 +74,6 @@ int main(int argc, char *argv[])
     }
     json_delete(target);
     json_delete(schema);
-    return 0;
+    return rc;
 }
 
