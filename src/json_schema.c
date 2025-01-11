@@ -129,13 +129,13 @@ int json_write_event(const json_event_t *event, buffer_t *buffer,
         "Aborted. Malformed schema",
     };
 
-    buffer_format(buffer, "\nType: %s", events[event->type]);
-    buffer_format(buffer, "\nPath: %s", event->path);
-    buffer_append(buffer, "\nNode: ");
+    buffer_print(buffer, "\nType: %s", events[event->type]);
+    buffer_print(buffer, "\nPath: %s", event->path);
+    buffer_print(buffer, "\nNode: ");
     json_buffer_encode_max(buffer, event->node, 0, encode_max);
-    buffer_append(buffer, "\nRule: ");
+    buffer_print(buffer, "\nRule: ");
     json_buffer_encode_max(buffer, event->rule, 0, encode_max);
-    buffer_append(buffer, "\n");
+    buffer_print(buffer, "\n");
     return !buffer->fail;
 }
 

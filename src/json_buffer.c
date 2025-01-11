@@ -39,17 +39,17 @@ void json_set_encoding(enum json_encoding mode)
 #define MAX_DECIMALS 17
 #define NUMBER_CHARS 24
 
-#define encode_number(buffer, ...) (size_t) \
+#define write_number(buffer, ...) (size_t) \
     snprintf(buffer->text + buffer->length, NUMBER_CHARS + 1, __VA_ARGS__)
 
-static char *encode_integer(buffer_t *buffer, double number)
+static char *write_integer(buffer_t *buffer, double number)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = encode_number(buffer, "%.0f", number);
+    size_t length = write_number(buffer, "%.0f", number);
 
     if (length > NUMBER_CHARS)
     {
@@ -59,14 +59,14 @@ static char *encode_integer(buffer_t *buffer, double number)
     return buffer->text;
 }
 
-static char *encode_real(buffer_t *buffer, double number)
+static char *write_real(buffer_t *buffer, double number)
 {
     if (buffer->size - buffer->length <= NUMBER_CHARS)
     {
         CHECK(buffer_resize(buffer, NUMBER_CHARS));
     }
 
-    size_t length = encode_number(buffer, "%.*g", MAX_DECIMALS, number);
+    size_t length = write_number(buffer, "%.*g", MAX_DECIMALS, number);
 
     if (length > NUMBER_CHARS)
     {
@@ -78,12 +78,12 @@ static char *encode_real(buffer_t *buffer, double number)
 
     buffer->length += length;
     /* Write the fractional part if applicable */
-    return done ? buffer->text : buffer_append(buffer, ".0");
+    return done ? buffer->text : buffer_print(buffer, ".0");
 }
 
-static int encode_string(buffer_t *buffer, const char *str)
+static int write_string(buffer_t *buffer, const char *str)
 {
-    CHECK(buffer_putchr(buffer, '"'));
+    CHECK(buffer_put(buffer, '"'));
 
     const char *ptr = str;
 
@@ -95,8 +95,8 @@ static int encode_string(buffer_t *buffer, const char *str)
         {
             const char seq[] = {'\\', esc, '\0'};
 
-            CHECK(buffer_attach(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_attach(buffer, seq, 2));
+            CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
+            CHECK(buffer_append(buffer, seq, 2));
             ptr = ++str;
         }
         else if (is_cntrl(*str)
@@ -105,8 +105,8 @@ static int encode_string(buffer_t *buffer, const char *str)
             char seq[sizeof("\\u0123")] = {'\0'};
             size_t length = encode_hex(str, seq);
 
-            CHECK(buffer_attach(buffer, ptr, (size_t)(str - ptr)));
-            CHECK(buffer_attach(buffer, seq, 6));
+            CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
+            CHECK(buffer_append(buffer, seq, 6));
             str += length;
             ptr = str;
         }
@@ -115,8 +115,8 @@ static int encode_string(buffer_t *buffer, const char *str)
             str++;
         }
     }
-    CHECK(buffer_attach(buffer, ptr, (size_t)(str - ptr)));
-    CHECK(buffer_putchr(buffer, '"'));
+    CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
+    CHECK(buffer_put(buffer, '"'));
     return 1;
 }
 
@@ -132,34 +132,34 @@ static int encode_node(buffer_t *buffer, const json_t *node,
     }
     if (node->key != NULL)
     {
-        encode_string(buffer, node->key);
-        buffer_append(buffer, indent == 0 ? ":" : ": ");
+        write_string(buffer, node->key);
+        buffer_print(buffer, indent == 0 ? ":" : ": ");
     }
     switch (node->type)
     {
         case JSON_OBJECT:
-            buffer_putchr(buffer, '{');
+            buffer_put(buffer, '{');
             break;
         case JSON_ARRAY:
-            buffer_putchr(buffer, '[');
+            buffer_put(buffer, '[');
             break;
         case JSON_STRING:
-            encode_string(buffer, node->string);
+            write_string(buffer, node->string);
             break;
         case JSON_INTEGER:
-            encode_integer(buffer, node->number);
+            write_integer(buffer, node->number);
             break;
         case JSON_REAL:
-            encode_real(buffer, node->number);
+            write_real(buffer, node->number);
             break;
         case JSON_TRUE:
-            buffer_append(buffer, "true");
+            buffer_print(buffer, "true");
             break;
         case JSON_FALSE:
-            buffer_append(buffer, "false");
+            buffer_print(buffer, "false");
             break;
         case JSON_NULL:
-            buffer_append(buffer, "null");
+            buffer_print(buffer, "null");
             break;
     }
     if (node->size == 0)
@@ -167,20 +167,20 @@ static int encode_node(buffer_t *buffer, const json_t *node,
         switch (node->type)
         {
             case JSON_OBJECT:
-                buffer_putchr(buffer, '}');
+                buffer_put(buffer, '}');
                 break;
             case JSON_ARRAY:
-                buffer_putchr(buffer, ']');
+                buffer_put(buffer, ']');
                 break;
         }
         if (trailing_comma)
         {
-            buffer_putchr(buffer, ',');
+            buffer_put(buffer, ',');
         }
     }
     if (indent > 0)
     {
-        buffer_putchr(buffer, '\n');
+        buffer_put(buffer, '\n');
     }
     return !buffer->fail;
 }
@@ -198,19 +198,19 @@ static int encode_edge(buffer_t *buffer, const json_t *node,
     switch (node->type)
     {
         case JSON_OBJECT:
-            buffer_putchr(buffer, '}');
+            buffer_put(buffer, '}');
             break;
         case JSON_ARRAY:
-            buffer_putchr(buffer, ']');
+            buffer_put(buffer, ']');
             break;
     }
     if (trailing_comma)
     {
-        buffer_putchr(buffer, ',');
+        buffer_put(buffer, ',');
     }
     if (indent > 0)
     {
-        buffer_putchr(buffer, '\n');
+        buffer_put(buffer, '\n');
     }
     return !buffer->fail;
 }
@@ -284,8 +284,8 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
         CHECK(encode_tree(&buffer, node, 0));
         if (base->length > buffer.max_length)
         {
-            buffer_adjust(base, buffer.max_length);
-            buffer_append(base, indent ? "...\n" : "...");
+            buffer_set_length(base, buffer.max_length);
+            buffer_print(base, indent ? "...\n" : "...");
         }
         return !base->fail;
     }
@@ -382,8 +382,7 @@ int json_write_line(const json_t *node, FILE *file)
     {
         buffer_t buffer = {0};
 
-        if (buffer_encode(&buffer, node, 0, 0) &&
-            buffer_putchr(&buffer, '\n'))
+        if (buffer_encode(&buffer, node, 0, 0) && buffer_put(&buffer, '\n'))
         {
             rc = write_file(buffer, file);
         }
@@ -428,7 +427,7 @@ char *json_quote(const char *str)
 
     buffer_t buffer = {0};
 
-    if (encode_string(&buffer, str))
+    if (write_string(&buffer, str))
     {
         return buffer.text;
     }
@@ -443,7 +442,7 @@ char *json_buffer_quote(buffer_t *buffer, const char *str)
     {
         return NULL;
     }
-    CHECK(encode_string(buffer, str));
+    CHECK(write_string(buffer, str));
     return buffer->text;
 }
 
@@ -454,14 +453,14 @@ char *json_convert(double number, enum json_type type)
 
     if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
     {
-        if (encode_integer(&buffer, number))
+        if (write_integer(&buffer, number))
         {
             return buffer.text;
         }
     }
     else
     {
-        if (encode_real(&buffer, number))
+        if (write_real(&buffer, number))
         {
             return buffer.text;
         }
@@ -479,11 +478,11 @@ char *json_buffer_convert(buffer_t *buffer, double number, enum json_type type)
     }
     if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
     {
-        CHECK(encode_integer(buffer, number));
+        CHECK(write_integer(buffer, number));
     }
     else
     {
-        CHECK(encode_real(buffer, number));
+        CHECK(write_real(buffer, number));
     }
     return buffer->text;
 }

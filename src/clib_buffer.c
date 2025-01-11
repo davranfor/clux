@@ -43,47 +43,12 @@ char *buffer_resize(buffer_t *buffer, size_t length)
     return buffer->text;
 }
 
-char *buffer_putchr(buffer_t *buffer, char chr)
-{
-    if (buffer_resize(buffer, 1) == NULL)
-    {
-        return NULL;
-    }
-    buffer->text[buffer->length++] = chr;
-    buffer->text[buffer->length] = '\0';
-    return buffer->text;
-}
-
-char *buffer_repeat(buffer_t *buffer, char chr, size_t count)
-{
-    if (buffer_resize(buffer, count) == NULL)
-    {
-        return NULL;
-    }
-    memset(buffer->text + buffer->length, chr, count);
-    buffer->text[buffer->length + count] = '\0';
-    buffer->length += count;
-    return buffer->text;
-}
-
-char *buffer_attach(buffer_t *buffer, const char *text, size_t length)
-{
-    if (buffer_resize(buffer, length) == NULL)
-    {
-        return NULL;
-    }
-    memcpy(buffer->text + buffer->length, text, length);
-    buffer->text[buffer->length + length] = '\0';
-    buffer->length += length;
-    return buffer->text;
-}
-
 char *buffer_insert(buffer_t *buffer, size_t index,
     const char *text, size_t length)
 {
     if (index >= buffer->length)
     {
-        return buffer_attach(buffer, text, length);
+        return buffer_append(buffer, text, length);
     }
     if (buffer_resize(buffer, length) == NULL)
     {
@@ -97,7 +62,19 @@ char *buffer_insert(buffer_t *buffer, size_t index,
     return buffer->text;
 }
 
-char *buffer_append(buffer_t *buffer, const char *text)
+char *buffer_append(buffer_t *buffer, const char *text, size_t length)
+{
+    if (buffer_resize(buffer, length) == NULL)
+    {
+        return NULL;
+    }
+    memcpy(buffer->text + buffer->length, text, length);
+    buffer->text[buffer->length + length] = '\0';
+    buffer->length += length;
+    return buffer->text;
+}
+
+char *buffer_append_string(buffer_t *buffer, const char *text)
 {
     size_t length = strlen(text);
 
@@ -110,7 +87,7 @@ char *buffer_append(buffer_t *buffer, const char *text)
     return buffer->text;
 }
 
-char *buffer_format(buffer_t *buffer, const char *fmt, ...)
+char *buffer_append_format(buffer_t *buffer, const char *fmt, ...)
 {
     va_list args, copy;
 
@@ -133,7 +110,30 @@ char *buffer_format(buffer_t *buffer, const char *fmt, ...)
     return text;
 }
 
-void buffer_adjust(buffer_t *buffer, size_t index)
+char *buffer_repeat(buffer_t *buffer, char chr, size_t count)
+{
+    if (buffer_resize(buffer, count) == NULL)
+    {
+        return NULL;
+    }
+    memset(buffer->text + buffer->length, chr, count);
+    buffer->text[buffer->length + count] = '\0';
+    buffer->length += count;
+    return buffer->text;
+}
+
+char *buffer_put(buffer_t *buffer, char chr)
+{
+    if (buffer_resize(buffer, 1) == NULL)
+    {
+        return NULL;
+    }
+    buffer->text[buffer->length++] = chr;
+    buffer->text[buffer->length] = '\0';
+    return buffer->text;
+}
+
+void buffer_set_length(buffer_t *buffer, size_t index)
 {
     if ((index <= buffer->length) && (buffer->text != NULL))
     {
