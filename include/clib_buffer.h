@@ -10,7 +10,7 @@
 typedef struct { char *text; size_t length, size; int fail; } buffer_t;
 
 #define BUFFER_PRINT(_1, _2, _3, NAME, ...) NAME
-#define buffer_print(...)  BUFFER_PRINT \
+#define buffer_print(...) BUFFER_PRINT \
     (__VA_ARGS__, buffer_append_format, buffer_append_string, )(__VA_ARGS__)
 
 char *buffer_resize(buffer_t *, size_t);
