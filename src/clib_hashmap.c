@@ -142,7 +142,7 @@ static map_t *rehash(map_t *map, unsigned long hash)
     return map;
 }
 
-static struct node *push_node(struct node *next, const char *key, void *data)
+static struct node *prepend(struct node *next, const char *key, void *data)
 {
     size_t size = strlen(key) + 1;
     struct node *node = malloc(sizeof *node + size);
@@ -188,7 +188,7 @@ static void *apply(map_t *map, const char *key, void *data, int request)
     {
         return NULL;
     }
-    if ((*head = push_node(*head, key, data)) != NULL)
+    if ((*head = prepend(*head, key, data)) != NULL)
     {
         if (++map->size > map->room - map->room / 4)
         {
