@@ -9,15 +9,11 @@
 
 typedef struct { char *text; size_t length, size; int fail; } buffer_t;
 
-#define BUFFER_PRINT(_1, _2, _3, NAME, ...) NAME
-#define buffer_print(...) BUFFER_PRINT \
-    (__VA_ARGS__, buffer_append_format, buffer_append_string, )(__VA_ARGS__)
-
 char *buffer_resize(buffer_t *, size_t);
 char *buffer_insert(buffer_t *, size_t, const char *, size_t);
 char *buffer_append(buffer_t *, const char *, size_t);
-char *buffer_append_string(buffer_t *, const char *);
-char *buffer_append_format(buffer_t *, const char *fmt, ...)
+char *buffer_write(buffer_t *, const char *);
+char *buffer_print(buffer_t *, const char *fmt, ...)
     __attribute__ ((format (printf, 2, 3)));
 char *buffer_repeat(buffer_t *, char, size_t);
 char *buffer_put(buffer_t *, char);

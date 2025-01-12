@@ -74,7 +74,7 @@ char *buffer_append(buffer_t *buffer, const char *text, size_t length)
     return buffer->text;
 }
 
-char *buffer_append_string(buffer_t *buffer, const char *text)
+char *buffer_write(buffer_t *buffer, const char *text)
 {
     size_t length = strlen(text);
 
@@ -87,7 +87,7 @@ char *buffer_append_string(buffer_t *buffer, const char *text)
     return buffer->text;
 }
 
-char *buffer_append_format(buffer_t *buffer, const char *fmt, ...)
+char *buffer_print(buffer_t *buffer, const char *fmt, ...)
 {
     va_list args, copy;
 

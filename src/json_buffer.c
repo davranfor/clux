@@ -78,7 +78,7 @@ static char *write_real(buffer_t *buffer, double number)
 
     buffer->length += length;
     /* Write the fractional part if applicable */
-    return done ? buffer->text : buffer_print(buffer, ".0");
+    return done ? buffer->text : buffer_write(buffer, ".0");
 }
 
 static char *write_string(buffer_t *buffer, const char *str)
@@ -132,7 +132,7 @@ static int encode_node(buffer_t *buffer, const json_t *node,
     if (node->key != NULL)
     {
         write_string(buffer, node->key);
-        buffer_print(buffer, indent == 0 ? ":" : ": ");
+        buffer_write(buffer, indent == 0 ? ":" : ": ");
     }
     switch (node->type)
     {
@@ -152,13 +152,13 @@ static int encode_node(buffer_t *buffer, const json_t *node,
             write_real(buffer, node->number);
             break;
         case JSON_TRUE:
-            buffer_print(buffer, "true");
+            buffer_write(buffer, "true");
             break;
         case JSON_FALSE:
-            buffer_print(buffer, "false");
+            buffer_write(buffer, "false");
             break;
         case JSON_NULL:
-            buffer_print(buffer, "null");
+            buffer_write(buffer, "null");
             break;
     }
     if (node->size == 0)
@@ -284,7 +284,7 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
         if (base->length > buffer.max_length)
         {
             buffer_set_length(base, buffer.max_length);
-            buffer_print(base, indent ? "...\n" : "...");
+            buffer_write(base, indent ? "...\n" : "...");
         }
         return !base->fail;
     }

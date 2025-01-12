@@ -131,11 +131,11 @@ int json_write_event(const json_event_t *event, buffer_t *buffer,
 
     buffer_print(buffer, "\nType: %s", events[event->type]);
     buffer_print(buffer, "\nPath: %s", event->path);
-    buffer_print(buffer, "\nNode: ");
+    buffer_write(buffer, "\nNode: ");
     json_buffer_encode_max(buffer, event->node, 0, encode_max);
-    buffer_print(buffer, "\nRule: ");
+    buffer_write(buffer, "\nRule: ");
     json_buffer_encode_max(buffer, event->rule, 0, encode_max);
-    buffer_print(buffer, "\n");
+    buffer_write(buffer, "\n");
     return !buffer->fail;
 }
 
