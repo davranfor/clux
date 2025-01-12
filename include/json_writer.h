@@ -65,6 +65,7 @@ json_t *json_new_integer(double);
 json_t *json_new_real(double);
 json_t *json_new_boolean(int);
 json_t *json_new_null(void);
+json_t *json_set_key(json_t *, const char *);
 json_t *json_set_object(json_t *);
 json_t *json_set_array(json_t *);
 json_t *json_set_string(json_t *, const char *);

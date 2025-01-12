@@ -161,6 +161,26 @@ json_t *json_new_null(void)
     return node;
 }
 
+/* Modifies/sets the key and returns itself */
+json_t *json_set_key(json_t *node, const char *str)
+{
+    if (node && str && (!node->packed || node->key))
+    {
+        char *key = string_clone(str);
+
+        if (key == NULL)
+        {
+            return NULL;
+        }
+        if (node->key != NULL)
+        {
+            free(node->key);
+        }
+        node->key = key;
+    }
+    return node;
+}
+
 /* Cleanup the passed node */
 static void clear(json_t *node)
 {
