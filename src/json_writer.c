@@ -323,6 +323,18 @@ json_t *json_set_null(json_t *node)
     return node;
 }
 
+/* Unsets the key and returns itself */
+json_t *json_unset_key(json_t *node)
+{
+    if (node && !node->packed)
+    {
+        free(node->key);
+        node->key = NULL;
+        return node;
+    }
+    return NULL;
+}
+
 /* Push 'child' into 'parent' at position 'index' with an optional 'key' */
 static json_t *push(json_t *parent, unsigned index, const char *name,
     json_t *child)
