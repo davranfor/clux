@@ -81,7 +81,7 @@ static char *write_real(buffer_t *buffer, double number)
     return done ? buffer->text : buffer_print(buffer, ".0");
 }
 
-static int write_string(buffer_t *buffer, const char *str)
+static char *write_string(buffer_t *buffer, const char *str)
 {
     CHECK(buffer_put(buffer, '"'));
 
@@ -116,8 +116,7 @@ static int write_string(buffer_t *buffer, const char *str)
         }
     }
     CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
-    CHECK(buffer_put(buffer, '"'));
-    return 1;
+    return buffer_put(buffer, '"');
 }
 
 static int encode_node(buffer_t *buffer, const json_t *node,

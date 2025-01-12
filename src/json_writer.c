@@ -322,7 +322,7 @@ json_t *json_set_null(json_t *node)
     return node;
 }
 
-/* Unsets the key and returns itself */
+/* Removes the key and returns itself */
 json_t *json_unset_key(json_t *node)
 {
     if (!node || node->packed)
