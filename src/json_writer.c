@@ -164,20 +164,19 @@ json_t *json_new_null(void)
 /* Modifies/sets the key and returns itself */
 json_t *json_set_key(json_t *node, const char *str)
 {
-    if (node && str && (!node->packed || node->key))
+    if ((node == NULL) || (str == NULL) || (node->packed && !node->key))
     {
-        char *key = string_clone(str);
-
-        if (key == NULL)
-        {
-            return NULL;
-        }
-        if (node->key != NULL)
-        {
-            free(node->key);
-        }
-        node->key = key;
+        return NULL;
     }
+
+    char *key = string_clone(str);
+
+    if (key == NULL)
+    {
+        return NULL;
+    }
+    free(node->key);
+    node->key = key;
     return node;
 }
 
@@ -330,9 +329,8 @@ json_t *json_unset_key(json_t *node)
     {
         free(node->key);
         node->key = NULL;
-        return node;
     }
-    return NULL;
+    return node;
 }
 
 /* Push 'child' into 'parent' at position 'index' with an optional 'key' */
