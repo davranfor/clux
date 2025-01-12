@@ -156,8 +156,13 @@ static struct node *push_node(struct node *next, const char *key, void *data)
     return node;
 }
 
-static void *push(map_t *map, const char *key, void *data, int request)
+static void *apply(map_t *map, const char *key, void *data, int request)
 {
+    if ((map == NULL) || (key == NULL) || (data == NULL))
+    {
+        return NULL;
+    }
+
     unsigned long hash = hash(key);
 
     map = rehash(map, hash);
@@ -200,21 +205,26 @@ static void *push(map_t *map, const char *key, void *data, int request)
 
 void *map_update(map_t *map, const char *key, void *data)
 {
-    return push(map, key, data, UPDATE);
+    return apply(map, key, data, UPDATE);
 }
 
 void *map_insert(map_t *map, const char *key, void *data)
 {
-    return push(map, key, data, INSERT);
+    return apply(map, key, data, INSERT);
 }
 
 void *map_upsert(map_t *map, const char *key, void *data)
 {
-    return push(map, key, data, UPSERT);
+    return apply(map, key, data, UPSERT);
 }
 
 void *map_delete(map_t *map, const char *key)
 {
+    if ((map == NULL) || (key == NULL))
+    {
+        return NULL;
+    }
+
     unsigned long hash = hash(key);
 
     map = rehash(map, hash);
@@ -248,6 +258,11 @@ void *map_delete(map_t *map, const char *key)
 
 void *map_search(const map_t *map, const char *key)
 {
+    if ((map == NULL) || (key == NULL))
+    {
+        return NULL;
+    }
+
     unsigned long hash = hash(key);
 
     do

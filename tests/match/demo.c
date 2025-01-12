@@ -5,7 +5,6 @@
  */
 
 #include <clux/json.h>
-#include <clux/json_regex.h>
 
 static json_t *parse_file(const char *path)
 {
