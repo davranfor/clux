@@ -325,11 +325,12 @@ json_t *json_set_null(json_t *node)
 /* Unsets the key and returns itself */
 json_t *json_unset_key(json_t *node)
 {
-    if (node && !node->packed)
+    if (!node || node->packed)
     {
-        free(node->key);
-        node->key = NULL;
+        return NULL;
     }
+    free(node->key);
+    node->key = NULL;
     return node;
 }
 
