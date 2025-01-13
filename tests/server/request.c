@@ -133,29 +133,28 @@ static char *api_get(const char *uri)
 
 static char *api_post(const char *uri, const char *content)
 {
-    json_t *node = json_parse(content, NULL);
+    json_t *object = json_parse(content, NULL);
 
-    if (node == NULL)
+    if (object == NULL)
     {
         return NULL;
     }
-    json_delete_child(node, "id");
+    json_object_delete(object, "id");
 
     static size_t id = 1;
+    json_t *child = json_new_number(id);
     char key[64];
 
     snprintf(key, sizeof key, "%s/%zu", uri, id);
-    if ((map_insert(map, key, node) != node) ||
-        !json_push_front(node, "id", json_new_number(id)))
+    if (!json_object_push(object, 0, "id", child) ||
+        (map_insert(map, key, object) != object))
     {
-        json_delete(node);
-        node = NULL;
+        json_delete(object);
+        json_delete(child);
+        return NULL;
     }
-    else
-    {
-        id += 1;
-    }
-    return json_stringify(node);
+    id += 1;
+    return json_stringify(object);
 }
 
 static char *api_put(const char *uri, const char *content)
@@ -173,12 +172,9 @@ static char *api_put(const char *uri, const char *content)
         !map_update(map, uri, new))
     {
         json_delete(new);
-        new = NULL;
+        return NULL;
     }
-    else
-    {
-        json_delete(old);
-    }
+    json_delete(old);
     return json_stringify(new);
 }
 

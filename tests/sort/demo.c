@@ -8,6 +8,17 @@
 #include <time.h>
 #include <clux/json.h>
 
+static void array_push_back(json_t *parent, json_t *child)
+{
+    if (!json_array_push(parent, JSON_TAIL, child))
+    {
+        json_delete(parent);
+        json_delete(child);
+        perror("array_push_back");
+        exit(EXIT_FAILURE);
+    }
+}
+
 static int nulls_first(const void *pa, const void *pb)
 {
     int a = json_is_null(*(json_t * const *)pa);
@@ -24,10 +35,13 @@ int main(void)
 
     for (int i = 0; i <= 25; i++)
     {
-        json_push_back(array, json_new_number(rand() % 100));
-        if ((i % 5) == 0)
+        if ((i % 5) != 0)
         {
-            json_push_back(array, json_new_null());
+            array_push_back(array, json_new_number(rand() % 100));
+        }
+        else
+        {
+            array_push_back(array, json_new_null());
         }
     }
 

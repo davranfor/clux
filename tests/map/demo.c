@@ -24,6 +24,17 @@ static void destroy(void)
     map_destroy(map, json_free);
 }
 
+static void object_push_back(json_t *parent, const char *key, json_t *child)
+{
+    if (!json_object_push(parent, JSON_TAIL, key, child))
+    {
+        json_delete(parent);
+        json_delete(child);
+        perror("object_push_back");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(void)
 {
     srand((unsigned)time(NULL));
@@ -42,12 +53,8 @@ int main(void)
         json_t *root = json_new_object();
         int code = rand() % size;
 
-        if (!json_push_back(root, "code", json_new_format("%05d", code)) ||
-            !json_push_back(root, "func", json_new_string("insert")))
-        {
-            perror("json_push_back");
-            exit(EXIT_FAILURE);
-        }
+        object_push_back(root, "code", json_new_format("%05d", code));
+        object_push_back(root, "func", json_new_string("insert"));
         node = map_insert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
@@ -64,12 +71,8 @@ int main(void)
         json_t *root = json_new_object();
         int code = rand() % size;
 
-        if (!json_push_back(root, "code", json_new_format("%05d", code)) ||
-            !json_push_back(root, "func", json_new_string("upsert")))
-        {
-            perror("json_push_back");
-            exit(EXIT_FAILURE);
-        }
+        object_push_back(root, "code", json_new_format("%05d", code));
+        object_push_back(root, "func", json_new_string("upsert"));
         node = map_upsert(map, json_string(json_head(root)), root);
         if (node == NULL)
         {
