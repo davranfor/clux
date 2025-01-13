@@ -180,6 +180,18 @@ json_t *json_set_key(json_t *node, const char *str)
     return node;
 }
 
+/* Removes the key and returns itself */
+json_t *json_unset_key(json_t *node)
+{
+    if (!node || node->packed)
+    {
+        return NULL;
+    }
+    free(node->key);
+    node->key = NULL;
+    return node;
+}
+
 /* Cleanup the passed node */
 static void clear(json_t *node)
 {
@@ -191,6 +203,7 @@ static void clear(json_t *node)
             break;
         case JSON_STRING:
             free(node->string);
+            node->string = NULL;
             break;
         case JSON_INTEGER:
         case JSON_REAL:
@@ -319,18 +332,6 @@ json_t *json_set_null(json_t *node)
         clear(node);
         node->type = JSON_NULL;
     }
-    return node;
-}
-
-/* Removes the key and returns itself */
-json_t *json_unset_key(json_t *node)
-{
-    if (!node || node->packed)
-    {
-        return NULL;
-    }
-    free(node->key);
-    node->key = NULL;
     return node;
 }
 
@@ -689,6 +690,7 @@ int json_delete_children(json_t *node)
     }
     if (node->size > 0)
     {
+        node->child = NULL;
         node->size = 0;
         return 1;
     }
