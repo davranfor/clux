@@ -348,7 +348,7 @@ int test_is_identifier(const char *str)
                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                         "0123456789_";
 
-    return !is_digit(str[0]) && !str[strspn(str, allow)];
+    return str[0] && !is_digit(str[0]) && !str[strspn(str, allow)];
 }
 
 int test_match(const char *text, const char *pattern)
