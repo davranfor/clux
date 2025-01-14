@@ -12,7 +12,7 @@
 #include "json_header.h"
 
 /* Unknown events mode */
-enum json_warning_mode {JSON_WARNINGS_OFF, JSON_WARNINGS_ON, JSON_WARNING_AS_ERROR};
+enum json_warning_mode {JSON_WARNINGS_OFF, JSON_WARNINGS_ON, JSON_ABORT_ON_WARNING};
 /* Event types */
 enum {JSON_WARNING, JSON_FAILURE, JSON_ABORTED};
 /* Event responses */

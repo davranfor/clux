@@ -56,38 +56,45 @@ enum json_warning_mode json_get_warning_mode(void)
     return warning_mode;
 }
 
-static int validate(const schema_t *, const json_t *, const json_t *, int);
+
+static void write_path(const schema_t *schema, char *path, size_t size)
+{
+    const json_t *iter = schema->node;
+
+    for (int i = 1;
+        (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS) && (size > 0);
+        (i++))
+    {
+        size_t index = schema->active->path[i];
+        const char *pointer = path;
+
+        if (iter->child[index]->key != NULL)
+        {
+            path += json_pointer_put_key(path, size, iter->child[index]->key);
+        }
+        else
+        {
+            path += json_pointer_put_index(path, size, index);
+        }
+        if (path == pointer)
+        {
+            // Doesn't fit, try adding '...' to the 'path' 
+            path += json_pointer_put_key(path, size, "...");
+        }
+        size = size - (size_t)(path - pointer);
+        iter = iter->child[index];
+    }
+}
 
 /* Writes the current path and notifies an event to the user-defined callback */
 static int notify_event(const schema_t *schema,
     const json_t *rule, const json_t *node, int type)
 {
-    const json_t *iter = schema->node;
     char path[PATH_MAX_SIZE] = "/";
-    char *end = path;
 
-    for (int i = type == JSON_FAILURE ? 1 : MAX_ACTIVE_PATHS;
-        (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS);
-        (i++))
-    {
-        size_t size = sizeof(path) - (size_t)(end - path);
-        size_t index = schema->active->path[i];
-        const char *pointer = end;
-
-        if (iter->child[index]->key != NULL)
-        {
-            end += json_pointer_put_key(end, size, iter->child[index]->key);
-        }
-        else
-        {
-            end += json_pointer_put_index(end, size, index);
-        }
-        if (end == pointer)
-        {
-            // Doesn't fit, try adding '...' to the 'path' 
-            end += json_pointer_put_key(end, size, "...");
-        }
-        iter = iter->child[index];
+    if (type == JSON_FAILURE)
+    { 
+        write_path(schema, path, sizeof path);
     }
 
     const json_event_t event =
@@ -113,7 +120,7 @@ static int abort_on_warning(const schema_t *schema,
     {
         return 0;
     }
-    if (warning_mode == JSON_WARNING_AS_ERROR)
+    if (warning_mode == JSON_ABORT_ON_WARNING)
     {
         notify(schema, rule, node, JSON_ABORTED);
         return 1;
@@ -142,7 +149,7 @@ char *json_write_event(const json_event_t *event, buffer_t *buffer,
 {
     if ((event == NULL) || (buffer == NULL))
     {
-        return 0;
+        return NULL;
     }
     buffer_print(buffer, "\nPath: %s", event->path);
     buffer_write(buffer, "\nNode: ");
@@ -151,6 +158,8 @@ char *json_write_event(const json_event_t *event, buffer_t *buffer,
     json_buffer_encode_max(buffer, event->rule, 0, encode_max);
     return buffer_put(buffer, '\n');
 }
+
+static int validate(const schema_t *, const json_t *, const json_t *, int);
 
 #define hash(key) hash_str((const unsigned char *)(key))
 static unsigned long hash_str(const unsigned char *key)
