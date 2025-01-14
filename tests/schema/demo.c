@@ -9,6 +9,37 @@
 #include <clux/json.h>
 
 #define EVENTS_MAX_LENGTH 4096
+#define EVENTS_MAX_ENCODE 128
+
+static int on_validate(const json_event_t *event, void *buffer)
+{
+    if (event->type == JSON_WARNING)
+    {
+        fprintf(stderr, "Warning: Unknown schema rule '%s'\n",
+            json_name(event->rule)
+        );
+        return JSON_CONTINUE;
+    }
+    if (event->type == JSON_ABORTED)
+    {
+        fprintf(stderr, "Aborted: Malformed schema\n"); 
+        json_write_line(event->rule, stderr);
+        return JSON_ABORT;
+    }
+
+    buffer_t *events = buffer;
+
+    if (events->length > EVENTS_MAX_LENGTH)
+    {
+        buffer_write(events, "...\n");
+        return JSON_ABORT;
+    }
+    if (!json_write_event(event, events, EVENTS_MAX_ENCODE))
+    {
+        return JSON_ABORT;
+    }
+    return JSON_CONTINUE;
+}
 
 static json_t *parse_file(const char *path)
 {
@@ -26,24 +57,9 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
-static int on_validate(const json_event_t *event, void *buffer)
-{
-    buffer_t *events = buffer;
-
-    if (events->length > EVENTS_MAX_LENGTH)
-    {
-        buffer_write(events, "...\n");
-        return JSON_ABORT;
-    }
-    if (!json_write_event(event, events, 128))
-    {
-        return JSON_ABORT;
-    }
-    return JSON_CONTINUE;
-}
-
 int main(int argc, char *argv[])
 {
+    json_set_warning_mode(JSON_WARNINGS_ON);
     setlocale(LC_CTYPE, "");
 
     const char *path[] =

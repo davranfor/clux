@@ -44,6 +44,18 @@ typedef struct
     struct references * const active;
 } schema_t;
 
+static enum json_warning_mode warning_mode = JSON_WARNINGS_ON;
+
+void json_set_warning_mode(enum json_warning_mode mode)
+{
+    warning_mode = mode;
+}
+
+enum json_warning_mode json_get_warning_mode(void)
+{
+    return warning_mode;
+}
+
 static int validate(const schema_t *, const json_t *, const json_t *, int);
 
 /* Writes the current path and notifies an event to the user-defined callback */
@@ -54,7 +66,9 @@ static int notify_event(const schema_t *schema,
     char path[PATH_MAX_SIZE] = "/";
     char *end = path;
 
-    for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
+    for (int i = type == JSON_FAILURE ? 1 : MAX_ACTIVE_PATHS;
+        (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS);
+        (i++))
     {
         size_t size = sizeof(path) - (size_t)(end - path);
         size_t index = schema->active->path[i];
@@ -95,6 +109,15 @@ static int notify(const schema_t *schema,
 static int abort_on_warning(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
+    if (warning_mode == JSON_WARNINGS_OFF)
+    {
+        return 0;
+    }
+    if (warning_mode == JSON_WARNING_AS_ERROR)
+    {
+        notify(schema, rule, node, JSON_ABORTED);
+        return 1;
+    }
     return notify(schema, rule, node, JSON_WARNING) == JSON_ABORT;
 }
 
@@ -121,22 +144,12 @@ char *json_write_event(const json_event_t *event, buffer_t *buffer,
     {
         return 0;
     }
-
-    static const char *events[] =
-    {
-        "Warning. Unknown schema rule",
-        "Failure. Doesn't validate against schema rule",
-        "Aborted. Malformed schema",
-    };
-
-    buffer_print(buffer, "\nType: %s", events[event->type]);
     buffer_print(buffer, "\nPath: %s", event->path);
     buffer_write(buffer, "\nNode: ");
     json_buffer_encode_max(buffer, event->node, 0, encode_max);
     buffer_write(buffer, "\nRule: ");
     json_buffer_encode_max(buffer, event->rule, 0, encode_max);
-    buffer_write(buffer, "\n");
-    return buffer->text;
+    return buffer_put(buffer, '\n');
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))
