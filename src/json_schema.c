@@ -18,9 +18,10 @@
 #include "json_pointer.h"
 #include "json_schema.h"
 
-#define PATH_MAX_SIZE 256
 #define MAX_ACTIVE_PATHS 16
 #define MAX_ACTIVE_REFS 128
+
+#define PATH_SIZE 256
 
 enum {NOT_ABORTABLE, ABORTABLE};
 
@@ -56,41 +57,39 @@ enum json_warning_mode json_get_warning_mode(void)
     return warning_mode;
 }
 
-
+/* Writes the current node path to a provided buffer */
 static void write_path(const schema_t *schema, char *path, size_t size)
 {
-    const json_t *iter = schema->node;
+    const json_t *node = schema->node;
 
-    for (int i = 1;
-        (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS) && (size > 0);
-        (i++))
+    for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
         size_t index = schema->active->path[i];
-        const char *pointer = path;
+        const char *end = path;
 
-        if (iter->child[index]->key != NULL)
+        if (node->child[index]->key != NULL)
         {
-            path += json_pointer_put_key(path, size, iter->child[index]->key);
+            path += json_pointer_put_key(path, size, node->child[index]->key);
         }
         else
         {
             path += json_pointer_put_index(path, size, index);
         }
-        if (path == pointer)
+        if (path == end)
         {
-            // Doesn't fit, try adding '...' to the 'path' 
+            // Doesn't fit, try adding '/...' to the 'path'
             path += json_pointer_put_key(path, size, "...");
         }
-        size = size - (size_t)(path - pointer);
-        iter = iter->child[index];
+        size = size - (size_t)(path - end);
+        node = node->child[index];
     }
 }
 
-/* Writes the current path and notifies an event to the user-defined callback */
+/* Notifies an event to the user-defined callback */
 static int notify_event(const schema_t *schema,
     const json_t *rule, const json_t *node, int type)
 {
-    char path[PATH_MAX_SIZE] = "/";
+    char path[PATH_SIZE] = "/";
 
     if (type == JSON_FAILURE)
     { 
