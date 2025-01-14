@@ -181,7 +181,7 @@ static int encode_node(buffer_t *buffer, const json_t *node,
     {
         buffer_put(buffer, '\n');
     }
-    return !buffer->fail;
+    return buffer->text != NULL;
 }
 
 static int encode_edge(buffer_t *buffer, const json_t *node,
@@ -211,7 +211,7 @@ static int encode_edge(buffer_t *buffer, const json_t *node,
     {
         buffer_put(buffer, '\n');
     }
-    return !buffer->fail;
+    return buffer->text != NULL;
 }
 
 #define MAX_INDENT 8
@@ -286,7 +286,7 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
             buffer_set_length(base, buffer.max_length);
             buffer_write(base, indent ? "...\n" : "...");
         }
-        return !base->fail;
+        return base->text != NULL;
     }
     return 0;
 }

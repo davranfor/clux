@@ -23,6 +23,9 @@ static char *resize(buffer_t *buffer, size_t size)
 
     if (text == NULL)
     {
+        free(buffer->text);
+        buffer->text = NULL;
+        buffer->length = 0;
         buffer->size = 0;
         buffer->fail = 1;
         return NULL;

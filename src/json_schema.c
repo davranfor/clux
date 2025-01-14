@@ -114,7 +114,7 @@ static void raise_error(const schema_t *schema,
  * Writes an event to a provided buffer from an user-defined callback
  * Limits the buffer to 'encode_max' bytes when encoding (0 = no limit)
  */
-int json_write_event(const json_event_t *event, buffer_t *buffer,
+char *json_write_event(const json_event_t *event, buffer_t *buffer,
     size_t encode_max)
 {
     if ((event == NULL) || (buffer == NULL))
@@ -136,7 +136,7 @@ int json_write_event(const json_event_t *event, buffer_t *buffer,
     buffer_write(buffer, "\nRule: ");
     json_buffer_encode_max(buffer, event->rule, 0, encode_max);
     buffer_write(buffer, "\n");
-    return !buffer->fail;
+    return buffer->text;
 }
 
 #define hash(key) hash_str((const unsigned char *)(key))

@@ -8,6 +8,8 @@
 #include <locale.h>
 #include <clux/json.h>
 
+#define EVENTS_MAX_LENGTH 4096
+
 static json_t *parse_file(const char *path)
 {
     json_error_t error;
@@ -26,7 +28,17 @@ static json_t *parse_file(const char *path)
 
 static int on_validate(const json_event_t *event, void *buffer)
 {
-    json_write_event(event, buffer, 128);
+    buffer_t *events = buffer;
+
+    if (events->length > EVENTS_MAX_LENGTH)
+    {
+        buffer_write(events, "...\n");
+        return JSON_ABORT;
+    }
+    if (!json_write_event(event, events, 128))
+    {
+        return JSON_ABORT;
+    }
     return JSON_CONTINUE;
 }
 

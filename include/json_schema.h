@@ -25,7 +25,7 @@ typedef struct
 
 typedef int (*json_validate_callback)(const json_event_t *, void *);
 
-int json_write_event(const json_event_t *, buffer_t *, size_t);
+char *json_write_event(const json_event_t *, buffer_t *, size_t);
 int json_validate(const json_t *, const json_t *, const map_t *,
     json_validate_callback, void *);
 
