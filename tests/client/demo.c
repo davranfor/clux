@@ -183,7 +183,7 @@ int main(void)
     struct data data = {0};
 
     srand((unsigned)time(NULL));
-    setlocale(LC_CTYPE, "");
+    setlocale(LC_NUMERIC, "C");
 
     json_error_t error;
     json_t *users = json_parse_file("users.json", &error);

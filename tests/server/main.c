@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Invalid port\n");
         exit(EXIT_FAILURE);
     }
-    setlocale(LC_CTYPE, "");
+    setlocale(LC_NUMERIC, "C");
     loader_run();
     printf("Server waiting on port %u\n", port);
     server_run(port);

@@ -59,8 +59,7 @@ static json_t *parse_file(const char *path)
 
 int main(int argc, char *argv[])
 {
-    json_set_warning_mode(JSON_WARNINGS_ON);
-    setlocale(LC_CTYPE, "");
+    setlocale(LC_NUMERIC, "C");
 
     const char *path[] =
     {
