@@ -37,7 +37,7 @@ static int notify_warning(const json_t *rule)
 
 static int notify_error(const json_t *rule)
 {
-    fprintf(stderr, "Error: Malformed schema\n"); 
+    fprintf(stderr, "Aborted: Malformed schema\n"); 
     json_write_line(rule, stderr);
     return STOP;
 }
@@ -72,6 +72,24 @@ static json_t *parse_file(const char *path)
     return node;
 }
 
+static int validate(const json_t *rules, const json_t *entry)
+{
+    buffer_t events = {0};
+    int rc = EXIT_SUCCESS;
+
+    if (!json_validate(rules, entry, NULL, on_validate, &events))
+    {
+        fprintf(stderr, "Doesn't validate against schema\n");
+        rc = EXIT_FAILURE;
+    }
+    if (events.text != NULL)
+    {
+        fprintf(stderr, "Invalid rules:\n%s", events.text);
+        free(events.text);
+    }
+    return rc;
+}
+
 int main(int argc, char *argv[])
 {
     setlocale(LC_NUMERIC, "C");
@@ -84,38 +102,27 @@ int main(int argc, char *argv[])
 
     puts(path[0]);
 
-    json_t *target = parse_file(path[0]);
+    json_t *entry = parse_file(path[0]);
 
-    if (target == NULL)
+    if (entry == NULL)
     {
         exit(EXIT_FAILURE);
     }
 
     puts(path[1]);
 
-    json_t *schema = parse_file(path[1]);
+    json_t *rules = parse_file(path[1]);
 
-    if (schema == NULL)
+    if (rules == NULL)
     {
-        json_delete(target);
+        json_delete(entry);
         exit(EXIT_FAILURE);
     }
 
-    buffer_t events = {0};
-    int rc = EXIT_SUCCESS;
+    int rc = validate(rules, entry);
 
-    if (!json_validate(schema, target, NULL, on_validate, &events))
-    {
-        fprintf(stderr, "%s doesn't validate against %s\n", path[0], path[1]);
-        rc = EXIT_FAILURE;
-    }
-    if (events.text != NULL)
-    {
-        fprintf(stderr, "%s", events.text);
-        free(events.text);
-    }
-    json_delete(target);
-    json_delete(schema);
+    json_delete(entry);
+    json_delete(rules);
     return rc;
 }
 
