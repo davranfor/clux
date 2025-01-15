@@ -11,34 +11,49 @@
 #define EVENTS_MAX_LENGTH 4096
 #define EVENTS_MAX_ENCODE 128
 
-static int on_validate(const json_event_t *event, void *buffer)
-{
-    if (event->type == JSON_WARNING)
-    {
-        fprintf(stderr, "Warning: Unknown schema rule '%s'\n",
-            json_name(event->rule)
-        );
-        return JSON_CONTINUE;
-    }
-    if (event->type == JSON_ABORTED)
-    {
-        fprintf(stderr, "Aborted: Malformed schema\n"); 
-        json_write_line(event->rule, stderr);
-        return JSON_ABORT;
-    }
+enum {CONTINUE, STOP};
 
+static int notify_failure(const json_event_t *event, void *buffer)
+{
     buffer_t *events = buffer;
 
     if (events->length > EVENTS_MAX_LENGTH)
     {
         buffer_write(events, "...\n");
-        return JSON_ABORT;
+        return STOP;
     }
     if (!json_write_event(event, events, EVENTS_MAX_ENCODE))
     {
-        return JSON_ABORT;
+        return STOP;
     }
-    return JSON_CONTINUE;
+    return CONTINUE;
+}
+
+static int notify_warning(const json_t *rule)
+{
+    fprintf(stderr, "Warning: Unknow rule '%s'\n", json_name(rule));
+    return CONTINUE;
+}
+
+static int notify_error(const json_t *rule)
+{
+    fprintf(stderr, "Error: Malformed schema\n"); 
+    json_write_line(rule, stderr);
+    return STOP;
+}
+
+static int on_validate(const json_event_t *event, void *buffer)
+{
+    switch (event->type)
+    {
+        case JSON_FAILURE:
+            return notify_failure(event, buffer);
+        case JSON_WARNING:
+            return notify_warning(event->rule);
+        case JSON_ERROR:
+            return notify_error(event->rule);
+    }
+    return 0;
 }
 
 static json_t *parse_file(const char *path)

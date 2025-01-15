@@ -25,7 +25,7 @@
 
 enum {NOT_ABORTABLE, ABORTABLE};
 
-struct references
+struct tracker
 {
     unsigned path[MAX_ACTIVE_PATHS];
     int paths;
@@ -42,7 +42,7 @@ typedef struct
     json_validate_callback callback;
     void *data;
     // Paths and reference counters
-    struct references * const active;
+    struct tracker * const active;
 } schema_t;
 
 static enum json_warning_mode warning_mode = JSON_WARNINGS_ON;
@@ -65,29 +65,30 @@ static void write_path(const schema_t *schema, char *path, size_t size)
     for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
         size_t index = schema->active->path[i];
-        const char *end = path;
+        size_t count;
 
         if (node->child[index]->key != NULL)
         {
-            path += json_pointer_put_key(path, size, node->child[index]->key);
+            count = json_pointer_put_key(path, size, node->child[index]->key);
         }
         else
         {
-            path += json_pointer_put_index(path, size, index);
+            count = json_pointer_put_index(path, size, index);
         }
-        if (path == end)
+        if (count == 0)
         {
             // Doesn't fit, try adding '/...' to the 'path'
-            path += json_pointer_put_key(path, size, "...");
+            count = json_pointer_put_key(path, size, "...");
         }
-        size = size - (size_t)(path - end);
         node = node->child[index];
+        path = path + count;
+        size = size - count;
     }
 }
 
 /* Notifies an event to the user-defined callback */
 static int notify_event(const schema_t *schema,
-    const json_t *rule, const json_t *node, int type)
+    const json_t *rule, const json_t *node, enum json_event_type type)
 {
     char path[PATH_SIZE] = "/";
 
@@ -98,45 +99,45 @@ static int notify_event(const schema_t *schema,
 
     const json_event_t event =
     {
-        .type = type, .path = path, .node = node, .rule = rule
+        .path = path, .node = node, .rule = rule, .type = type
     };
 
     return schema->callback(&event, schema->data);
 }
 
 static int notify(const schema_t *schema,
-    const json_t *rule, const json_t *node, int event)
+    const json_t *rule, const json_t *node, enum json_event_type event)
 {
     return schema->callback
         ? notify_event(schema, rule, node, event)
-        : event == JSON_FAILURE ? JSON_ABORT : JSON_CONTINUE;
-}
-
-static int abort_on_warning(const schema_t *schema,
-    const json_t *rule, const json_t *node)
-{
-    if (warning_mode == JSON_WARNINGS_OFF)
-    {
-        return 0;
-    }
-    if (warning_mode == JSON_ABORT_ON_WARNING)
-    {
-        notify(schema, rule, node, JSON_ABORTED);
-        return 1;
-    }
-    return notify(schema, rule, node, JSON_WARNING) == JSON_ABORT;
+        : event == JSON_FAILURE;
 }
 
 static int abort_on_failure(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_FAILURE) == JSON_ABORT;
+    return notify(schema, rule, node, JSON_FAILURE);
+}
+
+static int abort_on_warning(const schema_t *schema,
+    const json_t *rule, const json_t *node)
+{
+    switch (warning_mode)
+    {
+        case JSON_WARNINGS_OFF:
+            return 0;
+        case JSON_WARNINGS_ON:
+            return notify(schema, rule, node, JSON_WARNING);
+        case JSON_WARNING_AS_ERROR:
+            notify(schema, rule, node, JSON_ERROR);
+            return 1;
+    }
 }
 
 static void raise_error(const schema_t *schema,
     const json_t *rule, const json_t *node)
 {
-    notify(schema, rule, node, JSON_ABORTED);
+    notify(schema, rule, node, JSON_ERROR);
 }
 
 /**
@@ -1413,7 +1414,7 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *rule, const json_t *node, const map_t *map,
     json_validate_callback callback, void *data)
 {
-    struct references active =
+    struct tracker active =
     {
         .path[0] = 0, .paths = 1
     };

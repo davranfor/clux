@@ -11,18 +11,25 @@
 #include "clib_buffer.h"
 #include "json_header.h"
 
-/* Unknown events mode */
-enum json_warning_mode {JSON_WARNINGS_OFF, JSON_WARNINGS_ON, JSON_ABORT_ON_WARNING};
-/* Event types */
-enum {JSON_WARNING, JSON_FAILURE, JSON_ABORTED};
-/* Event responses */
-enum {JSON_ABORT, JSON_CONTINUE};
+enum json_event_type
+{
+    JSON_FAILURE,
+    JSON_WARNING,
+    JSON_ERROR
+};
+
+enum json_warning_mode
+{
+    JSON_WARNINGS_OFF,
+    JSON_WARNINGS_ON,
+    JSON_WARNING_AS_ERROR
+};
 
 typedef struct
 {
-    int type;
     const char *path;
     const json_t *node, *rule;
+    enum json_event_type type;
 } json_event_t;
 
 typedef int (*json_validate_callback)(const json_event_t *, void *);
