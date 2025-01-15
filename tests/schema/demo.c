@@ -54,22 +54,6 @@ static int on_validate(const json_event_t *event, void *events)
     return 0;
 }
 
-static json_t *parse_file(const char *path)
-{
-    json_error_t error;
-    json_t *node = json_parse_file(path, &error);
-
-    if (node == NULL)
-    {
-        json_print_error(&error);
-    }
-    else
-    {
-        json_print(node);
-    }
-    return node;
-}
-
 static int validate(const json_t *rules, const json_t *entry)
 {
     buffer_t events = {0};
@@ -86,6 +70,22 @@ static int validate(const json_t *rules, const json_t *entry)
         free(events.text);
     }
     return rc;
+}
+
+static json_t *parse_file(const char *path)
+{
+    json_error_t error;
+    json_t *node = json_parse_file(path, &error);
+
+    if (node == NULL)
+    {
+        json_print_error(&error);
+    }
+    else
+    {
+        json_print(node);
+    }
+    return node;
 }
 
 int main(int argc, char *argv[])
