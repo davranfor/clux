@@ -62,7 +62,7 @@ static void write_path(const schema_t *schema, char *path, size_t size)
 {
     const json_t *node = schema->node;
 
-    for (int i = 1; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
+    for (int i = 0; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
         size_t index = schema->active->path[i];
         size_t count;
@@ -1414,10 +1414,7 @@ static int validate(const schema_t *schema,
 int json_validate(const json_t *rule, const json_t *node, const map_t *map,
     json_validate_callback callback, void *data)
 {
-    struct tracker active =
-    {
-        .path[0] = 0, .paths = 1
-    };
+    struct tracker active = {0};
     const schema_t schema =
     {
         .rule = rule, .node = node, .map = map,
