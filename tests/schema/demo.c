@@ -13,10 +13,8 @@
 
 enum {CONTINUE, STOP};
 
-static int notify_failure(const json_event_t *event, void *buffer)
+static int notify_failure(const json_event_t *event, buffer_t *events)
 {
-    buffer_t *events = buffer;
-
     if (events->length > EVENTS_MAX_LENGTH)
     {
         buffer_write(events, "...\n");
@@ -42,12 +40,12 @@ static int notify_error(const json_t *rule)
     return STOP;
 }
 
-static int on_validate(const json_event_t *event, void *buffer)
+static int on_validate(const json_event_t *event, void *events)
 {
     switch (event->type)
     {
         case JSON_FAILURE:
-            return notify_failure(event, buffer);
+            return notify_failure(event, events);
         case JSON_WARNING:
             return notify_warning(event->rule);
         case JSON_ERROR:
