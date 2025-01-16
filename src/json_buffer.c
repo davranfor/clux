@@ -436,8 +436,7 @@ char *json_buffer_quote(buffer_t *buffer, const char *str)
     {
         return NULL;
     }
-    CHECK(write_string(buffer, str));
-    return buffer->text;
+    return write_string(buffer, str);
 }
 
 /* Returns an encoded json string from a number */
@@ -472,12 +471,11 @@ char *json_buffer_convert(buffer_t *buffer, double number, enum json_type type)
     }
     if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
     {
-        CHECK(write_integer(buffer, number));
+        return write_integer(buffer, number);
     }
     else
     {
-        CHECK(write_real(buffer, number));
+        return write_real(buffer, number);
     }
-    return buffer->text;
 }
 
