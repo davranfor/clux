@@ -64,7 +64,7 @@ static void write_path(const schema_t *schema, char *path, size_t size)
 
     for (int i = 0; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
     {
-        size_t index = schema->active->path[i];
+        unsigned index = schema->active->path[i];
         size_t count;
 
         if (node->child[index]->key != NULL)
@@ -87,8 +87,8 @@ static void write_path(const schema_t *schema, char *path, size_t size)
 }
 
 /* Notifies an event to the user-defined callback */
-static int notify_event(const schema_t *schema,
-    const json_t *rule, const json_t *node, enum json_event_type type)
+static int notify_event(const schema_t *schema, const json_t *rule, const json_t *node,
+    enum json_event_type type)
 {
     char path[PATH_SIZE] = "/";
 
@@ -97,30 +97,23 @@ static int notify_event(const schema_t *schema,
         write_path(schema, path, sizeof path);
     }
 
-    const json_event_t event =
-    {
-        .path = path, .node = node, .rule = rule, .type = type
-    };
+    const json_event_t event = { .path = path, .node = node, .rule = rule, .type = type };
 
     return schema->callback(&event, schema->data);
 }
 
-static int notify(const schema_t *schema,
-    const json_t *rule, const json_t *node, enum json_event_type event)
+static int notify(const schema_t *schema, const json_t *rule, const json_t *node,
+    enum json_event_type event)
 {
-    return schema->callback
-        ? notify_event(schema, rule, node, event)
-        : event == JSON_FAILURE;
+    return schema->callback ? notify_event(schema, rule, node, event) : event == JSON_FAILURE;
 }
 
-static int abort_on_failure(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int abort_on_failure(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     return notify(schema, rule, node, JSON_FAILURE);
 }
 
-static int abort_on_warning(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int abort_on_warning(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     switch (warning_mode)
     {
@@ -134,8 +127,7 @@ static int abort_on_warning(const schema_t *schema,
     }
 }
 
-static void raise_error(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static void raise_error(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     notify(schema, rule, node, JSON_ERROR);
 }
@@ -144,8 +136,7 @@ static void raise_error(const schema_t *schema,
  * Writes an event to a provided buffer from an user-defined callback
  * Limits the buffer to 'encode_max' bytes when encoding (0 = no limit)
  */
-char *json_write_event(const json_event_t *event, buffer_t *buffer,
-    size_t encode_max)
+char *json_write_event(const json_event_t *event, buffer_t *buffer, size_t encode_max)
 {
     if ((event == NULL) || (buffer == NULL))
     {
@@ -309,8 +300,8 @@ static int get_test(const json_t *rule)
     }
 }
 
-static int test_child(const schema_t *schema,
-    const json_t *rule, const json_t *parent, unsigned child, int abortable)
+static int test_child(const schema_t *schema, const json_t *rule, const json_t *parent,
+    unsigned child, int abortable)
 {
     if (schema->active->paths++ < MAX_ACTIVE_PATHS)
     {
@@ -323,8 +314,8 @@ static int test_child(const schema_t *schema,
     return result;
 }
 
-static int test_properties(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_properties(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -366,8 +357,8 @@ static int test_properties(const schema_t *schema,
     return result;
 }
 
-static int test_pattern_properties(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_pattern_properties(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -409,8 +400,8 @@ static int test_pattern_properties(const schema_t *schema,
     return result;
 }
 
-static int test_additional_properties(const schema_t *schema,
-    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
+static int test_additional_properties(const schema_t *schema, const json_t *parent,
+    const json_t *rule, const json_t *node, int abortable)
 {
     switch (rule->type)
     {
@@ -478,8 +469,8 @@ static int test_additional_properties(const schema_t *schema,
     return result;
 }
 
-static int test_property_names(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_property_names(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -517,8 +508,8 @@ static int test_property_names(const schema_t *schema,
     return result;
 }
 
-static int test_required(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_required(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if (rule->type != JSON_ARRAY)
     {
@@ -564,8 +555,8 @@ static int test_required(const schema_t *schema,
     return result;
 }
 
-static int test_dependencies(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_dependencies(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -669,8 +660,8 @@ static int test_max_properties(const json_t *rule, const json_t *node)
     return (size_t)rule->number >= node->size;
 }
 
-static int test_items(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_items(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if ((rule->type != JSON_OBJECT) && (rule->type != JSON_ARRAY))
     {
@@ -726,8 +717,8 @@ static int test_items(const schema_t *schema,
     return result;
 }
 
-static int test_additional_items(const schema_t *schema,
-    const json_t *parent, const json_t *rule, const json_t *node, int abortable)
+static int test_additional_items(const schema_t *schema, const json_t *parent, const json_t *rule,
+    const json_t *node, int abortable)
 {
     switch (rule->type)
     {
@@ -788,8 +779,7 @@ static int test_unique_items(const json_t *rule, const json_t *node)
     return json_unique_children(node);
 }
 
-static int test_contains(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int test_contains(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -1019,8 +1009,7 @@ static int test_type(const json_t *rule, const json_t *node)
         ((mask & (1u << JSON_REAL)) && (node->type == JSON_INTEGER));
 }
 
-static int test_ref(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int test_ref(const schema_t *schema, const json_t *rule, const json_t *node, int abortable)
 {
     if (rule->type != JSON_STRING)
     {
@@ -1079,8 +1068,7 @@ static int test_ref(const schema_t *schema,
     }
 }
 
-static int test_not(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int test_not(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -1096,8 +1084,7 @@ static int test_not(const schema_t *schema,
     return !result;
 }
 
-static int test_any_of(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int test_any_of(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_ARRAY)
     {
@@ -1120,8 +1107,7 @@ static int test_any_of(const schema_t *schema,
     return SCHEMA_INVALID;
 }
 
-static int test_one_of(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int test_one_of(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_ARRAY)
     {
@@ -1151,8 +1137,7 @@ static int test_one_of(const schema_t *schema,
     return count == 1;
 }
 
-static int test_all_of(const schema_t *schema,
-    const json_t *rule, const json_t *node)
+static int test_all_of(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_ARRAY)
     {
@@ -1175,8 +1160,8 @@ static int test_all_of(const schema_t *schema,
     return SCHEMA_VALID;
 }
 
-static int test_if(const schema_t *schema,
-    const json_t *parent, unsigned *child, const json_t *node)
+static int test_if(const schema_t *schema, const json_t *parent, unsigned *child,
+    const json_t *node)
 {
     unsigned index = *child;
     const json_t *rule = parent->child[index];
@@ -1220,8 +1205,8 @@ static int test_if(const schema_t *schema,
     return SCHEMA_VALID;
 }
 
-static int test_branch(const schema_t *schema,
-    const json_t *parent, unsigned *child, const json_t *node, int abortable)
+static int test_branch(const schema_t *schema, const json_t *parent, unsigned *child,
+    const json_t *node, int abortable)
 {
     unsigned index = *child;
     const json_t *rule = parent->child[index];
@@ -1252,8 +1237,7 @@ static int test_branch(const schema_t *schema,
     return result;
 }
 
-static int validate(const schema_t *schema,
-    const json_t *rule, const json_t *node, int abortable)
+static int validate(const schema_t *schema, const json_t *rule, const json_t *node, int abortable)
 {
     int result = SCHEMA_VALID;
 

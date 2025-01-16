@@ -99,8 +99,7 @@ static char *write_string(buffer_t *buffer, const char *str)
             CHECK(buffer_append(buffer, seq, 2));
             ptr = ++str;
         }
-        else if (is_cntrl(*str)
-            || ((encoding == JSON_ASCII) && !is_ascii(*str)))
+        else if (is_cntrl(*str) || ((encoding == JSON_ASCII) && !is_ascii(*str)))
         {
             char seq[sizeof("\\u0123")] = {'\0'};
             size_t length = encode_hex(str, seq);
@@ -223,8 +222,7 @@ typedef struct
     unsigned char indent;
 } json_buffer_t;
 
-static int encode_tree(const json_buffer_t *buffer, const json_t *node,
-    unsigned short depth)
+static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned short depth)
 {
     for (unsigned i = 0;
         (i < node->size) && (buffer->base->length <= buffer->max_length);
@@ -232,13 +230,11 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node,
     {
         unsigned char more = node->size > i + 1;
 
-        CHECK(encode_node(
-            buffer->base, node->child[i], depth, buffer->indent, more));
+        CHECK(encode_node(buffer->base, node->child[i], depth, buffer->indent, more));
         if (node->child[i]->size > 0)
         {
             CHECK(encode_tree(buffer, node->child[i], depth + 1));
-            CHECK(encode_edge(
-                buffer->base, node->child[i], depth, buffer->indent, more));
+            CHECK(encode_edge(buffer->base, node->child[i], depth, buffer->indent, more));
         }
     }
     return 1;
@@ -250,8 +246,7 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node,
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */ 
-static int buffer_encode(buffer_t *base, const json_t *node, size_t indent,
-    size_t max_length)
+static int buffer_encode(buffer_t *base, const json_t *node, size_t indent, size_t max_length)
 {
     if (node != NULL)
     {
@@ -328,8 +323,8 @@ char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 }
 
 /* Serializes into a provided buffer and limits length */
-char *json_buffer_encode_max(buffer_t *buffer, const json_t *node,
-    size_t indent, size_t max_length)
+char *json_buffer_encode_max(buffer_t *buffer, const json_t *node, size_t indent,
+    size_t max_length)
 {
     if (buffer && buffer_encode(buffer, node, indent, max_length))
     {

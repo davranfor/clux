@@ -446,7 +446,7 @@ void json_print_error(const json_error_t *error)
     }
     else
     {
-        fprintf(stderr, "json: Error at %d,%d\n", error->line, error->column);
+        fprintf(stderr, "json: Error at line %d, column %d\n", error->line, error->column);
     }
 }
 

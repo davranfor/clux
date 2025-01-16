@@ -110,39 +110,32 @@ int json_is_scalar(const json_t *node)
 
 int json_is_object(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_OBJECT);
+    return (node != NULL) && (node->type == JSON_OBJECT);
 }
 
 int json_is_array(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_ARRAY);
+    return (node != NULL) && (node->type == JSON_ARRAY);
 }
 
 int json_is_string(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_STRING);
+    return (node != NULL) && (node->type == JSON_STRING);
 }
 
 int json_is_integer(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_INTEGER);
+    return (node != NULL) && (node->type == JSON_INTEGER);
 }
 
 int json_is_unsigned(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_INTEGER)
-        && (node->number >= 0);
+    return (node != NULL) && (node->type == JSON_INTEGER) && (node->number >= 0);
 }
 
 int json_is_real(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_REAL);
+    return (node != NULL) && (node->type == JSON_REAL);
 }
 
 int json_is_number(const json_t *node)
@@ -179,32 +172,27 @@ int json_is_boolean(const json_t *node)
 
 int json_is_true(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_TRUE);
+    return (node != NULL) && (node->type == JSON_TRUE);
 }
 
 int json_is_false(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_FALSE);
+    return (node != NULL) && (node->type == JSON_FALSE);
 }
 
 int json_is_null(const json_t *node)
 {
-    return (node != NULL)
-        && (node->type == JSON_NULL);
+    return (node != NULL) && (node->type == JSON_NULL);
 }
 
 int json_is_root(const json_t *node)
 {
-    return (node != NULL)
-        && !node->packed;
+    return (node != NULL) && !node->packed;
 }
 
 int json_is_child(const json_t *node)
 {
-    return (node != NULL)
-        && (node->packed);
+    return (node != NULL) && (node->packed);
 }
 
 enum json_type json_type(const json_t *node)
@@ -488,8 +476,7 @@ int json_equal(const json_t *a, const json_t *b)
 }
 
 /* json_walk recursive helper sending 'node' along with 'depth' and 'data' */
-static int walk(const json_t *node, unsigned short depth,
-    json_walk_callback callback, void *data)
+static int walk(const json_t *node, unsigned short depth, json_walk_callback callback, void *data)
 {
     for (unsigned i = 0; i < node->size; i++)
     {

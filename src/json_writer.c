@@ -115,9 +115,7 @@ json_t *json_new_integer(double number)
     if (node != NULL)
     {
         node->number = trunc(number);
-        node->type = IS_SAFE_INTEGER(node->number)
-            ? JSON_INTEGER
-            : JSON_REAL;
+        node->type = IS_SAFE_INTEGER(node->number) ? JSON_INTEGER : JSON_REAL;
     }
     return node;
 }
@@ -142,9 +140,7 @@ json_t *json_new_boolean(int number)
 
     if (node != NULL)
     {
-        node->type = number != 0
-            ? JSON_TRUE
-            : JSON_FALSE;
+        node->type = number != 0 ? JSON_TRUE : JSON_FALSE;
     }
     return node;
 }
@@ -292,9 +288,7 @@ json_t *json_set_integer(json_t *node, double number)
     {
         clear(node);
         node->number = trunc(number);
-        node->type = IS_SAFE_INTEGER(node->number)
-            ? JSON_INTEGER
-            : JSON_REAL;
+        node->type = IS_SAFE_INTEGER(node->number) ? JSON_INTEGER : JSON_REAL;
     }
     return node;
 }
@@ -317,9 +311,7 @@ json_t *json_set_boolean(json_t *node, int number)
     if (node != NULL)
     {
         clear(node);
-        node->type = number != 0
-            ? JSON_TRUE
-            : JSON_FALSE;
+        node->type = number != 0 ? JSON_TRUE : JSON_FALSE;
     }
     return node;
 }
@@ -336,8 +328,7 @@ json_t *json_set_null(json_t *node)
 }
 
 /* Push 'child' into 'parent' at position 'index' with an optional 'key' */
-static json_t *push(json_t *parent, unsigned index, const char *name,
-    json_t *child)
+static json_t *push(json_t *parent, unsigned index, const char *name, json_t *child)
 {
     // Can't push itself nor a node with parent
     if ((parent == child) || child->packed)
@@ -393,8 +384,7 @@ static json_t *push(json_t *parent, unsigned index, const char *name,
 }
 
 /* Push 'child' into 'parent' at position 'index' with a 'key' */ 
-json_t *json_object_push(json_t *parent, size_t index, const char *key,
-    json_t *child)
+json_t *json_object_push(json_t *parent, size_t index, const char *key, json_t *child)
 {
     if ((parent == NULL) || (key == NULL) || (child == NULL))
     {
@@ -499,8 +489,7 @@ json_t *json_pop_at(json_t *parent, size_t index)
 }
 
 /* Move node from 'target' to 'source' on distinct iterables */
-static json_t *move(json_t *source, unsigned source_index,
-    json_t *target, unsigned index)
+static json_t *move(json_t *source, unsigned source_index, json_t *target, unsigned index)
 {
     if (index > target->size)
     {
