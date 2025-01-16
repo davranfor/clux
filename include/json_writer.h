@@ -25,8 +25,7 @@
 json_t *json_new_object(void);
 json_t *json_new_array(void);
 json_t *json_new_string(const char *);
-json_t *json_new_format(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
+json_t *json_new_format(const char *, ...) __attribute__ ((format (printf, 1, 2)));
 json_t *json_new_integer(double);
 json_t *json_new_real(double);
 json_t *json_new_boolean(int);
@@ -36,8 +35,7 @@ json_t *json_unset_key(json_t *);
 json_t *json_set_object(json_t *);
 json_t *json_set_array(json_t *);
 json_t *json_set_string(json_t *, const char *);
-json_t *json_set_format(json_t *, const char *, ...)
-    __attribute__ ((format (printf, 2, 3)));
+json_t *json_set_format(json_t *, const char *, ...) __attribute__ ((format (printf, 2, 3)));
 json_t *json_set_integer(json_t *, double);
 json_t *json_set_real(json_t *, double);
 json_t *json_set_boolean(json_t *, int);
