@@ -43,6 +43,7 @@ int json_is_null(const json_t *);
 int json_is_root(const json_t *);
 int json_is_child(const json_t *);
 enum json_type json_type(const json_t *);
+unsigned short json_flags(const json_t *);
 size_t json_height(const json_t *);
 unsigned json_size(const json_t *);
 unsigned json_properties(const json_t *);

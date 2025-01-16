@@ -200,6 +200,11 @@ enum json_type json_type(const json_t *node)
     return node != NULL ? node->type : JSON_UNDEFINED;
 }
 
+unsigned short json_flags(const json_t *node)
+{
+    return node != NULL ? node->flags : 0;
+}
+
 /* json_height helper */
 static int tree_height(const json_t *node, size_t depth, void *height)
 {

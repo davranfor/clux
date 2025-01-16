@@ -327,6 +327,16 @@ json_t *json_set_null(json_t *node)
     return node;
 }
 
+/* Set the 'flags' field */
+json_t *json_set_flags(json_t *node, unsigned short flags)
+{
+    if (node != NULL)
+    {
+        node->flags = flags;
+    }
+    return node;
+}
+
 /* Push 'child' into 'parent' at position 'index' with an optional 'key' */
 static json_t *push(json_t *parent, unsigned index, const char *name, json_t *child)
 {

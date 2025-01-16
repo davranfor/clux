@@ -40,6 +40,7 @@ json_t *json_set_integer(json_t *, double);
 json_t *json_set_real(json_t *, double);
 json_t *json_set_boolean(json_t *, int);
 json_t *json_set_null(json_t *);
+json_t *json_set_flags(json_t *, unsigned short);
 json_t *json_object_push(json_t *, size_t, const char *, json_t *);
 json_t *json_array_push(json_t *, size_t, json_t *);
 json_t *json_push_at(json_t *, size_t, json_t *);
