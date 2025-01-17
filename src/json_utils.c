@@ -10,7 +10,16 @@
 #include "json_private.h"
 #include "json_utils.h"
 
-/* Default qsort() comparison function for objects */
+/* Trusted comparison function for objects */
+static int compare_key(const void *pa, const void *pb)
+{
+    const json_t *a = *(json_t * const *)pa;
+    const json_t *b = *(json_t * const *)pb;
+
+    return strcmp(a->key, b->key);
+}
+
+/* Default comparison function for objects */
 int json_compare_by_key(const void *pa, const void *pb)
 {
     const json_t *a = *(json_t * const *)pa;
@@ -23,7 +32,7 @@ int json_compare_by_key(const void *pa, const void *pb)
     return 0;
 }
 
-/* Default qsort() comparison function for arrays */
+/* Default comparison function for arrays */
 int json_compare_by_value(const void *pa, const void *pb)
 {
     const json_t *a = *(json_t * const *)pa;
@@ -57,19 +66,10 @@ void json_sort(json_t *node, json_sort_callback callback)
     {
         if (callback == NULL)
         {
-            callback = node->type == JSON_OBJECT ? json_compare_by_key : json_compare_by_value;
+            callback = node->type == JSON_OBJECT ? compare_key : json_compare_by_value;
         }
         qsort(node->child, node->size, sizeof *node->child, callback);
     }
-}
-
-/* bsearch() comparison function */
-static int search(const void *pa, const void *pb)
-{
-    const json_t *a = *(json_t * const *)pa;
-    const json_t *b = *(json_t * const *)pb;
-
-    return strcmp(a->key, b->key);
 }
 
 /**
@@ -83,7 +83,7 @@ json_t *json_search(const json_t *parent, const char *key)
 #pragma GCC diagnostic ignored "-Wcast-qual"
         json_t *child = &(json_t){ .key = (char *)key, .type = JSON_UNDEFINED };
 #pragma GCC diagnostic pop
-        json_t **node = bsearch(&child, parent->child, parent->size, sizeof child, search);
+        json_t **node = bsearch(&child, parent->child, parent->size, sizeof child, compare_key);
 
         if (node != NULL)
         {
