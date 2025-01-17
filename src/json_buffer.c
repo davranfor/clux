@@ -224,9 +224,7 @@ typedef struct
 
 static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned short depth)
 {
-    for (unsigned i = 0;
-        (i < node->size) && (buffer->base->length <= buffer->max_length);
-        (i++))
+    for (unsigned i = 0; (i < node->size) && (buffer->base->length <= buffer->max_length); i++)
     {
         unsigned char more = node->size > i + 1;
 

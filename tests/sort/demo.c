@@ -31,6 +31,18 @@ int main(void)
 {
     srand((unsigned)time(NULL));
 
+    json_t *object = json_parse("{\"b\": 1, \"a\": 0, \"c\": 2}", NULL);
+
+    if (object == NULL)
+    {
+        perror("json_parse");
+        exit(EXIT_FAILURE);
+    }
+    puts("Search key 'b':");
+    json_sort(object, NULL);
+    json_print(json_search(object, "b"));
+    json_delete(object);
+
     json_t *array = json_new_array();
 
     for (int i = 0; i <= 25; i++)
