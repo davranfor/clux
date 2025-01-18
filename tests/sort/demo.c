@@ -10,7 +10,7 @@
 
 static void array_push_back(json_t *parent, json_t *child)
 {
-    if (!json_array_push(parent, JSON_TAIL, child))
+    if (!json_array_push_back(parent, child))
     {
         json_delete(parent);
         json_delete(child);

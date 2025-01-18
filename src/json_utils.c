@@ -54,12 +54,7 @@ int json_compare_by_value(const void *pa, const void *pb)
     }
 }
 
-/**
- * Sorts a json iterable using qsort
- * If a callback comparison function is not provided:
- * - json_compare_by_key() is used for json objects
- * - json_compare_by_value() is used for json arrays
- */
+/* Sorts a json iterable using qsort, assign default callbacks if not provided */
 void json_sort(json_t *node, json_sort_callback callback)
 {
     if ((node != NULL) && (node->size > 1))
@@ -72,9 +67,7 @@ void json_sort(json_t *node, json_sort_callback callback)
     }
 }
 
-/**
- * Search a key into an object using bsearch (properties must be already sorted by key)
- */
+/* Search a key into an object using bsearch (properties must be already sorted by key) */
 json_t *json_search(const json_t *parent, const char *key)
 {
     if ((parent != NULL) && (parent->size > 0) && (parent->type == JSON_OBJECT) && (key != NULL))

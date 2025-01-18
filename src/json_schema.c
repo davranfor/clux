@@ -124,6 +124,8 @@ static int abort_on_warning(const schema_t *schema, const json_t *rule, const js
         case JSON_WARNING_AS_ERROR:
             notify(schema, rule, node, JSON_ERROR);
             return 1;
+        default:
+            return 1;
     }
 }
 

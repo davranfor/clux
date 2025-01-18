@@ -22,6 +22,18 @@
     float: json_set_real,                                   \
     default: json_set_integer)(node, (double)(number))
 
+/* Macros indexing child */
+#define json_object_push_front(parent, key, child) json_object_push(parent, JSON_HEAD, key, child)
+#define json_object_push_back(parent, key, child) json_object_push(parent, JSON_TAIL, key, child)
+#define json_array_push_front(parent, child) json_array_push(parent, JSON_HEAD, child)
+#define json_array_push_back(parent, child) json_array_push(parent, JSON_TAIL, child)
+#define json_push_front(parent, child) json_push_at(parent, JSON_HEAD, child)
+#define json_push_back(parent, child) json_push_at(parent, JSON_TAIL, child)
+#define json_pop_front(node) json_pop_at(node, JSON_HEAD)
+#define json_pop_back(node) json_pop_at(node, JSON_TAIL)
+#define json_delete_front(node) json_delete_at(node, JSON_HEAD)
+#define json_delete_back(node) json_delete_at(node, JSON_TAIL)
+
 json_t *json_new_object(void);
 json_t *json_new_array(void);
 json_t *json_new_string(const char *);

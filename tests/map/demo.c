@@ -26,7 +26,7 @@ static void destroy(void)
 
 static void object_push_back(json_t *parent, const char *key, json_t *child)
 {
-    if (!json_object_push(parent, JSON_TAIL, key, child))
+    if (!json_object_push_back(parent, key, child))
     {
         json_delete(parent);
         json_delete(child);
