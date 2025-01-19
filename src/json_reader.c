@@ -192,7 +192,7 @@ int json_is_root(const json_t *node)
 
 int json_is_child(const json_t *node)
 {
-    return (node != NULL) && (node->packed);
+    return (node != NULL) && node->packed;
 }
 
 enum json_type json_type(const json_t *node)
