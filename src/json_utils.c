@@ -11,7 +11,7 @@
 #include "json_utils.h"
 
 /* Trusted comparison function for objects */
-static int compare_key(const void *pa, const void *pb)
+static int compare_by_key(const void *pa, const void *pb)
 {
     const json_t *a = *(json_t * const *)pa;
     const json_t *b = *(json_t * const *)pb;
@@ -61,26 +61,38 @@ void json_sort(json_t *node, json_sort_callback callback)
     {
         if (callback == NULL)
         {
-            callback = node->type == JSON_OBJECT ? compare_key : json_compare_by_value;
+            callback = node->type == JSON_OBJECT ? compare_by_key : json_compare_by_value;
         }
         qsort(node->child, node->size, sizeof *node->child, callback);
     }
 }
 
-/* Search a key into an object using bsearch (properties must be already sorted by key) */
-json_t *json_search(const json_t *parent, const char *key)
+/* Search a key into an object (properties must be already sorted by key) */
+json_t *json_search(const json_t *node, const char *key)
 {
-    if ((parent != NULL) && (parent->size > 0) && (parent->type == JSON_OBJECT) && (key != NULL))
+    if ((node == NULL) || (node->type != JSON_OBJECT) || (key == NULL))
     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-        json_t *child = &(json_t){ .key = (char *)key, .type = JSON_UNDEFINED };
-#pragma GCC diagnostic pop
-        json_t **node = bsearch(&child, parent->child, parent->size, sizeof child, compare_key);
+        return NULL;
+    }
 
-        if (node != NULL)
+    size_t lower = 0, upper = node->size;
+
+    while (lower < upper)
+    {
+        size_t index = (lower + upper) / 2;
+        int comparer = strcmp(key, node->child[index]->key);
+
+        if (comparer < 0)
         {
-            return *node;
+            upper = index;
+        }
+        else if (comparer > 0)
+        {
+            lower = index + 1;
+        }
+        else
+        {
+            return node->child[index];
         }
     }
     return NULL;
