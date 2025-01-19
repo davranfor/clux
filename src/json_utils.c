@@ -67,7 +67,7 @@ void json_sort(json_t *node, json_sort_callback callback)
     }
 }
 
-/* Search a key into an object (properties must be already sorted by key) */
+/* Search a key into an object (properties must be already sorted by key) */ 
 json_t *json_search(const json_t *node, const char *key)
 {
     if ((node == NULL) || (node->type != JSON_OBJECT) || (key == NULL))
@@ -75,18 +75,18 @@ json_t *json_search(const json_t *node, const char *key)
         return NULL;
     }
 
-    size_t lower = 0, upper = node->size;
+    unsigned lower = 0, upper = node->size;
 
     while (lower < upper)
     {
-        size_t index = (lower + upper) / 2;
-        int comparer = strcmp(key, node->child[index]->key);
+        unsigned index = lower + (upper - lower) / 2;
+        int cmp = strcmp(key, node->child[index]->key);
 
-        if (comparer < 0)
+        if (cmp < 0)
         {
             upper = index;
         }
-        else if (comparer > 0)
+        else if (cmp > 0)
         {
             lower = index + 1;
         }

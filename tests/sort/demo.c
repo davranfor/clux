@@ -31,7 +31,7 @@ int main(void)
 {
     srand((unsigned)time(NULL));
 
-    json_t *object = json_parse("{\"b\": 1, \"a\": 0, \"c\": 2}", NULL);
+    json_t *object = json_parse("{\"b\": 1, \"a\": 0, \"c\": 2, \"d\": 3}", NULL);
 
     if (object == NULL)
     {
