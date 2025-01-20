@@ -8,19 +8,19 @@
 #include <locale.h>
 #include <clux/json.h>
 
-#define EVENTS_MAX_LENGTH 4096 // max length of the buffer
-#define EVENTS_MAX_ENCODE 128  // max length of event line
+#define EVENTS_BUFFER_LIMIT 4096    // Don't write to buffer after this limit
+#define EVENTS_ENCODE_MAX 128       // Max length of event line
 
 enum {CONTINUE, STOP};
 
 static int notify_failure(const json_event_t *event, buffer_t *events)
 {
-    if (events->length > EVENTS_MAX_LENGTH)
+    if (events->length > EVENTS_BUFFER_LIMIT)
     {
         buffer_write(events, "...\n");
         return STOP;
     }
-    if (!json_write_event(event, events, EVENTS_MAX_ENCODE))
+    if (!json_write_event(event, events, EVENTS_ENCODE_MAX))
     {
         return STOP;
     }

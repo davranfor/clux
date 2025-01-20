@@ -427,7 +427,7 @@ char *json_quote(const char *str)
     return NULL;
 }
 
-/* Returns an encoded json string */
+/* Returns an encoded json string and limits length */
 char *json_quote_max(const char *str, size_t max_length)
 {
     if (str == NULL)
@@ -437,10 +437,9 @@ char *json_quote_max(const char *str, size_t max_length)
 
     buffer_t buffer = {0};
 
-    max_length = max_length ? max_length : (size_t)-1;
     if (write_string(&buffer, str))
     {
-        if (buffer.length - 2 > max_length)
+        if ((max_length > 0) && (buffer.length - 2 > max_length))
         {
             buffer_set_length(&buffer, max_length + 1);
             buffer_write(&buffer, "...\"");
@@ -461,14 +460,21 @@ char *json_buffer_quote(buffer_t *buffer, const char *str)
     return write_string(buffer, str);
 }
 
-/* Encodes a json string into a provided buffer */
+/* Encodes a json string into a provided buffer and limits length */
 char *json_buffer_quote_max(buffer_t *buffer, const char *str, size_t max_length)
 {
     if ((buffer == NULL) || (str == NULL))
     {
         return NULL;
     }
-    max_length = max_length ? buffer->length + max_length : (size_t)-1;
+    if (max_length > 0)
+    {
+        max_length += buffer->length;
+    }
+    else
+    {
+        max_length = (size_t)-1;
+    }
     if (write_string(buffer, str))
     {
         if (buffer->length - 2 > max_length)
