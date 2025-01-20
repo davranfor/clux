@@ -437,6 +437,18 @@ char *json_quote_max(const char *str, size_t max_length)
 
     buffer_t buffer = {0};
 
+    switch (max_length)
+    {
+        case 0:
+            max_length = (size_t)-1;
+            break;
+        case 1:
+            max_length = 1;
+            break;
+        default:
+            max_length = max_length - 1;
+            break;
+    }
     if (write_string(&buffer, str))
     {
         if (buffer.length > max_length)
@@ -467,8 +479,18 @@ char *json_buffer_quote_max(buffer_t *buffer, const char *str, size_t max_length
     {
         return NULL;
     }
-
-    max_length += buffer->length;
+    switch (max_length)
+    {
+        case 0:
+            max_length = (size_t)-1;
+            break;
+        case 1:
+            max_length = buffer->length + 1;
+            break;
+        default:
+            max_length = buffer->length + max_length - 1;
+            break;
+    }
     if (write_string(buffer, str))
     {
         if (buffer->length > max_length)
