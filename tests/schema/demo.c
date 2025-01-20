@@ -8,8 +8,8 @@
 #include <locale.h>
 #include <clux/json.h>
 
-#define EVENTS_MAX_LENGTH 4096
-#define EVENTS_MAX_ENCODE 128
+#define EVENTS_MAX_LENGTH 4096 // max length of the buffer
+#define EVENTS_MAX_ENCODE 128  // max length of event line
 
 enum {CONTINUE, STOP};
 
