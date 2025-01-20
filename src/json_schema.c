@@ -144,7 +144,8 @@ char *json_write_event(const json_event_t *event, buffer_t *buffer, size_t encod
     {
         return NULL;
     }
-    buffer_print(buffer, "\nPath: %s", event->path);
+    buffer_write(buffer, "\nPath: ");
+    json_buffer_quote_max(buffer, event->path, encode_max);
     buffer_write(buffer, "\nNode: ");
     json_buffer_encode_max(buffer, event->node, 0, encode_max);
     buffer_write(buffer, "\nRule: ");

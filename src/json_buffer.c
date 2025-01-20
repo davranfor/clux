@@ -427,6 +427,29 @@ char *json_quote(const char *str)
     return NULL;
 }
 
+/* Returns an encoded json string */
+char *json_quote_max(const char *str, size_t max_length)
+{
+    if (str == NULL)
+    {
+        return NULL;
+    }
+
+    buffer_t buffer = {0};
+
+    if (write_string(&buffer, str))
+    {
+        if (buffer.length > max_length)
+        {
+            buffer_set_length(&buffer, max_length);
+            buffer_write(&buffer, "...\"");
+        }
+        return buffer.text;
+    }
+    free(buffer.text);
+    return NULL;
+}
+
 /* Encodes a json string into a provided buffer */
 char *json_buffer_quote(buffer_t *buffer, const char *str)
 {
@@ -435,6 +458,27 @@ char *json_buffer_quote(buffer_t *buffer, const char *str)
         return NULL;
     }
     return write_string(buffer, str);
+}
+
+/* Encodes a json string into a provided buffer */
+char *json_buffer_quote_max(buffer_t *buffer, const char *str, size_t max_length)
+{
+    if ((buffer == NULL) || (str == NULL))
+    {
+        return NULL;
+    }
+
+    max_length += buffer->length;
+    if (write_string(buffer, str))
+    {
+        if (buffer->length > max_length)
+        {
+            buffer_set_length(buffer, max_length);
+            buffer_write(buffer, "...\"");
+        }
+        return buffer->text;
+    }
+    return NULL;
 }
 
 /* Returns an encoded json string from a number */

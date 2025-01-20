@@ -25,7 +25,9 @@ int json_write_line(const json_t *, FILE *);
 int json_write_file(const json_t *, const char *, size_t);
 int json_print(const json_t *);
 char *json_quote(const char *);
+char *json_quote_max(const char *, size_t);
 char *json_buffer_quote(buffer_t *, const char *);
+char *json_buffer_quote_max(buffer_t *, const char *, size_t);
 char *json_convert(double, enum json_type);
 char *json_buffer_convert(buffer_t *, double, enum json_type);
 
