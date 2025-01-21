@@ -53,6 +53,7 @@ static char *write_integer(buffer_t *buffer, double number)
 
     if (length > NUMBER_CHARS)
     {
+        buffer_invalidate(buffer);
         return NULL;
     }
     buffer->length += length;
@@ -70,6 +71,7 @@ static char *write_real(buffer_t *buffer, double number)
 
     if (length > NUMBER_CHARS)
     {
+        buffer_invalidate(buffer);
         return NULL;
     }
 
@@ -244,11 +246,11 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */ 
-static int buffer_encode(buffer_t *base, const json_t *node, size_t indent, size_t max_length)
+static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent, size_t max_length)
 {
     if (node == NULL)
     {
-        return 0;
+        return NULL;
     }
 
     int is_property = node->key != NULL;
@@ -281,7 +283,7 @@ static int buffer_encode(buffer_t *base, const json_t *node, size_t indent, size
         buffer_set_length(base, buffer.max_length);
         buffer_write(base, indent ? "...\n" : "...");
     }
-    return base->text != NULL;
+    return base->text;
 }
 
 /* Serializes a JSON structure or a single node into a compact string */
@@ -289,12 +291,7 @@ char *json_encode(const json_t *node, size_t indent)
 {
     buffer_t buffer = {0};
 
-    if (buffer_encode(&buffer, node, indent, 0))
-    {
-        return buffer.text;
-    }
-    free(buffer.text);
-    return NULL;
+    return buffer_encode(&buffer, node, indent, 0);
 }
 
 /* Serializes and limits length */
@@ -302,12 +299,7 @@ char *json_encode_max(const json_t *node, size_t indent, size_t max_length)
 {
     buffer_t buffer = {0};
 
-    if (buffer_encode(&buffer, node, indent, max_length))
-    {
-        return buffer.text;
-    }
-    free(buffer.text);
-    return NULL;
+    return buffer_encode(&buffer, node, indent, max_length);
 }
 
 /* Serializes into a provided buffer */
@@ -336,12 +328,7 @@ char *json_stringify(const json_t *node)
 {
     buffer_t buffer = {0};
 
-    if (buffer_encode(&buffer, node, 0, 0))
-    {
-        return buffer.text;
-    }
-    free(buffer.text);
-    return NULL;
+    return buffer_encode(&buffer, node, 0, 0);
 }
 
 #define write_file(buffer, file) \
@@ -419,12 +406,7 @@ char *json_quote(const char *str)
 
     buffer_t buffer = {0};
 
-    if (write_string(&buffer, str))
-    {
-        return buffer.text;
-    }
-    free(buffer.text);
-    return NULL;
+    return write_string(&buffer, str);
 }
 
 /* Returns an encoded json string and limits length */
@@ -444,10 +426,8 @@ char *json_quote_max(const char *str, size_t max_length)
             buffer_set_length(&buffer, max_length + 1);
             buffer_write(&buffer, "...\"");
         }
-        return buffer.text;
     }
-    free(buffer.text);
-    return NULL;
+    return buffer.text;
 }
 
 /* Encodes a json string into a provided buffer */
@@ -482,9 +462,8 @@ char *json_buffer_quote_max(buffer_t *buffer, const char *str, size_t max_length
             buffer_set_length(buffer, max_length + 1);
             buffer_write(buffer, "...\"");
         }
-        return buffer->text;
     }
-    return NULL;
+    return buffer->text;
 }
 
 /* Returns an encoded json string from a number */
@@ -494,20 +473,12 @@ char *json_convert(double number, enum json_type type)
 
     if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
     {
-        if (write_integer(&buffer, number))
-        {
-            return buffer.text;
-        }
+        return write_integer(&buffer, number);
     }
     else
     {
-        if (write_real(&buffer, number))
-        {
-            return buffer.text;
-        }
+        return write_real(&buffer, number);
     }
-    free(buffer.text);
-    return NULL;
 }
 
 /* Encodes a number as json string into a provided buffer */

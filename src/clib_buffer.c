@@ -23,11 +23,7 @@ static char *resize(buffer_t *buffer, size_t size)
 
     if (text == NULL)
     {
-        free(buffer->text);
-        buffer->text = NULL;
-        buffer->length = 0;
-        buffer->size = 0;
-        buffer->fail = 1;
+        buffer_invalidate(buffer);
         return NULL;
     }
     buffer->text = text;
@@ -109,6 +105,10 @@ char *buffer_print(buffer_t *buffer, const char *fmt, ...)
         vsnprintf(text + buffer->length, length + 1, fmt, args);
         buffer->length += length;
     }
+    else
+    {
+        buffer_invalidate(buffer);
+    }
     va_end(args);
     return text;
 }
@@ -136,7 +136,7 @@ char *buffer_put(buffer_t *buffer, char chr)
     return buffer->text;
 }
 
-void buffer_set_length(buffer_t *buffer, size_t index)
+char *buffer_set_length(buffer_t *buffer, size_t index)
 {
     if ((index <= buffer->length) && (buffer->text != NULL))
     {
@@ -147,5 +147,25 @@ void buffer_set_length(buffer_t *buffer, size_t index)
         buffer->text[index] = '\0';
         buffer->length = index;
     }
+    return buffer->text;
+}
+
+void buffer_invalidate(buffer_t *buffer)
+{
+    free(buffer->text);
+    buffer->text = NULL;
+    buffer->length = 0;
+    buffer->size = 0;
+    buffer->fail = 1;
+}
+
+void buffer_reset(buffer_t *buffer)
+{
+    if (buffer->text != NULL)
+    {
+        buffer->text[0] = '\0';
+    }
+    buffer->length = 0;
+    buffer->fail = 0;
 }
 

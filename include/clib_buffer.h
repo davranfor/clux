@@ -16,7 +16,9 @@ char *buffer_write(buffer_t *, const char *);
 char *buffer_print(buffer_t *, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 char *buffer_repeat(buffer_t *, char, size_t);
 char *buffer_put(buffer_t *, char);
-void buffer_set_length(buffer_t *, size_t);
+char *buffer_set_length(buffer_t *, size_t);
+void buffer_invalidate(buffer_t *);
+void buffer_reset(buffer_t *);
 
 #endif
 
