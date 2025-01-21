@@ -246,42 +246,42 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned
  */ 
 static int buffer_encode(buffer_t *base, const json_t *node, size_t indent, size_t max_length)
 {
-    if (node != NULL)
+    if (node == NULL)
     {
-        int is_property = node->key != NULL;
+        return 0;
+    }
+
+    int is_property = node->key != NULL;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
-        const json_t parent =
-        {
-            .child = (json_t *[]){(json_t *)node},
-            .size = 1,
-            .type = is_property ? JSON_OBJECT : JSON_ARRAY
-        };
-        const json_t grandparent =
-        {
-             .child = (json_t *[]){(json_t *)&parent},
-             .size = 1,
-             .type = JSON_ARRAY
-        };
+    const json_t parent =
+    {
+        .child = (json_t *[]){(json_t *)node},
+        .size = 1,
+        .type = is_property ? JSON_OBJECT : JSON_ARRAY
+    };
+    const json_t grandparent =
+    {
+         .child = (json_t *[]){(json_t *)&parent},
+         .size = 1,
+         .type = JSON_ARRAY
+    };
 #pragma GCC diagnostic pop
 
-        const json_buffer_t buffer =
-        {
-            .base = base,
-            .max_length = max_length ? base->length + max_length : (size_t)-1,
-            .indent = indent > MAX_INDENT ? MAX_INDENT : (unsigned char)indent
-        };
+    const json_buffer_t buffer =
+    {
+        .base = base,
+        .max_length = max_length ? base->length + max_length : (size_t)-1,
+        .indent = indent > MAX_INDENT ? MAX_INDENT : (unsigned char)indent
+    };
 
-        node = is_property ? &grandparent : &parent; 
-        CHECK(encode_tree(&buffer, node, 0));
-        if (base->length > buffer.max_length)
-        {
-            buffer_set_length(base, buffer.max_length);
-            buffer_write(base, indent ? "...\n" : "...");
-        }
-        return base->text != NULL;
+    CHECK(encode_tree(&buffer, is_property ? &grandparent : &parent, 0));
+    if (base->length > buffer.max_length)
+    {
+        buffer_set_length(base, buffer.max_length);
+        buffer_write(base, indent ? "...\n" : "...");
     }
-    return 0;
+    return base->text != NULL;
 }
 
 /* Serializes a JSON structure or a single node into a compact string */
