@@ -42,6 +42,18 @@ char *buffer_resize(buffer_t *buffer, size_t length)
     return buffer->text;
 }
 
+char *buffer_repeat(buffer_t *buffer, char chr, size_t count)
+{
+    if (buffer_resize(buffer, count) == NULL)
+    {
+        return NULL;
+    }
+    memset(buffer->text + buffer->length, chr, count);
+    buffer->text[buffer->length + count] = '\0';
+    buffer->length += count;
+    return buffer->text;
+}
+
 char *buffer_insert(buffer_t *buffer, size_t index,
     const char *text, size_t length)
 {
@@ -73,20 +85,7 @@ char *buffer_append(buffer_t *buffer, const char *text, size_t length)
     return buffer->text;
 }
 
-char *buffer_write(buffer_t *buffer, const char *text)
-{
-    size_t length = strlen(text);
-
-    if (buffer_resize(buffer, length) == NULL)
-    {
-        return NULL;
-    }
-    memcpy(buffer->text + buffer->length, text, length + 1);
-    buffer->length += length;
-    return buffer->text;
-}
-
-char *buffer_print(buffer_t *buffer, const char *fmt, ...)
+char *buffer_format(buffer_t *buffer, const char *fmt, ...)
 {
     va_list args, copy;
 
@@ -113,15 +112,16 @@ char *buffer_print(buffer_t *buffer, const char *fmt, ...)
     return text;
 }
 
-char *buffer_repeat(buffer_t *buffer, char chr, size_t count)
+char *buffer_write(buffer_t *buffer, const char *text)
 {
-    if (buffer_resize(buffer, count) == NULL)
+    size_t length = strlen(text);
+
+    if (buffer_resize(buffer, length) == NULL)
     {
         return NULL;
     }
-    memset(buffer->text + buffer->length, chr, count);
-    buffer->text[buffer->length + count] = '\0';
-    buffer->length += count;
+    memcpy(buffer->text + buffer->length, text, length + 1);
+    buffer->length += length;
     return buffer->text;
 }
 
@@ -161,11 +161,7 @@ void buffer_invalidate(buffer_t *buffer)
 
 void buffer_reset(buffer_t *buffer)
 {
-    if (buffer->text != NULL)
-    {
-        buffer->text[0] = '\0';
-    }
-    buffer->length = 0;
+    buffer_set_length(buffer, 0);
     buffer->fail = 0;
 }
 
