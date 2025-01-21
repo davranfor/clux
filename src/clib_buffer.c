@@ -14,7 +14,7 @@
 
 static char *resize(buffer_t *buffer, size_t size)
 {
-    if (buffer->fail)
+    if (buffer->error)
     {
         return NULL;
     }
@@ -23,7 +23,7 @@ static char *resize(buffer_t *buffer, size_t size)
 
     if (text == NULL)
     {
-        buffer_invalidate(buffer);
+        buffer_set_error(buffer, BUFFER_ERROR_ALLOC);
         return NULL;
     }
     buffer->text = text;
@@ -106,7 +106,7 @@ char *buffer_format(buffer_t *buffer, const char *fmt, ...)
     }
     else
     {
-        buffer_invalidate(buffer);
+        buffer_set_error(buffer, BUFFER_ERROR_FORMAT);
     }
     va_end(args);
     return text;
@@ -150,18 +150,21 @@ char *buffer_set_length(buffer_t *buffer, size_t index)
     return buffer->text;
 }
 
-void buffer_invalidate(buffer_t *buffer)
+void buffer_set_error(buffer_t *buffer, int error)
 {
-    free(buffer->text);
-    buffer->text = NULL;
-    buffer->length = 0;
-    buffer->size = 0;
-    buffer->fail = 1;
+    if ((buffer->error == 0) || (error == 0))
+    {
+        free(buffer->text);
+        buffer->text = NULL;
+        buffer->length = 0;
+        buffer->size = 0;
+        buffer->error = error;
+    }
 }
 
 void buffer_reset(buffer_t *buffer)
 {
     buffer_set_length(buffer, 0);
-    buffer->fail = 0;
+    buffer->error = 0;
 }
 

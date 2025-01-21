@@ -53,7 +53,7 @@ static char *write_integer(buffer_t *buffer, double number)
 
     if (length > NUMBER_CHARS)
     {
-        buffer_invalidate(buffer);
+        buffer_set_error(buffer, BUFFER_ERROR_FORMAT);
         return NULL;
     }
     buffer->length += length;
@@ -71,7 +71,7 @@ static char *write_real(buffer_t *buffer, double number)
 
     if (length > NUMBER_CHARS)
     {
-        buffer_invalidate(buffer);
+        buffer_set_error(buffer, BUFFER_ERROR_FORMAT);
         return NULL;
     }
 
