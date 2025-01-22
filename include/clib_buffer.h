@@ -8,7 +8,7 @@
 #define CLIB_BUFFER_H
 
 typedef struct { char *text; size_t length, size; int error; } buffer_t;
-enum { BUFFER_ERROR_ALLOC = 1, BUFFER_ERROR_FORMAT };
+enum { BUFFER_ERROR_RESIZE = 1, BUFFER_ERROR_FORMAT };
 
 char *buffer_resize(buffer_t *, size_t);
 char *buffer_repeat(buffer_t *, char, size_t);

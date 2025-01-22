@@ -23,7 +23,7 @@ static char *resize(buffer_t *buffer, size_t size)
 
     if (text == NULL)
     {
-        buffer_set_error(buffer, BUFFER_ERROR_ALLOC);
+        buffer_set_error(buffer, BUFFER_ERROR_RESIZE);
         return NULL;
     }
     buffer->text = text;
