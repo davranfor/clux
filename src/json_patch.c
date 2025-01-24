@@ -71,7 +71,6 @@ void json_unpatch(json_t *source, json_t *target, int inserts)
     {
         return;
     }
-
     while (source->size > 0)
     {
         const char *key = source->child[source->size - 1]->key;
