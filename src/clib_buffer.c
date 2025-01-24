@@ -56,13 +56,13 @@ char *buffer_repeat(buffer_t *buffer, char chr, size_t count)
 
 char *buffer_insert(buffer_t *buffer, size_t index, const char *text, size_t length)
 {
+    if (index >= buffer->length)
+    {
+        return buffer_append(buffer, text, length);
+    }
     if (buffer_resize(buffer, length) == NULL)
     {
         return NULL;
-    }
-    if (index > buffer->length)
-    {
-        index = buffer->length;
     }
     memmove(buffer->text + index + length,
             buffer->text + index,
