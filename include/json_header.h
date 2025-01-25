@@ -16,11 +16,15 @@
 
 #define JSON_PRAGMA(x) _Pragma(#x)
 
+#define JSON_CAST(node) _Generic((node),    \
+    const json_t *: ((json_t *)(node)),     \
+    default: (node))
+
 /* Cast 'const json_t *' to 'json_t *' without warning */
 #define json_cast(node)                                 \
     JSON_PRAGMA(GCC diagnostic push)                    \
     JSON_PRAGMA(GCC diagnostic ignored "-Wcast-qual")   \
-    ((json_t *)(node))                                  \
+    JSON_CAST(node)                                     \
     JSON_PRAGMA(GCC diagnostic pop)
 
 enum json_type
