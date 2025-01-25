@@ -510,15 +510,12 @@ int json_walk(const json_t *node, json_walk_callback callback, void *data)
 {
     if (node != NULL) 
     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
         const json_t parent =
         {
-            .child = (json_t *[]){(json_t *)node},
+            .child = (json_t *[]){json_cast(node)},
             .size = 1,
             .type = node->key ? JSON_OBJECT : JSON_ARRAY
         };
-#pragma GCC diagnostic pop
 
         return walk(&parent, 0, callback, data);
     }

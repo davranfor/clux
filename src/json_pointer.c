@@ -124,18 +124,15 @@ json_t *json_pointer(const json_t *node, const char *path)
     {
         return NULL;
     }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
     switch (path[0])
     {
         case '/':
-            return (json_t *)pointer(node, path + 1);
+            return json_cast(pointer(node, path + 1));
         case '\0':
-            return (json_t *)node;
+            return json_cast(node);
         default:
             return NULL;
     }
-#pragma GCC diagnostic pop
 }
 
 /**

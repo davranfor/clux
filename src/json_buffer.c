@@ -253,23 +253,18 @@ static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent, si
         return NULL;
     }
 
-    int is_property = node->key != NULL;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
     const json_t parent =
     {
-        .child = (json_t *[]){(json_t *)node},
+        .child = (json_t *[]){json_cast(node)},
         .size = 1,
-        .type = is_property ? JSON_OBJECT : JSON_ARRAY
+        .type = node->key ? JSON_OBJECT : JSON_ARRAY
     };
     const json_t grandparent =
     {
-         .child = (json_t *[]){(json_t *)&parent},
+         .child = (json_t *[]){json_cast(&parent)},
          .size = 1,
          .type = JSON_ARRAY
     };
-#pragma GCC diagnostic pop
-
     const json_buffer_t buffer =
     {
         .base = base,
@@ -277,7 +272,7 @@ static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent, si
         .indent = indent > MAX_INDENT ? MAX_INDENT : (unsigned char)indent
     };
 
-    CHECK(encode_tree(&buffer, is_property ? &grandparent : &parent, 0));
+    CHECK(encode_tree(&buffer, node->key ? &grandparent : &parent, 0));
     if (base->length > buffer.max_length)
     {
         buffer_set_length(base, buffer.max_length);

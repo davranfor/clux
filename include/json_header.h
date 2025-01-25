@@ -14,6 +14,15 @@
 
 #define JSON_NOT_FOUND -1u
 
+#define JSON_PRAGMA(x) _Pragma(#x)
+
+/* Cast 'const json_t *' to 'json_t *' without warning */
+#define json_cast(node)                                 \
+    JSON_PRAGMA(GCC diagnostic push)                    \
+    JSON_PRAGMA(GCC diagnostic ignored "-Wcast-qual")   \
+    ((json_t *)(node))                                  \
+    JSON_PRAGMA(GCC diagnostic pop)
+
 enum json_type
 {
     JSON_UNDEFINED,
