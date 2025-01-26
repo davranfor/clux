@@ -36,7 +36,7 @@ static const char *content_length_label =
 static const char *header_end =
     "\r\n\r\n";
 
-enum {HEADER_END_LENGTH = 4};
+enum {HEADER_END_LENGTH = 4, HEADER_MAX_LENGTH = 4096};
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
 static const char *method_name[] =
@@ -72,7 +72,7 @@ int request_ready(const char *str, size_t size)
 
     if (end == NULL)
     {
-        return 0;
+        return size > HEADER_MAX_LENGTH ? -1 : 0;
     }
     end += HEADER_END_LENGTH;
 
@@ -80,16 +80,17 @@ int request_ready(const char *str, size_t size)
 
     if (label == NULL)
     {
-        return !*end;
+        return *end ? -1 : 1;
     }
     if (label > end)
     {
-        return 0;
+        return -1;
     }
 
-    size_t length = strtoul(label + strlen(content_length_label), NULL, 10);
+    size_t length = strtoul(label + strlen(content_length_label), NULL, 10) +
+                    (size_t)(end - str);
 
-    return size == (size_t)(end - str) + length;
+    return length > size ? -1 : length == size;
 }
 
 // cppcheck-suppress constParameterPointer

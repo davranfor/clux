@@ -135,9 +135,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
     buffer[rcvd] = '\0';
 
-    int bufferable = pool->data == NULL;
-    
-    if (bufferable && request_ready(buffer, rcvd))
+    if (pool->data == NULL)
     {
         pool_set(pool, buffer, rcvd);
     }
@@ -148,12 +146,17 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
             perror("pool_put");
             return 0;
         }
-        if (bufferable || !request_ready(pool->data, pool->size))
-        {
-            return -1;
-        }
     }
-    return bytes;
+    switch (request_ready(pool->data, pool->size))
+    {
+        case -1:
+            fprintf(stderr, "Bad request\n");
+            return 0;
+        case 0:
+            return -1;
+        default:
+            return bytes;
+    }
 }
 
 static ssize_t conn_send(conn_t *conn, pool_t *pool)
