@@ -66,13 +66,13 @@ static void load_map(void)
     atexit(unload_map);
 }
 
-int request_ready(const char *str, size_t size)
+int request_handle(const char *str, size_t size)
 {
     const char *end = strstr(str, header_end);
 
     if (end == NULL)
     {
-        return size > HEADER_MAX_LENGTH ? -1 : 0;
+        return size > HEADER_MAX_LENGTH ? REQUEST_ERROR : REQUEST_NOT_READY;
     }
     end += HEADER_END_LENGTH;
 
@@ -80,17 +80,17 @@ int request_ready(const char *str, size_t size)
 
     if (label == NULL)
     {
-        return *end ? -1 : 1;
+        return *end ? REQUEST_ERROR : REQUEST_READY;
     }
     if (label > end)
     {
-        return -1;
+        return REQUEST_ERROR;
     }
 
     size_t length = strtoul(label + strlen(content_length_label), NULL, 10) +
                     (size_t)(end - str);
 
-    return length > size ? -1 : length == size;
+    return length > size ? REQUEST_ERROR : length == size;
 }
 
 // cppcheck-suppress constParameterPointer

@@ -147,15 +147,15 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
             return 0;
         }
     }
-    switch (request_ready(pool->data, pool->size))
+    switch (request_handle(pool->data, pool->size))
     {
-        case -1:
+        case REQUEST_ERROR:
             fprintf(stderr, "Bad request\n");
             return 0;
-        case 0:
-            return -1;
-        default:
+        case REQUEST_READY:
             return bytes;
+        default:
+            return -1;
     }
 }
 
