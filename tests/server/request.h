@@ -9,9 +9,7 @@
 
 #include "pool.h"
 
-enum {REQUEST_ERROR = -1, REQUEST_NOT_READY, REQUEST_READY};
-
-int request_handle(const char *, size_t);
+int request_ready(const char *, size_t);
 void request_reply(pool_t *, char *, size_t);
 
 #endif
