@@ -243,7 +243,7 @@ unsigned json_items(const json_t *node)
     return (node != NULL) && (node->type == JSON_ARRAY) ? node->size : 0;
 }
 
-/* Position in an object given a key or -1 if not found */
+/* Position in an object given a key or -1u if not found */
 unsigned json_index(const json_t *node, const char *key)
 {
     if ((node != NULL) && (node->type == JSON_OBJECT) && (key != NULL))
