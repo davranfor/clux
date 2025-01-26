@@ -31,8 +31,6 @@ static const char *http_method_not_allowed =
     "Content-Length: 0\r\n\r\n";
 static const char *content_type_json =
     "Content-Type: application/json\r\n";
-static const char *content_length_label =
-    "Content-Length:";
 static const char *header_end =
     "\r\n\r\n";
 
@@ -76,18 +74,18 @@ int request_ready(const char *str, size_t size)
     }
     end += HEADER_END_LENGTH;
 
-    const char *label = strstr(str, content_length_label);
+    const char *content_length = strstr(str, "Content-Length:");
 
-    if (label == NULL)
+    if (content_length == NULL)
     {
         return !*end;
     }
-    if (label > end)
+    if (content_length > end)
     {
         return 0;
     }
 
-    size_t length = strtoul(label + strlen(content_length_label), NULL, 10);
+    size_t length = strtoul(content_length + 15, NULL, 10);
 
     return size == (size_t)(end - str) + length;
 }
@@ -219,14 +217,11 @@ static char *api_delete(const char *uri)
     return str;
 }
 
-static char *do_request(char *header, const char *content,
-    enum method *method)
+static char *do_request(char *header, const char *content, enum method *method)
 {
     if (strstr(header, content_type_json) == NULL)
     {
-        return strncmp(header, "GET / ", 6) == 0
-            ? file_read("www/index.html")
-            : NULL;
+        return !strncmp(header, "GET / ", 6) ? file_read("www/index.html") : NULL;
     }
 
     const char *uri = parse_uri(header);
