@@ -34,7 +34,7 @@ static const char *content_type_json =
 static const char *header_end =
     "\r\n\r\n";
 
-enum {HEADER_END_LENGTH = 4};
+enum {HEADER_END_LENGTH = 4, HEADER_MAX_LENGTH = 4096};
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
 static const char *method_name[] =
@@ -64,13 +64,13 @@ static void load_map(void)
     atexit(unload_map);
 }
 
-int request_ready(const char *str, size_t size)
+ssize_t request_handle(const char *str, size_t size)
 {
     const char *end = strstr(str, header_end);
 
     if (end == NULL)
     {
-        return 0;
+        return size > HEADER_MAX_LENGTH ? 0 : -1;
     }
     end += HEADER_END_LENGTH;
 
@@ -78,16 +78,16 @@ int request_ready(const char *str, size_t size)
 
     if (content_length == NULL)
     {
-        return !*end;
+        return *end ? -1 : 1;
     }
     if (content_length > end)
     {
         return 0;
     }
 
-    size_t length = strtoul(content_length + 15, NULL, 10);
+    size_t length = strtoul(content_length + 15, NULL, 10) + (size_t)(end - str);
 
-    return size == (size_t)(end - str) + length;
+    return size > length ? 0 : size == length ? 1 : -1;
 }
 
 // cppcheck-suppress constParameterPointer
