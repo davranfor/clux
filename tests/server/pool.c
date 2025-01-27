@@ -35,8 +35,8 @@ char *pool_put(pool_t *pool, const char *data, size_t size)
     {
         pool->data = temp;
         memcpy(pool->data + pool->size, data, size);
+        pool->data[pool->size + size] = '\0';
         pool->size += size;
-        pool->data[pool->size] = '\0';
     }
     return temp;
 }
