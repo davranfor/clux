@@ -8,35 +8,35 @@
 #include <string.h>
 #include "pool.h"
 
-char *pool_set(pool_t *pool, char *data, size_t size)
+char *pool_set(pool_t *pool, char *text, size_t length)
 {
     if (pool->type == POOL_ALLOCATED)
     {
-        free(pool->data);
+        free(pool->text);
     }
     pool->type = POOL_BUFFERED;
-    pool->data = data;
-    pool->size = size;
-    return pool->data;
+    pool->text = text;
+    pool->length = length;
+    return pool->text;
 }
 
-char *pool_put(pool_t *pool, const char *data, size_t size)
+char *pool_put(pool_t *pool, const char *text, size_t length)
 {
     if (pool->type == POOL_BUFFERED)
     {
-        pool->data = NULL;
-        pool->size = 0;
+        pool->text = NULL;
+        pool->length = 0;
     }
     pool->type = POOL_ALLOCATED;
 
-    char *temp = realloc(pool->data, pool->size + size + 1);
+    char *temp = realloc(pool->text, pool->length + length + 1);
 
     if (temp != NULL)
     {
-        pool->data = temp;
-        memcpy(pool->data + pool->size, data, size);
-        pool->data[pool->size + size] = '\0';
-        pool->size += size;
+        pool->text = temp;
+        memcpy(pool->text + pool->length, text, length);
+        pool->text[pool->length + length] = '\0';
+        pool->length += length;
     }
     return temp;
 }
@@ -50,10 +50,10 @@ void pool_reset(pool_t *pool)
 {
     if (pool->type == POOL_ALLOCATED)
     {
-        free(pool->data);
+        free(pool->text);
     }
-    pool->data = NULL;
-    pool->size = 0;
+    pool->text = NULL;
+    pool->length = 0;
     pool->sent = 0;
     pool->type = 0;
 }

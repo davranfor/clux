@@ -137,7 +137,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
     ssize_t request = 1;
 
-    if ((pool->data == NULL) && ((request = request_handle(buffer, rcvd)) == 1))
+    if ((pool->text == NULL) && ((request = request_handle(buffer, rcvd)) == 1))
     {
         pool_set(pool, buffer, rcvd);
     }
@@ -150,7 +150,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
         }
         if (request != -1)
         {
-            request = request_handle(pool->data, pool->size);
+            request = request_handle(pool->text, pool->length);
         }
     }
     return request;
@@ -158,9 +158,9 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
 static ssize_t conn_send(conn_t *conn, pool_t *pool)
 {
-    char *data = pool->data + pool->sent;
-    size_t size = pool->size - pool->sent;
-    ssize_t bytes = send(conn->fd, data, size, 0);
+    char *text = pool->text + pool->sent;
+    size_t length = pool->length - pool->sent;
+    ssize_t bytes = send(conn->fd, text, length, 0);
 
     if (bytes == 0)
     {
@@ -178,13 +178,13 @@ static ssize_t conn_send(conn_t *conn, pool_t *pool)
 
     size_t sent = (size_t)bytes;
 
-    if (sent == size)
+    if (sent == length)
     {
         return bytes;
     }
     if (pool->type == POOL_BUFFERED)
     {
-        if (!pool_put(pool, data + sent, size - sent))
+        if (!pool_put(pool, text + sent, length - sent))
         {
             perror("pool_put");
             return 0;
@@ -211,12 +211,12 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                     return;
                 default:
                     puts("");
-                    puts(pool->data);
+                    puts(pool->text);
                     request_reply(pool, buffer, BUFFER_SIZE);
                     break;
             }
         }
-        if (pool->data != NULL)
+        if (pool->text != NULL)
         {
             switch (conn_send(conn, pool))
             {

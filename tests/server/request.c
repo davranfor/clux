@@ -271,20 +271,20 @@ static const char *request_header_ko(enum method method)
     }
 }
 
-void request_reply(pool_t *pool, char *buffer, size_t size)
+void request_reply(pool_t *pool, char *buffer, size_t length)
 {
     enum method method = NONE;
-    char *content = strstr(pool->data, header_end);
+    char *content = strstr(pool->text, header_end);
 
     content[0] = '\0';
     content += HEADER_END_LENGTH;
-    content = do_request(pool->data, content, &method);
+    content = do_request(pool->text, content, &method);
     if (content == NULL)
     {
         const char *header = request_header_ko(method);
         size_t header_length = strlen(header);
 
-        if (header_length <= size)
+        if (header_length <= length)
         {
             memcpy(buffer, header, header_length);
             pool_set(pool, buffer, header_length);
@@ -309,7 +309,7 @@ void request_reply(pool_t *pool, char *buffer, size_t size)
 
         size_t header_length = strlen(header);
 
-        if (header_length + content_length <= size)
+        if (header_length + content_length <= length)
         {
             memcpy(buffer, header, header_length);
             memcpy(buffer + header_length, content, content_length);

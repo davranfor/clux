@@ -9,8 +9,8 @@
 
 typedef struct
 {
-    char *data;
-    size_t size, sent;
+    char *text;
+    size_t length, sent;
     unsigned type;
 } pool_t;
 
