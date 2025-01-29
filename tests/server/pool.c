@@ -8,16 +8,15 @@
 #include <string.h>
 #include "pool.h"
 
-char *pool_set(pool_t *pool, char *text, size_t length)
+void pool_set(pool_t *pool, char *text, size_t length)
 {
     if (pool->type == POOL_ALLOCATED)
     {
         free(pool->text);
     }
-    pool->type = POOL_BUFFERED;
     pool->text = text;
     pool->length = length;
-    return pool->text;
+    pool->type = POOL_BUFFERED;
 }
 
 char *pool_put(pool_t *pool, const char *text, size_t length)

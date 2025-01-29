@@ -10,6 +10,8 @@
 #include <clux/json.h>
 #include "request.h"
 
+#define HEADERS_MAX_LENGTH 4096
+
 static const char *http_html_ok =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
@@ -29,12 +31,6 @@ static const char *http_method_not_allowed =
     "HTTP/1.1 405 Method Not Allowed\r\n"
     "Allow: GET, POST, PUT, DELETE, PATCH\r\n"
     "Content-Length: 0\r\n\r\n";
-static const char *content_type_json =
-    "Content-Type: application/json\r\n";
-static const char *header_end =
-    "\r\n\r\n";
-
-enum {HEADER_END_LENGTH = 4, HEADER_MAX_LENGTH = 4096};
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
 static const char *method_name[] =
@@ -64,36 +60,35 @@ static void load_map(void)
     atexit(unload_map);
 }
 
-ssize_t request_handle(const char *str, size_t size)
+ssize_t request_handle(char *text, size_t length)
 {
-    const char *end = strstr(str, header_end);
+    char *delimiter = strstr(text, "\r\n\r\n");
 
-    if (end == NULL)
+    if (delimiter == NULL)
     {
-        return size > HEADER_MAX_LENGTH ? 0 : -1;
+        return length > HEADERS_MAX_LENGTH ? 0 : -1;
     }
-    end += HEADER_END_LENGTH;
+    delimiter[0] = '\0';
 
-    const char *content_length = strstr(str, "Content-Length:");
+    const char *content_length_mark = strstr(text, "Content-Length:");
 
-    if (content_length == NULL)
+    delimiter[0] = '\r';
+    if (content_length_mark == NULL)
     {
-        return *end ? -1 : 1;
-    }
-    if (content_length > end)
-    {
-        return 0;
+        return delimiter[4] == '\0';
     }
 
-    size_t length = strtoul(content_length + 15, NULL, 10) + (size_t)(end - str);
+    size_t headers_length = (size_t)(delimiter - text) + 4;
+    size_t content_length = strtoul(content_length_mark + 15, NULL, 10);
+    size_t request_length = headers_length + content_length;
 
-    return size > length ? 0 : size == length ? 1 : -1;
+    return length < request_length ? -1 : length == request_length;
 }
 
 // cppcheck-suppress constParameterPointer
-static const char *parse_uri(char *header)
+static const char *parse_uri(char *headers)
 {
-    const char *uri = strchr(header, '/');
+    const char *uri = strchr(headers, '/');
 
     if (uri == NULL)
     {
@@ -110,13 +105,13 @@ static const char *parse_uri(char *header)
     return uri;
 }
 
-static enum method parse_method(const char *header)
+static enum method parse_method(const char *headers)
 {
     enum method method;
 
     for (method = 0; method < METHODS; method++)
     {
-        if (!strncmp(header, method_name[method], strlen(method_name[method])))
+        if (!strncmp(headers, method_name[method], strlen(method_name[method])))
         {
             break;
         }
@@ -217,20 +212,20 @@ static char *api_delete(const char *uri)
     return str;
 }
 
-static char *do_request(char *header, const char *content, enum method *method)
+static char *do_request(char *headers, const char *content, enum method *method)
 {
-    if (strstr(header, content_type_json) == NULL)
+    if (strstr(headers, "Content-Type: application/json\r\n") == NULL)
     {
-        return !strncmp(header, "GET / ", 6) ? file_read("www/index.html") : NULL;
+        return !strncmp(headers, "GET / ", 6) ? file_read("www/index.html") : NULL;
     }
 
-    const char *uri = parse_uri(header);
+    const char *uri = parse_uri(headers);
 
     if (uri == NULL)
     {
         return NULL;
     }
-    switch ((*method = parse_method(header)))
+    switch ((*method = parse_method(headers)))
     {
         case GET:
             return api_get(uri);
@@ -247,7 +242,7 @@ static char *do_request(char *header, const char *content, enum method *method)
     }
 }
 
-static const char *request_header_ok(enum method method)
+static const char *http_ok(enum method method)
 {
     switch (method)
     {
@@ -258,7 +253,7 @@ static const char *request_header_ok(enum method method)
     }
 }
 
-static const char *request_header_ko(enum method method)
+static const char *http_ko(enum method method)
 {
     switch (method)
     {
@@ -274,25 +269,24 @@ static const char *request_header_ko(enum method method)
 void request_reply(pool_t *pool, char *buffer, size_t length)
 {
     enum method method = NONE;
-    char *content = strstr(pool->text, header_end);
+    char *content = strstr(pool->text, "\r\n\r\n") + 4;
 
-    content[0] = '\0';
-    content += HEADER_END_LENGTH;
+    content[-4] = '\0';
     content = do_request(pool->text, content, &method);
     if (content == NULL)
     {
-        const char *header = request_header_ko(method);
-        size_t header_length = strlen(header);
+        const char *headers = http_ko(method);
+        size_t headers_length = strlen(headers);
 
-        if (header_length <= length)
+        if (headers_length <= length)
         {
-            memcpy(buffer, header, header_length);
-            pool_set(pool, buffer, header_length);
+            memcpy(buffer, headers, headers_length);
+            pool_set(pool, buffer, headers_length);
         }
         else
         {
             pool_reset(pool);
-            if (!pool_put(pool, header, header_length))
+            if (!pool_put(pool, headers, headers_length))
             {
                 perror("pool_put");
                 pool_reset(pool);
@@ -301,24 +295,24 @@ void request_reply(pool_t *pool, char *buffer, size_t length)
     }
     else
     {
-        const char *header_fmt = request_header_ok(method);
         size_t content_length = strlen(content);
-        char header[256];
+        const char *headers_fmt = http_ok(method);
+        char headers[256];
 
-        snprintf(header, sizeof header, header_fmt, content_length);
+        snprintf(headers, sizeof headers, headers_fmt, content_length);
 
-        size_t header_length = strlen(header);
+        size_t headers_length = strlen(headers);
 
-        if (header_length + content_length <= length)
+        if (headers_length + content_length <= length)
         {
-            memcpy(buffer, header, header_length);
-            memcpy(buffer + header_length, content, content_length);
-            pool_set(pool, buffer, header_length + content_length);
+            memcpy(buffer, headers, headers_length);
+            memcpy(buffer + headers_length, content, content_length);
+            pool_set(pool, buffer, headers_length + content_length);
         }
         else
         {
             pool_reset(pool);
-            if (!pool_put(pool, header, header_length) ||
+            if (!pool_put(pool, headers, headers_length) ||
                 !pool_put(pool, content, content_length))
             {
                 perror("pool_put");

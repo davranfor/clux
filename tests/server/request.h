@@ -9,7 +9,7 @@
 
 #include "pool.h"
 
-ssize_t request_handle(const char *, size_t);
+ssize_t request_handle(char *, size_t);
 void request_reply(pool_t *, char *, size_t);
 
 #endif
