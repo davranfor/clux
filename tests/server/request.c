@@ -278,9 +278,9 @@ void request_reply(pool_t *pool, char *buffer, size_t size)
         const char *headers = http_ko(method);
         size_t headers_length = strlen(headers);
 
-        if (headers_length < size)
+        if (headers_length <= size)
         {
-            memcpy(buffer, headers, headers_length + 1);
+            memcpy(buffer, headers, headers_length);
             pool_bind(pool, buffer, headers_length);
         }
         else
@@ -303,10 +303,10 @@ void request_reply(pool_t *pool, char *buffer, size_t size)
 
         size_t headers_length = strlen(headers);
 
-        if (headers_length + content_length < size)
+        if (headers_length + content_length <= size)
         {
             memcpy(buffer, headers, headers_length);
-            memcpy(buffer + headers_length, content, content_length + 1);
+            memcpy(buffer + headers_length, content, content_length);
             pool_bind(pool, buffer, headers_length + content_length);
         }
         else
