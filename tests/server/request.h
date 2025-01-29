@@ -7,6 +7,7 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
+#include <sys/types.h>
 #include "pool.h"
 
 ssize_t request_handle(char *, size_t);
