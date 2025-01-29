@@ -266,7 +266,7 @@ static const char *http_ko(enum method method)
     }
 }
 
-void request_reply(pool_t *pool, char *buffer, size_t length)
+void request_reply(pool_t *pool, char *buffer, size_t size)
 {
     enum method method = NONE;
     char *content = strstr(pool->text, "\r\n\r\n") + 4;
@@ -278,9 +278,9 @@ void request_reply(pool_t *pool, char *buffer, size_t length)
         const char *headers = http_ko(method);
         size_t headers_length = strlen(headers);
 
-        if (headers_length <= length)
+        if (headers_length < size)
         {
-            memcpy(buffer, headers, headers_length);
+            memcpy(buffer, headers, headers_length + 1);
             pool_bind(pool, buffer, headers_length);
         }
         else
@@ -303,10 +303,10 @@ void request_reply(pool_t *pool, char *buffer, size_t length)
 
         size_t headers_length = strlen(headers);
 
-        if (headers_length + content_length <= length)
+        if (headers_length + content_length < size)
         {
             memcpy(buffer, headers, headers_length);
-            memcpy(buffer + headers_length, content, content_length);
+            memcpy(buffer + headers_length, content, content_length + 1);
             pool_bind(pool, buffer, headers_length + content_length);
         }
         else
