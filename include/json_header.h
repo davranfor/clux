@@ -16,8 +16,8 @@
 #define JSON_NOT_FOUND -1u
 
 /* Cast 'const json_t *' to 'json_t *' without warning */
-#define json_cast(node) _Generic((node),                        \
-    const json_t *: ((void *)(uintptr_t)(const void *)(node)),  \
+#define json_cast(node) _Generic((node),                            \
+    const json_t *: ((json_t *)(uintptr_t)(const void *)(node)),    \
     default: (node))
 
 enum json_type
