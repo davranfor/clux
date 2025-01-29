@@ -128,7 +128,7 @@ static int request(size_t id, const json_t *users, struct data *data)
             ); 
             break;
         default:
-            snprintf(fields, sizeof fields, "");
+            snprintf(fields, sizeof fields, "%s", "");
             break;
     }
 
