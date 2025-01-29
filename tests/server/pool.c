@@ -8,7 +8,7 @@
 #include <string.h>
 #include "pool.h"
 
-void pool_set(pool_t *pool, char *text, size_t length)
+void pool_bind(pool_t *pool, char *text, size_t length)
 {
     if (pool->type == POOL_ALLOCATED)
     {

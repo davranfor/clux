@@ -281,7 +281,7 @@ void request_reply(pool_t *pool, char *buffer, size_t length)
         if (headers_length <= length)
         {
             memcpy(buffer, headers, headers_length);
-            pool_set(pool, buffer, headers_length);
+            pool_bind(pool, buffer, headers_length);
         }
         else
         {
@@ -307,7 +307,7 @@ void request_reply(pool_t *pool, char *buffer, size_t length)
         {
             memcpy(buffer, headers, headers_length);
             memcpy(buffer + headers_length, content, content_length);
-            pool_set(pool, buffer, headers_length + content_length);
+            pool_bind(pool, buffer, headers_length + content_length);
         }
         else
         {

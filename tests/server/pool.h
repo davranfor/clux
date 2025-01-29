@@ -16,7 +16,7 @@ typedef struct
 
 enum {POOL_BUFFERED = 1, POOL_ALLOCATED};
 
-void pool_set(pool_t *, char *, size_t);
+void pool_bind(pool_t *, char *, size_t);
 char *pool_put(pool_t *, const char *, size_t);
 void pool_sync(pool_t *, size_t);
 void pool_reset(pool_t *);

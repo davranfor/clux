@@ -139,7 +139,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
     if ((pool->text == NULL) && ((request = request_handle(buffer, rcvd)) == 1))
     {
-        pool_set(pool, buffer, rcvd);
+        pool_bind(pool, buffer, rcvd);
     }
     else if (request != 0)
     {
