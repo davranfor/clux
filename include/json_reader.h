@@ -10,7 +10,15 @@
 #include "json_header.h"
 
 #define json_int(node) ((int)json_number(node))
-#define json_uint(node) ((unsigned int)json_number(node))
+#define json_int8_t(node) ((int8_t)json_number(node))
+#define json_int16_t(node) ((int16_t)json_number(node))
+#define json_int32_t(node) ((int32_t)json_number(node))
+#define json_int64_t(node) ((int64_t)json_number(node))
+#define json_uint(node) ((unsigned)json_number(node))
+#define json_uint8_t(node) ((uint8_t)json_number(node))
+#define json_uint16_t(node) ((uint16_t)json_number(node))
+#define json_uint32_t(node) ((uint32_t)json_number(node))
+#define json_uint64_t(node) ((uint64_t)json_number(node))
 #define json_long(node) ((long)json_number(node))
 #define json_ulong(node) ((unsigned long)json_number(node))
 #define json_llong(node) ((long long)json_number(node))

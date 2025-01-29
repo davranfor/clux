@@ -8,24 +8,17 @@
 #define JSON_HEADER_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define JSON_HEAD 0
 #define JSON_TAIL ((unsigned)-1)
 
 #define JSON_NOT_FOUND -1u
 
-#if defined(__clang__)
-#define JSON_PRAGMA(x) x
-#else
-#define JSON_PRAGMA(x) #x
-#endif
-
 /* Cast 'const json_t *' to 'json_t *' without warning */
-#define json_cast(node)                                                     \
-    _Pragma(JSON_PRAGMA("GCC diagnostic push"))                             \
-    _Pragma(JSON_PRAGMA("GCC diagnostic ignored \"-Wcast-qual\""))          \
-    _Generic((node), const json_t *: ((json_t *)(node)), default: (node))   \
-    _Pragma(JSON_PRAGMA("GCC diagnostic pop"))
+#define json_cast(node) _Generic((node),                        \
+    const json_t *: ((void *)(uintptr_t)(const void *)(node)),  \
+    default: (node))
 
 enum json_type
 {
