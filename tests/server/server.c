@@ -19,7 +19,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "config.h"
-#include "request.h"
+#include "router.h"
 #include "server.h"
 
 #define BUFFER_SIZE 32768
@@ -61,7 +61,7 @@ static int unblock(int fd)
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-static int server_socket(uint16_t port)
+static int server_listen(uint16_t port)
 {
     struct sockaddr_in server;
 
@@ -137,7 +137,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
     ssize_t request = 1;
 
-    if ((pool->text == NULL) && ((request = request_handle(buffer, rcvd)) == 1))
+    if ((pool->text == NULL) && ((request = request_parse(buffer, rcvd)) == 1))
     {
         pool_bind(pool, buffer, rcvd);
     }
@@ -150,7 +150,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
         }
         if (request != -1)
         {
-            request = request_handle(pool->text, pool->length);
+            request = request_parse(pool->text, pool->length);
         }
     }
     return request;
@@ -182,7 +182,7 @@ static ssize_t conn_send(conn_t *conn, pool_t *pool)
     {
         return bytes;
     }
-    if (pool->type == POOL_BUFFERED)
+    if (pool->type != POOL_ALLOCATED)
     {
         if (!pool_put(pool, text + sent, length - sent))
         {
@@ -249,7 +249,7 @@ static void server_loop(uint16_t port)
     conn_t conn[maxfds] = {0};
     pool_t pool[maxfds] = {0};
 
-    conn_attach(&conn[server], server_socket(port));
+    conn_attach(&conn[server], server_listen(port));
     for (nfds_t client = 1; client < maxfds; client++)
     {
         conn[client].fd = -1;

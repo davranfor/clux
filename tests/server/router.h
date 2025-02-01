@@ -4,13 +4,13 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef REQUEST_H
-#define REQUEST_H
+#ifndef ROUTER_H
+#define ROUTER_H
 
 #include <sys/types.h>
 #include "pool.h"
 
-ssize_t request_handle(char *, size_t);
+ssize_t request_parse(char *, size_t);
 void request_reply(pool_t *, char *, size_t);
 
 #endif

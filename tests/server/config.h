@@ -4,8 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef SHARED_H
-#define SHARED_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #define SERVER_ADDR "127.0.0.1"
 #define SERVER_PORT 1234 

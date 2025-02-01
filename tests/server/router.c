@@ -8,7 +8,7 @@
 #include <string.h>
 #include <clux/clib.h>
 #include <clux/json.h>
-#include "request.h"
+#include "router.h"
 
 #define HEADERS_MAX_LENGTH 4096
 
@@ -60,7 +60,7 @@ static void load_map(void)
     atexit(unload_map);
 }
 
-ssize_t request_handle(char *text, size_t length)
+ssize_t request_parse(char *text, size_t length)
 {
     char *delimiter = strstr(text, "\r\n\r\n");
 
