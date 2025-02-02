@@ -291,7 +291,7 @@ static void server_loop(uint16_t port)
                         break;
                     }
                 }
-                if (!done)
+                if (done == 0)
                 {
                     close(fd);
                 }
