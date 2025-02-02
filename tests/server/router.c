@@ -14,7 +14,7 @@
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
 
-ssize_t request_parse(char *text, size_t length)
+ssize_t router_parse(char *text, size_t length)
 {
     char *delimiter = strstr(text, "\r\n\r\n");
 
@@ -128,7 +128,7 @@ static const char *response_ko(enum method method)
     }
 }
 
-void request_reply(pool_t *pool, char *buffer, size_t size)
+void router_reply(pool_t *pool, char *buffer, size_t size)
 {
     enum method method = NONE;
     char *content = strstr(pool->text, "\r\n\r\n") + 4;

@@ -10,8 +10,8 @@
 #include <sys/types.h>
 #include "pool.h"
 
-ssize_t request_parse(char *, size_t);
-void request_reply(pool_t *, char *, size_t);
+ssize_t router_parse(char *, size_t);
+void router_reply(pool_t *, char *, size_t);
 
 #endif
 

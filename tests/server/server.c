@@ -137,7 +137,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
     ssize_t request = 1;
 
-    if ((pool->text == NULL) && ((request = request_parse(buffer, rcvd)) == 1))
+    if ((pool->text == NULL) && ((request = router_parse(buffer, rcvd)) == 1))
     {
         pool_bind(pool, buffer, rcvd);
     }
@@ -150,7 +150,7 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
         }
         if (request != -1)
         {
-            request = request_parse(pool->text, pool->length);
+            request = router_parse(pool->text, pool->length);
         }
     }
     return request;
@@ -212,7 +212,7 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                 default:
                     puts("");
                     puts(pool->text);
-                    request_reply(pool, buffer, BUFFER_SIZE);
+                    router_reply(pool, buffer, BUFFER_SIZE);
                     break;
             }
         }
