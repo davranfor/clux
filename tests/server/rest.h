@@ -7,11 +7,14 @@
 #ifndef REST_H
 #define REST_H
 
+#include <stddef.h>
+
 char *rest_get(const char *);
 char *rest_post(const char *, const char *);
 char *rest_put(const char *, const char *);
 char *rest_patch(const char *, const char *);
 char *rest_delete(const char *);
+size_t rest_length(void);
 
 #endif
 

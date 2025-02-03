@@ -138,7 +138,17 @@ void router_reply(pool_t *pool, char *buffer, size_t size)
     if (content != NULL)
     {
         const char *headers_fmt = response_ok(method);
-        size_t content_length = strlen(content);
+        size_t content_length;
+
+        if (method == NONE)
+        {
+            content_length = strlen(content);
+        }
+        else
+        {
+            content_length = rest_length();
+        }
+
         char headers[256];
 
         snprintf(headers, sizeof headers, headers_fmt, content_length);
@@ -161,7 +171,10 @@ void router_reply(pool_t *pool, char *buffer, size_t size)
                 pool_reset(pool);
             }
         }
-        free(content);
+        if (method == NONE)
+        {
+            free(content);
+        }
     }
     else
     {

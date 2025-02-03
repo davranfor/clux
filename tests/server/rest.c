@@ -9,27 +9,45 @@
 #include <clux/json.h>
 #include "rest.h"
 
+static buffer_t buffer;
+
+static void free_buffer(void)
+{
+    free(buffer.text);
+}
+
 static map_t *map;
 
-static void unload_map(void)
+static void destroy_map(void)
 {
     map_destroy(map, json_free);
 }
 
 __attribute__((constructor))
-static void load_map(void)
+static void load(void)
 {
     if (!(map = map_create(0)))
     {
         perror("map_create");
         exit(EXIT_FAILURE);
     }
-    atexit(unload_map);
+    atexit(destroy_map);
+    atexit(free_buffer);
+}
+
+static char *stringify(const json_t *node)
+{
+    if (node != NULL)
+    {
+        buffer_reset(&buffer);
+        return json_buffer_encode(&buffer, node, 0);
+    }
+    return NULL;
 }
 
 char *rest_get(const char *uri)
 {
-    return json_stringify(map_search(map, uri));
+    return stringify(map_search(map, uri));
 }
 
 char *rest_post(const char *uri, const char *content)
@@ -55,7 +73,7 @@ char *rest_post(const char *uri, const char *content)
         return NULL;
     }
     id += 1;
-    return json_stringify(object);
+    return stringify(object);
 }
 
 char *rest_put(const char *uri, const char *content)
@@ -76,7 +94,7 @@ char *rest_put(const char *uri, const char *content)
         return NULL;
     }
     json_delete(old);
-    return json_stringify(new);
+    return stringify(new);
 }
 
 char *rest_patch(const char *uri, const char *content)
@@ -108,15 +126,20 @@ char *rest_patch(const char *uri, const char *content)
         target = NULL;
     }
     json_delete(source);
-    return json_stringify(target);
+    return stringify(target);
 }
 
 char *rest_delete(const char *uri)
 {
     json_t *node = map_delete(map, uri);
-    char *str = json_stringify(node);
+    char *str = stringify(node);
 
     json_delete(node);
     return str;
+}
+
+size_t rest_length(void)
+{
+    return buffer.length;
 }
 
