@@ -105,7 +105,8 @@ static int notify_event(const schema_t *schema, const json_t *rule, const json_t
 static int notify(const schema_t *schema, const json_t *rule, const json_t *node,
     enum json_event_type event)
 {
-    return schema->callback ? notify_event(schema, rule, node, event) : event == JSON_FAILURE;
+    return schema->callback ? notify_event(schema, rule, node, event)
+                            : event == JSON_FAILURE;
 }
 
 static int abort_on_failure(const schema_t *schema, const json_t *rule, const json_t *node)
@@ -360,8 +361,8 @@ static int test_properties(const schema_t *schema, const json_t *rule, const jso
     return result;
 }
 
-static int test_pattern_properties(const schema_t *schema, const json_t *rule, const json_t *node,
-    int abortable)
+static int test_pattern_properties(const schema_t *schema, const json_t *rule,
+    const json_t *node, int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -472,8 +473,8 @@ static int test_additional_properties(const schema_t *schema, const json_t *pare
     return result;
 }
 
-static int test_property_names(const schema_t *schema, const json_t *rule, const json_t *node,
-    int abortable)
+static int test_property_names(const schema_t *schema, const json_t *rule,
+    const json_t *node, int abortable)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -720,8 +721,8 @@ static int test_items(const schema_t *schema, const json_t *rule, const json_t *
     return result;
 }
 
-static int test_additional_items(const schema_t *schema, const json_t *parent, const json_t *rule,
-    const json_t *node, int abortable)
+static int test_additional_items(const schema_t *schema, const json_t *parent,
+    const json_t *rule, const json_t *node, int abortable)
 {
     switch (rule->type)
     {
@@ -1012,7 +1013,8 @@ static int test_type(const json_t *rule, const json_t *node)
         ((mask & (1u << JSON_REAL)) && (node->type == JSON_INTEGER));
 }
 
-static int test_ref(const schema_t *schema, const json_t *rule, const json_t *node, int abortable)
+static int test_ref(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     if (rule->type != JSON_STRING)
     {
@@ -1240,7 +1242,8 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     return result;
 }
 
-static int validate(const schema_t *schema, const json_t *rule, const json_t *node, int abortable)
+static int validate(const schema_t *schema, const json_t *rule, const json_t *node,
+    int abortable)
 {
     int result = SCHEMA_VALID;
 
