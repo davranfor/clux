@@ -14,37 +14,30 @@
 static buffer_t buffer;
 static buffer_t method_not_allowed;
 static buffer_t no_content;
+static map_t *map;
 
-static void free_buffers(void)
+static void writer_unload(void)
 {
     free(buffer.text);
     free(method_not_allowed.text);
     free(no_content.text);
-}
-
-static map_t *map;
-
-static void destroy_map(void)
-{
     map_destroy(map, json_free);
 }
 
-__attribute__((constructor))
-static void load(void)
+void writer_load(void)
 {
+    atexit(writer_unload);
     if (!buffer_write(&method_not_allowed, http_method_not_allowed) ||
         !buffer_write(&no_content, http_no_content))
     {
         perror("buffer_write");
         exit(EXIT_FAILURE);
     }
-    atexit(free_buffers);
     if (!(map = map_create(0)))
     {
         perror("map_create");
         exit(EXIT_FAILURE);
     }
-    atexit(destroy_map);
 }
 
 static char *stringify(const json_t *node)

@@ -9,6 +9,7 @@
 
 #include <clux/clib_buffer.h>
 
+void writer_load(void); 
 const buffer_t *writer_handle(const char *, const char *, const char *); 
 
 #endif

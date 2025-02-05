@@ -13,31 +13,32 @@
 static buffer_t buffer;
 static buffer_t not_found;
 
-static void free_buffers(void)
+static void static_unload(void)
 {
     free(buffer.text);
     free(not_found.text);
 }
 
-__attribute__((constructor))
-static void load(void)
+void static_load(char *index_html)
 {
-    if (!buffer_write(&not_found, http_not_found))
+    atexit(static_unload);
+
+    size_t length = strlen(index_html);
+
+    buffer.text = index_html;
+    buffer.size = length + 1;
+    buffer.length = length;
+
+    char headers[96];
+
+    snprintf(headers, sizeof headers, http_html_ok, length);
+    buffer_insert(&buffer, 0, headers, strlen(headers));
+    buffer_write(&not_found, http_not_found);
+    if (buffer.error || not_found.error)
     {
         perror("buffer_write");
         exit(EXIT_FAILURE);
     }
-    atexit(free_buffers);
-}
-
-char *static_load(const char *index_html)
-{
-    size_t length = strlen(index_html);
-    char headers[96];
-
-    snprintf(headers, sizeof headers, http_html_ok, length);
-    buffer_write(&buffer, headers);
-    return buffer_append(&buffer, index_html, length);
 }
 
 buffer_t *static_handle(const char *headers) 

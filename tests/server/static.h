@@ -9,7 +9,7 @@
 
 #include <clux/clib_buffer.h>
 
-char *static_load(const char *); 
+void static_load(char *); 
 buffer_t *static_handle(const char *); 
 
 #endif
