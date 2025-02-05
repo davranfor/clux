@@ -7,10 +7,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <clux/clib.h>
 #include <clux/json.h>
+#include "static.h"
 #include "loader.h"
 
 static map_t *schemas;
+
+static void load_index_html(const char *path)
+{
+    char *file = file_read(path);
+
+    if (file == NULL)
+    {
+        fprintf(stderr, "'%s' must exist\n", path);
+        exit(EXIT_FAILURE);
+    }
+    printf("Loading '%s'\n", path);
+    if (!static_load(file))
+    {
+        free(file);
+        perror("static_load");
+        exit(EXIT_FAILURE);
+    }
+    free(file);
+}
 
 static int load_schemas(DIR *dir)
 {
@@ -72,6 +93,7 @@ static void unload_schemas(void)
 
 void loader_run(void)
 {
+    load_index_html("www/index.html");
     if (!(schemas = map_create(0)))
     {
         perror("map_create");

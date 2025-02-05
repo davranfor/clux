@@ -4,10 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef HTTP_H
-#define HTTP_H
-
-#define HTTP_HEADERS_MAX_LENGTH 4096
+#ifndef HEADERS_H
+#define HEADERS_H
 
 static const char *http_html_ok =
     "HTTP/1.1 200 OK\r\n"

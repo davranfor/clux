@@ -4,14 +4,12 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef ROUTER_H
-#define ROUTER_H
+#ifndef PARSER_H
+#define PARSER_H
 
-#include <sys/types.h>
-#include "pool.h"
+#include <clux/clib_buffer.h>
 
-ssize_t router_parse(char *, size_t);
-void router_reply(pool_t *, char *, size_t);
+buffer_t *parser_handle(char *);
 
 #endif
 

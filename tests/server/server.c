@@ -19,7 +19,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "config.h"
-#include "router.h"
+#include "reader.h"
 #include "server.h"
 
 #define BUFFER_SIZE 32768
@@ -113,7 +113,7 @@ static void conn_reset(conn_t *conn)
     conn->events = 0;
 }
 
-static ssize_t conn_recv(conn_t *conn, pool_t *pool)
+static int conn_recv(conn_t *conn, pool_t *pool)
 {
     ssize_t bytes = recv(conn->fd, buffer, BUFFER_SIZE - 1, 0);
 
@@ -135,28 +135,28 @@ static ssize_t conn_recv(conn_t *conn, pool_t *pool)
 
     buffer[rcvd] = '\0';
 
-    ssize_t request = 1;
+    int status = 1;
 
-    if ((pool->text == NULL) && ((request = router_parse(buffer, rcvd)) == 1))
+    if ((pool->text == NULL) && ((status = reader_status(buffer, rcvd)) == 1))
     {
         pool_bind(pool, buffer, rcvd);
     }
-    else if (request != 0)
+    else if (status != 0)
     {
         if (!pool_put(pool, buffer, rcvd))
         {
             perror("pool_put");
             return 0;
         }
-        if (request != -1)
+        if (status != -1)
         {
-            request = router_parse(pool->text, pool->length);
+            status = reader_status(pool->text, pool->length);
         }
     }
-    return request;
+    return status;
 }
 
-static ssize_t conn_send(conn_t *conn, pool_t *pool)
+static int conn_send(conn_t *conn, pool_t *pool)
 {
     char *text = pool->text + pool->sent;
     size_t length = pool->length - pool->sent;
@@ -180,7 +180,7 @@ static ssize_t conn_send(conn_t *conn, pool_t *pool)
 
     if (sent == length)
     {
-        return bytes;
+        return 1;
     }
     if (pool->type != POOL_ALLOCATED)
     {
@@ -212,7 +212,7 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                 default:
                     puts("");
                     puts(pool->text);
-                    router_reply(pool, buffer, BUFFER_SIZE);
+                    reader_handle(pool, buffer, BUFFER_SIZE);
                     break;
             }
         }
