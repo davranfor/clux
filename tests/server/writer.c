@@ -147,14 +147,14 @@ static char *rest_delete(const char *uri)
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
 
-static enum method parse_method(const char *uri)
+static enum method parse_method(const char *message)
 {
     const char *name[] = {"GET /", "POST /", "PUT /", "PATCH /", "DELETE /"};
     enum method method;
 
     for (method = 0; method < METHODS; method++)
     {
-        if (!strncmp(uri, name[method], strlen(name[method])))
+        if (!strncmp(message, name[method], strlen(name[method])))
         {
             break;
         }
@@ -162,7 +162,7 @@ static enum method parse_method(const char *uri)
     return method;
 }
 
-buffer_t *writer_handle(const char *message, const char *uri, const char *content) 
+const buffer_t *writer_handle(const char *message, const char *uri, const char *content)
 {
     buffer_reset(&buffer);
     switch (parse_method(message))
@@ -196,90 +196,3 @@ buffer_t *writer_handle(const char *message, const char *uri, const char *conten
     return &no_content;
 }
 
-/*
-static const char *response_ok(enum method method)
-{
-    switch (method)
-    {
-        case NONE:
-            return http_html_ok;
-        default:
-            return http_json_ok;
-    }
-}
-
-static const char *response_ko(enum method method)
-{
-    switch (method)
-    {
-        case NONE:
-            return http_not_found;
-        case UNKNOWN:
-            return http_method_not_allowed;
-        default:
-            return http_no_content;
-    }
-}
-
-    if (content != NULL)
-    {
-        const char *headers_fmt = response_ok(method);
-        size_t content_length;
-
-        if (method == NONE)
-        {
-            content_length = strlen(content);
-        }
-        else
-        {
-            content_length = rest_length();
-        }
-
-        char headers[256];
-
-        snprintf(headers, sizeof headers, headers_fmt, content_length);
-
-        size_t headers_length = strlen(headers);
-
-        if (headers_length + content_length <= size)
-        {
-            memcpy(buffer, headers, headers_length);
-            memcpy(buffer + headers_length, content, content_length);
-            pool_bind(pool, buffer, headers_length + content_length);
-        }
-        else
-        {
-            pool_reset(pool);
-            if (!pool_put(pool, headers, headers_length) ||
-                !pool_put(pool, content, content_length))
-            {
-                perror("pool_put");
-                pool_reset(pool);
-            }
-        }
-        if (method == NONE)
-        {
-            free(content);
-        }
-    }
-    else
-    {
-        const char *headers = response_ko(method);
-        size_t headers_length = strlen(headers);
-
-        if (headers_length <= size)
-        {
-            memcpy(buffer, headers, headers_length);
-            pool_bind(pool, buffer, headers_length);
-        }
-        else
-        {
-            pool_reset(pool);
-            if (!pool_put(pool, headers, headers_length))
-            {
-                perror("pool_put");
-                pool_reset(pool);
-            }
-        }
-    }
-*/

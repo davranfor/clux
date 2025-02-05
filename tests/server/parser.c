@@ -37,7 +37,7 @@ static const char *parse_uri(char *headers)
     return uri;
 }
 
-buffer_t *parser_handle(char *message)
+const buffer_t *parser_handle(char *message)
 {
     const char *content = parse_content(message);
 

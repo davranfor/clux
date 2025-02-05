@@ -40,7 +40,7 @@ int reader_status(char *message, size_t length)
 
 void reader_handle(pool_t *pool, char *buffer, size_t size)
 {
-    buffer_t *message = parser_handle(pool->text);
+    const buffer_t *message = parser_handle(pool->text);
 
     if (message != NULL)
     {

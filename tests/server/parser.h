@@ -9,7 +9,7 @@
 
 #include <clux/clib_buffer.h>
 
-buffer_t *parser_handle(char *);
+const buffer_t *parser_handle(char *);
 
 #endif
 
