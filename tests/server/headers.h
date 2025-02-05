@@ -7,6 +7,8 @@
 #ifndef HEADERS_H
 #define HEADERS_H
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 static const char *http_html_ok =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
@@ -26,6 +28,7 @@ static const char *http_method_not_allowed =
     "HTTP/1.1 405 Method Not Allowed\r\n"
     "Allow: GET, POST, PUT, DELETE, PATCH\r\n"
     "Content-Length: 0\r\n\r\n";
+#pragma GCC diagnostic pop
 
 #endif
 
