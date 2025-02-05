@@ -145,11 +145,11 @@ static char *rest_delete(const char *uri)
     return str;
 }
 
-enum method {GET, POST, PUT, PATCH, DELETE, METHODS, UNKNOWN = METHODS, NONE};
+enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
 
-static enum method parse_method(const char *message)
+static enum method select_method(const char *message)
 {
-    const char *name[] = {"GET /", "POST /", "PUT /", "PATCH /", "DELETE /"};
+    static const char *name[] = {"GET /", "POST /", "PUT /", "PATCH /", "DELETE /"};
     enum method method;
 
     for (method = 0; method < METHODS; method++)
@@ -165,7 +165,7 @@ static enum method parse_method(const char *message)
 const buffer_t *writer_handle(const char *message, const char *uri, const char *content)
 {
     buffer_reset(&buffer);
-    switch (parse_method(message))
+    switch (select_method(message))
     {
         case GET:
             content = rest_get(uri);
@@ -187,7 +187,7 @@ const buffer_t *writer_handle(const char *message, const char *uri, const char *
     }
     if (content != NULL)
     {
-        char headers[256];
+        char headers[96];
 
         snprintf(headers, sizeof headers, http_json_ok, buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));

@@ -33,7 +33,7 @@ static void load(void)
 char *static_load(const char *index_html)
 {
     size_t length = strlen(index_html);
-    char headers[256];
+    char headers[96];
 
     snprintf(headers, sizeof headers, http_html_ok, length);
     buffer_write(&buffer, headers);

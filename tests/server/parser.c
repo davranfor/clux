@@ -41,7 +41,7 @@ const buffer_t *parser_handle(char *message)
 {
     const char *content = parse_content(message);
 
-    if (strstr(message, "Content-Type: application/json\r\n") == NULL)
+    if (!strstr(message, "Content-Type: application/json\r\n"))
     {
         return static_handle(message);
     }
