@@ -40,14 +40,14 @@ void writer_load(void)
     }
 }
 
-static char *stringify(const json_t *node)
+static char *encode(const json_t *node)
 {
     return json_buffer_encode(&buffer, node, 0);
 }
 
 static char *rest_get(const char *uri)
 {
-    return stringify(map_search(map, uri));
+    return encode(map_search(map, uri));
 }
 
 static char *rest_post(const char *uri, const char *content)
@@ -72,8 +72,8 @@ static char *rest_post(const char *uri, const char *content)
         json_delete(child);
         return NULL;
     }
-    id += 1;
-    return stringify(object);
+    id++;
+    return encode(object);
 }
 
 static char *rest_put(const char *uri, const char *content)
@@ -94,7 +94,7 @@ static char *rest_put(const char *uri, const char *content)
         return NULL;
     }
     json_delete(old);
-    return stringify(new);
+    return encode(new);
 }
 
 static char *rest_patch(const char *uri, const char *content)
@@ -116,23 +116,19 @@ static char *rest_patch(const char *uri, const char *content)
     size_t id = json_size_t(json_find(target, "id"));
     int patch = json_patch(source, target);
 
-    if (patch == -1)
-    {
-        target = NULL;
-    }
-    else if (json_size_t(json_find(target, "id")) != id)
+    if ((patch == -1) || (json_size_t(json_find(target, "id")) != id))
     {
         json_unpatch(source, target, patch);
-        target = NULL;
+        return NULL;
     }
     json_delete(source);
-    return stringify(target);
+    return encode(target);
 }
 
 static char *rest_delete(const char *uri)
 {
     json_t *node = map_delete(map, uri);
-    char *str = stringify(node);
+    char *str = encode(node);
 
     json_delete(node);
     return str;
