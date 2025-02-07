@@ -115,14 +115,18 @@ static char *rest_patch(const char *uri, const char *content)
 
     size_t id = json_size_t(json_find(target, "id"));
     int patch = json_patch(source, target);
+    char *str = NULL;
 
     if ((patch == -1) || (json_size_t(json_find(target, "id")) != id))
     {
         json_unpatch(source, target, patch);
-        return NULL;
+    }
+    else
+    {
+        str = encode(target);
     }
     json_delete(source);
-    return encode(target);
+    return str;
 }
 
 static char *rest_delete(const char *uri)
