@@ -11,9 +11,8 @@
 #include <clux/json.h>
 #include "static.h"
 #include "writer.h"
+#include "schema.h"
 #include "loader.h"
-
-static map_t *schemas;
 
 static void load_buffers(const char *path)
 {
@@ -27,12 +26,14 @@ static void load_buffers(const char *path)
     printf("Loading '%s'\n", path);
     static_load(file);
     writer_load();
+    schema_load();
 }
 
 static int load_schemas(DIR *dir)
 {
     const struct dirent *dirent;
     const char ext[] = ".json";
+    map_t *map = schema_map();
 
     while ((dirent = readdir(dir)))
     {
@@ -71,7 +72,7 @@ static int load_schemas(DIR *dir)
             json_delete(node);
             return 0;
         }
-        if (map_insert(schemas, id, node) != node)
+        if (map_insert(map, id, node) != node)
         {
             fprintf(stderr, "'%s' already mapped\n", id);
             json_delete(node);
@@ -82,20 +83,9 @@ static int load_schemas(DIR *dir)
     return 1;
 }
 
-static void unload_schemas(void)
-{
-    map_destroy(schemas, json_free);
-}
-
 void loader_run(void)
 {
     load_buffers("www/index.html");
-    if (!(schemas = map_create(0)))
-    {
-        perror("map_create");
-        exit(EXIT_FAILURE);
-    }
-    atexit(unload_schemas);
 
     DIR *dir;
 
