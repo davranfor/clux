@@ -59,5 +59,7 @@ int is_hex(const char *);
 size_t decode_hex(const char *, char *);
 size_t encode_hex(const char *, char *);
 
+int hex_to_dec(int);
+
 #endif
 
