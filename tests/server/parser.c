@@ -5,9 +5,12 @@
  */
 
 #include <string.h>
+#include <clux/json_private.h>
 #include "static.h"
 #include "writer.h"
 #include "parser.h"
+
+#define MAX_PARAMS 8
 
 static const char *parse_content(char *message)
 {
@@ -17,10 +20,29 @@ static const char *parse_content(char *message)
     return content + 4;
 }
 
-// cppcheck-suppress constParameterPointer
-static const char *parse_uri(char *headers)
+static char *parse_method(char *message)
 {
-    const char *uri = strchr(headers, '/');
+    const char *array[] = {"GET /", "POST /", "PUT /", "PATCH /", "DELETE /"};
+    size_t methods = sizeof array / sizeof array[0];
+
+    for (size_t method = 0; method < methods; method++)
+    {
+        size_t length = strlen(array[method]);
+
+        if (!strncmp(message, array[method], length))
+        {
+            char *resource = message + length - 1;
+
+            resource[-1] = '\0';
+            return resource;
+        }
+    }
+    return NULL;
+}
+
+static char *parse_uri(char *message)
+{
+    char *uri = parse_method(message);
 
     if (uri == NULL)
     {
@@ -46,12 +68,39 @@ const buffer_t *parser_handle(char *message)
         return static_handle(message);
     }
 
-    const char *uri = parse_uri(message);
+    char *uri = parse_uri(message);
 
-    if (uri != NULL)
+    if (uri == NULL)
     {
-        return writer_handle(message, uri, content);
+        return NULL;
     }
-    return NULL;
+
+    json_t method =
+    {
+        .key = "method",
+        .string = message,
+        .type = JSON_STRING
+    };
+    json_t resource =
+    {
+        .key = "resource",
+        .string = uri,
+        .type = JSON_STRING
+    };
+    json_t params =
+    {
+        .key = "params",
+        .child = (json_t *[MAX_PARAMS]){0},
+        .size = 0,
+        .type = JSON_OBJECT
+    };
+    json_t request =
+    {
+        .child = (json_t *[]){&method, &resource, &params},
+        .size = 3,
+        .type = JSON_OBJECT
+    };
+
+    return writer_handle(&request, content);
 }
 

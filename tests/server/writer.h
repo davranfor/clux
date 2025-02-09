@@ -8,9 +8,10 @@
 #define WRITER_H
 
 #include <clux/clib_buffer.h>
+#include <clux/json_header.h>
 
 void writer_load(void); 
-const buffer_t *writer_handle(const char *, const char *, const char *); 
+const buffer_t *writer_handle(json_t *request, const char *); 
 
 #endif
 

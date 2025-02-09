@@ -8,6 +8,7 @@
 #include <string.h>
 #include <clux/clib.h>
 #include <clux/json.h>
+#include <clux/json_private.h>
 #include "headers.h"
 #include "writer.h"
 
@@ -142,12 +143,12 @@ enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
 
 static enum method select_method(const char *message)
 {
-    static const char *name[] = {"GET /", "POST /", "PUT /", "PATCH /", "DELETE /"};
+    const char *name[] = {"GET", "POST", "PUT", "PATCH", "DELETE"};
     enum method method;
 
     for (method = 0; method < METHODS; method++)
     {
-        if (!strncmp(message, name[method], strlen(name[method])))
+        if (!strcmp(message, name[method]))
         {
             break;
         }
@@ -155,10 +156,14 @@ static enum method select_method(const char *message)
     return method;
 }
 
-const buffer_t *writer_handle(const char *message, const char *uri, const char *content)
+const buffer_t *writer_handle(json_t *request, const char *content)
 {
     buffer_reset(&buffer);
-    switch (select_method(message))
+    json_print(request);
+
+    const char *uri = request->child[1]->string;
+
+    switch (select_method(request->child[0]->string))
     {
         case GET:
             content = rest_get(uri);
