@@ -40,23 +40,23 @@ static char *parse_method(char *message)
     return NULL;
 }
 
-static char *parse_uri(char *message)
+static char *parse_resource(char *message)
 {
-    char *uri = parse_method(message);
+    char *resource = parse_method(message);
 
-    if (uri == NULL)
+    if (resource == NULL)
     {
         return NULL;
     }
 
-    char *end = strchr(uri, ' ');
+    char *end = strchr(resource, ' ');
 
     if (end == NULL)
     {
         return NULL;
     }
     end[0] = '\0';
-    return uri;
+    return resource;
 }
 
 const buffer_t *parser_handle(char *message)
@@ -68,35 +68,35 @@ const buffer_t *parser_handle(char *message)
         return static_handle(message);
     }
 
-    char *uri = parse_uri(message);
+    char *resource = parse_resource(message);
 
-    if (uri == NULL)
+    if (resource == NULL)
     {
         return NULL;
     }
 
-    json_t method =
+    json_t child[] =
     {
-        .key = "method",
-        .string = message,
-        .type = JSON_STRING
-    };
-    json_t resource =
-    {
-        .key = "resource",
-        .string = uri,
-        .type = JSON_STRING
-    };
-    json_t params =
-    {
-        .key = "params",
-        .child = (json_t *[MAX_PARAMS]){0},
-        .size = 0,
-        .type = JSON_OBJECT
+        {
+            .key = "method",
+            .string = message,
+            .type = JSON_STRING
+        },
+        {
+            .key = "resource",
+            .string = resource,
+            .type = JSON_STRING
+        },
+        {
+            .key = "params",
+            .child = (json_t *[MAX_PARAMS]){0},
+            .size = 0,
+            .type = JSON_OBJECT
+        }
     };
     json_t request =
     {
-        .child = (json_t *[]){&method, &resource, &params},
+        .child = (json_t *[]){&child[0], &child[1], &child[2]},
         .size = 3,
         .type = JSON_OBJECT
     };

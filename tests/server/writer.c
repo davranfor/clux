@@ -46,12 +46,12 @@ static char *encode(const json_t *node)
     return json_buffer_encode(&buffer, node, 0);
 }
 
-static char *rest_get(const char *uri)
+static char *rest_get(const char *resource)
 {
-    return encode(map_search(map, uri));
+    return encode(map_search(map, resource));
 }
 
-static char *rest_post(const char *uri, const char *content)
+static char *rest_post(const char *resource, const char *content)
 {
     json_t *object = json_parse(content, NULL);
 
@@ -65,7 +65,7 @@ static char *rest_post(const char *uri, const char *content)
     json_t *child = json_new_number(id);
     char key[64];
 
-    snprintf(key, sizeof key, "%s/%zu", uri, id);
+    snprintf(key, sizeof key, "%s/%zu", resource, id);
     if (!json_object_push(object, 0, "id", child) ||
         (map_insert(map, key, object) != object))
     {
@@ -77,9 +77,9 @@ static char *rest_post(const char *uri, const char *content)
     return encode(object);
 }
 
-static char *rest_put(const char *uri, const char *content)
+static char *rest_put(const char *resource, const char *content)
 {
-    json_t *old = map_search(map, uri);
+    json_t *old = map_search(map, resource);
 
     if (old == NULL)
     {
@@ -89,7 +89,7 @@ static char *rest_put(const char *uri, const char *content)
     json_t *new = json_parse(content, NULL);
 
     if (!json_equal(json_find(new, "id"), json_find(old, "id")) ||
-        !map_update(map, uri, new))
+        !map_update(map, resource, new))
     {
         json_delete(new);
         return NULL;
@@ -98,9 +98,9 @@ static char *rest_put(const char *uri, const char *content)
     return encode(new);
 }
 
-static char *rest_patch(const char *uri, const char *content)
+static char *rest_patch(const char *resource, const char *content)
 {
-    json_t *target = map_search(map, uri);
+    json_t *target = map_search(map, resource);
 
     if (target == NULL)
     {
@@ -130,9 +130,9 @@ static char *rest_patch(const char *uri, const char *content)
     return str;
 }
 
-static char *rest_delete(const char *uri)
+static char *rest_delete(const char *resource)
 {
-    json_t *node = map_delete(map, uri);
+    json_t *node = map_delete(map, resource);
     char *str = encode(node);
 
     json_delete(node);
@@ -161,24 +161,24 @@ const buffer_t *writer_handle(json_t *request, const char *content)
     buffer_reset(&buffer);
     json_print(request);
 
-    const char *uri = request->child[1]->string;
+    const char *resource = request->child[1]->string;
 
     switch (select_method(request->child[0]->string))
     {
         case GET:
-            content = rest_get(uri);
+            content = rest_get(resource);
             break;
         case POST:
-            content = rest_post(uri, content);
+            content = rest_post(resource, content);
             break;
         case PUT:
-            content = rest_put(uri, content);
+            content = rest_put(resource, content);
             break;
         case PATCH:
-            content = rest_patch(uri, content);
+            content = rest_patch(resource, content);
             break;
         case DELETE:
-            content = rest_delete(uri);
+            content = rest_delete(resource);
             break;
         default:
             return &method_not_allowed;
