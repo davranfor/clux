@@ -38,6 +38,9 @@
                 } else if (response.status === 204) {
                     // Si la respuesta es HTTP 204, no hay contenido para parsear
                     return Promise.resolve(); // Resuelve la promesa vacía
+                } else if (response.status === 400) {
+                    // Si la respuesta es HTTP 400, mal formado
+                    return Promise.reject('Bad Request');
                 } else if (response.status === 405) {
                     // Si la respuesta es HTTP 405, método no permitido
                     return Promise.reject('Method Not Allowed');
@@ -61,6 +64,8 @@
                 console.error('Error:', error);
                 if (error === 'Method Not Allowed') {
                     document.getElementById('response').innerText = 'Method Not Allowed (HTTP 405)';
+                } else if (error === 'Bad Request') {
+                    document.getElementById('response').innerText = 'Bad Request (HTTP 400)';
                 } else {
                     document.getElementById('response').innerText = `Error: ${error}`;
                 }

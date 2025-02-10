@@ -164,7 +164,7 @@ const buffer_t *parser_handle(char *message)
 
     if (resource == NULL)
     {
-        return NULL;
+        return static_error(); 
     }
 
     json_t child[REQUEST_SIZE + MAX_PARAMS] =
@@ -188,7 +188,7 @@ const buffer_t *parser_handle(char *message)
 
     if (!parse_params(child))
     {
-        return NULL;
+        return static_error();
     }
 
     json_t request =

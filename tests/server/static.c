@@ -11,6 +11,7 @@
 #include "static.h"
 
 static buffer_t buffer;
+static buffer_t bad_request;
 static buffer_t not_found;
 
 static void static_unload(void)
@@ -33,8 +34,9 @@ void static_load(char *index_html)
 
     snprintf(headers, sizeof headers, http_html_ok, length);
     buffer_insert(&buffer, 0, headers, strlen(headers));
+    buffer_write(&bad_request, http_bad_request);
     buffer_write(&not_found, http_not_found);
-    if (buffer.error || not_found.error)
+    if (buffer.error || bad_request.error || not_found.error)
     {
         perror("buffer_write");
         exit(EXIT_FAILURE);
@@ -44,5 +46,10 @@ void static_load(char *index_html)
 buffer_t *static_handle(const char *headers) 
 {
     return !strncmp(headers, "GET / ", 6) ? &buffer : &not_found;
+}
+
+buffer_t *static_error(void) 
+{
+    return &bad_request;
 }
 

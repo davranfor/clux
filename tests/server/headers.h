@@ -19,6 +19,9 @@ static const char *http_json_ok =
     "Content-Length: %zu\r\n\r\n";
 static const char *http_no_content =
     "HTTP/1.1 204 No Content\r\n\r\n";
+static const char *http_bad_request =
+    "HTTP/1.1 400 Bad Request\r\n\r\n"
+    "Content-Length: 0\r\n\r\n";
 static const char *http_not_found =
     "HTTP/1.1 404 Not Found\r\n"
     "Content-Type: text/plain\r\n"

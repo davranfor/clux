@@ -11,6 +11,7 @@
 
 void static_load(char *); 
 buffer_t *static_handle(const char *); 
+buffer_t *static_error(void); 
 
 #endif
 
