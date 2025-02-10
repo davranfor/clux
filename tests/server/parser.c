@@ -13,6 +13,8 @@
 
 #define MAX_PARAMS 8
 
+enum {METHOD, RESOURCE, PARAMS, REQUEST_SIZE};
+
 static const char *parse_content(char *message)
 {
     char *content = strstr(message, "\r\n\r\n");
@@ -60,7 +62,7 @@ static char *parse_resource(char *message)
     return resource;
 }
 
-static int decode_params(json_t *array, char *str)
+static int decode_params(json_t *param, char *str)
 {
     char *key = str, *value = NULL;
     char *ptr = str;
@@ -87,8 +89,8 @@ static int decode_params(json_t *array, char *str)
             {
                 return 0;
             }
-            array[size].type = JSON_STRING;
-            array[size].key = key;
+            param[size].type = JSON_STRING;
+            param[size].key = key;
             value = ptr + 1;
             *ptr++ = '\0';
             str++;
@@ -99,7 +101,7 @@ static int decode_params(json_t *array, char *str)
             {
                 return 0;
             }
-            array[size++].string = value;
+            param[size++].string = value;
             key = ptr + 1, value = NULL;
             *ptr++ = '\0';
             str++;
@@ -110,7 +112,7 @@ static int decode_params(json_t *array, char *str)
             {
                 return 0;
             }
-            array[size++].string = value;
+            param[size++].string = value;
             *ptr = '\0';
             return 1;
         }
@@ -122,20 +124,25 @@ static int decode_params(json_t *array, char *str)
     return 0;
 }
 
-// cppcheck-suppress constParameterPointer
-static int parse_params(json_t *object, json_t *array, char *resource)
+static int parse_params(json_t *request)
 {
-    char *params = strchr(resource, '?');
+    char *params = strchr(request[RESOURCE].string, '?');
 
     if (params == NULL)
     {
         return 1;
     }
     params[0] = '\0';
+
+    json_t *array = request + PARAMS + 1;
+
     if (!decode_params(array, params + 1))
     {
         return 0;
     }
+
+    json_t *object = request + PARAMS;
+
     for (short i = 0; i < MAX_PARAMS; i++)
     {
         if (array[i].type == JSON_STRING)
@@ -163,7 +170,7 @@ const buffer_t *parser_handle(char *message)
         return NULL;
     }
 
-    json_t child[] =
+    json_t child[REQUEST_SIZE + MAX_PARAMS] =
     {
         {
             .key = "method",
@@ -181,17 +188,16 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_OBJECT
         }
     };
-    json_t params[MAX_PARAMS] = {0};
 
-    if (!parse_params(&child[2], params, resource))
+    if (!parse_params(child))
     {
         return NULL;
     }
 
     json_t request =
     {
-        .child = (json_t *[]){&child[0], &child[1], &child[2]},
-        .size = 3,
+        .child = (json_t *[]){&child[METHOD], &child[RESOURCE], &child[PARAMS]},
+        .size = REQUEST_SIZE,
         .type = JSON_OBJECT
     };
 
