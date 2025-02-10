@@ -64,8 +64,7 @@ static char *parse_resource(char *message)
 
 static int decode_params(json_t *param, char *str)
 {
-    char *key = str, *value = NULL;
-    char *ptr = str;
+    char *key = str, *ptr = str;
     short size = 0;
 
     while (size < MAX_PARAMS)
@@ -89,30 +88,28 @@ static int decode_params(json_t *param, char *str)
             {
                 return 0;
             }
-            param[size].type = JSON_STRING;
             param[size].key = key;
-            value = ptr + 1;
+            param[size].string = ptr + 1;
+            param[size].type = JSON_STRING;
             *ptr++ = '\0';
             str++;
         }
         else if (str[0] == '&')
         {
-            if (param[size].key == NULL)
+            if (param[size++].key == NULL)
             {
                 return 0;
             }
-            param[size++].string = value;
             key = ptr + 1;
             *ptr++ = '\0';
             str++;
         }
         else if (str[0] == '\0')
         {
-            if (param[size].key == NULL)
+            if (param[size++].key == NULL)
             {
                 return 0;
             }
-            param[size++].string = value;
             *ptr = '\0';
             return 1;
         }
