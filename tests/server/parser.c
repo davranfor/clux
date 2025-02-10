@@ -85,7 +85,7 @@ static int decode_params(json_t *param, char *str)
         }
         else if (str[0] == '=')
         {
-            if (value != NULL)
+            if (param[size].key != NULL)
             {
                 return 0;
             }
@@ -97,18 +97,18 @@ static int decode_params(json_t *param, char *str)
         }
         else if (str[0] == '&')
         {
-            if (value == NULL)
+            if (param[size].key == NULL)
             {
                 return 0;
             }
             param[size++].string = value;
-            key = ptr + 1, value = NULL;
+            key = ptr + 1;
             *ptr++ = '\0';
             str++;
         }
         else if (str[0] == '\0')
         {
-            if (value == NULL)
+            if (param[size].key == NULL)
             {
                 return 0;
             }
