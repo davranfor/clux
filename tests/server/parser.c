@@ -4,7 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdio.h> //borrar
 #include <string.h>
 #include <clux/clib_unicode.h>
 #include <clux/json_private.h>
