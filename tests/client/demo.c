@@ -59,7 +59,7 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
 static CURLcode perform(CURL *curl, int method,
     const char *param, size_t id, const char *fields)
 {
-    const char *host = "http://localhost:1234";
+    const char *host = "http://127.0.0.1:1234";
     char url[128];
 
     switch (method)

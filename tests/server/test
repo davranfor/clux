@@ -1,0 +1,3 @@
+curl -X GET "http://localhost:1234/users?name=david" \
+     -H "Accept: application/json" \
+     -H "Content-Type: application/json"
