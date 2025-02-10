@@ -19,6 +19,11 @@ Run the server on test/server
 
 Compile and run with:
 CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo && ./demo
+
+Manual GET:
+curl -v -G "http://127.0.0.1:1234/users" --data-urlencode "name=John" --data-urlencode "surname=Doe" \
+        -H "Content-Type: application/json"
+
 */
 
 #include <stdio.h>
