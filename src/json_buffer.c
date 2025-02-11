@@ -246,7 +246,8 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */ 
-static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent, size_t max_length)
+static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent,
+    size_t max_length)
 {
     if (node == NULL)
     {
