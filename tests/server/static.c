@@ -17,6 +17,7 @@ static buffer_t not_found;
 static void static_unload(void)
 {
     free(buffer.text);
+    free(bad_request.text);
     free(not_found.text);
 }
 
@@ -43,12 +44,12 @@ void static_load(char *index_html)
     }
 }
 
-buffer_t *static_handle(const char *headers) 
+const buffer_t *static_handle(const char *headers) 
 {
     return !strncmp(headers, "GET / ", 6) ? &buffer : &not_found;
 }
 
-buffer_t *static_error(void) 
+const buffer_t *static_error(void) 
 {
     return &bad_request;
 }
