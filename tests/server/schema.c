@@ -26,7 +26,7 @@ void schema_load(void)
     }
 }
 
-map_t *schema_map(void) 
+map_t *schema_map(void)
 {
     return map;
 }

@@ -115,7 +115,7 @@ static int decode_params(json_t *param, char *str)
         }
         else
         {
-            *ptr++ = *str++; 
+            *ptr++ = *str++;
         }
     }
     return 0;

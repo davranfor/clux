@@ -44,12 +44,12 @@ void static_load(char *index_html)
     }
 }
 
-const buffer_t *static_handle(const char *headers) 
+const buffer_t *static_handle(const char *headers)
 {
     return !strncmp(headers, "GET / ", 6) ? &buffer : &not_found;
 }
 
-const buffer_t *static_error(void) 
+const buffer_t *static_error(void)
 {
     return &bad_request;
 }
