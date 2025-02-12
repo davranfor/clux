@@ -62,7 +62,7 @@ static char *parse_resource(char *message)
     return resource;
 }
 
-static int decode_params(json_t *param, char *str)
+static int decode_params(json_t *params, char *str)
 {
     char *key = str, *ptr = str;
     short size = 0;
@@ -84,19 +84,19 @@ static int decode_params(json_t *param, char *str)
         }
         else if (str[0] == '=')
         {
-            if (param[size].key != NULL)
+            if (params[size].key != NULL)
             {
                 return 0;
             }
-            param[size].key = key;
-            param[size].string = ptr + 1;
-            param[size].type = JSON_STRING;
+            params[size].key = key;
+            params[size].string = ptr + 1;
+            params[size].type = JSON_STRING;
             *ptr++ = '\0';
             str++;
         }
         else if (str[0] == '&')
         {
-            if (param[size++].key == NULL)
+            if (params[size++].key == NULL)
             {
                 return 0;
             }
@@ -106,7 +106,7 @@ static int decode_params(json_t *param, char *str)
         }
         else if (str[0] == '\0')
         {
-            if (param[size++].key == NULL)
+            if (params[size++].key == NULL)
             {
                 return 0;
             }
