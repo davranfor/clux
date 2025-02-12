@@ -121,7 +121,7 @@ static int decode_params(json_t *param, char *str)
     return 0;
 }
 
-static int parse_params(json_t *request)
+static int parse_params(json_t *request, json_t *child[])
 {
     char *params = strchr(request[RESOURCE].string, '?');
 
@@ -144,10 +144,11 @@ static int parse_params(json_t *request)
     {
         if (array[i].type == JSON_STRING)
         {
-            object->child[i] = &array[i];
+            child[i] = &array[i];
             object->size++;
         }
     }
+    object->child = child;
     return 1;
 }
 
@@ -181,12 +182,12 @@ const buffer_t *parser_handle(char *message)
         },
         {
             .key = "params",
-            .child = (json_t *[MAX_PARAMS]){0},
             .type = JSON_OBJECT
         }
     };
+    json_t *params[MAX_PARAMS] = {0};
 
-    if (!parse_params(child))
+    if (!parse_params(child, params))
     {
         return static_error();
     }
