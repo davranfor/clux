@@ -13,7 +13,7 @@
 
 enum {CONTINUE, STOP};
 
-static int notify_failure(const json_event_t *event, buffer_t *events)
+static int on_failure(const json_event_t *event, buffer_t *events)
 {
     if (events->length > EVENTS_BUFFER_LIMIT)
     {
@@ -27,13 +27,20 @@ static int notify_failure(const json_event_t *event, buffer_t *events)
     return CONTINUE;
 }
 
-static int notify_warning(const json_t *rule)
+static int on_warning(const json_t *rule)
 {
     fprintf(stderr, "Warning: Unknow rule '%s'\n", json_name(rule));
     return CONTINUE;
 }
 
-static int notify_error(const json_t *rule)
+static int on_notify(const json_t *rule)
+{
+    fprintf(stderr, "Notify: "); 
+    json_write_line(rule, stderr);
+    return CONTINUE;
+}
+
+static int on_error(const json_t *rule)
 {
     fprintf(stderr, "Aborted: Malformed schema\n"); 
     json_write_line(rule, stderr);
@@ -45,13 +52,15 @@ static int on_validate(const json_event_t *event, void *events)
     switch (event->type)
     {
         case JSON_FAILURE:
-            return notify_failure(event, events);
+            return on_failure(event, events);
         case JSON_WARNING:
-            return notify_warning(event->rule);
+            return on_warning(event->rule);
+        case JSON_NOTIFY:
+            return on_notify(event->rule);
         case JSON_ERROR:
-            return notify_error(event->rule);
+            return on_error(event->rule);
     }
-    return 0;
+    return STOP;
 }
 
 static int validate(const json_t *rules, const json_t *entry)

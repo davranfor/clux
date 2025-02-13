@@ -15,7 +15,8 @@ enum json_event_type
 {
     JSON_FAILURE,
     JSON_WARNING,
-    JSON_ERROR
+    JSON_NOTIFY,
+    JSON_ERROR,
 };
 
 enum json_warning_mode

@@ -130,6 +130,11 @@ static int abort_on_warning(const schema_t *schema, const json_t *rule, const js
     }
 }
 
+static int callback_result(const schema_t *schema, const json_t *rule, const json_t *node)
+{
+    return !notify(schema, rule, node, JSON_NOTIFY);
+}
+
 static void raise_error(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     notify(schema, rule, node, JSON_ERROR);
@@ -177,6 +182,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
  * Schema (Draft 07) keywords
  * https://json-schema.org/draft-07/schema
  * ------------------------------------------------------------------
+ * NOTE: "meta" and "eval" are extensions raising a JSON_NOTIFY event
  */
 #define TEST(_)                                                     \
     _(SCHEMA_ADDITIONAL_ITEMS,          "additionalItems")          \
@@ -195,6 +201,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_DESCRIPTION,               "description")              \
     _(SCHEMA_ELSE,                      "else")                     \
     _(SCHEMA_ENUM,                      "enum")                     \
+    _(SCHEMA_EVAL,                      "eval")                     \
     _(SCHEMA_EXAMPLES,                  "examples")                 \
     _(SCHEMA_EXCLUSIVE_MAXIMUM,         "exclusiveMaximum")         \
     _(SCHEMA_EXCLUSIVE_MINIMUM,         "exclusiveMinimum")         \
@@ -210,6 +217,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_MIN_LENGTH,                "minLength")                \
     _(SCHEMA_MIN_PROPERTIES,            "minProperties")            \
     _(SCHEMA_MINIMUM,                   "minimum")                  \
+    _(SCHEMA_META,                      "meta")                     \
     _(SCHEMA_MULTIPLE_OF,               "multipleOf")               \
     _(SCHEMA_NOT,                       "not")                      \
     _(SCHEMA_ONE_OF,                    "oneOf")                    \
@@ -1242,6 +1250,24 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     return result;
 }
 
+static int test_eval(const schema_t *schema, const json_t *rule, const json_t *node)
+{
+    if ((rule->type != JSON_OBJECT) && (rule->type != JSON_STRING))
+    {
+        return SCHEMA_ERROR;
+    }
+    return callback_result(schema, rule, node);
+}
+
+static int test_meta(const schema_t *schema, const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    return callback_result(schema, rule, node);
+}
+
 static int validate(const schema_t *schema, const json_t *rule, const json_t *node,
     int abortable)
 {
@@ -1372,6 +1398,13 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
             case SCHEMA_THEN:
             case SCHEMA_ELSE:
                 test = test_branch(schema, rule, &i, node, abortable);
+                break;
+            // Validate extensions
+            case SCHEMA_EVAL:
+                test = test_eval(schema, rule->child[i], node);
+                break;
+            case SCHEMA_META:
+                test = test_meta(schema, rule->child[i], node);
                 break;
             // Rule not handled (shouldn't get here)
             default:
