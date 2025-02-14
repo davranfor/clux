@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "clib_check.h"
 #include "json_private.h"
 #include "json_pointer.h"
 
@@ -139,85 +140,87 @@ json_t *json_pointer(const json_t *node, const char *path)
  * Writes an encoded key into the specified buffer in a format compatible
  * with the JSON Pointer specification.
  * The key is prefixed with a forward slash ('/').
- * The buffer must have enough space to hold the resulting key,
- * including the null terminator.
- * Returns the number of characters written to buffer not counting the
- * terminating null character.
  */
-size_t json_pointer_put_key(char *buffer, size_t size, const char *key)
+
+static char *write_key(buffer_t *buffer, const char *key)
 {
-    if ((buffer == NULL) || (key == NULL) || (size == 0))
-    {
-        return 0;
-    }
+    CHECK(buffer_put(buffer, '/'));
 
-    size_t length = 0;
+    const char *ptr = key;
 
-    buffer[length++] = '/';
-    while ((*key != '\0') && (length < size - 1))
+    while (*key != '\0')
     {
         switch (*key)
         {
             case '~':
-                buffer[length++] = '~';
-                buffer[length++] = '0';
+                CHECK(buffer_append(buffer, ptr, (size_t)(key - ptr)));
+                CHECK(buffer_append(buffer, "~0", 2));
+                ptr = ++key;
                 break;
             case '/':
-                buffer[length++] = '~';
-                buffer[length++] = '1';
+                CHECK(buffer_append(buffer, ptr, (size_t)(key - ptr)));
+                CHECK(buffer_append(buffer, "~1", 2));
+                ptr = ++key;
                 break;
             default:
-                buffer[length++] = *key;
+                key++;
                 break;
+
         }
-        key++;
     }
-    if ((*key != '\0') || (length >= size))
-    {
-        *buffer = '\0';
-        return 0;
-    }
-    buffer[length] = '\0';
-    return length;
+    return buffer_append(buffer, ptr, (size_t)(key - ptr));
 }
 
 /**
  * Writes an index as plain text into the specified buffer.
  * The index is prefixed with a forward slash ('/').
- * The buffer must have enough space to hold the resulting index,
- * including the null terminator.
- * Returns the number of characters written to buffer not counting the
- * terminating null character.
  */
-size_t json_pointer_put_index(char *buffer, size_t size, size_t index)
+static char *write_index(buffer_t *buffer, unsigned index)
 {
-    if ((buffer == NULL) || (size == 0))
+    return buffer_format(buffer, "/%u", index);
+}
+
+/* Writes a json_pointer provided buffer */
+char *json_write_pointer(buffer_t *buffer, const json_pointer_t *pointer)
+{
+    return json_write_pointer_max(buffer, pointer, (size_t)-1);
+}
+
+/* Writes a json_pointer provided buffer and limits length */
+char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
+    size_t max_length)
+{
+    if ((buffer == NULL) || (pointer == NULL) || (pointer->root == NULL))
     {
-        return 0;
+        return NULL;
+    }
+    if (pointer->size == 0)
+    {
+        return buffer_put(buffer, '/');
     }
 
-    size_t length = 0;
+    const json_t *node = pointer->root;
+    size_t length = buffer->length;
 
-    buffer[length++] = '/';
-    size--;
-    do
+    for (unsigned i = 0; i < pointer->size; i++)
     {
-        if (length >= size)
+        unsigned index = pointer->path[i];
+
+        if (node->child[index]->key != NULL)
         {
-            *buffer = '\0';
-            return 0;
+            CHECK(write_key(buffer, node->child[index]->key));
         }
-        buffer[length++] = '0' + (char)(index % 10);
-        index /= 10;
-    } while (index > 0);
-    for (size_t i = 1, j = length - 1; i < j; i++, j--)
-    {
-        char temp = buffer[i];
-
-        buffer[i] = buffer[j];
-        buffer[j] = temp; 
+        else
+        {
+            CHECK(write_index(buffer, index));
+        }
+        node = node->child[index];
     }
-    buffer[length] = '\0';
-    return length;
+    if (buffer->length - length > max_length)
+    {
+        buffer_set_length(buffer, length + max_length);
+        buffer_write(buffer, "...");
+    }
+    return buffer->text;
 }
 

@@ -8,19 +8,19 @@
 #include <locale.h>
 #include <clux/json.h>
 
-#define EVENTS_BUFFER_LIMIT 4096    // Don't write to buffer after this limit
-#define EVENTS_ENCODE_MAX 128       // Max length of event line
+#define BUFFER_LIMIT 4096   // Don't write to buffer after this limit
+#define ENCODE_MAX 128      // Max length of an event line
 
 enum {CONTINUE, STOP};
 
-static int on_failure(const json_event_t *event, buffer_t *events)
+static int on_failure(const json_event_t *event, buffer_t *buffer)
 {
-    if (events->length > EVENTS_BUFFER_LIMIT)
+    if (buffer->length > BUFFER_LIMIT)
     {
-        buffer_write(events, "...\n");
+        buffer_write(buffer, "...\n");
         return STOP;
     }
-    if (!json_write_event(event, events, EVENTS_ENCODE_MAX))
+    if (!json_write_event(buffer, event, ENCODE_MAX))
     {
         return STOP;
     }
@@ -47,12 +47,12 @@ static int on_error(const json_t *rule)
     return STOP;
 }
 
-static int on_validate(const json_event_t *event, void *events)
+static int on_validate(const json_event_t *event, void *buffer)
 {
     switch (event->type)
     {
         case JSON_FAILURE:
-            return on_failure(event, events);
+            return on_failure(event, buffer);
         case JSON_WARNING:
             return on_warning(event->rule);
         case JSON_NOTIFY:
@@ -65,18 +65,18 @@ static int on_validate(const json_event_t *event, void *events)
 
 static int validate(const json_t *rules, const json_t *entry)
 {
-    buffer_t events = {0};
+    buffer_t buffer = {0};
     int rc = EXIT_SUCCESS;
 
-    if (!json_validate(rules, entry, NULL, on_validate, &events))
+    if (!json_validate(rules, entry, NULL, on_validate, &buffer))
     {
         fprintf(stderr, "Doesn't validate against schema\n");
         rc = EXIT_FAILURE;
     }
-    if (events.text != NULL)
+    if (buffer.text != NULL)
     {
-        fprintf(stderr, "Invalid rules:\n%s", events.text);
-        free(events.text);
+        fprintf(stderr, "Invalid rules:\n%s", buffer.text);
+        free(buffer.text);
     }
     return rc;
 }

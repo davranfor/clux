@@ -15,21 +15,18 @@
 #include "json_private.h"
 #include "json_reader.h"
 #include "json_buffer.h"
-#include "json_pointer.h"
 #include "json_schema.h"
 
-#define MAX_ACTIVE_PATHS 16
-#define MAX_ACTIVE_REFS 128
-
-#define PATH_SIZE 256
+#define MAX_PATHS 32
+#define MAX_REFS 128
 
 enum {NOT_ABORTABLE, ABORTABLE};
 
 struct tracker
 {
-    unsigned path[MAX_ACTIVE_PATHS];
-    int paths;
-    int refs;
+    unsigned path[MAX_PATHS];
+    unsigned paths;
+    unsigned refs;
 };
 
 typedef struct
@@ -57,47 +54,20 @@ enum json_warning_mode json_get_warning_mode(void)
     return warning_mode;
 }
 
-/* Writes the current node path to a provided buffer */
-static void write_path(const schema_t *schema, char *path, size_t size)
-{
-    const json_t *node = schema->node;
-
-    for (int i = 0; (i < schema->active->paths) && (i < MAX_ACTIVE_PATHS); i++)
-    {
-        unsigned index = schema->active->path[i];
-        size_t count;
-
-        if (node->child[index]->key != NULL)
-        {
-            count = json_pointer_put_key(path, size, node->child[index]->key);
-        }
-        else
-        {
-            count = json_pointer_put_index(path, size, index);
-        }
-        if (count == 0)
-        {
-            // Doesn't fit, try adding '/...' to the 'path'
-            count = json_pointer_put_key(path, size, "...");
-        }
-        node = node->child[index];
-        path = path + count;
-        size = size - count;
-    }
-}
-
 /* Notifies an event to the user-defined callback */
 static int notify_event(const schema_t *schema, const json_t *rule, const json_t *node,
     enum json_event_type type)
 {
-    char path[PATH_SIZE] = "/";
-
-    if (type == JSON_FAILURE)
-    { 
-        write_path(schema, path, sizeof path);
-    }
-
-    const json_event_t event = { .path = path, .node = node, .rule = rule, .type = type };
+    const json_pointer_t pointer =
+    {
+        .root = schema->node,
+        .path = schema->active->path,
+        .size = schema->active->paths > MAX_PATHS ? MAX_PATHS : schema->active->paths
+    };
+    const json_event_t event =
+    {
+        .pointer = &pointer, .node = node, .rule = rule, .type = type
+    };
 
     return schema->callback(&event, schema->data);
 }
@@ -144,14 +114,14 @@ static void raise_error(const schema_t *schema, const json_t *rule, const json_t
  * Writes an event to a provided buffer from an user-defined callback
  * Limits the buffer to 'encode_max' bytes when encoding (0 = no limit)
  */
-char *json_write_event(const json_event_t *event, buffer_t *buffer, size_t encode_max)
+char *json_write_event(buffer_t *buffer, const json_event_t *event, size_t encode_max)
 {
-    if ((event == NULL) || (buffer == NULL))
+    if ((buffer == NULL) || (event == NULL))
     {
         return NULL;
     }
     buffer_write(buffer, "\nPath: ");
-    json_buffer_quote_max(buffer, event->path, encode_max);
+    json_write_pointer_max(buffer, event->pointer, encode_max);
     buffer_write(buffer, "\nNode: ");
     json_buffer_encode_max(buffer, event->node, 0, encode_max);
     buffer_write(buffer, "\nRule: ");
@@ -315,7 +285,7 @@ static int get_test(const json_t *rule)
 static int test_child(const schema_t *schema, const json_t *rule, const json_t *parent,
     unsigned child, int abortable)
 {
-    if (schema->active->paths++ < MAX_ACTIVE_PATHS)
+    if (schema->active->paths++ < MAX_PATHS)
     {
         schema->active->path[schema->active->paths - 1] = child;
     }
@@ -1054,12 +1024,12 @@ static int test_ref(const schema_t *schema, const json_t *rule, const json_t *no
     {
         return SCHEMA_ERROR;
     }
-    if (++schema->active->refs >= MAX_ACTIVE_REFS)
+    if (++schema->active->refs >= MAX_REFS)
     {
         const json_t note =
         {
-            .key = "maxActiveRefs",
-            .number = MAX_ACTIVE_REFS,
+            .key = "maxRefs",
+            .number = MAX_REFS,
             .type = JSON_INTEGER
         };
 

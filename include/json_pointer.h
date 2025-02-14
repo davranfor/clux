@@ -7,11 +7,19 @@
 #ifndef JSON_POINTER_H
 #define JSON_POINTER_H
 
+#include "clib_buffer.h"
 #include "json_header.h"
 
+typedef struct
+{
+    const json_t *root;
+    unsigned *path;
+    unsigned size;
+} json_pointer_t;
+
 json_t *json_pointer(const json_t *, const char *);
-size_t json_pointer_put_key(char *, size_t, const char *);
-size_t json_pointer_put_index(char *, size_t, size_t);
+char *json_write_pointer(buffer_t *, const json_pointer_t *);
+char *json_write_pointer_max(buffer_t *, const json_pointer_t *, size_t);
 
 #endif
 
