@@ -71,7 +71,7 @@ static int compare(const char *key, const char *path, const char *end)
     return *key == '\0';
 }
 
-static json_t *find_key(const json_t *node, const char *path, const char *end)
+static const json_t *find_key(const json_t *node, const char *path, const char *end)
 {
     for (unsigned index = 0; index < node->size; index++)
     {
@@ -83,7 +83,7 @@ static json_t *find_key(const json_t *node, const char *path, const char *end)
     return NULL;
 }
 
-static json_t *find_index(const json_t *node, const char *path, const char *end)
+static const json_t *find_index(const json_t *node, const char *path, const char *end)
 {
     if (path + strspn(path, "0123456789") != end)
     {
@@ -180,13 +180,13 @@ static char *write_index(buffer_t *buffer, unsigned index)
     return buffer_format(buffer, "/%u", index);
 }
 
-/* Writes a json_pointer provided buffer */
+/* Writes a json_pointer into the specified buffer */
 char *json_write_pointer(buffer_t *buffer, const json_pointer_t *pointer)
 {
-    return json_write_pointer_max(buffer, pointer, (size_t)-1);
+    return json_write_pointer_max(buffer, pointer, 0);
 }
 
-/* Writes a json_pointer provided buffer and limits length */
+/* Writes a json_pointer into the specified buffer and limits length */
 char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
     size_t max_length)
 {
@@ -197,6 +197,10 @@ char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
     if (pointer->size == 0)
     {
         return buffer_put(buffer, '/');
+    }
+    if (max_length == 0)
+    {
+        max_length = (size_t) -1;
     }
 
     const json_t *node = pointer->root;
@@ -214,12 +218,12 @@ char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
         {
             CHECK(write_index(buffer, index));
         }
+        if (buffer->length - length > max_length)
+        {
+            buffer_set_length(buffer, length + max_length);
+            return buffer_write(buffer, "...");
+        }
         node = node->child[index];
-    }
-    if (buffer->length - length > max_length)
-    {
-        buffer_set_length(buffer, length + max_length);
-        buffer_write(buffer, "...");
     }
     return buffer->text;
 }
