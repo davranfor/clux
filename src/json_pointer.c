@@ -136,6 +136,29 @@ json_t *json_pointer(const json_t *node, const char *path)
     }
 }
 
+/* Locates a node by path */
+json_t *json_extract(const json_pointer_t *pointer)
+{
+    if ((pointer == NULL) || (pointer->root == NULL))
+    {
+        return NULL;
+    }
+
+    json_t *node = json_cast(pointer->root);
+
+    for (unsigned i = 0; i < pointer->size; i++)
+    {
+        unsigned index = pointer->path[i];
+
+        if (node->size <= index)
+        {
+            return NULL;
+        }
+        node = node->child[index];
+    }
+    return node;
+}
+
 /**
  * Writes an encoded key into the specified buffer in a format compatible
  * with the JSON Pointer specification.
@@ -210,6 +233,10 @@ char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
     {
         unsigned index = pointer->path[i];
 
+        if (node->size <= index)
+        {
+            return NULL;
+        }
         if (node->child[index]->key != NULL)
         {
             CHECK(write_key(buffer, node->child[index]->key));
