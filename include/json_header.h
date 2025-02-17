@@ -15,11 +15,6 @@
 
 #define JSON_NOT_FOUND -1u
 
-/* Cast 'const json_t *' to 'json_t *' without warning */
-#define json_cast(node) _Generic((node),                            \
-    const json_t *: ((json_t *)(uintptr_t)(const void *)(node)),    \
-    default: (node))
-
 enum json_type
 {
     JSON_UNDEFINED,
@@ -34,6 +29,14 @@ enum json_type
 };
 
 typedef struct json json_t;
+
+static inline json_t *json_cast(const json_t *node)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    return (json_t *)node;
+#pragma GCC diagnostic pop
+}
 
 #endif
 
