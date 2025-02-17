@@ -84,6 +84,19 @@ char *buffer_append(buffer_t *buffer, const char *text, size_t length)
     return buffer->text;
 }
 
+char *buffer_delete(buffer_t *buffer, size_t index, size_t length)
+{
+    if ((buffer->length == 0) || (index + length > buffer->length))
+    {
+        return buffer->text;
+    }
+    memmove(buffer->text + index,
+            buffer->text + index + length,
+            buffer->length - index - length + 1);
+    buffer->length -= length;
+    return buffer->text;
+}
+
 char *buffer_format(buffer_t *buffer, const char *fmt, ...)
 {
     va_list args, copy;

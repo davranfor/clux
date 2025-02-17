@@ -4,16 +4,13 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <clux/clib.h>
-#include "parser.h"
 #include "reader.h"
 
 #define HEADERS_MAX_LENGTH 4096
 
-int reader_status(char *message, size_t length)
+int reader_handle(char *message, size_t length)
 {
     char *delimiter = strstr(message, "\r\n\r\n");
 
@@ -36,31 +33,5 @@ int reader_status(char *message, size_t length)
     size_t request_length = headers_length + content_length;
 
     return length < request_length ? -1 : length == request_length;
-}
-
-void reader_handle(pool_t *pool, char *buffer, size_t size)
-{
-    const buffer_t *message = parser_handle(pool->text);
-
-    if (message != NULL)
-    {
-        if (message->length <= size)
-        {
-            memcpy(buffer, message->text, message->length);
-            pool_bind(pool, buffer, message->length);
-        }
-        else
-        {
-            pool_reset(pool);
-            if (!pool_put(pool, message->text, message->length))
-            {
-                perror("pool_put");
-            }
-        }
-    }
-    else
-    {
-        pool_reset(pool);
-    }
 }
 

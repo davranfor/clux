@@ -4,6 +4,7 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h> // For debug
 #include <string.h>
 #include <clux/clib_unicode.h>
 #include <clux/json_private.h>
@@ -154,6 +155,8 @@ static int parse_params(json_t *request, json_t *child[])
 
 const buffer_t *parser_handle(char *message)
 {
+    puts(message);
+
     const char *content = parse_content(message);
 
     if (!strstr(message, "Content-Type: application/json\r\n"))

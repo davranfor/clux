@@ -20,6 +20,7 @@
 #include <errno.h>
 #include "config.h"
 #include "reader.h"
+#include "parser.h"
 #include "server.h"
 
 #define BUFFER_SIZE 32768
@@ -27,6 +28,7 @@
 static char buffer[BUFFER_SIZE];
 
 typedef struct pollfd conn_t;
+typedef struct buffer pool_t;
 
 static volatile sig_atomic_t stop;
 
@@ -137,30 +139,28 @@ static int conn_recv(conn_t *conn, pool_t *pool)
 
     int status = 1;
 
-    if ((pool->text == NULL) && ((status = reader_status(buffer, rcvd)) == 1))
+    if ((pool->length == 0) && ((status = reader_handle(buffer, rcvd)) == 1))
     {
-        pool_bind(pool, buffer, rcvd);
+        return status;
     }
-    else if (status != 0)
+    if (status != 0)
     {
-        if (!pool_put(pool, buffer, rcvd))
+        if (!buffer_append(pool, buffer, rcvd))
         {
-            perror("pool_put");
+            perror("buffer_append");
             return 0;
         }
-        if (status != -1)
+        if (status == 1)
         {
-            status = reader_status(pool->text, pool->length);
+            status = reader_handle(pool->text, pool->length);
         }
     }
     return status;
 }
 
-static int conn_send(conn_t *conn, pool_t *pool)
+static int conn_send(conn_t *conn, pool_t *pool, const buffer_t *message)
 {
-    char *text = pool->text + pool->sent;
-    size_t length = pool->length - pool->sent;
-    ssize_t bytes = send(conn->fd, text, length, 0);
+    ssize_t bytes = send(conn->fd, message->text, message->length, 0);
 
     if (bytes == 0)
     {
@@ -178,21 +178,21 @@ static int conn_send(conn_t *conn, pool_t *pool)
 
     size_t sent = (size_t)bytes;
 
-    if (sent == length)
+    if (sent == message->length)
     {
         return 1;
     }
-    if (pool->type != POOL_ALLOCATED)
+    if (message != pool)
     {
-        if (!pool_put(pool, text + sent, length - sent))
+        if (!buffer_append(pool, message->text + sent, message->length - sent))
         {
-            perror("pool_put");
+            perror("buffer_append");
             return 0;
         }
     }
     else
     {
-        pool_sync(pool, sent);
+        buffer_delete(pool, 0, sent);
     }
     return -1;
 }
@@ -201,6 +201,8 @@ static void conn_handle(conn_t *conn, pool_t *pool)
 {
     if (!(conn->revents & ~(POLLIN | POLLOUT)))
     {
+        const buffer_t *message = pool;
+
         if (conn->revents == POLLIN)
         {
             switch (conn_recv(conn, pool))
@@ -210,15 +212,13 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                 case -1:
                     return;
                 default:
-                    puts("");
-                    puts(pool->text);
-                    reader_handle(pool, buffer, BUFFER_SIZE);
+                    message = parser_handle(pool->length ? pool->text : buffer);
                     break;
             }
         }
-        if (pool->text != NULL)
+        if (message != NULL)
         {
-            switch (conn_send(conn, pool))
+            switch (conn_send(conn, pool, message))
             {
                 case 0:
                     goto reset;
@@ -227,20 +227,20 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                     return;
                 default:
                     conn->events &= ~POLLOUT;
-                    pool_reset(pool);
+                    buffer_reset(pool);
                     return;
             }
         }
     }
 reset:
+    buffer_reset(pool);
     conn_reset(conn);
-    pool_reset(pool);
 }
 
 static void conn_close(conn_t *conn, pool_t *pool)
 {
     conn_reset(conn);
-    pool_reset(pool);
+    free(pool->text);
 }
 
 static void server_loop(uint16_t port)

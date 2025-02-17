@@ -7,10 +7,9 @@
 #ifndef READER_H
 #define READER_H
 
-#include "pool.h"
+#include <stddef.h>
 
-int reader_status(char *, size_t);
-void reader_handle(pool_t *, char *, size_t);
+int reader_handle(char *, size_t);
 
 #endif
 
