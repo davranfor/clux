@@ -168,7 +168,7 @@ static void *handler(void *server)
 
     for (size_t i = 0, n = json_size(users); i < n; i++)
     {
-        char data[128];
+        char data[512];
 
         if (!pick_user(&pool, data, sizeof data))
         {
@@ -250,8 +250,8 @@ static void *handler(void *server)
         buffer_reset(&pool);
     }
 stop:
-    buffer_reset(&pool);
     close(fd);
+    free(pool.text);
     return NULL;
 }
 
