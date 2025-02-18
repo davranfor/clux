@@ -52,6 +52,11 @@ static int client_connect(void *server)
 
 static json_t *users;
 
+static void delete_users(void)
+{
+    json_delete(users);
+}
+
 enum { GET, POST, PUT, PATCH, DELETE, METHODS };
 
 static char *pick_user(buffer_t *buffer, char *data, size_t size)
@@ -129,6 +134,28 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
     return buffer->text;
 }
 
+static int send_handler(int fd, buffer_t *pool)
+{
+    size_t sent = 0;
+
+    while (sent < pool->length)
+    {
+        ssize_t bytes = send(fd, pool->text + sent, pool->length - sent, 0);
+
+        if (bytes == -1)
+        {
+            perror("send");
+            return 0;
+        }
+        if (bytes == 0)
+        {
+            return 0;
+        }
+        sent += (size_t)bytes;
+    }
+    return 1;
+}
+
 static int recv_status(char *message, size_t length)
 {
     char *delimiter = strstr(message, "\r\n\r\n");
@@ -154,6 +181,58 @@ static int recv_status(char *message, size_t length)
     return length < request_length ? -1 : length == request_length;
 }
 
+static char *recv_handler(int fd, char *buffer, buffer_t *pool)
+{
+    for (;;)
+    {
+        ssize_t bytes = recv(fd, buffer, BUFFER_SIZE - 1, 0);
+
+        if (bytes == -1)
+        {
+            perror("recv");
+            return NULL;
+        }
+        if (bytes == 0)
+        {
+            return NULL;
+        }
+
+        size_t rcvd = (size_t)bytes;
+
+        buffer[rcvd] = '\0';
+
+        char *text = NULL;
+        int status = 1;
+
+        if ((pool->length == 0) && ((status = recv_status(buffer, rcvd)) == 1))
+        {
+            text = buffer;
+        }
+        else if (status != 0)
+        {
+            if (!buffer_append(pool, buffer, rcvd))
+            {
+                perror("buffer_append");
+                return NULL;
+            }
+            if (status != -1)
+            {
+                status = recv_status(pool->text, pool->length);
+                text = pool->text;
+            }
+        }
+        if (status == 0)
+        {
+            return NULL;
+        }
+        if (status == 1)
+        {
+            return text;
+        }
+    }
+    return NULL;
+}
+
 static void *handler(void *server)
 {
     int fd;
@@ -174,78 +253,21 @@ static void *handler(void *server)
         {
             goto stop;
         }
-
-        size_t sent = 0;
-
-        while (sent < pool.length)
+        if (!send_handler(fd, &pool))
         {
-            ssize_t bytes = send(fd, pool.text + sent, pool.length - sent, 0);
-
-            if (bytes == -1)
-            {
-                perror("send");
-                goto stop;
-            }
-            if (bytes == 0)
-            {
-                goto stop;
-            }
-            sent += (size_t)bytes;
+            goto stop;
         }
-
         buffer_reset(&pool);
 
-        char *text = NULL;
+        char *rcvd = recv_handler(fd, buffer, &pool);
 
-        for (;;)
+        if (rcvd == NULL)
         {
-            ssize_t bytes = recv(fd, buffer, BUFFER_SIZE - 1, 0);
-
-            if (bytes == -1)
-            {
-                perror("recv");
-                goto stop;
-            }
-            if (bytes == 0)
-            {
-                goto stop;
-            }
-
-            size_t rcvd = (size_t)bytes;
-
-            buffer[rcvd] = '\0';
-
-            int status = 1;
-
-            if ((pool.length == 0) && ((status = recv_status(buffer, rcvd)) == 1))
-            {
-                text = buffer;
-            }
-            else if (status != 0)
-            {
-                if (!buffer_append(&pool, buffer, rcvd))
-                {
-                    perror("buffer_append");
-                    goto stop;
-                }
-                if (status != -1)
-                {
-                    status = recv_status(pool.text, pool.length);
-                    text = pool.text;
-                }
-            }
-            if (status == 0)
-            {
-                goto stop;
-            }
-            if (status == 1)
-            {
-                break;
-            }
+            goto stop;
         }
         pthread_mutex_lock(&mutex);
         puts(data);
-        puts(text);
+        puts(rcvd);
         pthread_mutex_unlock(&mutex);
         buffer_reset(&pool);
     }
@@ -277,6 +299,7 @@ int main(int argc, char *argv[])
 
     srand((unsigned)time(NULL));
     setlocale(LC_NUMERIC, "C");
+    atexit(delete_users);
 
     json_error_t error;
 
@@ -326,7 +349,6 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-    json_delete(users);
     return 0;
 }
 
