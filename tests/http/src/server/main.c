@@ -9,20 +9,9 @@
 #include <string.h>
 #include <locale.h>
 #include "config.h"
+#include "common.h"
 #include "loader.h"
 #include "server.h"
-
-static uint16_t port_number(const char *str)
-{
-    char *end;
-    unsigned long result = strtoul(str, &end, 10);
-
-    if ((result > 65535) || (end[strspn(end, " \f\n\r\t\v")] != '\0'))
-    {
-        return 0;
-    }
-    return (uint16_t)result;
-}
 
 int main(int argc, char *argv[])
 {

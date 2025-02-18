@@ -11,15 +11,11 @@
 #include <pthread.h>
 #include <clux/clib.h>
 #include <clux/json.h>
+#include "config.h"
+#include "common.h"
+#include "reader.h"
 
-#define SERVER_ADDR "127.0.0.1"
-#define SERVER_PORT 1234 
-
-#define MAX_CLIENTS 10
 #define CLIENT_TIMEOUT 60
-
-#define HEADERS_MAX_LENGTH 4096
-
 #define BUFFER_SIZE 512
  
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -134,7 +130,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
     return buffer->text;
 }
 
-static int send_handler(int fd, buffer_t *pool)
+static int send_handle(int fd, buffer_t *pool)
 {
     size_t sent = 0;
 
@@ -156,32 +152,7 @@ static int send_handler(int fd, buffer_t *pool)
     return 1;
 }
 
-static int recv_status(char *message, size_t length)
-{
-    char *delimiter = strstr(message, "\r\n\r\n");
-
-    if (delimiter == NULL)
-    {
-        return length > HEADERS_MAX_LENGTH ? 0 : -1;
-    }
-    delimiter[0] = '\0';
-
-    const char *content_length_mark = strstr(message, "Content-Length:");
-
-    delimiter[0] = '\r';
-    if (content_length_mark == NULL)
-    {
-        return delimiter[4] == '\0';
-    }
-
-    size_t headers_length = (size_t)(delimiter - message) + 4;
-    size_t content_length = strtoul(content_length_mark + 15, NULL, 10);
-    size_t request_length = headers_length + content_length;
-
-    return length < request_length ? -1 : length == request_length;
-}
-
-static char *recv_handler(int fd, char *buffer, buffer_t *pool)
+static char *recv_handle(int fd, char *buffer, buffer_t *pool)
 {
     for (;;)
     {
@@ -204,7 +175,7 @@ static char *recv_handler(int fd, char *buffer, buffer_t *pool)
         char *text = NULL;
         int status = 1;
 
-        if ((pool->length == 0) && ((status = recv_status(buffer, rcvd)) == 1))
+        if ((pool->length == 0) && ((status = reader_handle(buffer, rcvd)) == 1))
         {
             text = buffer;
         }
@@ -217,7 +188,7 @@ static char *recv_handler(int fd, char *buffer, buffer_t *pool)
             }
             if (status != -1)
             {
-                status = recv_status(pool->text, pool->length);
+                status = reader_handle(pool->text, pool->length);
                 text = pool->text;
             }
         }
@@ -253,13 +224,13 @@ static void *handler(void *server)
         {
             goto stop;
         }
-        if (!send_handler(fd, &pool))
+        if (!send_handle(fd, &pool))
         {
             goto stop;
         }
         buffer_reset(&pool);
 
-        char *rcvd = recv_handler(fd, buffer, &pool);
+        char *rcvd = recv_handle(fd, buffer, &pool);
 
         if (rcvd == NULL)
         {
@@ -277,18 +248,6 @@ stop:
     return NULL;
 }
 
-static uint16_t port_number(const char *str)
-{
-    char *end;
-    unsigned long result = strtoul(str, &end, 10);
-
-    if ((result > 65535) || (end[strspn(end, " \f\n\r\t\v")] != '\0'))
-    {
-        return 0;
-    }
-    return (uint16_t)result;
-}
-
 int main(int argc, char *argv[])
 {
     if ((argc == 2) && (strcmp(argv[1], "-h") == 0))
@@ -301,10 +260,12 @@ int main(int argc, char *argv[])
     setlocale(LC_NUMERIC, "C");
     atexit(delete_users);
 
+    const char *path = "samples/users.json"; 
     json_error_t error;
 
-    if (!(users = json_parse_file("users.json", &error)))
+    if (!(users = json_parse_file(path, &error)))
     {
+        fprintf(stderr, "%s\n", path);
         json_print_error(&error);
         exit(EXIT_FAILURE);
     }
