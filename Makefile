@@ -50,6 +50,4 @@ uninstall:
 clean:
 	rm -rf $(OBJDIR)
 	rm -f $(TARGET)
-	find . \( -name "*.o" -o -name "demo" \) -exec rm -f {} +
-	$(MAKE) -C tests/http clean
 
