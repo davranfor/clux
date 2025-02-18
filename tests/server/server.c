@@ -150,7 +150,7 @@ static int conn_recv(conn_t *conn, pool_t *pool)
             perror("buffer_append");
             return 0;
         }
-        if (status == 1)
+        if (status != -1)
         {
             status = reader_handle(pool->text, pool->length);
         }
@@ -182,7 +182,7 @@ static int conn_send(conn_t *conn, pool_t *pool, const buffer_t *message)
     {
         return 1;
     }
-    if (message != pool)
+    if (pool != message)
     {
         if (!buffer_append(pool, message->text + sent, message->length - sent))
         {
