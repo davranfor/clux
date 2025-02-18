@@ -130,7 +130,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
     return buffer->text;
 }
 
-static int send_handle(int fd, buffer_t *pool)
+static int send_handle(int fd, const buffer_t *pool)
 {
     size_t sent = 0;
 
@@ -230,7 +230,7 @@ static void *handler(void *server)
         }
         buffer_reset(&pool);
 
-        char *rcvd = recv_handle(fd, buffer, &pool);
+        const char *rcvd = recv_handle(fd, buffer, &pool);
 
         if (rcvd == NULL)
         {
