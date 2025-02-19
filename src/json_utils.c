@@ -61,7 +61,9 @@ void json_sort(json_t *node, json_sort_callback callback)
     {
         if (callback == NULL)
         {
-            callback = node->type == JSON_OBJECT ? compare_by_key : json_compare_by_value;
+            callback = node->type == JSON_OBJECT
+                ? compare_by_key
+                : json_compare_by_value;
         }
         qsort(node->child, node->size, sizeof *node->child, callback);
     }
