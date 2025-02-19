@@ -21,7 +21,7 @@ int reader_handle(const char *message, size_t length)
 
     size_t headers_length = (size_t)(delimiter - message);
     const char *length_mark = string_search(
-        message, headers_length, "Content-Length:", 15
+        message, headers_length, "\r\nContent-Length:", 17
     );
 
     if (length_mark == NULL)
@@ -29,7 +29,7 @@ int reader_handle(const char *message, size_t length)
         return delimiter[4] == '\0';
     }
 
-    size_t content_length = strtoul(length_mark + 15, NULL, 10);
+    size_t content_length = strtoul(length_mark + 17, NULL, 10);
     size_t request_length = headers_length + content_length + 4;
 
     return length < request_length ? -1 : length == request_length;
