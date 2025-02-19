@@ -62,6 +62,26 @@ char *string_vprint(const char *fmt, va_list args)
     return str;
 }
 
+/* Search for a substring (b) within a larger string (a) given the lengths */
+char *string_search(const char *a, size_t na, const char *b, size_t nb)
+{
+    if (na < nb)
+    {
+        return NULL;
+    }
+    for (size_t i = 0; i <= na - nb; i++)
+    {
+        if ((a[i] == b[0]) && !memcmp(a + i, b, nb))
+        {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+            return (char *)(a + i);
+#pragma GCC diagnostic pop
+        }
+    }
+    return NULL;
+}
+
 /* Returns the number of multibytes of a string */
 size_t string_length(const char *str)
 {

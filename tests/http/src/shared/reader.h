@@ -9,7 +9,7 @@
 
 #include <stddef.h>
 
-int reader_handle(char *, size_t);
+int reader_handle(const char *, size_t);
 
 #endif
 
