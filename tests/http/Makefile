@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs -Isrc/shared
+CFLAGS = -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
+CFLAGS += -Isrc/shared
 LDFLAGS = -lclux
 OBJDIR = obj
 SRCDIR = src
