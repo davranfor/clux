@@ -54,21 +54,6 @@ int json_compare_by_value(const void *pa, const void *pb)
     }
 }
 
-/* Sorts a json iterable using qsort, assign default callbacks if not provided */
-void json_sort(json_t *node, json_sort_callback callback)
-{
-    if ((node != NULL) && (node->size > 1))
-    {
-        if (callback == NULL)
-        {
-            callback = node->type == JSON_OBJECT
-                ? compare_by_key
-                : json_compare_by_value;
-        }
-        qsort(node->child, node->size, sizeof *node->child, callback);
-    }
-}
-
 /* Search a key into an object (properties must be already sorted by key) */ 
 json_t *json_search(const json_t *node, const char *key)
 {
@@ -98,6 +83,21 @@ json_t *json_search(const json_t *node, const char *key)
         }
     }
     return NULL;
+}
+
+/* Sorts a json iterable using qsort, assign default callbacks if not provided */
+void json_sort(json_t *node, json_sort_callback callback)
+{
+    if ((node != NULL) && (node->size > 1))
+    {
+        if (callback == NULL)
+        {
+            callback = node->type == JSON_OBJECT
+                ? compare_by_key
+                : json_compare_by_value;
+        }
+        qsort(node->child, node->size, sizeof *node->child, callback);
+    }
 }
 
 /* Reverses a json iterable */
