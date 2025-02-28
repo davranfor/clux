@@ -103,15 +103,19 @@ json_t *json_search(const json_t *node, const char *key)
 /* Reverses a json iterable */
 void json_reverse(json_t *node)
 {
-    if ((node != NULL) && (node->size > 1))
+    if ((node == NULL) || (node->size <= 1))
     {
-        for (unsigned a = 0, b = node->size - 1; a < b; a++, b--)
-        {
-            json_t *temp = node->child[a];
+        return;
+    }
 
-            node->child[a] = node->child[b];
-            node->child[b] = temp;
-        }
+    unsigned head = 0, tail = node->size - 1;
+
+    while (head < tail)
+    {
+        json_t *temp = node->child[head];
+
+        node->child[head++] = node->child[tail];
+        node->child[tail--] = temp;
     }
 }
 
