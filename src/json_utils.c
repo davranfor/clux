@@ -85,19 +85,18 @@ json_t *json_search(const json_t *node, const char *key)
     return NULL;
 }
 
-/* Sorts a json iterable using qsort, assign default callbacks if not provided */
+/* Sorts a json iterable using qsort, assign default callbacks if it is not provided */
 void json_sort(json_t *node, json_sort_callback callback)
 {
-    if ((node != NULL) && (node->size > 1))
+    if ((node == NULL) || (node->size <= 1))
     {
-        if (callback == NULL)
-        {
-            callback = node->type == JSON_OBJECT
-                ? compare_by_key
-                : json_compare_by_value;
-        }
-        qsort(node->child, node->size, sizeof *node->child, callback);
+        return;
     }
+    if (callback == NULL)
+    {
+        callback = node->type == JSON_OBJECT ? compare_by_key : json_compare_by_value;
+    }
+    qsort(node->child, node->size, sizeof *node->child, callback);
 }
 
 /* Reverses a json iterable */
@@ -108,14 +107,14 @@ void json_reverse(json_t *node)
         return;
     }
 
-    unsigned head = 0, tail = node->size - 1;
+    unsigned lower = 0, upper = node->size - 1;
 
-    while (head < tail)
+    while (lower < upper)
     {
-        json_t *temp = node->child[head];
+        json_t *temp = node->child[lower];
 
-        node->child[head++] = node->child[tail];
-        node->child[tail--] = temp;
+        node->child[lower++] = node->child[upper];
+        node->child[upper--] = temp;
     }
 }
 
