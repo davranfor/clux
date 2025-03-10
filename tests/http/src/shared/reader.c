@@ -12,7 +12,7 @@
 
 int reader_handle(const char *message, size_t length)
 {
-    char *delimiter = string_search(message, length, "\r\n\r\n", 4);
+    const char *delimiter = string_search(message, length, "\r\n\r\n", 4);
 
     if (delimiter == NULL)
     {

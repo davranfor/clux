@@ -213,6 +213,7 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                     return;
                 default:
                     message = parser_handle(pool->length ? pool->text : buffer);
+                    buffer_reset(pool);
                     break;
             }
         }
