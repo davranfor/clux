@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <clux/json.h>
+#include <clux/json_private.h>
 
 static void array_push_back(json_t *parent, json_t *child)
 {
@@ -40,7 +41,7 @@ int main(void)
     }
     puts("Search key 'b':");
     json_sort(object, NULL);
-    json_print(json_search(object, "b"));
+    json_print(json_search(object, &(json_t){.key = "b"}, NULL));
     json_delete(object);
 
     json_t *array = json_new_array();

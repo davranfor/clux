@@ -55,32 +55,24 @@ int json_compare_by_value(const void *pa, const void *pb)
 }
 
 /* Search a key into an object (properties must be already sorted by key) */ 
-json_t *json_search(const json_t *node, const char *key)
+json_t *json_search(const json_t *parent, const json_t *child,
+    json_sort_callback callback)
 {
-    if ((node == NULL) || (node->type != JSON_OBJECT) || (key == NULL))
+    if ((parent == NULL) || (parent->size == 0) || (child == NULL))
     {
         return NULL;
     }
-
-    unsigned lower = 0, upper = node->size;
-
-    while (lower < upper)
+    if (callback == NULL)
     {
-        unsigned index = lower + (upper - lower) / 2;
-        int cmp = strcmp(key, node->child[index]->key);
+        callback = (parent->type == JSON_OBJECT) && (child->key != NULL)
+            ? compare_by_key : json_compare_by_value;
+    }
 
-        if (cmp < 0)
-        {
-            upper = index;
-        }
-        else if (cmp > 0)
-        {
-            lower = index + 1;
-        }
-        else
-        {
-            return node->child[index];
-        }
+    json_t **node = bsearch(&child, parent->child, parent->size, sizeof child, callback);
+
+    if (node != NULL)
+    {
+        return *node;
     }
     return NULL;
 }
