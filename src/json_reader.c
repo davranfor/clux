@@ -394,35 +394,6 @@ int json_unique_children(const json_t *node)
     return 1;
 }
 
-/**
- * Compares two nodes by value
- * Returns
- *  < 0 if a < b
- *  > 0 if a > b
- *  0 otherwise
- */
-int json_compare(const json_t *a, const json_t *b)
-{
-    if ((a == NULL) || (b == NULL))
-    {
-        return 0;
-    }
-    if (a->type != b->type)
-    {
-        return a->type < b->type ? -1 : 1;
-    }
-    switch (a->type)
-    {
-        case JSON_STRING:
-            return strcmp(a->string, b->string);
-        case JSON_INTEGER:
-        case JSON_REAL:
-            return a->number < b->number ? -1 : a->number > b->number;
-        default:
-            return 0;
-    }
-}
-
 /* json_equal helper */
 static int equal(const json_t *a, const json_t *b)
 {

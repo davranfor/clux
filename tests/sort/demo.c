@@ -22,10 +22,14 @@ static void array_push_back(json_t *parent, json_t *child)
 
 static int nulls_first(const void *pa, const void *pb)
 {
-    int a = json_is_null(*(json_t * const *)pa);
-    int b = json_is_null(*(json_t * const *)pb);
+    json_t *a = *(json_t * const *)pa;
+    json_t *b = *(json_t * const *)pb;
 
-    return a > b ? -1 : b > a ? 1 : json_compare_by_value(pa, pb);
+    if ((a->type != JSON_NULL) && (b->type != JSON_NULL))
+    {
+        return json_compare(a, b);
+    }
+    return a->type != JSON_NULL ? 1 : -1;
 }
 
 int main(void)

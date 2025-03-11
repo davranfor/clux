@@ -67,7 +67,6 @@ int json_match(const json_t *, const char *);
 int json_regex(const json_t *, const char *);
 int json_is_unique(const json_t *, const json_t *);
 int json_unique_children(const json_t *);
-int json_compare(const json_t *, const json_t *);
 int json_equal(const json_t *, const json_t *);
 int json_walk(const json_t *, json_walk_callback, void *);
 
