@@ -30,9 +30,7 @@ static int compare_node(const json_t *a, const json_t *b)
 
 static int compare_children(const json_t *a, const json_t *b)
 {
-    unsigned na = a->size;
-    unsigned nb = b->size;
-    unsigned size = na < nb ? na : nb;
+    unsigned size = a->size < b->size ? a->size : b->size;
 
     for (unsigned i = 0; i < size; i++)
     {
@@ -53,7 +51,7 @@ static int compare_children(const json_t *a, const json_t *b)
             return cmp;
         }
     }
-    return nb > na ? -1 : na != nb;
+    return b->size > a->size ? -1 : a->size != b->size;
 }
 
 /* Trusted comparators */
