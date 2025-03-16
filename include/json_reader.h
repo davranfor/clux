@@ -9,6 +9,8 @@
 
 #include "json_header.h"
 
+#define json_short(node) ((short)json_number(node))
+#define json_ushort(node) ((unsigned short)json_number(node))
 #define json_int(node) ((int)json_number(node))
 #define json_int8_t(node) ((int8_t)json_number(node))
 #define json_int16_t(node) ((int16_t)json_number(node))
