@@ -12,9 +12,7 @@
 #include "writer.h"
 #include "parser.h"
 
-#define MAX_PARAMS 8
-
-enum {METHOD, RESOURCE, PARAMS, REQUEST_SIZE};
+enum {METHOD, PATH, PARAMS, REQUEST_SIZE, PARAMS_SIZE = 8};
 
 static const char *parse_content(char *message)
 {
@@ -44,23 +42,23 @@ static char *parse_method(char *message)
     return NULL;
 }
 
-static char *parse_resource(char *message)
+static char *parse_path(char *message)
 {
-    char *resource = parse_method(message);
+    char *path = parse_method(message);
 
-    if (resource == NULL)
+    if (path == NULL)
     {
         return NULL;
     }
 
-    char *end = strchr(resource, ' ');
+    char *end = strchr(path, ' ');
 
     if (end == NULL)
     {
         return NULL;
     }
     end[0] = '\0';
-    return resource;
+    return path;
 }
 
 static int decode_params(json_t *params, char *str)
@@ -68,7 +66,7 @@ static int decode_params(json_t *params, char *str)
     char *key = str, *ptr = str;
     short size = 0;
 
-    while (size < MAX_PARAMS)
+    while (size < PARAMS_SIZE)
     {
         if ((str[0] == '%') && is_xdigit(str[1]) && is_xdigit(str[2]))
         {
@@ -124,7 +122,7 @@ static int decode_params(json_t *params, char *str)
 
 static int parse_params(json_t *request)
 {
-    char *params = strchr(request[RESOURCE].string, '?');
+    char *params = strchr(request[PATH].string, '?');
 
     if (params == NULL)
     {
@@ -141,7 +139,7 @@ static int parse_params(json_t *request)
 
     json_t *object = request + PARAMS;
 
-    for (short i = 0; i < MAX_PARAMS; i++)
+    for (short i = 0; i < PARAMS_SIZE; i++)
     {
         if (child[i].type == JSON_STRING)
         {
@@ -163,14 +161,14 @@ const buffer_t *parser_handle(char *message)
         return static_handle(message);
     }
 
-    char *resource = parse_resource(message);
+    char *path = parse_path(message);
 
-    if (resource == NULL)
+    if (path == NULL)
     {
         return static_error(); 
     }
 
-    json_t child[REQUEST_SIZE + MAX_PARAMS] =
+    json_t child[REQUEST_SIZE + PARAMS_SIZE] =
     {
         {
             .key = "method",
@@ -178,13 +176,13 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_STRING
         },
         {
-            .key = "resource",
-            .string = resource,
+            .key = "path",
+            .string = path,
             .type = JSON_STRING
         },
         {
             .key = "params",
-            .child = (json_t *[MAX_PARAMS]){0},
+            .child = (json_t *[PARAMS_SIZE]){0},
             .type = JSON_OBJECT
         }
     };
@@ -196,7 +194,7 @@ const buffer_t *parser_handle(char *message)
 
     json_t request =
     {
-        .child = (json_t *[]){&child[METHOD], &child[RESOURCE], &child[PARAMS]},
+        .child = (json_t *[]){&child[METHOD], &child[PATH], &child[PARAMS]},
         .size = REQUEST_SIZE,
         .type = JSON_OBJECT
     };
