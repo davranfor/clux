@@ -64,7 +64,7 @@ static char *parse_path(char *message)
 static int decode_params(json_t *params, char *str)
 {
     char *key = str, *ptr = str;
-    short size = 0;
+    int size = 0;
 
     while (size < PARAMS_SIZE)
     {
@@ -139,7 +139,7 @@ static int parse_params(json_t *request)
 
     json_t *object = request + PARAMS;
 
-    for (short i = 0; i < PARAMS_SIZE; i++)
+    for (int i = 0; i < PARAMS_SIZE; i++)
     {
         if (child[i].type == JSON_STRING)
         {
