@@ -156,12 +156,22 @@ static enum method select_method(const char *message)
     return method;
 }
 
+static const char *join_path(json_t *path)
+{
+    if (path->size > 1)
+    {
+        path->child[1]->string[- 1] = '/';
+        path->size = 1;
+    }
+    return path->child[0]->string;
+}
+
 const buffer_t *writer_handle(json_t *request, const char *content)
 {
     buffer_reset(&buffer);
     json_print(request);
 
-    const char *resource = request->child[1]->string;
+    const char *resource = join_path(request->child[1]);
 
     switch (select_method(request->child[0]->string))
     {

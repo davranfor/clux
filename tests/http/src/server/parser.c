@@ -42,25 +42,6 @@ static char *parse_method(char *message)
     return NULL;
 }
 
-static char *parse_path(char *message)
-{
-    char *path = parse_method(message);
-
-    if (path == NULL)
-    {
-        return NULL;
-    }
-
-    char *end = strchr(path, ' ');
-
-    if (end == NULL)
-    {
-        return NULL;
-    }
-    end[0] = '\0';
-    return path;
-}
-
 static int decode_params(json_t *params, char *str)
 {
     char *key = str, *ptr = str;
@@ -120,9 +101,9 @@ static int decode_params(json_t *params, char *str)
     return 0;
 }
 
-static int parse_params(json_t *request)
+static int parse_params(json_t *request, char *path)
 {
-    char *params = strchr(request[PATH].string, '?');
+    char *params = strchr(path, '?');
 
     if (params == NULL)
     {
@@ -150,6 +131,42 @@ static int parse_params(json_t *request)
     return 1;
 }
 
+static int parse_path(json_t *request, char *message)
+{
+    char *path = parse_method(message);
+
+    if (path == NULL)
+    {
+        return 0;
+    }
+
+    char *end = strchr(path, ' ');
+
+    if (end == NULL)
+    {
+        return 0;
+    }
+    end[0] = '\0';
+    
+    char *next = strchr(path + 1, '/'); 
+
+    if (next == NULL)
+    {
+        request[PATH].child[0]->string = path;
+        request[PATH].size = 1;
+        return parse_params(request, path);
+    }
+    else
+    {
+        *next++ = '\0';
+        request[PATH].child[0]->string = path;
+        request[PATH].child[1]->string = next;
+        request[PATH].child[1]->type = JSON_STRING;
+        request[PATH].size = 2;
+        return parse_params(request, next);
+    } 
+}
+
 const buffer_t *parser_handle(char *message)
 {
     puts(message);
@@ -161,13 +178,7 @@ const buffer_t *parser_handle(char *message)
         return static_handle(message);
     }
 
-    char *path = parse_path(message);
-
-    if (path == NULL)
-    {
-        return static_error(); 
-    }
-
+    json_t path[2] = {{.type = JSON_STRING}};
     json_t child[REQUEST_SIZE + PARAMS_SIZE] =
     {
         {
@@ -177,8 +188,8 @@ const buffer_t *parser_handle(char *message)
         },
         {
             .key = "path",
-            .string = path,
-            .type = JSON_STRING
+            .child = (json_t *[]){&path[0], &path[1]},
+            .type = JSON_ARRAY
         },
         {
             .key = "params",
@@ -187,7 +198,7 @@ const buffer_t *parser_handle(char *message)
         }
     };
 
-    if (!parse_params(child))
+    if (!parse_path(child, message))
     {
         return static_error();
     }
