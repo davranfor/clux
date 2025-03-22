@@ -153,6 +153,7 @@ static int parse_path(json_t *request, char *message)
     if (next == NULL)
     {
         request[PATH].child[0]->string = path;
+        request[PATH].child[0]->type = JSON_STRING;
         request[PATH].size = 1;
         return parse_params(request, path);
     }
@@ -160,6 +161,7 @@ static int parse_path(json_t *request, char *message)
     {
         *next++ = '\0';
         request[PATH].child[0]->string = path;
+        request[PATH].child[0]->type = JSON_STRING;
         request[PATH].child[1]->string = next;
         request[PATH].child[1]->type = JSON_STRING;
         request[PATH].size = 2;
@@ -178,7 +180,7 @@ const buffer_t *parser_handle(char *message)
         return static_handle(message);
     }
 
-    json_t path[2] = {{.type = JSON_STRING}};
+    json_t path[2] = {0};
     json_t child[REQUEST_SIZE + PARAMS_SIZE] =
     {
         {
