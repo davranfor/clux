@@ -12,7 +12,7 @@
 #include "writer.h"
 #include "parser.h"
 
-enum {METHOD, PATH, PARAMS, REQUEST_SIZE, PARAMS_SIZE = 8};
+enum {METHOD, PATH, PARAMS, PARAMS_SIZE = 8};
 
 static const char *parse_content(char *message)
 {
@@ -45,7 +45,7 @@ static char *parse_method(char *message)
 static int decode_params(json_t *params, char *str)
 {
     char *key = str, *ptr = str;
-    int size = 0;
+    unsigned size = 0;
 
     while (size < PARAMS_SIZE)
     {
@@ -101,39 +101,34 @@ static int decode_params(json_t *params, char *str)
     return 0;
 }
 
-static int parse_params(json_t *request, char *path)
+static int parse_params(json_t *params, json_t *array, char *path)
 {
-    char *params = strchr(path, '?');
-
-    if (params == NULL)
+    if ((path = strchr(path, '?')))
+    {
+        *path = '\0';
+    }
+    else
     {
         return 1;
     }
-    params[0] = '\0';
-
-    json_t *child = request + PARAMS + 1;
-
-    if (!decode_params(child, params + 1))
+    if (!decode_params(array, path + 1))
     {
         return 0;
     }
-
-    json_t *object = request + PARAMS;
-
-    for (int i = 0; i < PARAMS_SIZE; i++)
+    for (unsigned i = 0; i < PARAMS_SIZE; i++)
     {
-        if (child[i].type == JSON_STRING)
+        if (array[i].type == JSON_STRING)
         {
-            object->child[i] = &child[i];
-            object->size++;
+            params->child[i] = &array[i];
+            params->size++;
         }
     }
     return 1;
 }
 
-static int parse_path(json_t *request, char *message)
+static int parse_path(json_t *request, json_t *params)
 {
-    char *path = parse_method(message);
+    char *path = parse_method(request[METHOD].string);
 
     if (path == NULL)
     {
@@ -142,12 +137,15 @@ static int parse_path(json_t *request, char *message)
 
     char *end = strchr(path, ' ');
 
-    if (end == NULL)
+    if (end != NULL)
+    {
+        *end = '\0';
+    }
+    else
     {
         return 0;
     }
-    end[0] = '\0';
-    
+
     char *next = strchr(path + 1, '/'); 
 
     if (next == NULL)
@@ -155,7 +153,7 @@ static int parse_path(json_t *request, char *message)
         request[PATH].child[0]->string = path;
         request[PATH].child[0]->type = JSON_STRING;
         request[PATH].size = 1;
-        return parse_params(request, path);
+        return parse_params(&request[PARAMS], params, path);
     }
     else
     {
@@ -165,7 +163,7 @@ static int parse_path(json_t *request, char *message)
         request[PATH].child[1]->string = next;
         request[PATH].child[1]->type = JSON_STRING;
         request[PATH].size = 2;
-        return parse_params(request, next);
+        return parse_params(&request[PARAMS], params, next);
     } 
 }
 
@@ -180,8 +178,8 @@ const buffer_t *parser_handle(char *message)
         return static_handle(message);
     }
 
-    json_t path[2] = {0};
-    json_t child[REQUEST_SIZE + PARAMS_SIZE] =
+    json_t path[2] = {0}, params[PARAMS_SIZE] = {0};
+    json_t node[] =
     {
         {
             .key = "method",
@@ -200,15 +198,15 @@ const buffer_t *parser_handle(char *message)
         }
     };
 
-    if (!parse_path(child, message))
+    if (!parse_path(node, params))
     {
         return static_error();
     }
 
     json_t request =
     {
-        .child = (json_t *[]){&child[METHOD], &child[PATH], &child[PARAMS]},
-        .size = REQUEST_SIZE,
+        .child = (json_t *[]){&node[METHOD], &node[PATH], &node[PARAMS]},
+        .size = sizeof node / sizeof *node,
         .type = JSON_OBJECT
     };
 
