@@ -11,7 +11,7 @@
 #include <clux/json_header.h>
 
 void writer_load(void); 
-const buffer_t *writer_handle(json_t *request, const char *); 
+const buffer_t *writer_handle(json_t *); 
 
 #endif
 

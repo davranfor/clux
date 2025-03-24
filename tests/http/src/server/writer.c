@@ -158,37 +158,43 @@ static enum method select_method(const char *message)
 
 static const char *join_path(json_t *path)
 {
+    unsigned size = 0;
+
+    while (size < path->size)
+    {
+        path->child[size++]->string[-1] = '/';
+    }
     if (path->size > 1)
     {
-        path->child[1]->string[- 1] = '/';
         path->size = 1;
     }
     return path->child[0]->string;
 }
 
-const buffer_t *writer_handle(json_t *request, const char *content)
+const buffer_t *writer_handle(json_t *request)
 {
     buffer_reset(&buffer);
     json_print(request);
 
-    const char *resource = join_path(request->child[1]);
+    const char *path = join_path(json_find(request, "path"));
+    const char *content = json_text(json_find(request, "content"));
 
-    switch (select_method(request->child[0]->string))
+    switch (select_method(json_text(json_find(request, "method"))))
     {
         case GET:
-            content = rest_get(resource);
+            content = rest_get(path);
             break;
         case POST:
-            content = rest_post(resource, content);
+            content = rest_post(path, content);
             break;
         case PUT:
-            content = rest_put(resource, content);
+            content = rest_put(path, content);
             break;
         case PATCH:
-            content = rest_patch(resource, content);
+            content = rest_patch(path, content);
             break;
         case DELETE:
-            content = rest_delete(resource);
+            content = rest_delete(path);
             break;
         default:
             return &method_not_allowed;
