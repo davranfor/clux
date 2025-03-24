@@ -21,8 +21,7 @@ Compile and run with:
 CFLAGS="-std=c11 -Wpedantic -Wall -Wextra -O2" LDLIBS="-lcurl -lclux" make demo && ./demo
 
 Manual GET:
-curl -v -G "http://127.0.0.1:1234/users" --data-urlencode "name=John" --data-urlencode "surname=Doe" \
-        -H "Content-Type: application/json"
+curl -v -G "http://127.0.0.1:1234/api/users" --data-urlencode "name=John" --data-urlencode "surname=Doe"
 
 */
 
@@ -72,33 +71,33 @@ static CURLcode perform(CURL *curl, int method,
         case GET:
             printf("GET %zu\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
+            snprintf(url, sizeof url, "%s/api/%s/%zu", host, param, id);
             break;
         case POST:
             printf("POST %s\n", fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(fields));
-            snprintf(url, sizeof url, "%s/%s", host, param);
+            snprintf(url, sizeof url, "%s/api/%s", host, param);
             break;
         case PUT:
             printf("PUT %s\n", fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(fields));
-            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
+            snprintf(url, sizeof url, "%s/api/%s/%zu", host, param, id);
             break;
         case PATCH:
             printf("PATCH %zu %s\n", id, fields);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(fields));
-            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
+            snprintf(url, sizeof url, "%s/api/%s/%zu", host, param, id);
             break;
         case DELETE:
             printf("DELETE %zu\n", id);
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            snprintf(url, sizeof url, "%s/%s/%zu", host, param, id);
+            snprintf(url, sizeof url, "%s/api/%s/%zu", host, param, id);
             break;
     }
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -145,9 +144,10 @@ static int request(size_t id, const json_t *users, struct data *data)
 
     struct curl_slist *headers = NULL;
 
-    headers = curl_slist_append(headers, "Accept: application/json");
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    headers = curl_slist_append(headers, "charset: utf-8");
+    if ((method != GET) && (method != DELETE))
+    {
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+    }
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, copy_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)data);

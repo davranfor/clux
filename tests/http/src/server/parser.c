@@ -25,7 +25,10 @@ static char *parse_content(char *str)
 
 static int parse_headers(struct request *request, char *str)
 {
-    const char *array[] = {"GET /", "POST /", "PUT /", "PATCH /", "DELETE /"};
+    const char *array[] =
+    {
+        "GET /api/", "POST /api/", "PUT /api/", "PATCH /api/", "DELETE /api/"
+    };
     size_t methods = sizeof array / sizeof array[0];
 
     for (size_t method = 0; method < methods; method++)
@@ -36,7 +39,7 @@ static int parse_headers(struct request *request, char *str)
         {
             char *path = str + length - 1;
 
-            path[-1] = '\0';
+            path[-5] = '\0';
 
             char *end = strchr(path, ' ');
 
@@ -159,17 +162,13 @@ static int parse_parameters(json_t *parent, json_t *child, char *str)
 
 const buffer_t *parser_handle(char *message)
 {
-    puts(message);
+    printf("----------------------------------------------------------------------\n%s\n", message);
 
     struct request request = {.content = parse_content(message)};
 
-    if (!strstr(message, "Content-Type: application/json\r\n"))
-    {
-        return static_handle(message);
-    }
     if (!parse_headers(&request, message))
     {
-        return static_error();
+        return static_handle(message);
     }
 
     json_t path[CHILD_SIZE] = {0}, parameters[CHILD_SIZE] = {0};

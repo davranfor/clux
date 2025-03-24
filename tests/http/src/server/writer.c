@@ -46,12 +46,12 @@ static char *encode(const json_t *node)
     return json_buffer_encode(&buffer, node, 0);
 }
 
-static char *rest_get(const char *resource)
+static char *api_get(const char *resource)
 {
     return encode(map_search(map, resource));
 }
 
-static char *rest_post(const char *resource, const char *content)
+static char *api_post(const char *resource, const char *content)
 {
     json_t *object = json_parse(content, NULL);
 
@@ -77,7 +77,7 @@ static char *rest_post(const char *resource, const char *content)
     return encode(object);
 }
 
-static char *rest_put(const char *resource, const char *content)
+static char *api_put(const char *resource, const char *content)
 {
     json_t *old = map_search(map, resource);
 
@@ -98,7 +98,7 @@ static char *rest_put(const char *resource, const char *content)
     return encode(new);
 }
 
-static char *rest_patch(const char *resource, const char *content)
+static char *api_patch(const char *resource, const char *content)
 {
     json_t *target = map_search(map, resource);
 
@@ -130,7 +130,7 @@ static char *rest_patch(const char *resource, const char *content)
     return str;
 }
 
-static char *rest_delete(const char *resource)
+static char *api_delete(const char *resource)
 {
     json_t *node = map_delete(map, resource);
     char *str = encode(node);
@@ -182,19 +182,19 @@ const buffer_t *writer_handle(json_t *request)
     switch (select_method(json_text(json_find(request, "method"))))
     {
         case GET:
-            content = rest_get(path);
+            content = api_get(path);
             break;
         case POST:
-            content = rest_post(path, content);
+            content = api_post(path, content);
             break;
         case PUT:
-            content = rest_put(path, content);
+            content = api_put(path, content);
             break;
         case PATCH:
-            content = rest_patch(path, content);
+            content = api_patch(path, content);
             break;
         case DELETE:
-            content = rest_delete(path);
+            content = api_delete(path);
             break;
         default:
             return &method_not_allowed;

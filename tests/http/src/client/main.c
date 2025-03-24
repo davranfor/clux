@@ -89,14 +89,13 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
         case GET:
             snprintf(data, size, "GET %zu", id);
             snprintf(head, sizeof head,
-                "GET /%s/%zu HTTP/1.1\r\n"
-                "Content-Type: application/json\r\n\r\n",
+                "GET /api/%s/%zu HTTP/1.1\r\n\r\n",
                 table, id);
             break;
         case POST:
             snprintf(data, size, "POST %s", body);
             snprintf(head, sizeof head,
-                "POST /%s HTTP/1.1\r\n"
+                "POST /api/%s HTTP/1.1\r\n"
                 "Content-Type: application/json\r\n"
                 "Content-Length: %zu\r\n\r\n",
                 table, strlen(body));
@@ -104,7 +103,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
         case PUT:
             snprintf(data, size, "PUT %s", body);
             snprintf(head, sizeof head,
-                "PUT /%s/%zu HTTP/1.1\r\n"
+                "PUT /api/%s/%zu HTTP/1.1\r\n"
                 "Content-Type: application/json\r\n"
                 "Content-Length: %zu\r\n\r\n",
                 table, id, strlen(body));
@@ -112,7 +111,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
         case PATCH:
             snprintf(data, size, "PATCH %zu %s", id, body);
             snprintf(head, sizeof head,
-                "PATCH /%s/%zu HTTP/1.1\r\n"
+                "PATCH /api/%s/%zu HTTP/1.1\r\n"
                 "Content-Type: application/json\r\n"
                 "Content-Length: %zu\r\n\r\n",
                 table, id, strlen(body));
@@ -120,8 +119,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
         case DELETE:
             snprintf(data, size, "DELETE %zu", id);
             snprintf(head, sizeof head,
-                "DELETE /%s/%zu HTTP/1.1\r\n"
-                "Content-Type: application/json\r\n\r\n",
+                "DELETE /api/%s/%zu HTTP/1.1\r\n\r\n",
                 table, id);
             break;
     }
@@ -216,7 +214,7 @@ static void *handler(void *server)
     char buffer[BUFFER_SIZE];
     buffer_t pool = {0};
 
-    for (size_t i = 0, n = json_size(users); i < n; i++)
+    for (size_t i = 0; i < 10; i++)
     {
         char data[512];
 
@@ -237,8 +235,7 @@ static void *handler(void *server)
             goto stop;
         }
         pthread_mutex_lock(&mutex);
-        puts(data);
-        puts(rcvd);
+        printf("----------------------------------------------------------------------\n%s\n%s\n", data, rcvd);
         pthread_mutex_unlock(&mutex);
         buffer_reset(&pool);
     }

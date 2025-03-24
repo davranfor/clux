@@ -153,7 +153,7 @@
                 } else if (response.status === 400) {
                     return Promise.reject('Bad Request');
                 } else if (response.status === 404) {
-                    return Promise.reject('Not Found (HTTP 404)');
+                    return Promise.reject('Not Found');
                 } else if (response.status === 405) {
                     return Promise.reject('Method Not Allowed');
                 } else {
@@ -162,10 +162,8 @@
             })
             .then(data => {
                 if (data) {
-                    console.log('Response from server:', data);
                     document.getElementById('response').innerText = JSON.stringify(data);
                 } else {
-                    console.log('Request completed successfully (HTTP 204)');
                     document.getElementById('response').innerText = 'Request completed successfully (HTTP 204)';
                 }
             })
@@ -175,7 +173,7 @@
                     document.getElementById('response').innerText = 'Method Not Allowed (HTTP 405)';
                 } else if (error === 'Bad Request') {
                     document.getElementById('response').innerText = 'Bad Request (HTTP 400)';
-                } else if (error === 'Not Found (HTTP 404)') {
+                } else if (error === 'Not Found') {
                     document.getElementById('response').innerText = 'Not Found (HTTP 404)';
                 } else {
                     document.getElementById('response').innerText = `Error: ${error}`;
