@@ -168,7 +168,7 @@ static const char *join_path(json_t *path)
     {
         path->size = 1;
     }
-    return path->child[0]->string;
+    return path->child[0]->string - 1;
 }
 
 const buffer_t *writer_handle(json_t *request)

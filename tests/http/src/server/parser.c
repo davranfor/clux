@@ -53,8 +53,7 @@ static int parse_headers(struct request *request, char *str)
             request->parameters = strchr(path, '?');
             if (request->parameters != NULL)
             {
-                *request->parameters = '\0';
-                request->parameters++;
+                *request->parameters++ = '\0';
             }
             return 1;
         }
