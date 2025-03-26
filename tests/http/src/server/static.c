@@ -44,9 +44,13 @@ void static_load(char *index_html)
     }
 }
 
-const buffer_t *static_handle(const char *headers)
+const buffer_t *static_handle(const char *resource)
 {
-    return !strncmp(headers, "GET / ", 6) ? &buffer : &not_found;
+    if (resource == NULL)
+    {
+        return &bad_request;
+    }
+    return !*resource ? &buffer : &not_found;
 }
 
 const buffer_t *static_error(void)

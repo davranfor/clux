@@ -23,6 +23,24 @@ static char *parse_content(char *str)
     return str + 4;
 }
 
+static int parse_static(struct request *request, char *str)
+{
+    if (!strncmp(str, "GET /", 5))
+    {
+        char *path = str + 5;
+        char *end = strchr(path, ' ');
+
+        if (end == NULL)
+        {
+            return 0;
+        }
+        *end = '\0';
+        request->path = path;
+        return -1;
+    }
+    return 0;
+}
+
 static int parse_headers(struct request *request, char *str)
 {
     const char *array[] =
@@ -58,7 +76,7 @@ static int parse_headers(struct request *request, char *str)
             return 1;
         }
     }
-    return 0;
+    return parse_static(request, str);
 }
 
 static int parse_path(json_t *parent, json_t *child, char *str)
@@ -165,9 +183,12 @@ const buffer_t *parser_handle(char *message)
 
     struct request request = {.content = parse_content(message)};
 
-    if (!parse_headers(&request, message))
+    switch (parse_headers(&request, message))
     {
-        return static_handle(message);
+        case -1:
+            return static_handle(request.path);
+        case 0:
+            return static_error();
     }
 
     json_t path[CHILD_SIZE] = {0}, parameters[CHILD_SIZE] = {0};
