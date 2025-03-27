@@ -12,22 +12,16 @@
 #include "headers.h"
 #include "writer.h"
 
+// Temporary (move this)
+#include "loader.h"
+
 static buffer_t buffer;
 static buffer_t method_not_allowed;
 static buffer_t no_content;
 static map_t *map;
 
-static void writer_unload(void)
+static void load(void)
 {
-    free(buffer.text);
-    free(method_not_allowed.text);
-    free(no_content.text);
-    map_destroy(map, json_free);
-}
-
-void writer_load(void)
-{
-    atexit(writer_unload);
     if (!buffer_write(&method_not_allowed, http_method_not_allowed) ||
         !buffer_write(&no_content, http_no_content))
     {
@@ -39,6 +33,20 @@ void writer_load(void)
         perror("map_create");
         exit(EXIT_FAILURE);
     }
+}
+
+static void unload(void)
+{
+    free(buffer.text);
+    free(method_not_allowed.text);
+    free(no_content.text);
+    map_destroy(map, json_free);
+}
+
+void writer_load(void)
+{
+    atexit(unload);
+    load();
 }
 
 static char *encode(const json_t *node)
@@ -182,6 +190,13 @@ const buffer_t *writer_handle(json_t *request)
     switch (select_method(json_text(json_find(request, "method"))))
     {
         case GET:
+            // Temporary
+            if (!strcmp(path, "/reload"))
+            {
+                loader_reload();
+                return &no_content;
+            }
+            // End temporary
             content = api_get(path);
             break;
         case POST:

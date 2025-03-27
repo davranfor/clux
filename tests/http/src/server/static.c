@@ -25,16 +25,8 @@ static void free_buffer(void *buffer)
     }
 }
 
-static void static_unload(void)
+static void load(void)
 {
-    free(bad_request.text);
-    free(not_found.text);
-    map_destroy(map, free_buffer);
-}
-
-void static_load(void)
-{
-    atexit(static_unload);
     if (!buffer_write(&bad_request, http_bad_request) ||
         !buffer_write(&not_found, http_not_found))
     {
@@ -46,6 +38,25 @@ void static_load(void)
         perror("map_create");
         exit(EXIT_FAILURE);
     }
+}
+
+static void unload(void)
+{
+    buffer_clean(&bad_request);
+    buffer_clean(&not_found);
+    map_destroy(map, free_buffer);
+}
+
+void static_load(void)
+{
+    atexit(unload);
+    load();
+}
+
+void static_reload(void)
+{
+    unload();
+    load();
 }
 
 static const char *path_type(const char *path)
@@ -155,11 +166,7 @@ const buffer_t *static_buffer(const char *resource)
     {
         return &bad_request;
     }
-    if (resource[0] == '\0')
-    {
-        return search("index.html");
-    }
-    return search(resource);
+    return search(*resource ? resource : "index.html");
 }
 
 const buffer_t *static_error(void)

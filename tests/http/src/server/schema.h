@@ -9,6 +9,7 @@
 
 
 void schema_load(void);
+void schema_reload(void);
 int schema_push(const char *);
 
 #endif

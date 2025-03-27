@@ -180,3 +180,12 @@ void buffer_reset(buffer_t *buffer)
     buffer->error = 0;
 }
 
+void buffer_clean(buffer_t *buffer)
+{
+    free(buffer->text);
+    buffer->text = NULL;
+    buffer->length = 0;
+    buffer->size = 0;
+    buffer->error = 0;
+}
+

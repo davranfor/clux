@@ -10,6 +10,7 @@
 #include <locale.h>
 #include "config.h"
 #include "common.h"
+#include "writer.h"
 #include "loader.h"
 #include "server.h"
 
@@ -29,7 +30,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     setlocale(LC_NUMERIC, "C");
-    loader_run();
+    writer_load();
+    loader_load();
     printf("Server waiting on port %u\n", port);
     server_run(port);
     return 0;

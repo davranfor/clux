@@ -13,19 +13,30 @@
 
 static map_t *map;
 
-static void schema_unload(void)
+static void load(void)
+{
+    if (!(map = map_create(0)))
+    {
+        perror("map_create");
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void unload(void)
 {
     map_destroy(map, json_free);
 }
 
 void schema_load(void)
 {
-    atexit(schema_unload);
-    if (!(map = map_create(0)))
-    {
-        perror("map_create");
-        exit(EXIT_FAILURE);
-    }
+    atexit(unload);
+    load();
+}
+
+void schema_reload(void)
+{
+    unload();
+    load();
 }
 
 int schema_push(const char *path)

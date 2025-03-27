@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include "static.h"
-#include "writer.h"
 #include "schema.h"
 #include "loader.h"
 
@@ -46,11 +45,20 @@ static int load(const char *path, int (*func)(const char *))
     return rc;
 }
 
-void loader_run(void)
+void loader_load(void)
 {
     static_load();
-    writer_load();
     schema_load();
+    if (!load("schemas", schema_push) || !load("www", static_push))
+    {
+        exit(EXIT_FAILURE);
+    }
+}
+
+void loader_reload(void)
+{
+    static_reload();
+    schema_reload();
     if (!load("schemas", schema_push) || !load("www", static_push))
     {
         exit(EXIT_FAILURE);

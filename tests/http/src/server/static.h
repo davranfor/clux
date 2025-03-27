@@ -10,6 +10,7 @@
 #include <clux/clib_buffer.h>
 
 void static_load(void);
+void static_reload(void);
 int static_push(const char *);
 const buffer_t *static_buffer(const char *);
 const buffer_t *static_error(void);
