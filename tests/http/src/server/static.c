@@ -162,7 +162,7 @@ const buffer_t *static_buffer(const char *resource)
     {
         return &bad_request;
     }
-    if (*resource == '\0')
+    if (resource[0] == '\0')
     {
         return search("index.html");
     }
