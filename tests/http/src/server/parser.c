@@ -186,7 +186,7 @@ const buffer_t *parser_handle(char *message)
     switch (parse_headers(&request, message))
     {
         case -1:
-            return static_handle(request.path);
+            return static_buffer(request.path);
         case 0:
             return static_error();
     }

@@ -7,10 +7,9 @@
 #ifndef SCHEMA_H
 #define SCHEMA_H
 
-#include <clux/clib_hashmap.h>
 
 void schema_load(void);
-map_t *schema_map(void);
+int schema_push(const char *);
 
 #endif
 

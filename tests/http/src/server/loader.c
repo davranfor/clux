@@ -4,102 +4,52 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <dirent.h>
-#include <clux/clib.h>
-#include <clux/json.h>
 #include "static.h"
 #include "writer.h"
 #include "schema.h"
 #include "loader.h"
 
-static void load_buffers(const char *path)
+static int load(const char *path, int (*func)(const char *))
 {
-    char *file = file_read(path);
+    DIR *dir;
 
-    if (file == NULL)
+    if (!(dir = opendir(path)))
     {
-        fprintf(stderr, "'%s' must exist\n", path);
+        fprintf(stderr, "'%s' dir must exist\n", path);
         exit(EXIT_FAILURE);
     }
-    printf("Loading '%s'\n", path);
-    static_load(file);
-    writer_load();
-    schema_load();
-}
 
-static int load_schemas(DIR *dir)
-{
     const struct dirent *dirent;
-    const char ext[] = ".json";
-    map_t *map = schema_map();
 
     while ((dirent = readdir(dir)))
     {
-        size_t length = strlen(dirent->d_name);
+        char file[255];
 
-        // File name must end with ".json"
-        if ((length < sizeof(ext)) ||
-            (strcmp(dirent->d_name + length - sizeof(ext) + 1, ext) != 0))
-        {
-            continue;
-        }
-
-        char path[255];
-
-        if (snprintf(path, sizeof path, "schemas/%s", dirent->d_name) < 0)
+        if (snprintf(file, sizeof file, "%s/%s", path, dirent->d_name) < 0)
         {
             fprintf(stderr, "'%s' is not a valid file name\n", dirent->d_name);
-            return 0;
+            goto error;
         }
-
-        json_error_t error;
-        json_t *node = json_parse_file(path, &error);
-
-        if (node == NULL)
+        if (!func(file))
         {
-            fprintf(stderr, "%s\n", path);
-            json_print_error(&error);
-            return 0;
+            goto error;
         }
-
-        const char *id = json_string(json_find(node, "$id"));
-
-        if (id == NULL)
-        {
-            fprintf(stderr, "Error mapping '%s' -> '$id' must exist\n", path);
-            json_delete(node);
-            return 0;
-        }
-        if (map_insert(map, id, node) != node)
-        {
-            fprintf(stderr, "'%s' already mapped\n", id);
-            json_delete(node);
-            return 0;
-        }
-        printf("Loading '%s'\n", path);
     }
     return 1;
+error:
+    closedir(dir);
+    return 0;
 }
 
 void loader_run(void)
 {
-    load_buffers("www/index.html");
-
-    DIR *dir;
-
-    if (!(dir = opendir("schemas")))
-    {
-        fprintf(stderr, "'schemas' dir must exist\n");
-        exit(EXIT_FAILURE);
-    }
-
-    int done = load_schemas(dir);
-
-    closedir(dir);
-    // Something went wrong
-    if (!done)
+    static_load();
+    writer_load();
+    schema_load();
+    if (!load("schemas", schema_push) || !load("www", static_push))
     {
         exit(EXIT_FAILURE);
     }

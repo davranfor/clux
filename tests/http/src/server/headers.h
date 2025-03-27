@@ -9,9 +9,9 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
-static const char *http_html_ok =
+static const char *http_ok =
     "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html\r\n"
+    "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n\r\n";
 static const char *http_json_ok =
     "HTTP/1.1 200 OK\r\n"
