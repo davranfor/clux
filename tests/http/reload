@@ -1,3 +1,3 @@
 #!/bin/bash
 
-curl -G http://localhost:1234/api/reload
+curl -Gv http://localhost:1234/api/reload

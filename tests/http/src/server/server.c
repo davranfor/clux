@@ -65,21 +65,26 @@ static int unblock(int fd)
 
 static int server_listen(uint16_t port)
 {
-    struct sockaddr_in server;
+    struct sockaddr_in6 server;
 
     memset(&server, 0, sizeof server);
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = htonl(INADDR_ANY);
-    server.sin_port = htons(port);
+    server.sin6_family = AF_INET6;
+    server.sin6_port = htons(port);
+    server.sin6_addr = in6addr_any;
 
-    int fd, opt = 1;
+    int fd, yes = 1, no = 0;
 
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    if ((fd = socket(AF_INET6, SOCK_STREAM, 0)) == -1)
     {
         perror("socket");
         exit(EXIT_FAILURE);
     }
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt) == -1)
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &no, sizeof no) == -1)
+    {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
     {
         perror("setsockopt");
         exit(EXIT_FAILURE);
