@@ -47,18 +47,13 @@ void static_load(void)
     }
 }
 
-int static_push(const char *path)
+static const char *path_type(const char *path)
 {
-    if (path == NULL)
-    {
-        return 0;
-    }
-
     const char *extension = strrchr(path, '.');
 
     if ((extension == NULL) || (extension == path))
     {
-        return 1;
+        return NULL;
     }
 
     const char *extensions[][2] =
@@ -68,16 +63,26 @@ int static_push(const char *path)
         {".js", "application/javascript"}
     };
     size_t n = sizeof extensions / sizeof extensions[0];
-    const char *type = NULL;
 
     for (size_t i = 0; i < n; i++)
     {
         if (!strcmp(extension, extensions[i][0]))
         {
-            type = extensions[i][1];
-            break;
+            return extensions[i][1];
         }
     }
+    return NULL;
+}
+
+int static_push(const char *path)
+{
+    if (path == NULL)
+    {
+        return 0;
+    }
+
+    const char *type = path_type(path);
+
     if (type == NULL)
     {
         return 1;
