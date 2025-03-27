@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <clux/clib.h>
 #include <clux/json.h>
 #include "schema.h"
@@ -65,14 +66,7 @@ int schema_push(const char *path)
 
     if (temp != node)
     {
-        if (temp == NULL)
-        {
-            perror("map_insert");
-        }
-        else
-        {
-            fprintf(stderr, "'%s' already mapped\n", id);
-        }
+        fprintf(stderr, "'%s' %s\n", id, temp ? "already mapped" : strerror(errno));
         json_delete(node);
         return 0;
     }

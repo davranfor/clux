@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <clux/clib.h>
 #include "headers.h"
 #include "static.h"
@@ -49,26 +50,25 @@ void static_load(void)
 
 static const char *path_type(const char *path)
 {
-    const char *extension = strrchr(path, '.');
+    const char *type = strrchr(path, '.');
 
-    if ((extension == NULL) || (extension == path))
+    if ((type == NULL) || (type == path))
     {
         return NULL;
     }
 
-    const char *extensions[][2] =
+    const char *types[][2] =
     {
         {".html", "text/html"}, 
         {".css", "text/css"},
         {".js", "application/javascript"}
     };
-    size_t n = sizeof extensions / sizeof extensions[0];
 
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < sizeof types / sizeof types[0]; i++)
     {
-        if (!strcmp(extension, extensions[i][0]))
+        if (!strcmp(type, types[i][0]))
         {
-            return extensions[i][1];
+            return types[i][1];
         }
     }
     return NULL;
@@ -110,8 +110,8 @@ int static_push(const char *path)
     size_t length = strlen(file);
 
     buffer->text = file;
-    buffer->size = length + 1;
     buffer->length = length;
+    buffer->size = length + 1;
 
     char headers[128];
 
@@ -131,14 +131,7 @@ int static_push(const char *path)
 
     if (temp != buffer)
     {
-        if (temp == NULL)
-        {
-            perror("map_insert");
-        }
-        else
-        {
-            fprintf(stderr, "'%s' already mapped\n", path);
-        }
+        fprintf(stderr, "'%s' %s\n", path, temp ? "already mapped" : strerror(errno));
         free_buffer(buffer);
         return 0;
     }

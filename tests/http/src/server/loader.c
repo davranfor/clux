@@ -23,25 +23,27 @@ static int load(const char *path, int (*func)(const char *))
     }
 
     const struct dirent *dirent;
+    int rc = 1;
 
     while ((dirent = readdir(dir)))
     {
-        char file[255];
+        char file[256];
+        size_t length = (size_t)snprintf(file, sizeof file, "%s/%s", path, dirent->d_name);
 
-        if (snprintf(file, sizeof file, "%s/%s", path, dirent->d_name) < 0)
+        if (length >= sizeof file)
         {
             fprintf(stderr, "'%s' is not a valid file name\n", dirent->d_name);
-            goto error;
+            rc = 0;
+            break;
         }
         if (!func(file))
         {
-            goto error;
+            rc = 0;
+            break;
         }
     }
-    return 1;
-error:
     closedir(dir);
-    return 0;
+    return rc;
 }
 
 void loader_run(void)
