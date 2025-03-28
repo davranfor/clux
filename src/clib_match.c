@@ -11,7 +11,7 @@
 #include "clib_unicode.h"
 #include "clib_match.h"
 
-static const char *test_mask(const char *text, const char *mask)
+const char *test_mask(const char *text, const char *mask)
 {
     /**
      *  \'  quote text until next quote (inner quotes must be escaped with \\)

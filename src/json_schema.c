@@ -152,7 +152,8 @@ typedef struct test { const char *key; struct test *next; } test_t;
  * Schema (Draft 07) keywords
  * https://json-schema.org/draft-07/schema
  * ------------------------------------------------------------------
- * NOTE: "meta" and "eval" are extensions raising a JSON_NOTIFY event
+ * NOTE: "mask" is an extension intended to avoid expensive regexp's
+         "meta" and "eval" are extensions raising JSON_NOTIFY
  */
 #define TEST(_)                                                     \
     _(SCHEMA_ADDITIONAL_ITEMS,          "additionalItems")          \
@@ -179,6 +180,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_ID,                        "$id")                      \
     _(SCHEMA_IF,                        "if")                       \
     _(SCHEMA_ITEMS,                     "items")                    \
+    _(SCHEMA_MASK,                      "mask")                     \
     _(SCHEMA_MAX_ITEMS,                 "maxItems")                 \
     _(SCHEMA_MAX_LENGTH,                "maxLength")                \
     _(SCHEMA_MAX_PROPERTIES,            "maxProperties")            \
@@ -836,6 +838,19 @@ static int test_pattern(const json_t *rule, const json_t *node)
     return test_regex(node->string, rule->string);
 }
 
+static int test_mask_match(const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_STRING)
+    {
+        return SCHEMA_ERROR;
+    }
+    if (node->type != JSON_STRING)
+    {
+        return SCHEMA_VALID;
+    }
+    return test_mask(node->string, rule->string) != NULL;
+}
+
 static int test_min_length(const json_t *rule, const json_t *node)
 {
     if ((rule->type != JSON_INTEGER) || (rule->number < 0))
@@ -1310,6 +1325,9 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 break;
             case SCHEMA_PATTERN:
                 test = test_pattern(rule->child[i], node);
+                break;
+            case SCHEMA_MASK:
+                test = test_mask_match(rule->child[i], node);
                 break;
             case SCHEMA_MIN_LENGTH:
                 test = test_min_length(rule->child[i], node);

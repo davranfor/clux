@@ -7,6 +7,8 @@
 #ifndef CLIB_MATCH_H
 #define CLIB_MATCH_H
 
+const char *test_mask(const char *, const char *);
+
 int test_is_date(const char *);
 int test_is_time(const char *);
 int test_is_date_time(const char *);
