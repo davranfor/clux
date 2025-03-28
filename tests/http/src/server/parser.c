@@ -4,7 +4,7 @@
  *  \copyright GNU Public License.
  */
 
-#include <stdio.h> // For debug
+#include <stdio.h>
 #include <string.h>
 #include <clux/clib_unicode.h>
 #include <clux/json_private.h>
@@ -14,16 +14,9 @@
 
 #define CHILD_SIZE 8
 
-struct request { char *method, *path, *parameters, *content; };
+typedef struct { char *method, *path, *parameters, *content; } request_t;
 
-static char *parse_content(char *str)
-{
-    str = strstr(str, "\r\n\r\n");
-    str[2] = '\0';
-    return str + 4;
-}
-
-static int parse_static(struct request *request, char *str)
+static int parse_static(request_t *request, char *str)
 {
     if (!strncmp(str, "GET /", 5))
     {
@@ -41,8 +34,11 @@ static int parse_static(struct request *request, char *str)
     return 0;
 }
 
-static int parse_headers(struct request *request, char *str)
+static int parse_headers(request_t *request, char *str)
 {
+    request->content = strstr(str, "\r\n\r\n") + 4;
+    request->content[-2] = '\0';
+
     const char *array[] =
     {
         "GET /api/", "POST /api/", "PUT /api/", "PATCH /api/", "DELETE /api/"
@@ -181,7 +177,7 @@ const buffer_t *parser_handle(char *message)
 {
     printf("----------------------------------------------------------------------\n%s\n", message);
 
-    struct request request = {.content = parse_content(message)};
+    request_t request = {0};
 
     switch (parse_headers(&request, message))
     {
