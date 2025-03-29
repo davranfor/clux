@@ -72,7 +72,8 @@ static const char *path_type(const char *path)
     {
         {".html", "text/html"}, 
         {".css", "text/css"},
-        {".js", "application/javascript"}
+        {".js", "application/javascript"},
+        {".json", "application/json"}
     };
 
     for (size_t i = 0; i < sizeof types / sizeof types[0]; i++)

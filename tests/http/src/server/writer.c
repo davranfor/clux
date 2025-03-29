@@ -218,7 +218,7 @@ const buffer_t *writer_handle(json_t *request)
     {
         char headers[128];
 
-        snprintf(headers, sizeof headers, http_json_ok, buffer.length);
+        snprintf(headers, sizeof headers, http_ok, "application/json", buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));
         return buffer.error ? NULL : &buffer;
     }

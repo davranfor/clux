@@ -13,10 +13,6 @@ static const char *http_ok =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n\r\n";
-static const char *http_json_ok =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: application/json\r\n"
-    "Content-Length: %zu\r\n\r\n";
 static const char *http_no_content =
     "HTTP/1.1 204 No Content\r\n\r\n";
 static const char *http_bad_request =
