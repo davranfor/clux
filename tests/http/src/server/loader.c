@@ -49,7 +49,7 @@ void loader_load(void)
 {
     static_load();
     schema_load();
-    if (!load("schemas", schema_push) || !load("www", static_push))
+    if (!load("schemas", schema_add) || !load("www", static_add))
     {
         exit(EXIT_FAILURE);
     }
@@ -59,7 +59,7 @@ void loader_reload(void)
 {
     static_reload();
     schema_reload();
-    if (!load("schemas", schema_push) || !load("www", static_push))
+    if (!load("schemas", schema_add) || !load("www", static_add))
     {
         exit(EXIT_FAILURE);
     }

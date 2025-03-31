@@ -11,9 +11,10 @@
 
 void static_load(void);
 void static_reload(void);
-int static_push(const char *);
-const buffer_t *static_buffer(const char *);
-const buffer_t *static_error(void);
+int static_add(const char *);
+const buffer_t *static_get(const char *);
+const buffer_t *static_bad_request(void);
+const buffer_t *static_not_found(void);
 
 #endif
 

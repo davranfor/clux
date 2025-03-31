@@ -16,13 +16,13 @@ static const char *http_ok =
 static const char *http_no_content =
     "HTTP/1.1 204 No Content\r\n\r\n";
 static const char *http_bad_request =
-    "HTTP/1.1 400 Bad Request\r\n\r\n"
-    "Content-Length: 0\r\n\r\n";
+    "HTTP/1.1 400 Bad Request\r\n"
+    "Content-Type: %s\r\n"
+    "Content-Length: %zu\r\n\r\n";
 static const char *http_not_found =
     "HTTP/1.1 404 Not Found\r\n"
-    "Content-Type: text/plain\r\n"
-    "Content-Length: 13\r\n\r\n"
-    "404 Not Found";
+    "Content-Type: %s\r\n"
+    "Content-Length: %zu\r\n\r\n";
 static const char *http_method_not_allowed =
     "HTTP/1.1 405 Method Not Allowed\r\n"
     "Allow: GET, POST, PUT, DELETE, PATCH\r\n"

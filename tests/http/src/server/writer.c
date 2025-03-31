@@ -10,6 +10,8 @@
 #include <clux/json.h>
 #include <clux/json_private.h>
 #include "headers.h"
+#include "schema.h"
+#include "static.h"
 #include "writer.h"
 
 // Temporary (move this)
@@ -166,7 +168,7 @@ static enum method select_method(const char *message)
 
 static const char *join_path(json_t *path)
 {
-    unsigned size = 0;
+    unsigned size = 1;
 
     while (size < path->size)
     {
@@ -176,13 +178,65 @@ static const char *join_path(json_t *path)
     {
         path->size = 1;
     }
-    return path->child[0]->string - 1;
+    return path->child[0]->string;
+}
+
+static int validate(const json_t *schema, json_t *request)
+{
+    json_t *content = json_find(request, "content");
+    char *content_text = content->string;
+    int has_content = *content_text;
+
+    if (has_content)
+    {
+        json_error_t error;
+        json_t *node = json_parse(content_text, &error);
+
+        if ((node == NULL) || (node->type != JSON_OBJECT))
+        {
+            json_print_error(&error);
+            buffer_write(&buffer, "Error parsing file");
+            return 0;
+        }
+        else
+        {
+            json_print(node);
+        }
+        content->child = node->child;
+        content->type = JSON_OBJECT;
+        content->size = node->size;
+
+        int rc = schema_validate(schema, request, &buffer);
+
+        content->string = content_text;
+        content->type = JSON_STRING;
+        content->size = 0;
+        json_free(node);
+        return rc;
+    }
+    return schema_validate(schema, request, &buffer);
 }
 
 const buffer_t *writer_handle(json_t *request)
 {
     buffer_reset(&buffer);
     json_print(request);
+
+    const json_t *schema = schema_get(json_text(json_head(json_find(request, "path"))));
+
+    if (schema == NULL)
+    {
+        return static_not_found();
+    }
+    if (!validate(schema, request))
+    {
+        char headers[128];
+
+        snprintf(headers, sizeof headers, http_bad_request, "text/plain", buffer.length);
+        buffer_insert(&buffer, 0, headers, strlen(headers));
+        return buffer.error ? NULL : &buffer;
+    }
+    buffer_reset(&buffer);
 
     const char *path = join_path(json_find(request, "path"));
     const char *content = json_text(json_find(request, "content"));

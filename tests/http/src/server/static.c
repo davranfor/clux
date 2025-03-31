@@ -16,6 +16,15 @@ static buffer_t bad_request;
 static buffer_t not_found;
 static map_t *map;
 
+static int fill_buffer(buffer_t *buffer, const char *header, const char *text)
+{
+    size_t length = strlen(text);
+
+    buffer_format(buffer, header, "text/plain", length);
+    buffer_append(buffer, text, length);
+    return !buffer->error;
+}
+
 static void free_buffer(void *buffer)
 {
     if (buffer != NULL)
@@ -27,10 +36,10 @@ static void free_buffer(void *buffer)
 
 static void load(void)
 {
-    if (!buffer_write(&bad_request, http_bad_request) ||
-        !buffer_write(&not_found, http_not_found))
+    if (!fill_buffer(&bad_request, http_bad_request, "Bad Request") ||
+        !fill_buffer(&not_found, http_not_found, "Not Found"))
     {
-        perror("buffer_write");
+        perror("fill_buffer");
         exit(EXIT_FAILURE);
     }
     if (!(map = map_create(0)))
@@ -86,7 +95,7 @@ static const char *path_type(const char *path)
     return NULL;
 }
 
-int static_push(const char *path)
+int static_add(const char *path)
 {
     if (path == NULL)
     {
@@ -161,7 +170,7 @@ static const buffer_t *search(const char *resource)
     return &not_found;
 }
 
-const buffer_t *static_buffer(const char *resource)
+const buffer_t *static_get(const char *resource)
 {
     if (resource == NULL)
     {
@@ -170,8 +179,13 @@ const buffer_t *static_buffer(const char *resource)
     return search(*resource ? resource : "index.html");
 }
 
-const buffer_t *static_error(void)
+const buffer_t *static_bad_request(void)
 {
     return &bad_request;
+}
+
+const buffer_t *static_not_found(void)
+{
+    return &not_found;
 }
 

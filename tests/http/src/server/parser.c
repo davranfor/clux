@@ -81,8 +81,15 @@ static int parse_path(json_t *parent, json_t *child, char *str)
 
     while ((size < CHILD_SIZE) && (*str == '/'))
     {
-        *str++ = '\0';
-        child[size].string = str;
+        if (size == 0)
+        {
+            child[size].string = str++;
+        }
+        else
+        {
+            child[size].string = ++str;
+            str[-1] = '\0';
+        }
         child[size].type = JSON_STRING;
         parent->child[size] = &child[size];
         parent->size = ++size;
@@ -182,9 +189,9 @@ const buffer_t *parser_handle(char *message)
     switch (parse_headers(&request, message))
     {
         case -1:
-            return static_buffer(request.path);
+            return static_get(request.path);
         case 0:
-            return static_error();
+            return static_bad_request();
     }
 
     json_t path[CHILD_SIZE] = {0}, parameters[CHILD_SIZE] = {0};
@@ -215,7 +222,7 @@ const buffer_t *parser_handle(char *message)
     if (!parse_path(&node[1], path, request.path) ||
         !parse_parameters(&node[2], parameters, request.parameters))
     {
-        return static_error();
+        return static_bad_request();
     }
     return writer_handle(&(json_t)
     {

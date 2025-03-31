@@ -1,4 +1,37 @@
 {
-    "$id": "/users"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/users",
+  "type": "object",
+  "properties": {
+    "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+    "path": { "type": "array" },
+    "parameters": { "type": ["object", "null"] },
+    "content": { "type": ["object", "string"] }
+  },
+  "anyOf": [
+    {
+        "properties": {
+          "method": { "enum": ["GET", "DELETE"] },
+          "path": { "minItems": 2, "maxItems": 2 },
+          "content": { "type": "string" }
+        }
+    },
+    {
+        "properties": {
+          "method": { "enum": ["PUT", "PATCH"] },
+          "path": { "minItems": 2, "maxItems": 2 },
+          "content": { "type": "object" }
+        }
+    },
+    {
+        "properties": {
+          "method": { "const": "POST" },
+          "path": { "minItems": 1, "maxItems": 1 },
+          "content": { "type": "object" }
+        }
+    }
+  ],
+  "required": ["method", "path", "parameters", "content"],
+  "additionalProperties": false
 }
 
