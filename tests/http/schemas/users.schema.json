@@ -4,34 +4,42 @@
   "type": "object",
   "properties": {
     "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
-    "path": { "type": "array" },
+    "path": { "type": "array", "items": [{ "type": "string" }, { "type": "string", "mask": "09999" }] },
     "parameters": { "type": ["object", "null"] },
     "content": { "type": ["object", "string"] }
   },
-  "anyOf": [
-    {
-        "properties": {
-          "method": { "enum": ["GET", "DELETE"] },
-          "path": { "minItems": 2, "maxItems": 2 },
-          "content": { "type": "string" }
-        }
+  "definitions": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "surname": { "type": "string", "minLength": 1, "maxLength": 50 }
+      },
+      "additionalProperties": false
     },
-    {
-        "properties": {
-          "method": { "enum": ["PUT", "PATCH"] },
-          "path": { "minItems": 2, "maxItems": 2 },
-          "content": { "type": "object" }
-        }
-    },
-    {
-        "properties": {
-          "method": { "const": "POST" },
-          "path": { "minItems": 1, "maxItems": 1 },
-          "content": { "type": "object" }
-        }
-    }
-  ],
+    "contentRequired": { "required": [ "name", "surname" ] }
+  },
   "required": ["method", "path", "parameters", "content"],
-  "additionalProperties": false
+  "additionalProperties": false,
+
+  "if": { "properties": { "method": { "const": "POST" } } },
+  "then": { "properties": { "path": { "minItems": 1, "maxItems": 1 } } },
+  "else": { "properties": { "path": { "minItems": 2, "maxItems": 2 } } },
+
+  "if": { "properties": { "method": { "enum": ["GET", "DELETE"] } } },
+  "then": { "properties": { "content": { "type": "string" } } },
+  "else": { "properties": { "content": { "$ref": "#/definitions/content" } } },
+
+  "if": { "properties": { "method": { "const": "POST" } } },
+  "then": { "properties": { "content": { "not": { "required": ["id"] }, "$ref": "#/definitions/contentRequired" } } },
+  "else": {
+    "if": { "properties": { "method": { "const": "PUT" } } },
+    "then": { "properties": { "content": { "required": ["id"], "$ref": "#/definitions/contentRequired" } } },
+    "else": {
+      "if": { "properties": { "method": { "const": "PATCH" } } },
+      "then": { "properties": { "content": { "not": { "required": ["id"] }, "minProperties": 1 } } }
+    }
+  }
 }
 
