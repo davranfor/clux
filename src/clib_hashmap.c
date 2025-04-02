@@ -93,6 +93,21 @@ static unsigned long hash_str(const unsigned char *key)
     return hash;
 }
 
+#define hash_max(key, length) hash_max_str((const unsigned char *)(key), (length))
+static unsigned long hash_max_str(const unsigned char *key, size_t length)
+{
+    unsigned long hash = 5381;
+    unsigned char chr;
+    size_t count = 0;
+
+    while ((chr = *key++) && (count < length))
+    {
+        hash = ((hash << 5) + hash) + chr;
+        count++;
+    }
+    return hash;
+}
+
 static void reset(map_t *map)
 {
     map_t *next = map->next;
@@ -272,6 +287,32 @@ void *map_search(const map_t *map, const char *key)
         while (node != NULL)
         {
             if (strcmp(node->key, key) == 0)
+            {
+                return node->data;
+            }
+            node = node->next;
+        }
+    } while ((map = map->next));
+    return NULL;
+}
+
+void *map_locate(const map_t *map, const char *key, size_t length)
+{
+    if ((map == NULL) || (key == NULL))
+    {
+        return NULL;
+    }
+
+    unsigned long hash = hash_max(key, length);
+
+    do
+    {
+        const struct node *node = map->list[hash % map->room];
+
+        while (node != NULL)
+        {
+            if ((strncmp(node->key, key, length) == 0) &&
+                (node->key[length] == '\0'))
             {
                 return node->data;
             }
