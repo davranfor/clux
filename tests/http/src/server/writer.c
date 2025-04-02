@@ -181,40 +181,38 @@ static const char *join_path(json_t *path)
     return path->child[0]->string;
 }
 
-static int validate(const json_t *schema, json_t *request)
+static int validate(const json_t *rules, json_t *request)
 {
-    json_t *content = json_find(request, "content");
-    char *content_text = content->string;
-    int has_content = *content_text;
+    json_t entry =
+    {
+        .type = JSON_OBJECT,
+        .child = (json_t *[]){request},
+        .size = 1
+    };
+    json_t *content = request->child[request->size - 1];
 
-    if (has_content)
+    if (content->type == JSON_STRING)
     {
         json_error_t error;
-        json_t *node = json_parse(content_text, &error);
+        json_t *node = json_parse(content->string, &error);
 
-        if ((node == NULL) || (node->type != JSON_OBJECT))
+        if (node == NULL)
         {
             json_print_error(&error);
             buffer_write(&buffer, "Error parsing file");
             return 0;
         }
-        else
-        {
-            json_print(node);
-        }
-        content->child = node->child;
-        content->type = JSON_OBJECT;
-        content->size = node->size;
+        request->child[request->size - 1] = node;
+        node->key = "content";
 
-        int rc = schema_validate(schema, request, &buffer);
+        int rc = schema_validate(rules, &entry, &buffer);
 
-        content->string = content_text;
-        content->type = JSON_STRING;
-        content->size = 0;
+        request->child[request->size - 1] = content;
+        node->key = NULL;
         json_free(node);
         return rc;
     }
-    return schema_validate(schema, request, &buffer);
+    return schema_validate(rules, &entry, &buffer);
 }
 
 const buffer_t *writer_handle(json_t *request)
@@ -234,14 +232,14 @@ const buffer_t *writer_handle(json_t *request)
 
         snprintf(headers, sizeof headers, http_bad_request, "text/plain", buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));
-        return buffer.error ? NULL : &buffer;
+        return &buffer;
     }
     buffer_reset(&buffer);
 
     const char *path = join_path(json_find(request, "path"));
     const char *content = json_text(json_find(request, "content"));
 
-    switch (select_method(json_text(json_find(request, "method"))))
+    switch (select_method(request->key))
     {
         case GET:
             // Temporary
@@ -274,7 +272,7 @@ const buffer_t *writer_handle(json_t *request)
 
         snprintf(headers, sizeof headers, http_ok, "application/json", buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));
-        return buffer.error ? NULL : &buffer;
+        return &buffer;
     }
     return &no_content;
 }

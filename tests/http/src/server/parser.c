@@ -36,8 +36,13 @@ static int parse_static(request_t *request, char *str)
 
 static int parse_headers(request_t *request, char *str)
 {
-    request->content = strstr(str, "\r\n\r\n") + 4;
-    request->content[-2] = '\0';
+    char *content = strstr(str, "\r\n\r\n") + 4;
+
+    if (*content != '\0')
+    {
+        request->content = content;
+    }
+    content[-2] = '\0';
 
     const char *array[] =
     {
@@ -198,11 +203,6 @@ const buffer_t *parser_handle(char *message)
     json_t node[] =
     {
         {
-            .key = "method",
-            .string = request.method,
-            .type = JSON_STRING
-        },
-        {
             .key = "path",
             .child = (json_t *[CHILD_SIZE]){0},
             .type = JSON_ARRAY
@@ -215,18 +215,19 @@ const buffer_t *parser_handle(char *message)
         {
             .key = "content",
             .string = request.content,
-            .type = JSON_STRING
+            .type = request.content ? JSON_STRING : JSON_NULL
         }
     };
 
-    if (!parse_path(&node[1], path, request.path) ||
-        !parse_parameters(&node[2], parameters, request.parameters))
+    if (!parse_path(&node[0], path, request.path) ||
+        !parse_parameters(&node[1], parameters, request.parameters))
     {
         return static_bad_request();
     }
     return writer_handle(&(json_t)
     {
-        .child = (json_t *[]){&node[0], &node[1], &node[2], &node[3]},
+        .key = request.method,
+        .child = (json_t *[]){&node[0], &node[1], &node[2]},
         .size = sizeof node / sizeof *node,
         .type = JSON_OBJECT
     });
