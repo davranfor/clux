@@ -5,7 +5,7 @@
   "definitions": {
     "pathArray": {
       "type": "array",
-      "items": [{ }, { "type": "string", "mask": "09999" }],
+      "items": [{}, { "type": "string", "mask": "09999" }],
       "additionalItems": false
     }
   },
@@ -22,9 +22,9 @@
         "path": { "type": "array", "minItems": 1, "maxItems": 1 },
         "parameters": { "type": "null" },
         "content": {
-            "not": { "required": ["id"] },
             "$ref": "/users.schema/definitions/content",
-            "$ref": "/users.schema/definitions/contentRequired"
+            "$ref": "/users.schema/definitions/contentRequired",
+            "not": { "required": ["id"] }
         }
       }
     },
@@ -33,9 +33,9 @@
         "path": { "$ref": "#/definitions/pathArray" },
         "parameters": { "type": "null" },
         "content": {
-            "required": ["id"],
             "$ref": "/users.schema/definitions/content",
-            "$ref": "/users.schema/definitions/contentRequired"
+            "$ref": "/users.schema/definitions/contentRequired",
+            "required": ["id"]
         }
       }
     },
@@ -43,7 +43,10 @@
       "properties": {
         "path": { "$ref": "#/definitions/pathArray" },
         "parameters": { "type": "null" },
-        "content": { "$ref": "/users.schema/definitions/content" }
+        "content": {
+            "$ref": "/users.schema/definitions/content",
+            "minProperties": 1
+        }
       }
     },
     "DELETE": {

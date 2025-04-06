@@ -14,9 +14,6 @@
 #include "static.h"
 #include "writer.h"
 
-// Temporary (move this)
-#include "loader.h"
-
 static buffer_t buffer;
 static buffer_t method_not_allowed;
 static buffer_t no_content;
@@ -51,14 +48,17 @@ void writer_load(void)
     load();
 }
 
+/*
 static char *encode(const json_t *node)
 {
     return json_buffer_encode(&buffer, node, 0);
 }
 
-static char *api_get(const char *resource)
+static char *api_get(const json_t *request)
 {
-    return encode(map_search(map, resource));
+    const char *path = json_string(json_find(request, "path"));
+
+    return encode(map_search(map, path));
 }
 
 static char *api_post(const char *resource, const char *content)
@@ -180,39 +180,47 @@ static const char *join_path(json_t *path)
     }
     return path->child[0]->string;
 }
+*/
 
 static int validate(const json_t *rules, json_t *request)
 {
+    unsigned content_id = json_index(request, "content");
+    json_t *content = request->child[content_id];
+    const char *text = "null";
+
+    if (content->type == JSON_STRING)
+    {
+        text = content->string;
+    }
+
+    json_error_t error;
+    json_t *node = json_parse(text, &error);
+
+    if (node && json_set_key(node, "content"))
+    {
+        request->child[content_id] = node;
+    }
+    else
+    {
+        buffer_write(&buffer, "Error parsing content");
+        json_print_error(&error);
+        json_free(node);
+        return 0;
+    }
+
     json_t entry =
     {
         .type = JSON_OBJECT,
         .child = (json_t *[]){request},
         .size = 1
     };
-    json_t *content = request->child[request->size - 1];
 
-    if (content->type == JSON_STRING)
+    if (!schema_validate(rules, &entry, &buffer))
     {
-        json_error_t error;
-        json_t *node = json_parse(content->string, &error);
-
-        if (node == NULL)
-        {
-            json_print_error(&error);
-            buffer_write(&buffer, "Error parsing file");
-            return 0;
-        }
-        request->child[request->size - 1] = node;
-        node->key = "content";
-
-        int rc = schema_validate(rules, &entry, &buffer);
-
-        request->child[request->size - 1] = content;
-        node->key = NULL;
         json_free(node);
-        return rc;
+        return 0;
     }
-    return schema_validate(rules, &entry, &buffer);
+    return 1;
 }
 
 const buffer_t *writer_handle(json_t *request)
@@ -236,36 +244,31 @@ const buffer_t *writer_handle(json_t *request)
     }
     buffer_reset(&buffer);
 
-    const char *path = join_path(json_find(request, "path"));
-    const char *content = json_text(json_find(request, "content"));
-
+    //const char *path = join_path(json_find(request, "path"));
+    const char *content = NULL;
+/*
     switch (select_method(request->key))
     {
         case GET:
-            // Temporary
-            if (!strcmp(path, "/reload"))
-            {
-                loader_reload();
-                return &no_content;
-            }
-            // End temporary
-            content = api_get(path);
+            content = api_get(request);
             break;
         case POST:
-            content = api_post(path, content);
+            content = api_post(request);
             break;
         case PUT:
-            content = api_put(path, content);
+            content = api_put(request);
             break;
         case PATCH:
-            content = api_patch(path, content);
+            content = api_patch(request);
             break;
         case DELETE:
-            content = api_delete(path);
+            content = api_delete(request);
             break;
         default:
-            return &method_not_allowed;
+            break;
     }
+*/
+    json_free(json_find(request, "content"));
     if (content != NULL)
     {
         char headers[128];
