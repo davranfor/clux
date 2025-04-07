@@ -4,8 +4,10 @@
  *  \copyright GNU Public License.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sqlite3.h>
 #include <clux/clib.h>
 #include <clux/json.h>
 #include <clux/json_private.h>
@@ -15,21 +17,30 @@
 #include "writer.h"
 
 static buffer_t buffer;
-static buffer_t method_not_allowed;
 static buffer_t no_content;
-static map_t *map;
+static json_t *metadata;
+static sqlite3 *db;
 
 static void load(void)
 {
-    if (!buffer_write(&method_not_allowed, http_method_not_allowed) ||
-        !buffer_write(&no_content, http_no_content))
+    if (!buffer_write(&no_content, http_no_content))
     {
         perror("buffer_write");
         exit(EXIT_FAILURE);
     }
-    if (!(map = map_create(0)))
+
+    json_error_t error = {0};
+
+    printf("Loading 'clux.json'\n");
+    if (!(metadata = json_parse_file("clux.json", &error)))
     {
-        perror("map_create");
+        json_print_error(&error);
+        exit(EXIT_FAILURE);
+    }
+    printf("Loading 'clux.db'\n");
+    if (sqlite3_open("clux.db", &db))
+    {
+        fprintf(stderr, "Database error: %s\n", sqlite3_errmsg(db));
         exit(EXIT_FAILURE);
     }
 }
@@ -37,9 +48,9 @@ static void load(void)
 static void unload(void)
 {
     free(buffer.text);
-    free(method_not_allowed.text);
     free(no_content.text);
-    map_destroy(map, json_free);
+    json_free(metadata);
+    sqlite3_close(db);
 }
 
 void writer_load(void)
@@ -166,20 +177,6 @@ static enum method select_method(const char *message)
     return method;
 }
 
-static const char *join_path(json_t *path)
-{
-    unsigned size = 1;
-
-    while (size < path->size)
-    {
-        path->child[size++]->string[-1] = '/';
-    }
-    if (path->size > 1)
-    {
-        path->size = 1;
-    }
-    return path->child[0]->string;
-}
 */
 
 static int validate(const json_t *rules, json_t *request)
@@ -232,7 +229,7 @@ const buffer_t *writer_handle(json_t *request)
 
     if (schema == NULL)
     {
-        return static_not_found();
+        return static_bad_request();
     }
     if (!validate(schema, request))
     {
@@ -244,7 +241,6 @@ const buffer_t *writer_handle(json_t *request)
     }
     buffer_reset(&buffer);
 
-    //const char *path = join_path(json_find(request, "path"));
     const char *content = NULL;
 /*
     switch (select_method(request->key))

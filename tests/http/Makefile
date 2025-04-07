@@ -2,6 +2,7 @@ CC = gcc
 CFLAGS = -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
 CFLAGS += -Isrc/shared
 LDFLAGS = -lclux
+LDEXTRA = -lsqlite3
 OBJDIR = obj
 SRCDIR = src
 
@@ -17,7 +18,7 @@ CLIENT_BIN = client
 all: $(OBJDIR) $(SERVER_BIN) $(CLIENT_BIN)
 
 $(SERVER_BIN): $(SERVER_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDEXTRA)
 
 $(CLIENT_BIN): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
