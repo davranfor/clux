@@ -1,3 +1,4 @@
 #!/bin/bash
 
-curl -Gv http://localhost:1234/api/reload
+curl -vX POST http://localhost:1234/reload
+

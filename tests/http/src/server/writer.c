@@ -17,17 +17,16 @@
 #include "writer.h"
 
 static buffer_t buffer;
-static buffer_t no_content;
-static json_t *metadata;
+static json_t *sections;
 static sqlite3 *db;
 
 static void load_db(void)
 {
-    const json_t *tables = json_find(metadata, "LOAD");
+    const json_t *tables = json_find(sections, "LOAD");
 
     if (tables == NULL)
     {
-        fprintf(stderr, "'app.json': 'tables' must exist\n");
+        fprintf(stderr, "'app.json': 'LOAD' section must exist\n");
         exit(EXIT_FAILURE);
     }
     for (unsigned i = 0; i < tables->size; i++)
@@ -53,16 +52,10 @@ static void load_db(void)
 
 static void load(void)
 {
-    if (!buffer_write(&no_content, http_no_content))
-    {
-        perror("buffer_write");
-        exit(EXIT_FAILURE);
-    }
-
     json_error_t error = {0};
 
     printf("Loading 'app.json'\n");
-    if (!(metadata = json_parse_file("app.json", &error)))
+    if (!(sections = json_parse_file("app.json", &error)))
     {
         json_print_error(&error);
         exit(EXIT_FAILURE);
@@ -78,15 +71,20 @@ static void load(void)
 
 static void unload(void)
 {
-    free(buffer.text);
-    free(no_content.text);
-    json_free(metadata);
+    buffer_clean(&buffer);
+    json_free(sections);
     sqlite3_close(db);
 }
 
 void writer_load(void)
 {
     atexit(unload);
+    load();
+}
+
+void writer_reload(void)
+{
+    unload();
     load();
 }
 
@@ -268,7 +266,7 @@ const buffer_t *writer_handle(json_t *request)
 
         snprintf(headers, sizeof headers, http_bad_request, "text/plain", buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));
-        return &buffer;
+        return buffer.length ? &buffer : NULL;
     }
     buffer_reset(&buffer);
 
@@ -302,8 +300,8 @@ const buffer_t *writer_handle(json_t *request)
 
         snprintf(headers, sizeof headers, http_ok, "application/json", buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));
-        return &buffer;
+        return buffer.length ? &buffer : NULL;
     }
-    return &no_content;
+    return static_no_content();
 }
 

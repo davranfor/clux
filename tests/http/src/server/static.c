@@ -12,6 +12,7 @@
 #include "headers.h"
 #include "static.h"
 
+static buffer_t no_content;
 static buffer_t bad_request;
 static buffer_t not_found;
 static map_t *map;
@@ -36,10 +37,11 @@ static void free_buffer(void *buffer)
 
 static void load(void)
 {
-    if (!fill_buffer(&bad_request, http_bad_request, "Bad Request") ||
+    if (!buffer_write(&no_content, http_no_content) ||
+        !fill_buffer(&bad_request, http_bad_request, "Bad Request") ||
         !fill_buffer(&not_found, http_not_found, "Not Found"))
     {
-        perror("fill_buffer");
+        perror("buffer");
         exit(EXIT_FAILURE);
     }
     if (!(map = map_create(0)))
@@ -51,6 +53,7 @@ static void load(void)
 
 static void unload(void)
 {
+    buffer_clean(&no_content);
     buffer_clean(&bad_request);
     buffer_clean(&not_found);
     map_destroy(map, free_buffer);
@@ -177,6 +180,11 @@ const buffer_t *static_get(const char *resource)
         return &bad_request;
     }
     return search(*resource ? resource : "index.html");
+}
+
+const buffer_t *static_no_content(void)
+{
+    return &no_content;
 }
 
 const buffer_t *static_bad_request(void)

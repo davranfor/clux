@@ -8,6 +8,7 @@
 #include <string.h>
 #include <clux/clib_unicode.h>
 #include <clux/json_private.h>
+#include "loader.h"
 #include "static.h"
 #include "writer.h"
 #include "parser.h"
@@ -30,6 +31,11 @@ static int parse_static(request_t *request, char *str)
         *end = '\0';
         request->path = path;
         return -1;
+    }
+    if (!strncmp(str, "POST /reload ", 13))
+    {
+        loader_reload();
+        return -2;
     }
     return 0;
 }
@@ -195,6 +201,8 @@ const buffer_t *parser_handle(char *message)
     {
         case -1:
             return static_get(request.path);
+        case -2:
+            return static_no_content();
         case 0:
             return static_bad_request();
     }

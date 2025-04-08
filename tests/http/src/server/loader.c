@@ -65,5 +65,6 @@ void loader_reload(void)
     {
         exit(EXIT_FAILURE);
     }
+    writer_reload();
 }
 
