@@ -45,7 +45,7 @@ static void load_db(void)
         {
             fprintf(stderr, "%s\n%s\n", entry->string, err);
             sqlite3_free(err);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 }
@@ -88,126 +88,6 @@ void writer_reload(void)
     load();
 }
 
-/*
-static char *encode(const json_t *node)
-{
-    return json_buffer_encode(&buffer, node, 0);
-}
-
-static char *api_get(const json_t *request)
-{
-    const char *path = json_string(json_find(request, "path"));
-
-    return encode(map_search(map, path));
-}
-
-static char *api_post(const char *resource, const char *content)
-{
-    json_t *object = json_parse(content, NULL);
-
-    if (object == NULL)
-    {
-        return NULL;
-    }
-    json_object_delete(object, "id");
-
-    static size_t id = 1;
-    json_t *child = json_new_number(id);
-    char key[64];
-
-    snprintf(key, sizeof key, "%s/%zu", resource, id);
-    if (!json_object_push(object, 0, "id", child) ||
-        (map_insert(map, key, object) != object))
-    {
-        json_delete(object);
-        json_delete(child);
-        return NULL;
-    }
-    id++;
-    return encode(object);
-}
-
-static char *api_put(const char *resource, const char *content)
-{
-    json_t *old = map_search(map, resource);
-
-    if (old == NULL)
-    {
-        return NULL;
-    }
-
-    json_t *new = json_parse(content, NULL);
-
-    if (!json_equal(json_find(new, "id"), json_find(old, "id")) ||
-        !map_update(map, resource, new))
-    {
-        json_delete(new);
-        return NULL;
-    }
-    json_delete(old);
-    return encode(new);
-}
-
-static char *api_patch(const char *resource, const char *content)
-{
-    json_t *target = map_search(map, resource);
-
-    if (target == NULL)
-    {
-        return NULL;
-    }
-
-    json_t *source = json_parse(content, NULL);
-
-    if (source == NULL)
-    {
-        return NULL;
-    }
-
-    size_t id = json_size_t(json_find(target, "id"));
-    int patch = json_patch(source, target);
-    char *str = NULL;
-
-    if ((patch == -1) || (json_size_t(json_find(target, "id")) != id))
-    {
-        json_unpatch(source, target, patch);
-    }
-    else
-    {
-        str = encode(target);
-    }
-    json_delete(source);
-    return str;
-}
-
-static char *api_delete(const char *resource)
-{
-    json_t *node = map_delete(map, resource);
-    char *str = encode(node);
-
-    json_delete(node);
-    return str;
-}
-
-enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
-
-static enum method select_method(const char *message)
-{
-    const char *name[] = {"GET", "POST", "PUT", "PATCH", "DELETE"};
-    enum method method;
-
-    for (method = 0; method < METHODS; method++)
-    {
-        if (!strcmp(message, name[method]))
-        {
-            break;
-        }
-    }
-    return method;
-}
-
-*/
-
 static int validate(const json_t *rules, json_t *request)
 {
     unsigned content_id = json_index(request, "content");
@@ -249,6 +129,167 @@ static int validate(const json_t *rules, json_t *request)
     return 1;
 }
 
+enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
+
+static enum method select_method(const char *message)
+{
+    const char *name[] =
+    {
+        "GET", "POST", "PUT", "PATCH", "DELETE"
+    };
+    enum method method;
+
+    for (method = 0; method < METHODS; method++)
+    {
+        if (!strcmp(message, name[method]))
+        {
+            break;
+        }
+    }
+    return method;
+}
+
+/*
+static const char *encode(const json_t *node)
+{
+    return json_buffer_encode(&buffer, node, 0);
+}
+*/
+
+static const char *api_get(const json_t *request)
+{
+/*
+    const char *path = json_string(json_find(request, "path"));
+
+    return encode(map_search(map, path));
+*/
+    (void)request;
+    return NULL;
+}
+
+static const char *api_post(const json_t *request)
+{
+/*
+    json_t *object = json_parse(content, NULL);
+
+    if (object == NULL)
+    {
+        return NULL;
+    }
+    json_object_delete(object, "id");
+
+    static size_t id = 1;
+    json_t *child = json_new_number(id);
+    char key[64];
+
+    snprintf(key, sizeof key, "%s/%zu", resource, id);
+    if (!json_object_push(object, 0, "id", child) ||
+        (map_insert(map, key, object) != object))
+    {
+        json_delete(object);
+        json_delete(child);
+        return NULL;
+    }
+    id++;
+    return encode(object);
+*/
+    (void)request;
+    return NULL;
+}
+
+static const char *api_put(const json_t *request)
+{
+/*
+    json_t *old = map_search(map, resource);
+
+    if (old == NULL)
+    {
+        return NULL;
+    }
+
+    json_t *new = json_parse(content, NULL);
+
+    if (!json_equal(json_find(new, "id"), json_find(old, "id")) ||
+        !map_update(map, resource, new))
+    {
+        json_delete(new);
+        return NULL;
+    }
+    json_delete(old);
+    return encode(new);
+*/
+    (void)request;
+    return NULL;
+}
+
+static const char *api_patch(json_t *request)
+{
+/*
+    json_t *target = map_search(map, resource);
+
+    if (target == NULL)
+    {
+        return NULL;
+    }
+
+    json_t *source = json_parse(content, NULL);
+
+    if (source == NULL)
+    {
+        return NULL;
+    }
+
+    size_t id = json_size_t(json_find(target, "id"));
+    int patch = json_patch(source, target);
+    char *str = NULL;
+
+    if ((patch == -1) || (json_size_t(json_find(target, "id")) != id))
+    {
+        json_unpatch(source, target, patch);
+    }
+    else
+    {
+        str = encode(target);
+    }
+    json_delete(source);
+    return str;
+*/
+    (void)request;
+    return NULL;
+}
+
+static const char *api_delete(json_t *request)
+{
+/*
+    json_t *node = map_delete(map, resource);
+    char *str = encode(node);
+
+    json_delete(node);
+    return str;
+*/
+    (void)request;
+    return NULL;
+}
+
+static const char *api_handle(json_t *request)
+{
+    switch (select_method(request->key))
+    {
+        case GET:
+            return api_get(request);
+        case POST:
+            return api_post(request);
+        case PUT:
+            return api_put(request);
+        case PATCH:
+            return api_patch(request);
+        case DELETE:
+            return api_delete(request);
+        default:
+            return NULL;
+    }
+}
+
 const buffer_t *writer_handle(json_t *request)
 {
     buffer_reset(&buffer);
@@ -270,29 +311,8 @@ const buffer_t *writer_handle(json_t *request)
     }
     buffer_reset(&buffer);
 
-    const char *content = NULL;
-/*
-    switch (select_method(request->key))
-    {
-        case GET:
-            content = api_get(request);
-            break;
-        case POST:
-            content = api_post(request);
-            break;
-        case PUT:
-            content = api_put(request);
-            break;
-        case PATCH:
-            content = api_patch(request);
-            break;
-        case DELETE:
-            content = api_delete(request);
-            break;
-        default:
-            break;
-    }
-*/
+    const char *content = api_handle(request);
+
     json_free(json_find(request, "content"));
     if (content != NULL)
     {
