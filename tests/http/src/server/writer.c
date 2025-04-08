@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sqlite3.h>
 #include <clux/clib.h>
 #include <clux/json.h>
 #include <clux/json_private.h>
+#include <sqlite3.h>
 #include "headers.h"
 #include "schema.h"
 #include "static.h"
@@ -20,6 +20,36 @@ static buffer_t buffer;
 static buffer_t no_content;
 static json_t *metadata;
 static sqlite3 *db;
+
+static void load_db(void)
+{
+    const json_t *tables = json_find(metadata, "LOAD");
+
+    if (tables == NULL)
+    {
+        fprintf(stderr, "'app.json': 'tables' must exist\n");
+        exit(EXIT_FAILURE);
+    }
+    for (unsigned i = 0; i < tables->size; i++)
+    {
+        json_t *entry = tables->child[i];
+
+        if (entry->type != JSON_STRING)
+        {
+            fprintf(stderr, "'app.json': 'tables[%u]' must be a string\n", i);
+            exit(EXIT_FAILURE);
+        }
+
+        char *err = NULL;
+
+        if (sqlite3_exec(db, entry->string, NULL, NULL, &err) != SQLITE_OK)
+        {
+            fprintf(stderr, "%s\n%s\n", entry->string, err);
+            sqlite3_free(err);
+            exit(1);
+        }
+    }
+}
 
 static void load(void)
 {
@@ -31,18 +61,19 @@ static void load(void)
 
     json_error_t error = {0};
 
-    printf("Loading 'clux.json'\n");
-    if (!(metadata = json_parse_file("clux.json", &error)))
+    printf("Loading 'app.json'\n");
+    if (!(metadata = json_parse_file("app.json", &error)))
     {
         json_print_error(&error);
         exit(EXIT_FAILURE);
     }
-    printf("Loading 'clux.db'\n");
-    if (sqlite3_open("clux.db", &db))
+    printf("Loading 'app.db'\n");
+    if (sqlite3_open("app.db", &db))
     {
-        fprintf(stderr, "Database error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         exit(EXIT_FAILURE);
     }
+    load_db();
 }
 
 static void unload(void)
