@@ -121,17 +121,16 @@ static int validate(const json_t *rules, json_t *request)
         .size = 1
     };
 
-    if (!schema_validate(rules, &entry, &buffer))
-    {
-        json_free(node);
-        return 0;
-    }
-    return 1;
+    int rc = schema_validate(rules, &entry, &buffer);
+
+    request->child[content_id] = content;
+    json_free(node);
+    return rc;
 }
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
 
-static enum method select_method(const char *message)
+static enum method get_method(const char *message)
 {
     const char *name[] =
     {
@@ -156,7 +155,7 @@ static const char *encode(const json_t *node)
 }
 */
 
-static const char *api_get(const json_t *request)
+static int api_get(const json_t *request)
 {
 /*
     const char *path = json_string(json_find(request, "path"));
@@ -164,40 +163,50 @@ static const char *api_get(const json_t *request)
     return encode(map_search(map, path));
 */
     (void)request;
-    return NULL;
+    return HTTP_NO_CONTENT;
 }
 
-static const char *api_post(const json_t *request)
+static int api_post(const json_t *request)
 {
-/*
-    json_t *object = json_parse(content, NULL);
+    const char *sql = json_text(json_pointer(sections, "/POST/~1users/default"));
+    const char *content = json_text(json_find(request, "content"));
+    sqlite3_stmt *stmt;
 
-    if (object == NULL)
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        return NULL;
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        return HTTP_BAD_REQUEST;
     }
-    json_object_delete(object, "id");
 
-    static size_t id = 1;
-    json_t *child = json_new_number(id);
-    char key[64];
+    int params = sqlite3_bind_parameter_count(stmt);
 
-    snprintf(key, sizeof key, "%s/%zu", resource, id);
-    if (!json_object_push(object, 0, "id", child) ||
-        (map_insert(map, key, object) != object))
+    for (int i = 1; i <= params; i++)
     {
-        json_delete(object);
-        json_delete(child);
-        return NULL;
+        if (sqlite3_bind_text(stmt, i, content, -1, SQLITE_STATIC) != SQLITE_OK)
+        {
+            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+            buffer_write(&buffer, sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return HTTP_BAD_REQUEST;
+        }
     }
-    id++;
-    return encode(object);
-*/
-    (void)request;
-    return NULL;
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return HTTP_BAD_REQUEST;
+    }
+
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+
+    buffer_format(&buffer, "{\"id\": %lld}", id);
+    sqlite3_finalize(stmt);
+    return HTTP_CREATED;
 }
 
-static const char *api_put(const json_t *request)
+static int api_put(const json_t *request)
 {
 /*
     json_t *old = map_search(map, resource);
@@ -219,10 +228,10 @@ static const char *api_put(const json_t *request)
     return encode(new);
 */
     (void)request;
-    return NULL;
+    return HTTP_NO_CONTENT;
 }
 
-static const char *api_patch(json_t *request)
+static int api_patch(json_t *request)
 {
 /*
     json_t *target = map_search(map, resource);
@@ -255,10 +264,10 @@ static const char *api_patch(json_t *request)
     return str;
 */
     (void)request;
-    return NULL;
+    return HTTP_NO_CONTENT;
 }
 
-static const char *api_delete(json_t *request)
+static int api_delete(json_t *request)
 {
 /*
     json_t *node = map_delete(map, resource);
@@ -268,12 +277,12 @@ static const char *api_delete(json_t *request)
     return str;
 */
     (void)request;
-    return NULL;
+    return HTTP_NO_CONTENT;
 }
 
-static const char *api_handle(json_t *request)
+static int api_handle(json_t *request)
 {
-    switch (select_method(request->key))
+    switch (get_method(request->key))
     {
         case GET:
             return api_get(request);
@@ -286,13 +295,12 @@ static const char *api_handle(json_t *request)
         case DELETE:
             return api_delete(request);
         default:
-            return NULL;
+            return HTTP_NO_CONTENT;
     }
 }
 
 const buffer_t *writer_handle(json_t *request)
 {
-    buffer_reset(&buffer);
     json_print(request);
 
     const json_t *schema = schema_get(json_text(json_head(json_find(request, "path"))));
@@ -301,6 +309,8 @@ const buffer_t *writer_handle(json_t *request)
     {
         return static_bad_request();
     }
+    /* Validate request */
+    buffer_reset(&buffer);
     if (!validate(schema, request))
     {
         char headers[128];
@@ -309,16 +319,25 @@ const buffer_t *writer_handle(json_t *request)
         buffer_insert(&buffer, 0, headers, strlen(headers));
         return buffer.length ? &buffer : NULL;
     }
+    /* Apply db request */
     buffer_reset(&buffer);
 
-    const char *content = api_handle(request);
+    int result = api_handle(request);
 
-    json_free(json_find(request, "content"));
-    if (content != NULL)
+    if (result != HTTP_NO_CONTENT)
     {
+        const char *status = "application/json";
+        const char *type = NULL;
         char headers[128];
 
-        snprintf(headers, sizeof headers, http_ok, "application/json", buffer.length);
+        switch (result)
+        {
+            case HTTP_OK: type = http_ok; break;
+            case HTTP_CREATED: type = http_created; break;
+            case HTTP_NOT_FOUND: type = http_not_found; break;
+            default: status = "text/plain", type = http_bad_request; break;
+        }
+        snprintf(headers, sizeof headers, type, status, buffer.length);
         buffer_insert(&buffer, 0, headers, strlen(headers));
         return buffer.length ? &buffer : NULL;
     }

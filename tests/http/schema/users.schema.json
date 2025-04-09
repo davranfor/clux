@@ -8,11 +8,11 @@
       "properties": {
         "id": { "type": "integer" },
         "name": { "type": "string", "minLength": 1, "maxLength": 50 },
-        "surname": { "type": "string", "minLength": 1, "maxLength": 50 }
+        "email": { "type": "string", "format": "email" }
       },
       "additionalProperties": false
     },
-    "contentRequired": { "required": [ "name", "surname" ] }
+    "contentRequired": { "required": [ "name", "email" ] }
   },
   "$ref": "#/definitions/content",
   "$ref": "#/definitions/contentRequired",
