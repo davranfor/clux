@@ -13,6 +13,13 @@
 
 enum {CONTINUE, STOP};
 
+static int on_notify(const json_t *rule)
+{
+    printf("Notification:\n");
+    json_print(rule);
+    return CONTINUE;
+}
+
 static int on_warning(const json_t *rule)
 {
     fprintf(stderr, "Warning: Unknow rule '%s'\n", json_name(rule));
@@ -44,6 +51,8 @@ static int on_validate(const json_event_t *event, void *buffer)
 {
     switch (event->type)
     {
+        case JSON_NOTIFY:
+            return on_notify(event->rule);
         case JSON_WARNING:
             return on_warning(event->rule);
         case JSON_FAILURE:

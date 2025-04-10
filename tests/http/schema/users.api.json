@@ -23,8 +23,7 @@
         "parameters": { "type": "null" },
         "content": {
             "$ref": "/users.schema/definitions/content",
-            "$ref": "/users.schema/definitions/contentRequired",
-            "not": { "required": ["id"] }
+            "$ref": "/users.schema/definitions/contentRequired"
         }
       }
     },
@@ -34,8 +33,7 @@
         "parameters": { "type": "null" },
         "content": {
             "$ref": "/users.schema/definitions/content",
-            "$ref": "/users.schema/definitions/contentRequired",
-            "required": ["id"]
+            "$ref": "/users.schema/definitions/contentRequired"
         }
       }
     },

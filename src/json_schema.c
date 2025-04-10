@@ -79,9 +79,9 @@ static int notify(const schema_t *schema, const json_t *rule, const json_t *node
                             : event == JSON_FAILURE;
 }
 
-static int abort_on_failure(const schema_t *schema, const json_t *rule, const json_t *node)
+static int notify_callback(const schema_t *schema, const json_t *rule, const json_t *node)
 {
-    return notify(schema, rule, node, JSON_FAILURE);
+    return !notify(schema, rule, node, JSON_NOTIFY);
 }
 
 static int abort_on_warning(const schema_t *schema, const json_t *rule, const json_t *node)
@@ -98,6 +98,11 @@ static int abort_on_warning(const schema_t *schema, const json_t *rule, const js
         default:
             return 1;
     }
+}
+
+static int abort_on_failure(const schema_t *schema, const json_t *rule, const json_t *node)
+{
+    return notify(schema, rule, node, JSON_FAILURE);
 }
 
 static void raise_error(const schema_t *schema, const json_t *rule, const json_t *node)
@@ -147,7 +152,8 @@ typedef struct test { const char *key; struct test *next; } test_t;
  * Schema (Draft 07) keywords
  * https://json-schema.org/draft-07/schema
  * ------------------------------------------------------------------
- * NOTE: "mask" is an extension intended to avoid expensive regexp's
+ * NOTE: x-mask is an extension intended to avoid expensive regexp's
+ *       x-query is an extension delegating the rule to the callback
  */
 #define TEST(_)                                                     \
     _(SCHEMA_ADDITIONAL_ITEMS,          "additionalItems")          \
@@ -173,7 +179,6 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_ID,                        "$id")                      \
     _(SCHEMA_IF,                        "if")                       \
     _(SCHEMA_ITEMS,                     "items")                    \
-    _(SCHEMA_MASK,                      "mask")                     \
     _(SCHEMA_MAX_ITEMS,                 "maxItems")                 \
     _(SCHEMA_MAX_LENGTH,                "maxLength")                \
     _(SCHEMA_MAX_PROPERTIES,            "maxProperties")            \
@@ -197,7 +202,9 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_TITLE,                     "title")                    \
     _(SCHEMA_TYPE,                      "type")                     \
     _(SCHEMA_UNIQUE_ITEMS,              "uniqueItems")              \
-    _(SCHEMA_WRITE_ONLY,                "writeOnly")
+    _(SCHEMA_WRITE_ONLY,                "writeOnly")                \
+    _(SCHEMA_X_MASK,                    "x-mask")                   \
+    _(SCHEMA_X_QUERY,                   "x-query")
 
 #define TEST_ENUM(a, b) a,
 enum
@@ -830,7 +837,7 @@ static int test_pattern(const json_t *rule, const json_t *node)
     return test_regex(node->string, rule->string);
 }
 
-static int test_mask_match(const json_t *rule, const json_t *node)
+static int test_x_mask(const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_STRING)
     {
@@ -1228,6 +1235,14 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     }
     return result;
 }
+static int test_x_query(const schema_t *schema, const json_t *rule, const json_t *node)
+{
+    if (rule->type != JSON_OBJECT)
+    {
+        return SCHEMA_ERROR;
+    }
+    return notify_callback(schema, rule, node);
+}
 
 static int validate(const schema_t *schema, const json_t *rule, const json_t *node,
     int abortable)
@@ -1302,8 +1317,8 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
             case SCHEMA_PATTERN:
                 test = test_pattern(rule->child[i], node);
                 break;
-            case SCHEMA_MASK:
-                test = test_mask_match(rule->child[i], node);
+            case SCHEMA_X_MASK:
+                test = test_x_mask(rule->child[i], node);
                 break;
             case SCHEMA_MIN_LENGTH:
                 test = test_min_length(rule->child[i], node);
@@ -1362,6 +1377,10 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
             case SCHEMA_THEN:
             case SCHEMA_ELSE:
                 test = test_branch(schema, rule, &i, node, abortable);
+                break;
+            // Notification to user-callback (extension)
+            case SCHEMA_X_QUERY:
+                test = test_x_query(schema, rule->child[i], node);
                 break;
             // Rule not handled (shouldn't get here)
             default:
