@@ -49,63 +49,26 @@ const char *json_text(const json_t *node)
 
 double json_number(const json_t *node)
 {
-    if (node == NULL)
+    if ((node != NULL) && (node->type & JSON_NUMBER))
     {
-        return 0.0;
+        return node->number;
     }
-    switch (node->type)
-    {
-        case JSON_INTEGER:
-        case JSON_REAL:
-            return node->number;
-        default:
-            return 0.0;
-    }
+    return 0.0;
 }
 
 int json_boolean(const json_t *node)
 {
-    if ((node != NULL) && (node->type == JSON_TRUE))
-    {
-        return 1;
-    }
-    return 0;
+    return (node != NULL) && (node->type == JSON_TRUE);
 }
 
 int json_is_iterable(const json_t *node)
 {
-    if (node == NULL)
-    {
-        return 0;
-    }
-    switch (node->type)
-    {
-        case JSON_OBJECT:
-        case JSON_ARRAY:
-            return 1;
-        default:
-            return 0;
-    }
+    return (node != NULL) && (node->type & JSON_ITERABLE);
 }
 
 int json_is_scalar(const json_t *node)
 {
-    if (node == NULL)
-    {
-        return 0;
-    }
-    switch (node->type)
-    {
-        case JSON_STRING:
-        case JSON_INTEGER:
-        case JSON_REAL:
-        case JSON_TRUE:
-        case JSON_FALSE:
-        case JSON_NULL:
-            return 1;
-        default:
-            return 0;
-    }
+    return (node != NULL) && (node->type & JSON_SCALAR);
 }
 
 int json_is_object(const json_t *node)
@@ -140,34 +103,12 @@ int json_is_real(const json_t *node)
 
 int json_is_number(const json_t *node)
 {
-    if (node == NULL)
-    {
-        return 0;
-    }
-    switch (node->type)
-    {
-        case JSON_INTEGER:
-        case JSON_REAL:
-            return 1;
-        default:
-            return 0;
-    }
+    return (node != NULL) && (node->type & JSON_NUMBER);
 }
 
 int json_is_boolean(const json_t *node)
 {
-    if (node == NULL)
-    {
-        return 0;
-    }
-    switch (node->type)
-    {
-        case JSON_TRUE:
-        case JSON_FALSE:
-            return 1;
-        default:
-            return 0;
-    }
+    return (node != NULL) && (node->type & JSON_BOOLEAN);
 }
 
 int json_is_true(const json_t *node)
@@ -187,22 +128,22 @@ int json_is_null(const json_t *node)
 
 int json_is_root(const json_t *node)
 {
-    return (node != NULL) && !node->packed;
+    return node && !node->packed;
 }
 
 int json_is_child(const json_t *node)
 {
-    return (node != NULL) && node->packed;
+    return node && node->packed;
 }
 
 enum json_type json_type(const json_t *node)
 {
-    return node != NULL ? node->type : JSON_UNDEFINED;
+    return node ? node->type : JSON_UNDEFINED;
 }
 
 unsigned short json_flags(const json_t *node)
 {
-    return node != NULL ? node->flags : 0;
+    return node ? node->flags : 0;
 }
 
 /* json_height helper */

@@ -274,9 +274,7 @@ static int get_test(const json_t *rule)
         case SCHEMA_DEPRECATED:
         case SCHEMA_READ_ONLY:
         case SCHEMA_WRITE_ONLY:
-            return (rule->type == JSON_TRUE) || (rule->type == JSON_FALSE)
-                ? SCHEMA_VALID
-                : SCHEMA_ERROR;
+            return rule->type & JSON_BOOLEAN ? SCHEMA_VALID : SCHEMA_ERROR;
         // Rules that need to be tested 
         default:
             return test;
@@ -891,11 +889,11 @@ static int test_multiple_of(const json_t *rule, const json_t *node)
 
 static int test_minimum(const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    if (!(rule->type & JSON_NUMBER))
     {
         return SCHEMA_ERROR;
     }
-    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
+    if (!(node->type & JSON_NUMBER))
     {
         return SCHEMA_VALID;
     }
@@ -904,11 +902,11 @@ static int test_minimum(const json_t *rule, const json_t *node)
 
 static int test_maximum(const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    if (!(rule->type & JSON_NUMBER))
     {
         return SCHEMA_ERROR;
     }
-    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
+    if (!(node->type & JSON_NUMBER))
     {
         return SCHEMA_VALID;
     }
@@ -917,11 +915,11 @@ static int test_maximum(const json_t *rule, const json_t *node)
 
 static int test_exclusive_minimum(const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    if (!(rule->type & JSON_NUMBER))
     {
         return SCHEMA_ERROR;
     }
-    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
+    if (!(node->type & JSON_NUMBER))
     {
         return SCHEMA_VALID;
     }
@@ -930,11 +928,11 @@ static int test_exclusive_minimum(const json_t *rule, const json_t *node)
 
 static int test_exclusive_maximum(const json_t *rule, const json_t *node)
 {
-    if ((rule->type != JSON_INTEGER) && (rule->type != JSON_REAL))
+    if (!(rule->type & JSON_NUMBER))
     {
         return SCHEMA_ERROR;
     }
-    if ((node->type != JSON_INTEGER) && (node->type != JSON_REAL))
+    if (!(node->type & JSON_NUMBER))
     {
         return SCHEMA_VALID;
     }
@@ -967,7 +965,7 @@ static unsigned add_type(const char *type, unsigned *mask)
     {
         if (!strcmp(type, types[item]))
         {
-            *mask |= (1u << (item + 1));
+            *mask |= 1u << item;
             return 1;
         }
     }
@@ -1000,9 +998,9 @@ static int test_type(const json_t *rule, const json_t *node)
     }
     return
         /* Reduce JSON_FALSE and JSON_NULL in order to match 'type' offsets */
-        (mask & (1u << (node->type < JSON_FALSE ? node->type : node->type - 1))) ||
+        (mask & (node->type < JSON_FALSE ? node->type : node->type >> 1u)) ||
         /* 'integer' validates as true when 'type' is 'number' */
-        ((mask & (1u << JSON_REAL)) && (node->type == JSON_INTEGER));
+        ((mask & JSON_REAL) && (node->type == JSON_INTEGER));
 }
 
 static int test_ref(const schema_t *schema, const json_t *rule, const json_t *node,
