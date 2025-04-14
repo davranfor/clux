@@ -216,7 +216,6 @@ enum
 enum
 {
     SCHEMA_FAILURE = ~SCHEMA_INVALID,
-    SCHEMA_SUCCESS = ~SCHEMA_VALID,
     SCHEMA_ABORTED = ~SCHEMA_ERROR
 };
 
@@ -1308,7 +1307,6 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 {
                     return SCHEMA_ERROR;
                 }
-                test = SCHEMA_VALID;
                 continue;
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
@@ -1446,9 +1444,6 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 break;
             case SCHEMA_FAILURE:
                 result = SCHEMA_INVALID;
-                break;
-            case SCHEMA_SUCCESS:
-                result = SCHEMA_VALID;
                 break;
             case SCHEMA_ABORTED:
                 return SCHEMA_ERROR;
