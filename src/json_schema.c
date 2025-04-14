@@ -1280,6 +1280,7 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     }
     return result;
 }
+
 static int test_x_query(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_OBJECT)
