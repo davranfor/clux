@@ -79,9 +79,9 @@ static int notify(const schema_t *schema, const json_t *rule, const json_t *node
                             : event == JSON_FAILURE;
 }
 
-static int notify_callback(const schema_t *schema, const json_t *rule, const json_t *node)
+static int abort_on_notify(const schema_t *schema, const json_t *rule, const json_t *node)
 {
-    return !notify(schema, rule, node, JSON_NOTIFY);
+    return notify(schema, rule, node, JSON_NOTIFY);
 }
 
 static int abort_on_warning(const schema_t *schema, const json_t *rule, const json_t *node)
@@ -281,6 +281,32 @@ static int get_test(const json_t *rule)
     }
 }
 
+static int test_false(const schema_t *schema, const json_t *rule, const json_t *parent,
+    unsigned child, int abortable)
+{
+    if (!abortable)
+    {
+        return SCHEMA_INVALID;
+    }
+    if (schema->active->paths++ < MAX_PATHS)
+    {
+        schema->active->path[schema->active->paths - 1] = child;
+    }
+
+    int result;
+
+    if (abort_on_failure(schema, rule, parent->child[child]))
+    {
+        result = SCHEMA_ERROR;
+    }
+    else
+    {
+        result = SCHEMA_INVALID;
+    }
+    schema->active->paths--;
+    return result;
+}
+
 static int test_child(const schema_t *schema, const json_t *rule, const json_t *parent,
     unsigned child, int abortable)
 {
@@ -311,7 +337,11 @@ static int test_properties(const schema_t *schema, const json_t *rule, const jso
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        if (rule->child[i]->type != JSON_OBJECT)
+        if (rule->child[i]->type == JSON_TRUE)
+        {
+            continue;
+        }
+        if (!(rule->child[i]->type & (JSON_OBJECT | JSON_FALSE)))
         {
             return SCHEMA_ERROR;
         }
@@ -322,7 +352,18 @@ static int test_properties(const schema_t *schema, const json_t *rule, const jso
         {
             continue;
         }
-        switch (test_child(schema, rule->child[i], node, index, abortable))
+
+        int test;
+
+        if (rule->child[i]->type == JSON_OBJECT)
+        {
+            test = test_child(schema, rule->child[i], node, index, abortable);
+        }
+        else
+        {
+            test = test_false(schema, rule->child[i], node, index, abortable);
+        }
+        switch (test)
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -354,7 +395,11 @@ static int test_pattern_properties(const schema_t *schema, const json_t *rule,
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        if (rule->child[i]->type != JSON_OBJECT)
+        if (rule->child[i]->type == JSON_TRUE)
+        {
+            continue;
+        }
+        if (!(rule->child[i]->type & (JSON_OBJECT | JSON_FALSE)))
         {
             return SCHEMA_ERROR;
         }
@@ -363,8 +408,27 @@ static int test_pattern_properties(const schema_t *schema, const json_t *rule,
             if (!test_regex(node->child[j]->key, rule->child[i]->key))
             {
                 continue;
-            };
-            switch (test_child(schema, rule->child[i], node, j, abortable))
+            }
+
+            int test;
+
+            if (rule->child[i]->type == JSON_FALSE)
+            {
+                const json_t note =
+                {
+                    .key = rule->key,
+                    .child = (json_t *[]){rule->child[i]},
+                    .size = 1,
+                    .type = JSON_OBJECT
+                };
+
+                test = test_false(schema, &note, node, j, abortable);
+            }
+            else
+            {
+                test = test_child(schema, rule->child[i], node, j, abortable);
+            }
+            switch (test)
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -417,32 +481,27 @@ static int test_additional_properties(const schema_t *schema, const json_t *pare
                 goto jump;
             }
         }
-        switch (rule->type)
+
+        int test;
+
+        if (rule->type == JSON_OBJECT)
         {
-            case JSON_FALSE:
+            test = test_child(schema, rule, node, i, abortable);
+        }
+        else
+        {
+            test = test_false(schema, rule, node, i, abortable);
+        }
+        switch (test)
+        {
+            case SCHEMA_ERROR:
+                return SCHEMA_ABORTED;
+            case SCHEMA_INVALID:
                 if (!abortable)
                 {
                     return SCHEMA_FAILURE;
                 }
-                if (abort_on_failure(schema, rule, node->child[i]))
-                {
-                    return SCHEMA_ABORTED;
-                }
                 result = SCHEMA_FAILURE;
-                break;
-            case JSON_OBJECT:
-                switch (test_child(schema, rule, node, i, abortable))
-                {
-                    case SCHEMA_ERROR:
-                        return SCHEMA_ABORTED;
-                    case SCHEMA_INVALID:
-                        if (!abortable)
-                        {
-                            return SCHEMA_FAILURE;
-                        }
-                        result = SCHEMA_FAILURE;
-                        break;
-                }
                 break;
         }
         jump:;
@@ -455,6 +514,14 @@ static int test_property_names(const schema_t *schema, const json_t *rule,
 {
     if (rule->type != JSON_OBJECT)
     {
+        if (rule->type == JSON_TRUE)
+        {
+            return SCHEMA_VALID;
+        }
+        if (rule->type == JSON_FALSE)
+        {
+            return !json_properties(node);
+        }
         return SCHEMA_ERROR;
     }
     if (node->type != JSON_OBJECT)
@@ -466,14 +533,14 @@ static int test_property_names(const schema_t *schema, const json_t *rule,
 
     for (unsigned i = 0; i < node->size; i++)
     {
-        const json_t note =
+        const json_t name =
         {
             .key = "propertyName",
             .string = node->child[i]->key,
             .type = JSON_STRING
         };
 
-        switch (validate(schema, rule, &note, abortable))
+        switch (validate(schema, rule, &name, abortable))
         {
             case SCHEMA_ERROR:
                 return SCHEMA_ABORTED;
@@ -552,7 +619,7 @@ static int test_dependencies(const schema_t *schema, const json_t *rule, const j
 
     for (unsigned i = 0; i < rule->size; i++)
     {
-        if (!json_is_iterable(rule->child[i]))
+        if (!(rule->child[i]->type & JSON_ITERABLE))
         {
             return SCHEMA_ERROR;
         }
@@ -644,8 +711,16 @@ static int test_max_properties(const json_t *rule, const json_t *node)
 static int test_items(const schema_t *schema, const json_t *rule, const json_t *node,
     int abortable)
 {
-    if ((rule->type != JSON_OBJECT) && (rule->type != JSON_ARRAY))
+    if (!(rule->type & JSON_ITERABLE))
     {
+        if (rule->type == JSON_TRUE)
+        {
+            return SCHEMA_VALID;
+        }
+        if (rule->type == JSON_FALSE)
+        {
+            return !json_items(node);
+        }
         return SCHEMA_ERROR;
     }
     if (node->type != JSON_ARRAY)
@@ -677,11 +752,21 @@ static int test_items(const schema_t *schema, const json_t *rule, const json_t *
     {
         for (unsigned i = 0; (i < rule->size) && (i < node->size); i++)
         {
-            if (rule->child[i]->type != JSON_OBJECT)
+            int test = SCHEMA_VALID;
+
+            if (rule->child[i]->type == JSON_OBJECT)
+            {
+                test = test_child(schema, rule->child[i], node, i, abortable);
+            }
+            else if (rule->child[i]->type == JSON_FALSE)
+            {
+                test = test_false(schema, rule->child[i], node, i, abortable);
+            }
+            else if (rule->child[i]->type != JSON_TRUE)
             {
                 return SCHEMA_ERROR;
             }
-            switch (test_child(schema, rule->child[i], node, i, abortable))
+            switch (test)
             {
                 case SCHEMA_ERROR:
                     return SCHEMA_ABORTED;
@@ -764,6 +849,14 @@ static int test_contains(const schema_t *schema, const json_t *rule, const json_
 {
     if (rule->type != JSON_OBJECT)
     {
+        if (rule->type == JSON_TRUE)
+        {
+            return SCHEMA_VALID;
+        }
+        if (rule->type == JSON_FALSE)
+        {
+            return !json_items(node);
+        }
         return SCHEMA_ERROR;
     }
     if (node->type != JSON_ARRAY)
@@ -1069,6 +1162,14 @@ static int test_not(const schema_t *schema, const json_t *rule, const json_t *no
 {
     if (rule->type != JSON_OBJECT)
     {
+        if (rule->type == JSON_TRUE)
+        {
+            return SCHEMA_INVALID;
+        }
+        if (rule->type == JSON_FALSE)
+        {
+            return SCHEMA_VALID;
+        }
         return SCHEMA_ERROR;
     }
  
@@ -1163,7 +1264,7 @@ static int test_if(const schema_t *schema, const json_t *parent, unsigned *child
     unsigned index = *child;
     const json_t *rule = parent->child[index];
 
-    if (rule->type != JSON_OBJECT)
+    if (!(rule->type & (JSON_OBJECT | JSON_BOOLEAN)))
     {
         return SCHEMA_ERROR;
     }
@@ -1183,13 +1284,15 @@ static int test_if(const schema_t *schema, const json_t *parent, unsigned *child
     {
         return SCHEMA_VALID;
     }
-    if (next->type != JSON_OBJECT)
+    if (!(next->type & (JSON_OBJECT | JSON_BOOLEAN)))
     {
         *child += 1;
         return SCHEMA_ERROR;
     }
 
-    int result = validate(schema, rule, node, NOT_ABORTABLE);
+    int result = rule->type == JSON_OBJECT
+        ? validate(schema, rule, node, NOT_ABORTABLE)
+        : rule->type == JSON_TRUE;
 
     if (result == SCHEMA_ERROR)
     {
@@ -1208,19 +1311,30 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     unsigned index = *child;
     const json_t *rule = parent->child[index];
 
-    if (rule->type != JSON_OBJECT)
+
+    int result = SCHEMA_VALID;
+
+    if (rule->type == JSON_OBJECT)
+    {
+        result = validate(schema, rule, node, abortable);
+    }
+    else if (rule->type == JSON_FALSE)
+    {
+        result = abortable && abort_on_failure(schema, rule, node) 
+            ? SCHEMA_ERROR
+            : SCHEMA_INVALID;
+    }
+    else if (rule->type != JSON_TRUE)
     {
         return SCHEMA_ERROR;
     }
-
-    int result = validate(schema, rule, node, abortable);
-
     switch (result)
     {
         case SCHEMA_ERROR:
             return SCHEMA_ABORTED;
         case SCHEMA_INVALID:
             result = SCHEMA_FAILURE;
+            break;
     }
     if (parent->size > index + 1)
     {
@@ -1239,7 +1353,7 @@ static int test_x_query(const schema_t *schema, const json_t *rule, const json_t
     {
         return SCHEMA_ERROR;
     }
-    return notify_callback(schema, rule, node);
+    return !abort_on_notify(schema, rule, node);
 }
 
 static int validate(const schema_t *schema, const json_t *rule, const json_t *node,
@@ -1419,7 +1533,7 @@ int json_validate(const json_t *rule, const json_t *node, const map_t *map,
         .active = &active
     };
 
-    if ((rule == NULL) || (rule->type != JSON_OBJECT) || (node == NULL))
+    if ((rule == NULL) || !(rule->type & (JSON_OBJECT | JSON_TRUE)) || (node == NULL))
     {
         return SCHEMA_INVALID;
     }
