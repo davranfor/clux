@@ -209,15 +209,8 @@ typedef struct test { const char *key; struct test *next; } test_t;
 #define TEST_ENUM(a, b) a,
 enum
 {
-    SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING, SCHEMA_ERROR,
+    SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING, SCHEMA_ERROR, SCHEMA_ABORTED,
     TESTS, TEST(TEST_ENUM) NTESTS
-};
-
-enum
- {
-    SCHEMA_FAILURE = ~SCHEMA_INVALID,
-    SCHEMA_SUCCESS = ~SCHEMA_VALID,
-    SCHEMA_ABORTED = ~SCHEMA_ERROR
 };
 
 #define TEST_KEY(a, b) {.key = b},
@@ -303,7 +296,7 @@ static int test_false(const schema_t *schema, const json_t *rule, const json_t *
     }
     else
     {
-        result = !abortable ? SCHEMA_FAILURE : SCHEMA_INVALID;
+        result = SCHEMA_INVALID;
     }
     schema->active->paths--;
     return result;
@@ -320,7 +313,7 @@ static int test_child(const schema_t *schema, const json_t *rule, const json_t *
     int result = validate(schema, rule, parent->child[child], abortable);
 
     schema->active->paths--;
-    return result = !abortable && (result == SCHEMA_INVALID) ? SCHEMA_FAILURE : result;
+    return result;
 }
 
 static int test_properties(const schema_t *schema, const json_t *rule, const json_t *node,
@@ -371,7 +364,7 @@ static int test_properties(const schema_t *schema, const json_t *rule, const jso
         }
         result &= test;
     }
-    return result;
+    return result ? result : SCHEMA_ABORTED;
 }
 
 static int test_pattern_properties(const schema_t *schema, const json_t *rule,
@@ -820,9 +813,9 @@ static int test_contains(const schema_t *schema, const json_t *rule, const json_
     {
         int test = test_child(schema, rule, node, i, NOT_ABORTABLE);
 
-        if (test == SCHEMA_VALID)
+        if (test != SCHEMA_INVALID)
         {
-            return SCHEMA_VALID;
+            return test;
         }
     }
     return SCHEMA_INVALID;
@@ -1314,22 +1307,22 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 return SCHEMA_ERROR;
             // Validate object related tests
             case SCHEMA_PROPERTIES:
-                test = ~test_properties(schema, rule->child[i], node, abortable);
+                test = test_properties(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_PATTERN_PROPERTIES:
-                test = ~test_pattern_properties(schema, rule->child[i], node, abortable);
+                test = test_pattern_properties(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_ADDITIONAL_PROPERTIES:
-                test = ~test_additional_properties(schema, rule, rule->child[i], node, abortable);
+                test = test_additional_properties(schema, rule, rule->child[i], node, abortable);
                 break;
             case SCHEMA_PROPERTY_NAMES:
-                test = ~test_property_names(schema, rule->child[i], node, abortable);
+                test = test_property_names(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_REQUIRED:
-                test = ~test_required(schema, rule->child[i], node, abortable);
+                test = test_required(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_DEPENDENCIES:
-                test = ~test_dependencies(schema, rule->child[i], node, abortable);
+                test = test_dependencies(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_MIN_PROPERTIES:
                 test = test_min_properties(rule->child[i], node);
@@ -1339,10 +1332,10 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 break;
             // Validate array related tests
             case SCHEMA_ITEMS:
-                test = ~test_items(schema, rule->child[i], node, abortable);
+                test = test_items(schema, rule->child[i], node, abortable);
                 break;
             case SCHEMA_ADDITIONAL_ITEMS:
-                test = ~test_additional_items(schema, rule, rule->child[i], node, abortable);
+                test = test_additional_items(schema, rule, rule->child[i], node, abortable);
                 break;
             case SCHEMA_UNIQUE_ITEMS:
                 test = test_unique_items(rule->child[i], node);
@@ -1400,7 +1393,7 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 break;
             // Validate references
             case SCHEMA_REF:
-                test = ~test_ref(schema, rule->child[i], node, abortable);
+                test = test_ref(schema, rule->child[i], node, abortable);
                 break;
             // Validate special case 'not'
             case SCHEMA_NOT:
@@ -1422,7 +1415,7 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 break;
             case SCHEMA_THEN:
             case SCHEMA_ELSE:
-                test = ~test_branch(schema, rule, &i, node, abortable);
+                test = test_branch(schema, rule, &i, node, abortable);
                 break;
             // Notification to user-callback (extension)
             case SCHEMA_X_QUERY:
@@ -1439,18 +1432,15 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
             case SCHEMA_INVALID:
                 if (abortable && abort_on_failure(schema, rule->child[i], node))
                 {
+puts("error");
                     return SCHEMA_ERROR;
                 }
+puts("invalid");
                 result = SCHEMA_INVALID;
-                break;
-            case SCHEMA_FAILURE:
-                result = SCHEMA_INVALID;
-                break;
-            case SCHEMA_SUCCESS:
-                result = SCHEMA_VALID;
                 break;
             case SCHEMA_ABORTED:
-                return SCHEMA_ERROR;
+puts("aborted");
+                return SCHEMA_ABORTED;
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
                 return SCHEMA_ERROR;
@@ -1476,4 +1466,5 @@ int json_validate(const json_t *rule, const json_t *node, const map_t *map,
     }
     return validate(&schema, rule, node, ABORTABLE) == SCHEMA_VALID;
 }
+
 
