@@ -1311,7 +1311,7 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 continue;
             case SCHEMA_ERROR:
                 raise_error(schema, rule->child[i], node);
-                return SCHEMA_ERROR;
+                return SCHEMA_ABORT;
             // Validate object related tests
             case SCHEMA_PROPERTIES:
                 test = test_properties(schema, rule->child[i], node, abortable);
