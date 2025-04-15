@@ -1093,7 +1093,7 @@ static int test_ref(const schema_t *schema, const json_t *rule, const json_t *no
         };
 
         raise_error(schema, &note, node);
-        return SCHEMA_ERROR;
+        return SCHEMA_ABORT;
     }
 
     int result = validate(schema, rule, node, abortable);
