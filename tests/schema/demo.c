@@ -42,8 +42,9 @@ static int on_failure(const json_event_t *event, buffer_t *buffer)
 
 static int on_error(const json_t *rule, buffer_t *buffer)
 {
-    buffer_write(buffer, "Aborted: Malformed schema\n");
-    json_write_line(rule, stderr);
+    buffer_write(buffer, "Rule: ");
+    json_buffer_encode_max(buffer, rule, 0, ENCODE_MAX);
+    buffer_write(buffer, "\nAborted: Malformed schema\n");
     return STOP;
 }
 

@@ -1269,6 +1269,10 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     {
         return SCHEMA_ERROR;
     }
+    if (result == SCHEMA_ABORT)
+    {
+        return SCHEMA_ABORT;
+    }
     if (parent->size > index + 1)
     {
         // Skip next branch if is 'else' or 'then' 
