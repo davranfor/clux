@@ -311,7 +311,11 @@ static int test_valid(const schema_t *schema, const json_t *rule, const json_t *
 {
     int result = validate(schema, rule, node, abortable);
 
-    return !abortable && (result == SCHEMA_INVALID) ? ~SCHEMA_INVALID : result;
+    if (!abortable && (result == SCHEMA_INVALID))
+    {
+        return ~SCHEMA_INVALID;
+    }
+    return result;
 }
 
 static int test_child(const schema_t *schema, const json_t *rule, const json_t *parent,
@@ -322,8 +326,12 @@ static int test_child(const schema_t *schema, const json_t *rule, const json_t *
         schema->active->path[schema->active->paths - 1] = child;
     }
 
-    int result = test_valid(schema, rule, parent->child[child], abortable);
+    int result = validate(schema, rule, parent->child[child], abortable);
 
+    if (!abortable && (result == SCHEMA_INVALID))
+    {
+        result = ~SCHEMA_INVALID;
+    }
     schema->active->paths--;
     return result;
 }
