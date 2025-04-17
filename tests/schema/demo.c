@@ -40,11 +40,10 @@ static int on_failure(const json_event_t *event, buffer_t *buffer)
     return CONTINUE;
 }
 
-static int on_error(const json_t *rule, buffer_t *buffer)
+static int on_error(const json_t *rule)
 {
-    buffer_write(buffer, "Rule: ");
-    json_buffer_encode_max(buffer, rule, 0, ENCODE_MAX);
-    buffer_write(buffer, "\nAborted: Malformed schema\n");
+    fprintf(stderr, "Aborted: Malformed schema\n");
+    json_write_line(rule, stderr);
     return STOP;
 }
 
@@ -59,7 +58,7 @@ static int on_validate(const json_event_t *event, void *buffer)
         case JSON_FAILURE:
             return on_failure(event, buffer);
         case JSON_ERROR:
-            return on_error(event->rule, buffer);
+            return on_error(event->rule);
     }
     return STOP;
 }

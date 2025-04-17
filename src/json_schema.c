@@ -210,10 +210,8 @@ typedef struct test { const char *key; struct test *next; } test_t;
 enum
 {
     SCHEMA_INVALID, SCHEMA_VALID, SCHEMA_WARNING, SCHEMA_ERROR,
-    TESTS, TEST(TEST_ENUM) NTESTS
+    TESTS, TEST(TEST_ENUM) NTESTS, SCHEMA_ABORT = ~SCHEMA_ERROR
 };
-
-enum {SCHEMA_ABORT = ~SCHEMA_ERROR};
 
 #define TEST_KEY(a, b) {.key = b},
 static test_t tests[] = {TEST(TEST_KEY)};
