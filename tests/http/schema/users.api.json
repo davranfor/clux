@@ -5,7 +5,7 @@
   "definitions": {
     "pathArray": {
       "type": "array",
-      "items": [{}, { "type": "string", "mask": "09999" }],
+      "items": [{}, { "type": "string", "x-mask": "09999" }],
       "additionalItems": false
     }
   },
@@ -13,14 +13,14 @@
     "GET": {
       "properties": {
         "path": { "$ref": "#/definitions/pathArray" },
-        "parameters": { "type": "null" },
+        "query": { "type": "null" },
         "content": { "type": "null" }
       }
     },
     "POST": {
       "properties": {
         "path": { "type": "array", "minItems": 1, "maxItems": 1 },
-        "parameters": { "type": "null" },
+        "query": { "type": "null" },
         "content": {
             "$ref": "/users.schema/definitions/content",
             "$ref": "/users.schema/definitions/contentRequired"
@@ -30,7 +30,7 @@
     "PUT": {
       "properties": {
         "path": { "$ref": "#/definitions/pathArray" },
-        "parameters": { "type": "null" },
+        "query": { "type": "null" },
         "content": {
             "$ref": "/users.schema/definitions/content",
             "$ref": "/users.schema/definitions/contentRequired"
@@ -40,7 +40,7 @@
     "PATCH": {
       "properties": {
         "path": { "$ref": "#/definitions/pathArray" },
-        "parameters": { "type": "null" },
+        "query": { "type": "null" },
         "content": {
             "$ref": "/users.schema/definitions/content",
             "minProperties": 1
@@ -50,7 +50,7 @@
     "DELETE": {
       "properties": {
         "path": { "$ref": "#/definitions/pathArray" },
-        "parameters": { "type": "null" },
+        "query": { "type": "null" },
         "content": { "type": "null" }
       }
     }

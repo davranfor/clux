@@ -15,7 +15,7 @@
 
 #define CHILD_SIZE 8
 
-typedef struct { char *method, *path, *parameters, *content; } request_t;
+typedef struct { char *method, *path, *query, *content; } request_t;
 
 static int parse_static(request_t *request, char *str)
 {
@@ -75,10 +75,10 @@ static int parse_headers(request_t *request, char *str)
             *end = '\0';
             request->method = str;
             request->path = path;
-            request->parameters = strchr(path, '?');
-            if (request->parameters != NULL)
+            request->query = strchr(path, '?');
+            if (request->query != NULL)
             {
-                *request->parameters++ = '\0';
+                *request->query++ = '\0';
             }
             return 1;
         }
@@ -109,7 +109,7 @@ static int parse_path(json_t *parent, json_t *child, char *str)
     return *str == '\0';
 }
 
-static int decode_parameters(json_t *parameters, char *str)
+static int decode_query(json_t *query, char *str)
 {
     char *key = str, *ptr = str;
     unsigned size = 0;
@@ -131,19 +131,19 @@ static int decode_parameters(json_t *parameters, char *str)
         }
         else if (str[0] == '=')
         {
-            if (parameters[size].key != NULL)
+            if (query[size].key != NULL)
             {
                 return 0;
             }
-            parameters[size].key = key;
-            parameters[size].string = ptr + 1;
-            parameters[size].type = JSON_STRING;
+            query[size].key = key;
+            query[size].string = ptr + 1;
+            query[size].type = JSON_STRING;
             *ptr++ = '\0';
             str++;
         }
         else if (str[0] == '&')
         {
-            if (parameters[size++].key == NULL)
+            if (query[size++].key == NULL)
             {
                 return 0;
             }
@@ -153,7 +153,7 @@ static int decode_parameters(json_t *parameters, char *str)
         }
         else if (str[0] == '\0')
         {
-            if (parameters[size++].key == NULL)
+            if (query[size++].key == NULL)
             {
                 return 0;
             }
@@ -168,7 +168,7 @@ static int decode_parameters(json_t *parameters, char *str)
     return 0;
 }
 
-static int parse_parameters(json_t *parent, json_t *child, char *str)
+static int parse_query(json_t *parent, json_t *child, char *str)
 {
     if (str == NULL)
     {
@@ -176,7 +176,7 @@ static int parse_parameters(json_t *parent, json_t *child, char *str)
         parent->type = JSON_NULL;
         return 1;
     }
-    if (!decode_parameters(child, str))
+    if (!decode_query(child, str))
     {
         return 0;
     }
@@ -207,7 +207,7 @@ const buffer_t *parser_handle(char *message)
             return static_bad_request();
     }
 
-    json_t path[CHILD_SIZE] = {0}, parameters[CHILD_SIZE] = {0};
+    json_t path[CHILD_SIZE] = {0}, query[CHILD_SIZE] = {0};
     json_t node[] =
     {
         {
@@ -216,7 +216,7 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_ARRAY
         },
         {
-            .key = "parameters",
+            .key = "query",
             .child = (json_t *[CHILD_SIZE]){0},
             .type = JSON_OBJECT
         },
@@ -228,7 +228,7 @@ const buffer_t *parser_handle(char *message)
     };
 
     if (!parse_path(&node[0], path, request.path) ||
-        !parse_parameters(&node[1], parameters, request.parameters))
+        !parse_query(&node[1], query, request.query))
     {
         return static_bad_request();
     }
