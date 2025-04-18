@@ -153,7 +153,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
  * https://json-schema.org/draft-07/schema
  * ------------------------------------------------------------------
  * NOTE: x-mask is an extension intended to avoid expensive regexp's
- *       x-query is an extension delegating the rule to the callback
+ *       x-notify is an extension delegating the rule to the callback
  */
 #define TEST(_)                                                     \
     _(SCHEMA_ADDITIONAL_ITEMS,          "additionalItems")          \
@@ -204,7 +204,7 @@ typedef struct test { const char *key; struct test *next; } test_t;
     _(SCHEMA_UNIQUE_ITEMS,              "uniqueItems")              \
     _(SCHEMA_WRITE_ONLY,                "writeOnly")                \
     _(SCHEMA_X_MASK,                    "x-mask")                   \
-    _(SCHEMA_X_QUERY,                   "x-query")
+    _(SCHEMA_X_NOTIFY,                  "x-notify")
 
 #define TEST_ENUM(a, b) a,
 enum
@@ -1291,7 +1291,7 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     return ~result;
 }
 
-static int test_x_query(const schema_t *schema, const json_t *rule, const json_t *node)
+static int test_x_notify(const schema_t *schema, const json_t *rule, const json_t *node)
 {
     if (rule->type != JSON_OBJECT)
     {
@@ -1435,8 +1435,8 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
                 test = test_branch(schema, rule, &i, node, abortable);
                 break;
             // Notification to user-callback (extension)
-            case SCHEMA_X_QUERY:
-                test = test_x_query(schema, rule->child[i], node);
+            case SCHEMA_X_NOTIFY:
+                test = test_x_notify(schema, rule->child[i], node);
                 break;
             // Rule not handled (shouldn't get here)
             default:
