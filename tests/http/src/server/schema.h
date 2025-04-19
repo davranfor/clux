@@ -14,7 +14,7 @@ void schema_load(void);
 void schema_reload(void);
 int schema_add(const char *);
 const json_t *schema_get(const char *);
-int schema_validate(const json_t *, const json_t *, buffer_t *);
+int schema_validate(const json_t *, const json_t *, buffer_t *, const char *);
 
 #endif
 

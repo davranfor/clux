@@ -88,7 +88,7 @@ void writer_reload(void)
     load();
 }
 
-static int validate(const json_t *rules, json_t *request)
+static int validate(const json_t *rules, json_t *request, const char *path)
 {
     unsigned content_id = json_index(request, "content");
     json_t *content = request->child[content_id];
@@ -121,7 +121,7 @@ static int validate(const json_t *rules, json_t *request)
         .size = 1
     };
 
-    int rc = schema_validate(rules, &entry, &buffer);
+    int rc = schema_validate(rules, &entry, &buffer, path);
 
     request->child[content_id] = content;
     json_free(node);
@@ -299,11 +299,45 @@ static int api_handle(json_t *request)
     }
 }
 
+static const buffer_t *write_header(int result)
+{
+    const char *code, *type;
+    char headers[128];
+
+    switch (result)
+    {
+        case HTTP_OK:
+            code = http_ok;
+            type = "application/json";
+            break;
+        case HTTP_CREATED:
+            code = http_created;
+            type = "application/json";
+            break;
+        case HTTP_NOT_FOUND:
+            code = http_not_found;
+            type = "text/plain";
+            break;
+        case HTTP_SERVER_ERROR:
+            code = http_server_error;
+            type = "text/plain";
+            break;
+        default:
+            code = http_bad_request;
+            type = "text/plain";
+            break;
+    }
+    snprintf(headers, sizeof headers, code, type, buffer.length);
+    buffer_insert(&buffer, 0, headers, strlen(headers));
+    return buffer.length ? &buffer : NULL;
+}
+
 const buffer_t *writer_handle(json_t *request)
 {
     json_print(request);
 
-    const json_t *schema = schema_get(json_text(json_head(json_find(request, "path"))));
+    const char *path = json_text(json_head(json_find(request, "path"))); 
+    const json_t *schema = schema_get(path);
 
     if (schema == NULL)
     {
@@ -311,35 +345,19 @@ const buffer_t *writer_handle(json_t *request)
     }
     /* Validate request */
     buffer_reset(&buffer);
-    if (!validate(schema, request))
-    {
-        char headers[128];
 
-        snprintf(headers, sizeof headers, http_bad_request, "text/plain", buffer.length);
-        buffer_insert(&buffer, 0, headers, strlen(headers));
-        return buffer.length ? &buffer : NULL;
+    int result = validate(schema, request, path);
+
+    if (result != HTTP_OK)
+    {
+        return write_header(result);
     }
     /* Apply db request */
     buffer_reset(&buffer);
-
-    int result = api_handle(request);
-
+    result = api_handle(request);
     if (result != HTTP_NO_CONTENT)
     {
-        const char *status = "application/json";
-        const char *type = NULL;
-        char headers[128];
-
-        switch (result)
-        {
-            case HTTP_OK: type = http_ok; break;
-            case HTTP_CREATED: type = http_created; break;
-            case HTTP_NOT_FOUND: type = http_not_found; break;
-            default: status = "text/plain", type = http_bad_request; break;
-        }
-        snprintf(headers, sizeof headers, type, status, buffer.length);
-        buffer_insert(&buffer, 0, headers, strlen(headers));
-        return buffer.length ? &buffer : NULL;
+        return write_header(result);
     }
     return static_no_content();
 }

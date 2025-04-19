@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <clux/clib.h>
 #include <clux/json.h>
+#include "headers.h"
 #include "schema.h"
 
 static map_t *map;
@@ -92,66 +93,71 @@ const json_t *schema_get(const char *id)
 #define BUFFER_LIMIT 4096   // Don't write to buffer after this limit
 #define ENCODE_MAX 128      // Max length of an event line
 
+typedef struct { buffer_t *buffer; const char *path; int result; } context_t;
 enum {CONTINUE, STOP};
 
-static int on_notify(const json_t *rule)
+static int on_notify(const json_t *rule, const context_t *context)
 {
-    printf("Notification:\n");
+    printf("Notification: Schema '%s' says:\n", context->path);
     json_print(rule);
     return CONTINUE;
 }
 
-static int on_warning(const json_t *rule)
+static int on_warning(const json_t *rule, const context_t *context)
 {
-    fprintf(stderr, "Warning: Unknow rule '%s'\n", json_name(rule));
+    fprintf(stderr, "Warning: Unknow rule '%s' at schema '%s'\n",
+        json_name(rule), context->path);
     return CONTINUE;
 }
 
-static int on_failure(const json_event_t *event, buffer_t *buffer)
+static int on_failure(const json_event_t *event, context_t *context)
 {
-    if (buffer->length > BUFFER_LIMIT)
+    if (context->buffer->length > BUFFER_LIMIT)
     {
-        buffer_write(buffer, "...\n");
+        buffer_write(context->buffer, "...\n");
         return STOP;
     }
-    if (!json_write_event(buffer, event, ENCODE_MAX))
+    if (!json_write_event(context->buffer, event, ENCODE_MAX))
     {
         return STOP;
     }
     return CONTINUE;
 }
 
-static int on_error(const json_t *rule, buffer_t *buffer)
+static int on_error(const json_t *rule, context_t *context)
 {
-    buffer_write(buffer, "Internal Server Error\n");
-    fprintf(stderr, "Aborted: Malformed schema\n"); 
+    fprintf(stderr, "Aborted: Malformed schema '%s'\n", context->path); 
     json_write_line(rule, stderr);
+    buffer_format(context->buffer, "Malformed schema '%s'", context->path);
+    context->result = HTTP_SERVER_ERROR;
     return STOP;
 }
 
-static int on_validate(const json_event_t *event, void *buffer)
+static int on_validate(const json_event_t *event, void *context)
 {
     switch (event->type)
     {
         case JSON_NOTIFY:
-            return on_notify(event->rule);
+            return on_notify(event->rule, context);
         case JSON_WARNING:
-            return on_warning(event->rule);
+            return on_warning(event->rule, context);
         case JSON_FAILURE:
-            return on_failure(event, buffer);
+            return on_failure(event, context);
         case JSON_ERROR:
-            return on_error(event->rule, buffer);
+            return on_error(event->rule, context);
     }
     return STOP;
 }
 
-int schema_validate(const json_t *rules, const json_t *entry, buffer_t *buffer)
+int schema_validate(const json_t *rules, const json_t *entry, buffer_t *buffer,
+    const char *path)
 {
-    if (!json_validate(rules, entry, map, on_validate, buffer))
+    context_t context = {buffer, path, 0};
+
+    if (!json_validate(rules, entry, map, on_validate, &context))
     {
-        fprintf(stderr, "Doesn't validate against schema\n");
-        return 0;
+        return context.result;
     }
-    return 1;
+    return HTTP_OK;
 }
 

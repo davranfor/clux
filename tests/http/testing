@@ -1,6 +1,6 @@
 #!/bin/bash
 
 curl -vX POST -H "Content-Type: application/json" \
-     -d '{"name": "Pascu Ponce", "email": "pponce@gmail.com"}' \
+     -d '{"name": "David Ranieri", "email": "davranfor@gmail.com"}' \
      http://localhost:1234/api/users -w "\n"
 
