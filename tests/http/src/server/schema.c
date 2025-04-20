@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <clux/clib.h>
 #include <clux/json.h>
+#include <clux/json_private.h>
 #include "headers.h"
 #include "schema.h"
 
@@ -96,13 +97,6 @@ const json_t *schema_get(const char *id)
 typedef struct { buffer_t *buffer; const char *path; int result; } context_t;
 enum {CONTINUE, STOP};
 
-static int on_notify(const json_t *rule, const context_t *context)
-{
-    printf("Notification: Schema '%s' says:\n", context->path);
-    json_print(rule);
-    return CONTINUE;
-}
-
 static int on_warning(const json_t *rule, const context_t *context)
 {
     fprintf(stderr, "Warning: Unknow rule '%s' at schema '%s'\n",
@@ -133,12 +127,35 @@ static int on_error(const json_t *rule, context_t *context)
     return STOP;
 }
 
+static int set_path(json_t *node, const json_t *path)
+{
+    if ((node == NULL) || (node->type != JSON_STRING) ||
+        (path == NULL) || (path->type != JSON_STRING))
+    {
+        return 0;
+    }
+    node->string = path->string;
+    return 1;
+}
+
+static int on_notify(const json_event_t *event, context_t *context)
+{
+    const json_t *path = json_find(event->rule, "path");
+
+    if (!set_path(json_head(json_find(event->node, "path")), path))
+    {
+        return on_error(event->rule, context);
+    }
+    json_print(event->node);
+    return CONTINUE;
+}
+
 static int on_validate(const json_event_t *event, void *context)
 {
     switch (event->type)
     {
         case JSON_NOTIFY:
-            return on_notify(event->rule, context);
+            return on_notify(event, context);
         case JSON_WARNING:
             return on_warning(event->rule, context);
         case JSON_FAILURE:

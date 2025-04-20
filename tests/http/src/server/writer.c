@@ -155,6 +155,14 @@ static const char *encode(const json_t *node)
 }
 */
 
+static const char *get_sql(const json_t *request, const char *method)
+{
+    const json_t *section = json_find(sections, method);
+    const char *path = json_text(json_head(json_find(request, "path")));
+
+    return json_string(json_find(section, path));
+}
+
 static int api_get(const json_t *request)
 {
 /*
@@ -168,8 +176,19 @@ static int api_get(const json_t *request)
 
 static int api_post(const json_t *request)
 {
-    const char *sql = json_text(json_pointer(sections, "/POST/~1users/default"));
-    const char *content = json_text(json_find(request, "content"));
+    const char *content = json_string(json_find(request, "content"));
+    const char *sql = get_sql(request, "POST");
+
+    if ((content == NULL) || (sql == NULL))
+    {
+        const char *error = "Query can't be performed";
+
+        json_write_line(request, stderr);
+        fprintf(stderr, "%s\n", error);
+        buffer_write(&buffer, error);
+        return HTTP_SERVER_ERROR;
+    }
+
     sqlite3_stmt *stmt;
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
