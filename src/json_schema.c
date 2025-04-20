@@ -1293,11 +1293,11 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
 
 static int test_x_notify(const schema_t *schema, const json_t *rule, const json_t *node)
 {
-    if (rule->type != JSON_OBJECT)
+    if ((rule->type != JSON_OBJECT) || abort_on_notify(schema, rule, node))
     {
         return SCHEMA_ERROR;
     }
-    return !abort_on_notify(schema, rule, node);
+    return SCHEMA_VALID;
 }
 
 static int validate(const schema_t *schema, const json_t *rule, const json_t *node,

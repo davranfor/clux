@@ -18,19 +18,22 @@
       }
     },
     "POST": {
-      "anyOf": [
-        {
+      "if": {
           "properties": {
             "path": { "type": "array", "minItems": 1, "maxItems": 1 },
-            "query": { "type": "null" },
-            "content": {
-                "$ref": "/users.schema/definitions/content",
-                "$ref": "/users.schema/definitions/contentRequired"
-            }
-          },
-          "x-notify": { "path": "users.default" }
+            "query": { "type": "null" }
+          }
+      },
+      "then": {
+        "x-notify": { "path": "users.default" },
+        "properties": {
+          "content": {
+            "$ref": "/users.schema/definitions/content",
+            "$ref": "/users.schema/definitions/contentRequired"
+          }
         }
-      ]
+      },
+      "else": false
     },
     "PUT": {
       "properties": {
