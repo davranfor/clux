@@ -152,17 +152,18 @@ static enum method get_method(const char *message)
     return method;
 }
 
-static const char *get_sql(const json_t *request, const char *method)
+static const char *get_sql(const char *method, const json_t *path)
 {
     const json_t *section = json_find(sections, method);
-    char *path = json_text(json_head(json_find(request, "path")));
+    char *key = json_text(json_head(path));
 
-    return json_string(json_search(section, &(json_t){.key = path}, NULL));
+    return json_string(json_search(section, &(json_t){.key = key}, NULL));
 }
 
 static int api_get(const json_t *request)
 {
-    const char *sql = get_sql(request, "GET");
+    const json_t *path = json_find(request, "path");
+    const char *sql = get_sql("GET", path);
 
     if (sql == NULL)
     {
@@ -183,7 +184,6 @@ static int api_get(const json_t *request)
         return HTTP_BAD_REQUEST;
     }
 
-    const json_t *path = json_find(request, "path"); 
     int size = (int)json_size(path);
 
     for (int i = 1; i < size; i++)
@@ -221,8 +221,9 @@ static int api_get(const json_t *request)
 
 static int api_post(const json_t *request)
 {
+    const json_t *path = json_find(request, "path");
     const char *content = json_string(json_find(request, "content"));
-    const char *sql = get_sql(request, "POST");
+    const char *sql = get_sql("POST", path);
 
     if ((content == NULL) || (sql == NULL))
     {
