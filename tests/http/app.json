@@ -4,6 +4,9 @@
   ],
   "POST": {
     "users.default": "INSERT INTO users (name, email) SELECT json_extract(?1, '$.name'), json_extract(?1, '$.email');"
+  },
+  "GET": {
+    "users.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = ?;"
   }
 }
 

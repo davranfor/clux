@@ -11,11 +11,16 @@
   },
   "properties": {
     "GET": {
-      "properties": {
-        "path": { "$ref": "#/definitions/pathArray" },
-        "query": { "type": "null" },
-        "content": { "type": "null" }
-      }
+      "if": {
+          "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "users.default" }
+      },
+      "then": true, 
+      "else": false
     },
     "POST": {
       "if": {
