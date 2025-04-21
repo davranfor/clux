@@ -11,7 +11,7 @@
 #include "json_private.h"
 #include "json_reader.h"
 
-const char *json_key(const json_t *node)
+char *json_key(const json_t *node)
 {
     if ((node != NULL) && (node->key != NULL))
     {
@@ -20,7 +20,7 @@ const char *json_key(const json_t *node)
     return NULL;
 }
 
-const char *json_name(const json_t *node)
+char *json_name(const json_t *node)
 {
     if ((node != NULL) && (node->key != NULL))
     {
@@ -29,7 +29,7 @@ const char *json_name(const json_t *node)
     return "";
 }
 
-const char *json_string(const json_t *node)
+char *json_string(const json_t *node)
 {
     if ((node != NULL) && (node->type == JSON_STRING))
     {
@@ -38,7 +38,7 @@ const char *json_string(const json_t *node)
     return NULL;
 }
 
-const char *json_text(const json_t *node)
+char *json_text(const json_t *node)
 {
     if ((node != NULL) && (node->type == JSON_STRING))
     {

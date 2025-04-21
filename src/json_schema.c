@@ -1447,13 +1447,21 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
         switch (test)
         {
             case SCHEMA_INVALID:
-                if (abortable && abort_on_failure(schema, rule->child[i], node))
+                if (!abortable)
+                {
+                    return SCHEMA_INVALID;
+                }
+                if (abort_on_failure(schema, rule->child[i], node))
                 {
                     return SCHEMA_ABORT;
                 }
                 result = SCHEMA_INVALID;
                 break;
             case ~SCHEMA_INVALID:
+                if (!abortable)
+                {
+                    return SCHEMA_INVALID;
+                }
                 result = SCHEMA_INVALID;
                 break;
             case SCHEMA_ABORT:

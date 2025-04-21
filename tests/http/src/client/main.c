@@ -65,6 +65,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
     switch (method)
     {
         case POST:
+        case PUT:
         case PATCH:
             snprintf(body, sizeof body,
                 "{\"name\": \"%s\", \"email\": \"%s\"}",
@@ -72,16 +73,8 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
                 json_text(json_find(json_at(users, id), "email"))
             );
             break;
-        case PUT:
-            snprintf(body, sizeof body,
-                "{\"id\": %zu, \"name\": \"%s\", \"email\": \"%s\"}",
-                id,
-                json_text(json_find(json_at(users, id), "name")),
-                json_text(json_find(json_at(users, id), "email"))
-            ); 
-            break;
         default:
-            snprintf(body, sizeof body, "%s", "");
+            snprintf(body, sizeof body, "");
             break;
     }
     switch (method)

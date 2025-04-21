@@ -48,6 +48,10 @@ static void load_db(void)
             exit(EXIT_FAILURE);
         }
     }
+    for (unsigned i = 1; i < sections->size; i++)
+    {
+        json_sort(sections->child[i], NULL);
+    }
 }
 
 static void load(void)
@@ -148,28 +152,16 @@ static enum method get_method(const char *message)
     return method;
 }
 
-/*
-static const char *encode(const json_t *node)
-{
-    return json_buffer_encode(&buffer, node, 0);
-}
-*/
-
 static const char *get_sql(const json_t *request, const char *method)
 {
     const json_t *section = json_find(sections, method);
-    const char *path = json_text(json_head(json_find(request, "path")));
+    char *path = json_text(json_head(json_find(request, "path")));
 
-    return json_string(json_find(section, path));
+    return json_string(json_search(section, &(json_t){.key = path}, NULL));
 }
 
 static int api_get(const json_t *request)
 {
-/*
-    const char *path = json_string(json_find(request, "path"));
-
-    return encode(map_search(map, path));
-*/
     (void)request;
     return HTTP_NO_CONTENT;
 }
@@ -197,18 +189,12 @@ static int api_post(const json_t *request)
         buffer_write(&buffer, sqlite3_errmsg(db));
         return HTTP_BAD_REQUEST;
     }
-
-    int params = sqlite3_bind_parameter_count(stmt);
-
-    for (int i = 1; i <= params; i++)
+    if (sqlite3_bind_text(stmt, 1, content, -1, SQLITE_STATIC) != SQLITE_OK)
     {
-        if (sqlite3_bind_text(stmt, i, content, -1, SQLITE_STATIC) != SQLITE_OK)
-        {
-            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-            buffer_write(&buffer, sqlite3_errmsg(db));
-            sqlite3_finalize(stmt);
-            return HTTP_BAD_REQUEST;
-        }
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return HTTP_BAD_REQUEST;
     }
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
@@ -227,74 +213,18 @@ static int api_post(const json_t *request)
 
 static int api_put(const json_t *request)
 {
-/*
-    json_t *old = map_search(map, resource);
-
-    if (old == NULL)
-    {
-        return NULL;
-    }
-
-    json_t *new = json_parse(content, NULL);
-
-    if (!json_equal(json_find(new, "id"), json_find(old, "id")) ||
-        !map_update(map, resource, new))
-    {
-        json_delete(new);
-        return NULL;
-    }
-    json_delete(old);
-    return encode(new);
-*/
     (void)request;
     return HTTP_NO_CONTENT;
 }
 
 static int api_patch(json_t *request)
 {
-/*
-    json_t *target = map_search(map, resource);
-
-    if (target == NULL)
-    {
-        return NULL;
-    }
-
-    json_t *source = json_parse(content, NULL);
-
-    if (source == NULL)
-    {
-        return NULL;
-    }
-
-    size_t id = json_size_t(json_find(target, "id"));
-    int patch = json_patch(source, target);
-    char *str = NULL;
-
-    if ((patch == -1) || (json_size_t(json_find(target, "id")) != id))
-    {
-        json_unpatch(source, target, patch);
-    }
-    else
-    {
-        str = encode(target);
-    }
-    json_delete(source);
-    return str;
-*/
     (void)request;
     return HTTP_NO_CONTENT;
 }
 
 static int api_delete(json_t *request)
 {
-/*
-    json_t *node = map_delete(map, resource);
-    char *str = encode(node);
-
-    json_delete(node);
-    return str;
-*/
     (void)request;
     return HTTP_NO_CONTENT;
 }
@@ -318,12 +248,12 @@ static int api_handle(json_t *request)
     }
 }
 
-static const buffer_t *write_header(int result)
+static const buffer_t *response(int header)
 {
     const char *code, *type;
     char headers[128];
 
-    switch (result)
+    switch (header)
     {
         case HTTP_OK:
             code = http_ok;
@@ -369,14 +299,14 @@ const buffer_t *writer_handle(json_t *request)
 
     if (result != HTTP_OK)
     {
-        return write_header(result);
+        return response(result);
     }
     /* Apply db request */
     buffer_reset(&buffer);
     result = api_handle(request);
     if (result != HTTP_NO_CONTENT)
     {
-        return write_header(result);
+        return response(result);
     }
     return static_no_content();
 }

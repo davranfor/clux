@@ -3,7 +3,7 @@
     "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE);"
   ],
   "POST": {
-    "users.default": "INSERT INTO users (name, email) SELECT json_extract(?, '$.name'), json_extract(?, '$.email');"
+    "users.default": "INSERT INTO users (name, email) SELECT json_extract(?1, '$.name'), json_extract(?1, '$.email');"
   }
 }
 

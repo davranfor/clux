@@ -5,7 +5,7 @@
   "definitions": {
     "pathArray": {
       "type": "array",
-      "items": [{}, { "type": "string", "x-mask": "09999" }],
+      "items": [{}, { "x-mask": "09999" }],
       "additionalItems": false
     }
   },
@@ -20,12 +20,12 @@
     "POST": {
       "if": {
           "properties": {
-            "path": { "type": "array", "minItems": 1, "maxItems": 1 },
+            "path": { "minItems": 1, "maxItems": 1 },
             "query": { "type": "null" }
-          }
+          },
+          "x-notify": { "path": "users.default" }
       },
       "then": {
-        "x-notify": { "path": "users.default" },
         "properties": {
           "content": {
             "$ref": "/users.schema/definitions/content",
@@ -36,14 +36,22 @@
       "else": false
     },
     "PUT": {
-      "properties": {
-        "path": { "$ref": "#/definitions/pathArray" },
-        "query": { "type": "null" },
-        "content": {
+      "if": {
+          "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
+            "query": { "type": "null" }
+          },
+          "x-notify": { "path": "users.default" }
+      },
+      "then": {
+        "properties": {
+          "content": {
             "$ref": "/users.schema/definitions/content",
             "$ref": "/users.schema/definitions/contentRequired"
+          }
         }
-      }
+      },
+      "else": false
     },
     "PATCH": {
       "properties": {
