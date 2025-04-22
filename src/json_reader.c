@@ -20,7 +20,7 @@ char *json_key(const json_t *node)
     return NULL;
 }
 
-char *json_name(const json_t *node)
+const char *json_name(const json_t *node)
 {
     if ((node != NULL) && (node->key != NULL))
     {
@@ -38,7 +38,7 @@ char *json_string(const json_t *node)
     return NULL;
 }
 
-char *json_text(const json_t *node)
+const char *json_text(const json_t *node)
 {
     if ((node != NULL) && (node->type == JSON_STRING))
     {

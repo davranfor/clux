@@ -116,7 +116,7 @@ static enum method get_method(const char *message)
 static const char *get_sql(const char *method, const json_t *path)
 {
     const json_t *section = json_find(sections, method);
-    char *key = json_text(json_head(path));
+    char *key = json_string(json_head(path));
 
     return json_string(json_search(section, &(json_t){.key = key}, NULL));
 }
