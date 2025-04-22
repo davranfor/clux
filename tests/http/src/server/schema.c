@@ -86,11 +86,6 @@ int schema_add(const char *path)
     return 1;
 }
 
-const json_t *schema_get(const char *id)
-{
-    return map_search(map, id);
-}
-
 #define BUFFER_LIMIT 4096   // Don't write to buffer after this limit
 #define ENCODE_MAX 128      // Max length of an event line
 
@@ -105,8 +100,7 @@ enum {CONTINUE, STOP};
 
 static int set_path(json_t *node, const json_t *path)
 {
-    if ((node == NULL) || (node->type != JSON_STRING) ||
-        (path == NULL) || (path->type != JSON_STRING))
+    if ((path == NULL) || (path->type != JSON_STRING))
     {
         return 0;
     }
@@ -116,9 +110,10 @@ static int set_path(json_t *node, const json_t *path)
 
 static int on_notify(const json_event_t *event)
 {
+    json_t *node = json_pointer(event->node, "/path/0");
     const json_t *path = json_find(event->rule, "path");
 
-    if (!set_path(json_head(json_find(event->node, "path")), path))
+    if (!set_path(node, path))
     {
         return STOP; 
     }
@@ -172,15 +167,54 @@ static int on_validate(const json_event_t *event, void *context)
     return STOP;
 }
 
-int schema_validate(const json_t *rules, const json_t *entry, buffer_t *buffer,
-    const char *path)
+int schema_validate(json_t *request, buffer_t *buffer)
 {
-    context_t context = {buffer, path, 0};
+    json_print(request);
+    buffer_reset(buffer);
 
-    if (!json_validate(rules, entry, map, on_validate, &context))
+    const char *path = json_string(json_pointer(request, "/path/0")); 
+    const json_t *rules = map_search(map, path);
+
+    if (rules == NULL)
     {
-        return context.result;
+        buffer_format(buffer, "Collection '%s' not found", path);
+        return 0;
     }
-    return HTTP_OK;
+
+    unsigned content_id = json_index(request, "content");
+    json_t *content = request->child[content_id];
+    const char *text = "null";
+
+    if (content->type == JSON_STRING)
+    {
+        text = content->string;
+    }
+
+    json_error_t error;
+    json_t *node = json_parse(text, &error);
+
+    if (node && json_set_key(node, "content"))
+    {
+        request->child[content_id] = node;
+    }
+    else
+    {
+        buffer_write(buffer, "Error parsing content");
+        json_print_error(&error);
+        json_free(node);
+        return 0;
+    }
+
+    json_t entry = {.type = JSON_OBJECT, .child = (json_t *[]){request}, .size = 1};
+    context_t context = {.buffer = buffer, .path = path, .result = 0};
+    int result = HTTP_OK;
+
+    if (!json_validate(rules, &entry, map, on_validate, &context))
+    {
+        result = context.result;
+    }
+    request->child[content_id] = content;
+    json_free(node);
+    return result;
 }
 

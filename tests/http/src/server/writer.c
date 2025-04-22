@@ -22,20 +22,21 @@ static sqlite3 *db;
 
 static void load_db(void)
 {
-    const json_t *tables = json_find(sections, "LOAD");
-
-    if (tables == NULL)
+    if (json_index(sections, "LOAD") != 0)
     {
-        fprintf(stderr, "'app.json': 'LOAD' section must exist\n");
+        fprintf(stderr, "'app.json': 'LOAD' section must exist at index 0\n");
         exit(EXIT_FAILURE);
     }
+
+    const json_t *tables = json_head(sections);
+
     for (unsigned i = 0; i < tables->size; i++)
     {
         json_t *entry = tables->child[i];
 
         if (entry->type != JSON_STRING)
         {
-            fprintf(stderr, "'app.json': 'tables[%u]' must be a string\n", i);
+            fprintf(stderr, "'app.json': 'LOAD[%u]' must be a string\n", i);
             exit(EXIT_FAILURE);
         }
 
@@ -90,46 +91,6 @@ void writer_reload(void)
 {
     unload();
     load();
-}
-
-static int validate(const json_t *rules, json_t *request, const char *path)
-{
-    unsigned content_id = json_index(request, "content");
-    json_t *content = request->child[content_id];
-    const char *text = "null";
-
-    if (content->type == JSON_STRING)
-    {
-        text = content->string;
-    }
-
-    json_error_t error;
-    json_t *node = json_parse(text, &error);
-
-    if (node && json_set_key(node, "content"))
-    {
-        request->child[content_id] = node;
-    }
-    else
-    {
-        buffer_write(&buffer, "Error parsing content");
-        json_print_error(&error);
-        json_free(node);
-        return 0;
-    }
-
-    json_t entry =
-    {
-        .type = JSON_OBJECT,
-        .child = (json_t *[]){request},
-        .size = 1
-    };
-
-    int rc = schema_validate(rules, &entry, &buffer, path);
-
-    request->child[content_id] = content;
-    json_free(node);
-    return rc;
 }
 
 enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
@@ -222,10 +183,10 @@ static int api_get(const json_t *request)
 static int api_post(const json_t *request)
 {
     const json_t *path = json_find(request, "path");
-    const char *content = json_string(json_find(request, "content"));
     const char *sql = get_sql("POST", path);
+    const char *content = json_string(json_find(request, "content"));
 
-    if ((content == NULL) || (sql == NULL))
+    if ((sql == NULL) || (content == NULL))
     {
         const char *error = "Query can't be performed";
 
@@ -337,18 +298,7 @@ static const buffer_t *handler(int header)
 
 const buffer_t *writer_handle(json_t *request)
 {
-    json_print(request);
-
-    const char *path = json_text(json_head(json_find(request, "path"))); 
-    const json_t *schema = schema_get(path);
-
-    if (schema == NULL)
-    {
-        return static_bad_request();
-    }
-    buffer_reset(&buffer);
-
-    int result = validate(schema, request, path);
+    int result = schema_validate(request, &buffer);
 
     if (result == HTTP_OK)
     {

@@ -74,7 +74,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
             );
             break;
         default:
-            snprintf(body, sizeof body, "");
+            body[0] = '\0';
             break;
     }
     switch (method)
