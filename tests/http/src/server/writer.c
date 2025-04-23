@@ -244,7 +244,7 @@ static int api_delete(json_t *request)
     return HTTP_NO_CONTENT;
 }
 
-static int api(json_t *request)
+static int api_handle(json_t *request)
 {
     switch (get_method(request->key))
     {
@@ -261,6 +261,33 @@ static int api(json_t *request)
         default:
             return HTTP_NO_CONTENT;
     }
+}
+
+static int perform(json_t *request)
+{
+    json_t *query = json_find(request, "query");
+    char *str = NULL;
+ 
+    if (json_properties(query) > 0)
+    {
+        str = json_stringify(query);    
+        if (str == NULL)
+        {
+            buffer_write(&buffer, "Error encoding query");
+            return HTTP_SERVER_ERROR;
+        }
+        query->type = JSON_STRING;
+        query->string = str;
+        query->size = 0;
+    }
+
+    int result = api_handle(request);
+
+    if (str != NULL)
+    {
+        free(str);
+    }
+    return result;
 }
 
 static const buffer_t *handler(int header)
@@ -303,7 +330,7 @@ const buffer_t *writer_handle(json_t *request)
     if (result == HTTP_OK)
     {
         buffer_reset(&buffer);
-        result = api(request);
+        result = perform(request);
     }
     if (result != HTTP_NO_CONTENT)
     {
