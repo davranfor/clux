@@ -211,10 +211,10 @@ int schema_validate(json_t *request, buffer_t *buffer)
 
     if (!json_validate(rules, &entry, map, on_validate, &context))
     {
+        request->child[content_id] = content;
         result = context.result;
+        json_free(node);
     }
-    request->child[content_id] = content;
-    json_free(node);
     return result;
 }
 

@@ -121,6 +121,44 @@ static const char *get_sql(const char *method, const json_t *path)
     return json_string(json_search(section, &(json_t){.key = key}, NULL));
 }
 
+static int set_content(const json_t *content, sqlite3_stmt *stmt, int id)
+{
+    for (unsigned i = 0; i < content->size; i++)
+    {
+        const json_t *child = content->child[i];
+        int result = SQLITE_OK;
+
+        switch (child->type)
+        {
+            case JSON_STRING:
+                result = sqlite3_bind_text(stmt, id++, child->string, -1, SQLITE_STATIC);
+                break;
+            case JSON_INTEGER:
+                result = sqlite3_bind_int64(stmt, id++, (int64_t)child->number);
+                break;
+            case JSON_REAL:
+                result = sqlite3_bind_double(stmt, id++, child->number);
+                break;
+            case JSON_TRUE:
+                result = sqlite3_bind_int(stmt, id++, 1);
+                break;
+            case JSON_FALSE:
+                result = sqlite3_bind_int(stmt, id++, 0);
+                break;
+            case JSON_NULL:
+                result = sqlite3_bind_null(stmt, id++);
+                break;
+            default:
+                return 0;
+        }
+        if (result != SQLITE_OK)
+        {
+            return 0;
+        }
+    }
+    return id;
+}
+
 static int api_get(const json_t *request)
 {
     const json_t *path = json_find(request, "path");
@@ -182,9 +220,9 @@ static int api_get(const json_t *request)
 
 static int api_post(const json_t *request)
 {
+    const json_t *content = json_find(request, "content");
     const json_t *path = json_find(request, "path");
     const char *sql = get_sql("POST", path);
-    const char *content = json_string(json_find(request, "content"));
 
     if ((sql == NULL) || (content == NULL))
     {
@@ -204,7 +242,7 @@ static int api_post(const json_t *request)
         buffer_write(&buffer, sqlite3_errmsg(db));
         return HTTP_BAD_REQUEST;
     }
-    if (sqlite3_bind_text(stmt, 1, content, -1, SQLITE_STATIC) != SQLITE_OK)
+    if (!set_content(content, stmt, 1))
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         buffer_write(&buffer, sqlite3_errmsg(db));
@@ -263,34 +301,7 @@ static int api_handle(json_t *request)
     }
 }
 
-static int perform(json_t *request)
-{
-    json_t *query = json_find(request, "query");
-    char *str = NULL;
- 
-    if (json_properties(query) > 0)
-    {
-        str = json_stringify(query);    
-        if (str == NULL)
-        {
-            buffer_write(&buffer, "Error encoding query");
-            return HTTP_SERVER_ERROR;
-        }
-        query->type = JSON_STRING;
-        query->string = str;
-        query->size = 0;
-    }
-
-    int result = api_handle(request);
-
-    if (str != NULL)
-    {
-        free(str);
-    }
-    return result;
-}
-
-static const buffer_t *handler(int header)
+static const buffer_t *process(int header)
 {
     const char *code, *type;
     char headers[128];
@@ -330,11 +341,12 @@ const buffer_t *writer_handle(json_t *request)
     if (result == HTTP_OK)
     {
         buffer_reset(&buffer);
-        result = perform(request);
+        result = api_handle(request);
+        json_delete(json_find(request, "content"));
     }
     if (result != HTTP_NO_CONTENT)
     {
-        return handler(result);
+        return process(result);
     }
     return static_no_content();
 }
