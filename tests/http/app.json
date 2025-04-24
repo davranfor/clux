@@ -3,7 +3,7 @@
     "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE);"
   ],
   "POST": {
-    "users.default": "INSERT INTO users (name, email) VALUES (?1, ?2);"
+    "users.default": "INSERT INTO users (name, email) VALUES (?, ?);"
   },
   "GET": {
     "users.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = ?;"
