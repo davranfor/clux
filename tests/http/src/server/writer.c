@@ -159,7 +159,7 @@ static int set_content(const json_t *content, sqlite3_stmt *stmt, int id)
     return id;
 }
 
-static int api_get(const json_t *request)
+static int db_get(const json_t *request)
 {
     const json_t *path = json_find(request, "path");
     const char *sql = get_sql("GET", path);
@@ -218,7 +218,7 @@ static int api_get(const json_t *request)
     return result;
 }
 
-static int api_post(const json_t *request)
+static int db_post(const json_t *request)
 {
     const json_t *content = json_find(request, "content");
     const json_t *path = json_find(request, "path");
@@ -264,41 +264,47 @@ static int api_post(const json_t *request)
     return HTTP_CREATED;
 }
 
-static int api_put(const json_t *request)
+static int db_put(const json_t *request)
 {
     (void)request;
     return HTTP_NO_CONTENT;
 }
 
-static int api_patch(json_t *request)
+static int db_patch(json_t *request)
 {
     (void)request;
     return HTTP_NO_CONTENT;
 }
 
-static int api_delete(json_t *request)
+static int db_delete(json_t *request)
 {
     (void)request;
     return HTTP_NO_CONTENT;
 }
 
-static int api_handle(json_t *request)
+static int db_handle(json_t *request)
 {
     switch (get_method(request->key))
     {
         case GET:
-            return api_get(request);
+            return db_get(request);
         case POST:
-            return api_post(request);
+            return db_post(request);
         case PUT:
-            return api_put(request);
+            return db_put(request);
         case PATCH:
-            return api_patch(request);
+            return db_patch(request);
         case DELETE:
-            return api_delete(request);
+            return db_delete(request);
         default:
             return HTTP_NO_CONTENT;
     }
+}
+
+static void cleanup(json_t *request)
+{
+    json_delete(json_find(request, "content"));
+    request->size = 0;
 }
 
 static const buffer_t *process(int header)
@@ -341,8 +347,8 @@ const buffer_t *writer_handle(json_t *request)
     if (result == HTTP_OK)
     {
         buffer_reset(&buffer);
-        result = api_handle(request);
-        json_delete(json_find(request, "content"));
+        result = db_handle(request);
+        cleanup(request);
     }
     if (result != HTTP_NO_CONTENT)
     {
