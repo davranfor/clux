@@ -121,32 +121,39 @@ static const char *get_sql(const char *method, const json_t *path)
     return json_string(json_search(section, &(json_t){.key = key}, NULL));
 }
 
-static int set_content(const json_t *content, sqlite3_stmt *stmt, int id)
+static int set_content(sqlite3_stmt *stmt, const json_t *content)
 {
     for (unsigned i = 0; i < content->size; i++)
     {
         const json_t *child = content->child[i];
         int result = SQLITE_OK;
+        char key[128];
+        int index;
 
+        snprintf(key, sizeof key, ":%s", child->key);
+        if ((index = sqlite3_bind_parameter_index(stmt, key)) == 0)
+        {
+            return 0;
+        }
         switch (child->type)
         {
             case JSON_STRING:
-                result = sqlite3_bind_text(stmt, id++, child->string, -1, SQLITE_STATIC);
+                result = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
                 break;
             case JSON_INTEGER:
-                result = sqlite3_bind_int64(stmt, id++, (int64_t)child->number);
+                result = sqlite3_bind_int64(stmt, index, (int64_t)child->number);
                 break;
             case JSON_REAL:
-                result = sqlite3_bind_double(stmt, id++, child->number);
+                result = sqlite3_bind_double(stmt, index, child->number);
                 break;
             case JSON_TRUE:
-                result = sqlite3_bind_int(stmt, id++, 1);
+                result = sqlite3_bind_int(stmt, index, 1);
                 break;
             case JSON_FALSE:
-                result = sqlite3_bind_int(stmt, id++, 0);
+                result = sqlite3_bind_int(stmt, index, 0);
                 break;
             case JSON_NULL:
-                result = sqlite3_bind_null(stmt, id++);
+                result = sqlite3_bind_null(stmt, index);
                 break;
             default:
                 return 0;
@@ -156,15 +163,72 @@ static int set_content(const json_t *content, sqlite3_stmt *stmt, int id)
             return 0;
         }
     }
-    return id;
+    return 1;
+}
+
+static int set_query(sqlite3_stmt *stmt, const json_t *query)
+{
+    for (unsigned i = 0; i < query->size; i++)
+    {
+        const json_t *child = query->child[i];
+        char key[128];
+        int index;
+
+        snprintf(key, sizeof key, "@%s", child->key);
+        if ((index = sqlite3_bind_parameter_index(stmt, key)) == 0)
+        {
+            return 0;
+        }
+        if (child->type != JSON_STRING)
+        {
+            return 0;
+        }
+
+        int result = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
+
+        if (result != SQLITE_OK)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static int set_path(sqlite3_stmt *stmt, const json_t *path)
+{
+    for (unsigned i = 1; i < path->size; i++)
+    {
+        const json_t *child = path->child[i];
+        char key[3];
+        int index;
+
+        snprintf(key, sizeof key, "$%u", i % 10);
+        if ((index = sqlite3_bind_parameter_index(stmt, key)) == 0)
+        {
+            return 0;
+        }
+        if (child->type != JSON_STRING)
+        {
+            return 0; 
+        }
+
+        int result = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
+
+        if (result != SQLITE_OK)
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 static int db_get(const json_t *request)
 {
     const json_t *path = json_find(request, "path");
+    const json_t *query = json_find(request, "query");
     const char *sql = get_sql("GET", path);
 
-    if (sql == NULL)
+    if (!sql || !path || !query)
     {
         const char *error = "Query can't be performed";
 
@@ -182,20 +246,12 @@ static int db_get(const json_t *request)
         buffer_write(&buffer, sqlite3_errmsg(db));
         return HTTP_BAD_REQUEST;
     }
-
-    int size = (int)json_size(path);
-
-    for (int i = 1; i < size; i++)
+    if (!set_path(stmt, path) || !set_query(stmt, query))
     {
-        const char *text = json_text(path->child[i]);
-
-        if (sqlite3_bind_text(stmt, i, text, -1, SQLITE_STATIC) != SQLITE_OK)
-        {
-            fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-            buffer_write(&buffer, sqlite3_errmsg(db));
-            sqlite3_finalize(stmt);
-            return HTTP_BAD_REQUEST;
-        }
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return HTTP_BAD_REQUEST;
     }
 
     int result = HTTP_NO_CONTENT;
@@ -220,11 +276,12 @@ static int db_get(const json_t *request)
 
 static int db_post(const json_t *request)
 {
-    const json_t *content = json_find(request, "content");
     const json_t *path = json_find(request, "path");
+    const json_t *query = json_find(request, "query");
+    const json_t *content = json_find(request, "content");
     const char *sql = get_sql("POST", path);
 
-    if ((sql == NULL) || (content == NULL))
+    if (!sql || !path || !query || !content)
     {
         const char *error = "Query can't be performed";
 
@@ -242,7 +299,7 @@ static int db_post(const json_t *request)
         buffer_write(&buffer, sqlite3_errmsg(db));
         return HTTP_BAD_REQUEST;
     }
-    if (!set_content(content, stmt, 1))
+    if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         buffer_write(&buffer, sqlite3_errmsg(db));
@@ -266,8 +323,60 @@ static int db_post(const json_t *request)
 
 static int db_put(const json_t *request)
 {
-    (void)request;
-    return HTTP_NO_CONTENT;
+    const json_t *path = json_find(request, "path");
+    const json_t *query = json_find(request, "query");
+    const json_t *content = json_find(request, "content");
+    const char *sql = get_sql("PUT", path);
+
+    if (!sql || !path || !query || !content)
+    {
+        const char *error = "Query can't be performed";
+
+        json_write_line(request, stderr);
+        fprintf(stderr, "%s\n", error);
+        buffer_write(&buffer, error);
+        return HTTP_SERVER_ERROR;
+    }
+
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        return HTTP_BAD_REQUEST;
+    }
+    if (!set_content(stmt, content) ||
+        !set_path(stmt, path) ||
+        !set_query(stmt, query))
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return HTTP_BAD_REQUEST;
+    }
+
+    int result = HTTP_OK;
+
+    if (sqlite3_step(stmt) == SQLITE_DONE)
+    {
+        if (sqlite3_changes(db) > 0)
+        {
+            buffer_format(&buffer, "{\"id\": \"%s\"}", json_text(json_pointer(path, "/1")));
+        }
+        else
+        {
+            result = HTTP_NO_CONTENT;
+        }
+    }
+    else
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        result = HTTP_BAD_REQUEST;
+    }
+    sqlite3_finalize(stmt);
+    return result;
 }
 
 static int db_patch(json_t *request)
@@ -278,8 +387,57 @@ static int db_patch(json_t *request)
 
 static int db_delete(json_t *request)
 {
-    (void)request;
-    return HTTP_NO_CONTENT;
+    const json_t *path = json_find(request, "path");
+    const json_t *query = json_find(request, "query");
+    const char *sql = get_sql("DELETE", path);
+
+    if (!sql || !path || !query)
+    {
+        const char *error = "Query can't be performed";
+
+        json_write_line(request, stderr);
+        fprintf(stderr, "%s\n", error);
+        buffer_write(&buffer, error);
+        return HTTP_SERVER_ERROR;
+    }
+
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        return HTTP_BAD_REQUEST;
+    }
+    if (!set_path(stmt, path) || !set_query(stmt, query))
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return HTTP_BAD_REQUEST;
+    }
+
+    int result = HTTP_OK;
+
+    if (sqlite3_step(stmt) == SQLITE_DONE)
+    {
+        if (sqlite3_changes(db) > 0)
+        {
+            buffer_format(&buffer, "{\"id\": \"%s\"}", json_text(json_pointer(path, "/1")));
+        }
+        else
+        {
+            result = HTTP_NO_CONTENT;
+        }
+    }
+    else
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        buffer_write(&buffer, sqlite3_errmsg(db));
+        result = HTTP_BAD_REQUEST;
+    }
+    sqlite3_finalize(stmt);
+    return result;
 }
 
 static int db_handle(json_t *request)

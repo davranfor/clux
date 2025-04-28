@@ -2,11 +2,18 @@
   "LOAD": [
     "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE);"
   ],
-  "POST": {
-    "users.default": "INSERT INTO users (name, email) VALUES (?, ?);"
-  },
   "GET": {
-    "users.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = ?;"
+    "users.all": "SELECT json_group_array(json_object('id', id, 'name', name, 'email', email)) FROM users;",
+    "users.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = $1;"
+  },
+  "POST": {
+    "users.default": "INSERT INTO users (name, email) VALUES (:name, :email);"
+  },
+  "PUT": {
+    "users.default": "UPDATE users SET name = :name, email = :email WHERE id = $1;"
+  },
+  "DELETE": {
+    "users.default": "DELETE FROM users WHERE id = $1;"
   }
 }
 
