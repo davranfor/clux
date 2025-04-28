@@ -2,33 +2,38 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "/users",
   "type": "object",
-  "definitions": {
-    "pathArray": {
-      "type": "array",
-      "items": [{}, { "x-mask": "09999" }],
-      "additionalItems": false
-    }
-  },
   "properties": {
     "GET": {
       "if": {
-          "properties": {
-            "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
-            "query": { "type": "null" },
-            "content": { "type": "null" }
+        "anyOf": [
+          {
+            "properties": {
+              "path": { "minItems": 1, "maxItems": 1 },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "users.all" }
           },
-          "x-notify": { "path": "users.default" }
+          {
+            "properties": {
+              "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "users.default" }
+          }
+        ]
       },
       "then": true, 
       "else": false
     },
     "POST": {
       "if": {
-          "properties": {
-            "path": { "minItems": 1, "maxItems": 1 },
-            "query": { "type": "null" }
-          },
-          "x-notify": { "path": "users.default" }
+        "properties": {
+          "path": { "minItems": 1, "maxItems": 1 },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "users.default" }
       },
       "then": {
         "properties": {
@@ -42,11 +47,11 @@
     },
     "PUT": {
       "if": {
-          "properties": {
-            "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
-            "query": { "type": "null" }
-          },
-          "x-notify": { "path": "users.default" }
+        "properties": {
+          "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "users.default" }
       },
       "then": {
         "properties": {
@@ -59,21 +64,19 @@
       "else": false
     },
     "PATCH": {
-      "properties": {
-        "path": { "$ref": "#/definitions/pathArray" },
-        "query": { "type": "null" },
-        "content": {
-            "$ref": "/users.schema/definitions/content",
-            "minProperties": 1
-        }
-      }
+        "not": { "title": "Method not allowed" }
     },
     "DELETE": {
-      "properties": {
-        "path": { "$ref": "#/definitions/pathArray" },
-        "query": { "type": "null" },
-        "content": { "type": "null" }
-      }
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
+        },
+        "x-notify": { "path": "users.default" }
+      },
+      "then": true,
+      "else": false
     }
   }
 }
