@@ -64,7 +64,23 @@
       "else": false
     },
     "PATCH": {
-        "not": { "title": "Method not allowed" }
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "users.update_email" }
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "/users.schema/definitions/content",
+            "minProperties": 1, "maxProperties": 1,
+            "required": ["email"]
+          }
+        }
+      },
+      "else": false
     },
     "DELETE": {
       "if": {

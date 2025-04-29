@@ -66,10 +66,15 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
     {
         case POST:
         case PUT:
-        case PATCH:
             snprintf(body, sizeof body,
                 "{\"name\": \"%s\", \"email\": \"%s\"}",
                 json_text(json_find(json_at(users, id), "name")),
+                json_text(json_find(json_at(users, id), "email"))
+            );
+            break;
+        case PATCH:
+            snprintf(body, sizeof body,
+                "{\"email\": \"%s\"}",
                 json_text(json_find(json_at(users, id), "email"))
             );
             break;
@@ -94,7 +99,7 @@ static char *pick_user(buffer_t *buffer, char *data, size_t size)
                 table, strlen(body));
             break;
         case PUT:
-            snprintf(data, size, "PUT %s", body);
+            snprintf(data, size, "PUT %zu %s", id, body);
             snprintf(head, sizeof head,
                 "PUT /api/%s/%zu HTTP/1.1\r\n"
                 "Content-Type: application/json\r\n"

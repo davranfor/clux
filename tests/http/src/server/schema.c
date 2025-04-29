@@ -117,7 +117,6 @@ static int on_notify(const json_event_t *event)
     {
         return STOP; 
     }
-    json_print(event->node);
     return CONTINUE;
 }
 
