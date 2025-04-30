@@ -1,82 +1,245 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/x-icon;," type="image/x-icon">
-<!--
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <script type="text/javascript" src="func.js"></script>
--->
-    <title>JSON Server</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IGASA - Panel de Control</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+  <style>
+    :root {
+      --header-height: 70px;
+      --border-color: #4a5568;
+      --sidebar-width: 250px;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1e2734;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    /* Cabecera */
+    .app-header {
+      height: var(--header-height);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      background-color: #2d3748;
+      padding: 0 20px;
+    }
+    
+    /* Título IGASA */
+    .app-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #a0aec0;
+      width: var(--sidebar-width);
+      text-align: left;
+      padding-left: 20px;
+    }
+    
+    /* Área de usuario */
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .user-name {
+      font-size: 18px;
+      color: #ffffff;
+      font-weight: 500;
+    }
+    
+    /* Botón de entrada/salida */
+    .check-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 100px;
+    }
+    
+    .check-in {
+      background-color: #48bb78;
+      color: white;
+    }
+    
+    .check-out {
+      background-color: #f56565;
+      color: white;
+    }
+    
+    /* Contenedor principal */
+    .app-container {
+      display: flex;
+      flex: 1;
+    }
+    
+    /* Panel lateral */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: #2d3748;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Contenedor del menú */
+    .menu-container {
+      padding: 20px 0;
+    }
+    
+    /* Elementos del menú */
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-item:hover {
+      background-color: #4a5568;
+    }
+    
+    .menu-item.active {
+      background-color: #4299e1;
+    }
+    
+    .menu-item.active .ti {
+      color: #ffffff;
+    }
+    
+    .menu-item.active .menu-text {
+      color: #ffffff;
+      font-weight: 500;
+    }
+    
+    /* Iconos */
+    .ti {
+      font-size: 20px;
+      margin-right: 15px;
+      color: #a0aec0;
+      transition: color 0.3s ease;
+    }
+    
+    .menu-item:hover .ti {
+      color: #ffffff;
+    }
+    
+    /* Texto */
+    .menu-text {
+      font-size: 14px;
+      color: #e2e8f0;
+      transition: color 0.3s ease;
+    }
+    
+    /* Separador */
+    .divider {
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 10px 20px;
+    }
+    
+    /* Contenido principal con solo padding superior reducido */
+    .main-content {
+      flex: 1;
+      padding: 10px 20px 20px 20px; /* Solo reduje el padding superior a 10px */
+      margin-left: auto;
+      max-width: calc(100% - var(--sidebar-width));
+    }
+  </style>
 </head>
 <body>
-    <h1>📚 JSON Server</h1>
-    <hr />
-    <form id="myForm">
-        <label for="key">Key:</label>
-        <input type="text" id="key" name="key">
-        <button type="submit">Enviar</button>
-    </form>
-    <hr />
-    <div id="response"></div>
-    <script>
-        document.getElementById('myForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+  <!-- Cabecera -->
+  <header class="app-header">
+    <div class="app-title">IGASA</div>
+    <div class="user-area">
+      <div class="user-name">David Ranieri Forteza</div>
+      <button class="check-btn check-in" id="checkBtn">Entrar</button>
+    </div>
+  </header>
+  
+  <!-- Contenedor principal -->
+  <div class="app-container">
+    <!-- Panel lateral -->
+    <div class="sidebar">
+      <div class="menu-container">
+        <div class="menu-item active" onclick="setActive(this)" data-item="fichajes">
+          <i class="ti ti-clock"></i>
+          <span class="menu-text">Fichajes</span>
+        </div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="usuario">
+          <i class="ti ti-user"></i>
+          <span class="menu-text">Usuario</span>
+        </div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="configuracion">
+          <i class="ti ti-settings"></i>
+          <span class="menu-text">Configuración</span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="modo-oscuro">
+          <i class="ti ti-ghost"></i>
+          <span class="menu-text">Modo Oscuro</span>
+        </div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="tareas">
+          <i class="ti ti-checklist"></i>
+          <span class="menu-text">Tareas</span>
+        </div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
+          <i class="ti ti-chart-bar"></i>
+          <span class="menu-text">Estadísticas</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+      <h1>Contenido Principal</h1>
+      <p id="active-item-text">Elemento activo: Fichajes</p>
+      <p>Texto con caracteres especiales: áéíóú ñ Ñ ¿ ¡</p>
+    </div>
+  </div>
 
-            var formData = new FormData(event.target);
-            var jsonObject = {};
-            formData.forEach((value, key) => jsonObject[key] = value);
+  <script>
+    // Función para manejar el elemento activo
+    function setActive(element) {
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      element.classList.add('active');
+      const itemText = element.querySelector('.menu-text').textContent;
+      document.getElementById('active-item-text').textContent = `Elemento activo: ${itemText}`;
+    }
 
-            fetch('/api/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonObject)
-            })
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else if (response.status === 204) {
-                    return Promise.resolve();
-                } else if (response.status === 400) {
-                    return Promise.reject('Bad Request');
-                } else if (response.status === 404) {
-                    return Promise.reject('Not Found');
-                } else if (response.status === 405) {
-                    return Promise.reject('Method Not Allowed');
-                } else {
-                    return Promise.reject('Unexpected Error');
-                }
-            })
-            .then(data => {
-                if (data) {
-                    document.getElementById('response').innerText = JSON.stringify(data);
-                } else {
-                    document.getElementById('response').innerText = 'Request completed successfully (HTTP 204)';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                if (error === 'Method Not Allowed') {
-                    document.getElementById('response').innerText = 'Method Not Allowed (HTTP 405)';
-                } else if (error === 'Bad Request') {
-                    document.getElementById('response').innerText = 'Bad Request (HTTP 400)';
-                } else if (error === 'Not Found') {
-                    document.getElementById('response').innerText = 'Not Found (HTTP 404)';
-                } else {
-                    document.getElementById('response').innerText = `Error: ${error}`;
-                }
-            })
-            .finally(() => {
-                // Aquí puedes añadir cualquier limpieza adicional o código que quieras ejecutar al final
-                // Limpia el formulario y enfoca el campo 'key'
-                document.getElementById('myForm').reset();
-                document.getElementById('key').focus();
-            });
-        });
-    </script>
+    // Función para cambiar estado del botón
+    const checkBtn = document.getElementById('checkBtn');
+    checkBtn.addEventListener('click', function() {
+      if (this.classList.contains('check-in')) {
+        this.classList.remove('check-in');
+        this.classList.add('check-out');
+        this.textContent = 'Salir';
+      } else {
+        this.classList.remove('check-out');
+        this.classList.add('check-in');
+        this.textContent = 'Entrar';
+      }
+    });
+  </script>
 </body>
 </html>
-
