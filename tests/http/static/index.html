@@ -11,6 +11,7 @@
       --header-height: 70px;
       --border-color: #4a5568;
       --sidebar-width: 250px;
+      --sidebar-collapsed-width: 70px;
     }
     
     body {
@@ -33,6 +34,9 @@
       border-bottom: 1px solid var(--border-color);
       background-color: #2d3748;
       padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     
     /* Título IGASA */
@@ -43,6 +47,19 @@
       width: var(--sidebar-width);
       text-align: left;
       padding-left: 20px;
+      letter-spacing: 0.3em;
+      text-indent: 0.3em;
+      transition: all 0.3s ease;
+    }
+    
+    /* Botón para móviles */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
     }
     
     /* Área de usuario */
@@ -84,6 +101,7 @@
     .app-container {
       display: flex;
       flex: 1;
+      position: relative;
     }
     
     /* Panel lateral */
@@ -91,11 +109,16 @@
       width: var(--sidebar-width);
       background-color: #2d3748;
       box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 90;
     }
     
     /* Contenedor del menú */
     .menu-container {
       padding: 20px 0;
+      overflow-y: auto;
+      height: calc(100vh - var(--header-height));
     }
     
     /* Elementos del menú */
@@ -105,6 +128,7 @@
       padding: 12px 20px;
       cursor: pointer;
       transition: all 0.3s ease;
+      white-space: nowrap;
     }
     
     .menu-item:hover {
@@ -130,17 +154,20 @@
       margin-right: 15px;
       color: #a0aec0;
       transition: color 0.3s ease;
+      flex-shrink: 0;
     }
     
     .menu-item:hover .ti {
       color: #ffffff;
     }
     
-    /* Texto */
+    /* Texto del menú */
     .menu-text {
       font-size: 14px;
       color: #e2e8f0;
       transition: color 0.3s ease;
+      opacity: 1;
+      transition: opacity 0.3s ease;
     }
     
     /* Separador */
@@ -150,18 +177,100 @@
       margin: 10px 20px;
     }
     
-    /* Contenido principal con solo padding superior reducido */
+    /* Contenido principal */
     .main-content {
       flex: 1;
-      padding: 10px 20px 20px 20px; /* Solo reduje el padding superior a 10px */
-      margin-left: auto;
-      max-width: calc(100% - var(--sidebar-width));
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    /* Estilo para el título de sección */
+    #section-title {
+      color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+    
+    /* Overlay para móviles */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 80;
+      display: none;
+    }
+    
+    /* Estilos para móviles */
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+      }
+      
+      .app-title {
+        width: auto;
+        padding-left: 0;
+      }
+      
+      .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.active {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+      }
+      
+      .sidebar-overlay.active {
+        display: block;
+      }
+    }
+    
+    /* Estilos para modo colapsado */
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed-width);
+    }
+    
+    .sidebar.collapsed .menu-text {
+      opacity: 0;
+      width: 0;
+    }
+    
+    .sidebar.collapsed .menu-item {
+      justify-content: center;
+      padding: 12px 0;
+    }
+    
+    .sidebar.collapsed .ti {
+      margin-right: 0;
+    }
+    
+    .sidebar.collapsed .divider {
+      margin: 10px 10px;
+    }
+    
+    .app-container.collapsed .main-content {
+      margin-left: var(--sidebar-collapsed-width);
     }
   </style>
 </head>
 <body>
   <!-- Cabecera -->
   <header class="app-header">
+    <button class="menu-toggle" id="menuToggle">
+      <i class="ti ti-menu-2"></i>
+    </button>
     <div class="app-title">IGASA</div>
     <div class="user-area">
       <div class="user-name">David Ranieri Forteza</div>
@@ -169,19 +278,51 @@
     </div>
   </header>
   
+  <!-- Overlay para móviles -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  
   <!-- Contenedor principal -->
-  <div class="app-container">
+  <div class="app-container" id="appContainer">
     <!-- Panel lateral -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="menu-container">
         <div class="menu-item active" onclick="setActive(this)" data-item="fichajes">
           <i class="ti ti-clock"></i>
           <span class="menu-text">Fichajes</span>
         </div>
         
-        <div class="menu-item" onclick="setActive(this)" data-item="usuario">
+        <div class="menu-item" onclick="setActive(this)" data-item="horarios">
+          <i class="ti ti-calendar-time"></i>
+          <span class="menu-text">Horarios</span>
+        </div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="ausencias">
+          <i class="ti ti-ghost"></i>
+          <span class="menu-text">Ausencias</span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="tareas">
+          <i class="ti ti-checklist"></i>
+          <span class="menu-text">Tareas</span>
+        </div>
+        
+        <div class="menu-item" onclick="setActive(this)" data-item="equipo">
+          <i class="ti ti-world-longitude"></i>
+          <span class="menu-text">Equipo</span>
+        </div>
+
+        <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
+          <i class="ti ti-chart-bar"></i>
+          <span class="menu-text">Estadísticas</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="menu-item" onclick="setActive(this)" data-item="perfil">
           <i class="ti ti-user"></i>
-          <span class="menu-text">Usuario</span>
+          <span class="menu-text">Perfil</span>
         </div>
         
         <div class="menu-item" onclick="setActive(this)" data-item="configuracion">
@@ -191,32 +332,28 @@
         
         <div class="divider"></div>
         
-        <div class="menu-item" onclick="setActive(this)" data-item="modo-oscuro">
-          <i class="ti ti-ghost"></i>
-          <span class="menu-text">Modo Oscuro</span>
-        </div>
-        
-        <div class="menu-item" onclick="setActive(this)" data-item="tareas">
-          <i class="ti ti-checklist"></i>
-          <span class="menu-text">Tareas</span>
-        </div>
-        
-        <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
-          <i class="ti ti-chart-bar"></i>
-          <span class="menu-text">Estadísticas</span>
+        <div class="menu-item" onclick="setActive(this)" data-item="ayuda">
+          <i class="ti ti-help"></i>
+          <span class="menu-text">Ayuda</span>
         </div>
       </div>
     </div>
     
     <!-- Contenido principal -->
     <div class="main-content">
-      <h1>Contenido Principal</h1>
+      <h1 id="section-title">Fichajes</h1>
       <p id="active-item-text">Elemento activo: Fichajes</p>
       <p>Texto con caracteres especiales: áéíóú ñ Ñ ¿ ¡</p>
     </div>
   </div>
 
   <script>
+    // Elementos del DOM
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const appContainer = document.getElementById('appContainer');
+    
     // Función para manejar el elemento activo
     function setActive(element) {
       document.querySelectorAll('.menu-item').forEach(item => {
@@ -225,6 +362,13 @@
       element.classList.add('active');
       const itemText = element.querySelector('.menu-text').textContent;
       document.getElementById('active-item-text').textContent = `Elemento activo: ${itemText}`;
+      document.getElementById('section-title').textContent = itemText;
+      
+      // Cerrar menú en móviles después de seleccionar
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+      }
     }
 
     // Función para cambiar estado del botón
@@ -238,6 +382,47 @@
         this.classList.remove('check-out');
         this.classList.add('check-in');
         this.textContent = 'Entrar';
+      }
+    });
+    
+    // Toggle del menú en móviles
+    menuToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('active');
+      sidebarOverlay.classList.toggle('active');
+    });
+    
+    // Cerrar menú al hacer clic en el overlay
+    sidebarOverlay.addEventListener('click', function() {
+      sidebar.classList.remove('active');
+      sidebarOverlay.classList.remove('active');
+    });
+    
+    // Toggle del menú colapsado en desktop
+    let isCollapsed = false;
+    
+    function toggleSidebar() {
+      if (window.innerWidth > 768) {
+        isCollapsed = !isCollapsed;
+        sidebar.classList.toggle('collapsed');
+        appContainer.classList.toggle('collapsed');
+        
+        // Cambiar ícono del botón
+        if (isCollapsed) {
+          menuToggle.innerHTML = '<i class="ti ti-menu-2"></i>';
+        } else {
+          menuToggle.innerHTML = '<i class="ti ti-x"></i>';
+        }
+      }
+    }
+    
+    // Event listener para el botón de menú
+    menuToggle.addEventListener('click', toggleSidebar);
+    
+    // Manejar redimensionamiento de la ventana
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
       }
     });
   </script>
