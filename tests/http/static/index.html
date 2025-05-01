@@ -9,9 +9,17 @@
   <style>
     :root {
       --header-height: 70px;
-      --border-color: #4a5568;
+      --border-color: #718096; /* Cambiado de #4a5568 para mejor contraste */
       --sidebar-width: 250px;
       --sidebar-collapsed-width: 70px;
+      --form-padding: 25px;
+      --header-title-color: #cbd5e0; /* Nuevo: mejor contraste para el título */
+      --menu-text-color: #f7fafc; /* Nuevo: blanco más puro para texto menú */
+      --menu-hover-bg: #4a5568; /* Mantenido pero ahora con mejor contraste */
+      --input-bg-color: #1a202c; /* Fondo de inputs */
+      --input-border-color: #4a5568; /* Borde de inputs */
+      --error-color: #f56565; /* Color para errores */
+      --success-color: #48bb78; /* Color para éxito */
     }
     
     body {
@@ -43,7 +51,7 @@
     .app-title {
       font-size: 24px;
       font-weight: bold;
-      color: #a0aec0;
+      color: var(--header-title-color); /* Aplicado nuevo color */
       width: var(--sidebar-width);
       text-align: left;
       padding-left: 20px;
@@ -85,16 +93,15 @@
       cursor: pointer;
       transition: all 0.3s ease;
       min-width: 100px;
+      color: white; /* Aseguramos contraste */
     }
     
     .check-in {
-      background-color: #48bb78;
-      color: white;
+      background-color: var(--success-color);
     }
     
     .check-out {
-      background-color: #f56565;
-      color: white;
+      background-color: var(--error-color);
     }
     
     /* Contenedor principal */
@@ -132,7 +139,7 @@
     }
     
     .menu-item:hover {
-      background-color: #4a5568;
+      background-color: var(--menu-hover-bg);
     }
     
     .menu-item.active {
@@ -164,7 +171,7 @@
     /* Texto del menú */
     .menu-text {
       font-size: 14px;
-      color: #e2e8f0;
+      color: var(--menu-text-color); /* Aplicado nuevo color */
       transition: color 0.3s ease;
       opacity: 1;
       transition: opacity 0.3s ease;
@@ -173,7 +180,7 @@
     /* Separador */
     .divider {
       height: 1px;
-      background-color: var(--border-color);
+      background-color: var(--border-color); /* Aplicado nuevo color */
       margin: 10px 20px;
     }
     
@@ -185,11 +192,18 @@
     }
     
     /* Estilo para el título de sección */
-    #section-title {
+    .section-title {
       color: #ffffff;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color); /* Aplicado nuevo color */
       padding-bottom: 10px;
       margin-top: 0;
+      text-align: center;
+    }
+    
+    /* Contenido específico de cada sección */
+    .section-content {
+      margin-top: 20px;
+      text-align: center;
     }
     
     /* Overlay para móviles */
@@ -262,6 +276,104 @@
     
     .app-container.collapsed .main-content {
       margin-left: var(--sidebar-collapsed-width);
+    }
+
+    /* Estilos específicos para el formulario de perfil */
+    .profile-form {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: var(--form-padding);
+      background-color: #2d3748;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      padding: 0 var(--form-padding);
+      box-sizing: border-box;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--menu-text-color); /* Aplicado nuevo color */
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      background-color: var(--input-bg-color);
+      border: 1px solid var(--input-border-color);
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #4299e1;
+    }
+    
+    .btn-submit {
+      background-color: #4299e1;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-submit:hover {
+      background-color: #3182ce;
+    }
+    
+    .btn-submit .ti {
+      margin-right: 0;
+      font-size: 18px;
+      color: white;
+    }
+    
+    .form-message {
+      margin-top: 20px;
+      padding: 10px 15px;
+      border-radius: 4px;
+      display: none;
+      color: white; /* Mejor legibilidad */
+    }
+    
+    .form-message.success {
+      background-color: rgba(72, 187, 120, 0.2);
+      border-left: 4px solid var(--success-color);
+      display: block;
+    }
+    
+    .form-message.error {
+      background-color: rgba(245, 101, 101, 0.2);
+      border-left: 4px solid var(--error-color);
+      display: block;
+    }
+
+    /* Validación de formulario */
+    .form-control.invalid {
+      border-color: var(--error-color);
+    }
+    
+    .error-text {
+      color: var(--error-color);
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
     }
   </style>
 </head>
@@ -341,9 +453,40 @@
     
     <!-- Contenido principal -->
     <div class="main-content">
-      <h1 id="section-title">Fichajes</h1>
-      <p id="active-item-text">Elemento activo: Fichajes</p>
-      <p>Texto con caracteres especiales: áéíóú ñ Ñ ¿ ¡</p>
+      <!-- Contenido de Perfil -->
+      <div id="profile-content" style="display:none;">
+        <h1 class="section-title">Perfil</h1>
+        <form id="profileForm" class="profile-form" novalidate>
+          <div class="form-group">
+            <label for="name">Nombre completo</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+            <div class="error-text" id="nameError">Por favor ingresa tu nombre completo</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+            <div class="error-text" id="emailError">Por favor ingresa un email válido</div>
+          </div>
+          
+          <div class="form-group" style="text-align: center; padding-top: 15px;">
+            <button type="submit" class="btn-submit">
+              <i class="ti ti-device-floppy"></i>
+              Guardar cambios
+            </button>
+          </div>
+          
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </div>
+      
+      <!-- Contenido dinámico para todas las secciones -->
+      <div id="dynamic-content">
+        <h1 class="section-title" id="dynamic-title">Fichajes</h1>
+        <div class="section-content" id="dynamic-section-content">
+          <!-- Contenido eliminado según solicitud -->
+        </div>
+      </div>
     </div>
   </div>
 
@@ -353,16 +496,52 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const appContainer = document.getElementById('appContainer');
+    const profileForm = document.getElementById('profileForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const dynamicTitle = document.getElementById('dynamic-title');
+    const dynamicContent = document.getElementById('dynamic-section-content');
+    
+    // Datos de usuario
+    const userData = {
+      name: "David Ranieri Forteza",
+      email: "david.forteza@example.com"
+    };
+    
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function() {
+      // Validación en tiempo real
+      nameInput.addEventListener('input', validateName);
+      emailInput.addEventListener('input', validateEmail);
+      
+      // Inicializar con la sección de fichajes
+      setActive(document.querySelector('.menu-item.active'));
+    });
     
     // Función para manejar el elemento activo
     function setActive(element) {
       document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
       });
+      
       element.classList.add('active');
       const itemText = element.querySelector('.menu-text').textContent;
-      document.getElementById('active-item-text').textContent = `Elemento activo: ${itemText}`;
-      document.getElementById('section-title').textContent = itemText;
+      const itemId = element.dataset.item;
+      
+      // Mostrar el contenido específico para cada sección
+      if (itemId === 'perfil') {
+        document.getElementById('dynamic-content').style.display = 'none';
+        document.getElementById('profile-content').style.display = 'block';
+        loadProfileForm();
+      } else {
+        document.getElementById('profile-content').style.display = 'none';
+        document.getElementById('dynamic-content').style.display = 'block';
+        
+        // Actualizar título dinámico
+        dynamicTitle.textContent = itemText;
+      }
       
       // Cerrar menú en móviles después de seleccionar
       if (window.innerWidth <= 768) {
@@ -406,7 +585,6 @@
         sidebar.classList.toggle('collapsed');
         appContainer.classList.toggle('collapsed');
         
-        // Cambiar ícono del botón
         if (isCollapsed) {
           menuToggle.innerHTML = '<i class="ti ti-menu-2"></i>';
         } else {
@@ -415,16 +593,121 @@
       }
     }
     
-    // Event listener para el botón de menú
     menuToggle.addEventListener('click', toggleSidebar);
     
-    // Manejar redimensionamiento de la ventana
+    // Manejar redimensionamiento
     window.addEventListener('resize', function() {
       if (window.innerWidth > 768) {
         sidebar.classList.remove('active');
         sidebarOverlay.classList.remove('active');
       }
     });
+
+    // Función para cargar el formulario de perfil
+    function loadProfileForm() {
+      document.getElementById('dynamic-content').style.display = 'none';
+      const profileContent = document.getElementById('profile-content');
+      profileContent.style.display = 'block';
+      
+      nameInput.value = userData.name;
+      emailInput.value = userData.email;
+      
+      // Resetear errores al cargar
+      nameInput.classList.remove('invalid');
+      emailInput.classList.remove('invalid');
+      nameError.style.display = 'none';
+      emailError.style.display = 'none';
+    }
+    
+    // Validación de nombre
+    function validateName() {
+      if (nameInput.validity.valid) {
+        nameInput.classList.remove('invalid');
+        nameError.style.display = 'none';
+      } else {
+        nameInput.classList.add('invalid');
+        nameError.style.display = 'block';
+      }
+    }
+    
+    // Validación de email
+    function validateEmail() {
+      if (emailInput.validity.valid) {
+        emailInput.classList.remove('invalid');
+        emailError.style.display = 'none';
+      } else {
+        emailInput.classList.add('invalid');
+        emailError.style.display = 'block';
+      }
+    }
+    
+    // Función para manejar el envío del formulario
+    async function handleProfileSubmit(e) {
+      e.preventDefault();
+      
+      // Validar antes de enviar
+      validateName();
+      validateEmail();
+      
+      if (!profileForm.checkValidity()) {
+        return;
+      }
+      
+      const formData = {
+        name: nameInput.value,
+        email: emailInput.value
+      };
+      
+      const btnSubmit = profileForm.querySelector('button[type="submit"]');
+      const originalBtnText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = '<i class="ti ti-loader"></i> Guardando...';
+      btnSubmit.disabled = true;
+      
+      try {
+        // Llamada real a la API
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text() || 'Error en la respuesta del servidor');
+        }
+
+        const data = await response.json();
+        
+        showFormMessage('Tus datos se han actualizado correctamente', 'success');
+        
+        // Actualizar datos del usuario
+        userData.name = formData.name;
+        userData.email = formData.email;
+        document.querySelector('.user-name').textContent = formData.name;
+        
+      } catch (error) {
+        console.error('Error:', error);
+        showFormMessage(error.message || 'Hubo un error al guardar los cambios', 'error');
+      } finally {
+        btnSubmit.innerHTML = originalBtnText;
+        btnSubmit.disabled = false;
+      }
+    }
+    
+    // Función para mostrar mensajes
+    function showFormMessage(message, type) {
+      const messageElement = document.getElementById('formMessage');
+      messageElement.textContent = message;
+      messageElement.className = `form-message ${type}`;
+      
+      setTimeout(() => {
+        messageElement.className = 'form-message';
+      }, 5000);
+    }
+    
+    // Event listener para el formulario
+    profileForm.addEventListener('submit', handleProfileSubmit);
   </script>
 </body>
 </html>
