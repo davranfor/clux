@@ -11,6 +11,8 @@
 <body>
     <header>
         <img src="https://i.ibb.co/hJpg6C8Y/logo.png" alt="logo" border="0">
+        <p class="user-name">David Ranieri Forteza</p>
+        <button class="user-button">Entrar</button>
     </header>
     <div class="container">
         <div class="menu">
@@ -55,11 +57,26 @@
             </div>
         </div>
         <div class="content">
-            <h2>Contenido principal</h2>
+            <h2 id="dynamic-title">Contenido</h2>
             <hr>
-            <p>Esta columna ocupará el espacio restante.</p>
         </div>
     </div>
+    <script>
+        const dynamicTitle = document.getElementById('dynamic-title');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setActive(document.querySelector('.menu-item.active'));
+        });
+
+        function setActive(element) {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            const itemText = element.querySelector('.menu-text').textContent;
+            dynamicTitle.textContent = itemText;
+        }
+    </script>
 </body>
 </html>
 

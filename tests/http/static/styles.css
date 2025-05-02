@@ -6,17 +6,49 @@ body {
     margin: 0;
 }
 
-header {
-    border-bottom: 1px solid #64758a;
-    background-color: #2d3748;
-    /* text-align: center; */
-    padding: 10px;
-    margin: 0;
-}
-
 hr {
     border: 0;
     border-top: 1px solid #64758a;
+}
+
+header {
+    border-bottom: 1px solid #64758a;
+    background-color: #2d3748;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 6px;
+    margin: 0;
+}
+
+.logo {
+    flex-shrink: 0;
+}
+
+.user-name {
+    font-size: 16px;
+    text-align: right;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 10px;
+}
+
+.user-button {
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: background 0.3s;
+    height: 40px;
+    margin: 0 5px;
+    padding: 0 15px;
 }
 
 .container {
@@ -26,7 +58,7 @@ hr {
 
 .menu {
     background-color: #2d3748;
-    flex: 0 0 auto; /* No crece, no se encoge, ancho automático */
+    flex: 0 0 auto;
     padding: 0;
     margin: 0;
 }
@@ -49,7 +81,8 @@ hr {
 }
     
 .menu-item.active {
-    background-color: #4299e1;
+    /* background-color: #4299e1; */
+    background-color: #718096;
 }
 
 .menu-item.active .ti {
@@ -67,7 +100,7 @@ hr {
 .content {
     background-color: #1e2734;
     color: #8a9bb4;
-    flex: 1; /* Ocupa el espacio restante */
+    flex: 1;
     text-align: center;
     padding: 0 10px;
 }
