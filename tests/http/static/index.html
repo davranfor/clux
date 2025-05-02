@@ -12,7 +12,7 @@
     <header>
         <img src="https://i.ibb.co/hJpg6C8Y/logo.png" alt="logo" border="0">
         <p class="user-name">David Ranieri Forteza</p>
-        <button class="user-button">Entrar</button>
+        <button id="user-button" class="user-button login-button">Entrar</button>
     </header>
     <div class="container">
         <div class="menu">
@@ -62,12 +62,23 @@
         </div>
     </div>
     <script>
-        const dynamicTitle = document.getElementById('dynamic-title');
+        const userButton = document.getElementById("user-button");
+        userButton.addEventListener("click", function() {
+            if (userButton.classList.contains("login-button")) {
+                userButton.classList.remove("login-button");
+                userButton.classList.add("logout-button");
+                userButton.textContent = "Salir";
+            } else {
+                userButton.classList.remove("logout-button");
+                userButton.classList.add("login-button");
+                userButton.textContent = "Entrar";
+            }
+        });
 
+        const dynamicTitle = document.getElementById('dynamic-title');
         document.addEventListener('DOMContentLoaded', function() {
             setActive(document.querySelector('.menu-item.active'));
         });
-
         function setActive(element) {
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');

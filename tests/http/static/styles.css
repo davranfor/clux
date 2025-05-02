@@ -37,7 +37,6 @@ header {
 }
 
 .user-button {
-    background: #4CAF50;
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -45,10 +44,19 @@ header {
     font-weight: bold;
     font-size: 14px;
     flex-shrink: 0;
-    transition: background 0.3s;
+    min-width: 80px;
     height: 40px;
+    transition: background 0.3s;
     margin: 0 5px;
     padding: 0 15px;
+}
+
+.login-button {
+    background: #4CAF50;
+}
+
+.logout-button {
+    background: #f44336;
 }
 
 .container {
