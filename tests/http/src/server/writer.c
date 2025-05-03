@@ -95,26 +95,6 @@ void writer_reload(void)
     load();
 }
 
-enum method {GET, POST, PUT, PATCH, DELETE, METHODS};
-
-static enum method get_method(const char *message)
-{
-    const char *name[] =
-    {
-        "GET", "POST", "PUT", "PATCH", "DELETE"
-    };
-    enum method method;
-
-    for (method = 0; method < METHODS; method++)
-    {
-        if (!strcmp(message, name[method]))
-        {
-            break;
-        }
-    }
-    return method;
-}
-
 static const char *get_sql(const json_t *path)
 {
     char *key = json_string(json_head(path));
@@ -256,7 +236,7 @@ static int db_handle(const json_t *request)
         return HTTP_BAD_REQUEST;
     }
 
-    int step, result;
+    int step, result = HTTP_NO_CONTENT;
 
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
@@ -272,11 +252,7 @@ static int db_handle(const json_t *request)
     }
     else if (buffer.length > 0)
     {
-        result = get_method(request->key) == POST ? HTTP_CREATED : HTTP_OK; 
-    }
-    else
-    {
-        result = HTTP_NO_CONTENT;
+        result = strcmp(request->key, "POST") ? HTTP_OK : HTTP_CREATED; 
     }
     sqlite3_finalize(stmt);
     return result;
