@@ -50,11 +50,11 @@ header {
     margin: 0 5px;
 }
 
-.login-button {
+.clock-in {
     background: #4CAF50;
 }
 
-.logout-button {
+.clock-out {
     background: #f44336;
 }
 
