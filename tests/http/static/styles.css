@@ -37,18 +37,17 @@ header {
 }
 
 .user-button {
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
     font-weight: bold;
     font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
     flex-shrink: 0;
-    min-width: 80px;
+    width: 80px;
     height: 40px;
     transition: background 0.3s;
     margin: 0 5px;
-    padding: 0 15px;
 }
 
 .login-button {
@@ -60,8 +59,8 @@ header {
 }
 
 .container {
-    display: flex;
     min-height: 100vh;
+    display: flex;
 }
 
 .menu {
@@ -89,7 +88,6 @@ header {
 }
     
 .menu-item.active {
-    /* background-color: #4299e1; */
     background-color: #718096;
 }
 
