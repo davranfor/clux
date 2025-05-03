@@ -17,26 +17,26 @@
 #include "writer.h"
 
 static buffer_t buffer;
-static json_t *sections;
+static json_t *catalog;
+static json_t *queries;
 static sqlite3 *db;
 
 static void load_db(void)
 {
-    if (json_index(sections, "LOAD") != 0)
+    const json_t *tables = json_find(catalog, "load");
+
+    if (tables == NULL)
     {
-        fprintf(stderr, "'app.json': 'LOAD' section must exist at index 0\n");
+        fprintf(stderr, "'app.json': 'load' section must exist\n");
         exit(EXIT_FAILURE);
     }
-
-    const json_t *tables = json_head(sections);
-
     for (unsigned i = 0; i < tables->size; i++)
     {
         json_t *entry = tables->child[i];
 
         if (entry->type != JSON_STRING)
         {
-            fprintf(stderr, "'app.json': 'LOAD[%u]' must be a string\n", i);
+            fprintf(stderr, "'app.json': 'load[%u]' must be a string\n", i);
             exit(EXIT_FAILURE);
         }
 
@@ -49,10 +49,12 @@ static void load_db(void)
             exit(EXIT_FAILURE);
         }
     }
-    for (unsigned i = 1; i < sections->size; i++)
+    if (!(queries = json_find(catalog, "queries")))
     {
-        json_sort(sections->child[i], NULL);
+        fprintf(stderr, "'app.json': 'queries' section must exist\n");
+        exit(EXIT_FAILURE);
     }
+    json_sort(queries, NULL);
 }
 
 static void load(void)
@@ -60,7 +62,7 @@ static void load(void)
     json_error_t error = {0};
 
     printf("Loading 'app.json'\n");
-    if (!(sections = json_parse_file("app.json", &error)))
+    if (!(catalog = json_parse_file("app.json", &error)))
     {
         json_print_error(&error);
         exit(EXIT_FAILURE);
@@ -77,7 +79,7 @@ static void load(void)
 static void unload(void)
 {
     buffer_clean(&buffer);
-    json_free(sections);
+    json_free(catalog);
     sqlite3_close(db);
 }
 
@@ -113,12 +115,11 @@ static enum method get_method(const char *message)
     return method;
 }
 
-static const char *get_sql(const char *method, const json_t *path)
+static const char *get_sql(const json_t *path)
 {
-    const json_t *section = json_find(sections, method);
     char *key = json_string(json_head(path));
 
-    return json_string(json_search(section, &(json_t){.key = key}, NULL));
+    return json_string(json_search(queries, &(json_t){.key = key}, NULL));
 }
 
 static int set_content(sqlite3_stmt *stmt, const json_t *content)
@@ -222,13 +223,14 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
     return 1;
 }
 
-static int db_get(const json_t *request)
+static int db_handle(const json_t *request)
 {
     const json_t *path = json_find(request, "path");
     const json_t *query = json_find(request, "query");
-    const char *sql = get_sql("GET", path);
+    const json_t *content = json_find(request, "content");
+    const char *sql = get_sql(path);
 
-    if (!sql || !path || !query)
+    if (!sql || !path || !query || !content)
     {
         const char *error = "Query can't be performed";
 
@@ -246,7 +248,7 @@ static int db_get(const json_t *request)
         buffer_write(&buffer, sqlite3_errmsg(db));
         return HTTP_BAD_REQUEST;
     }
-    if (!set_path(stmt, path) || !set_query(stmt, query))
+    if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         buffer_write(&buffer, sqlite3_errmsg(db));
@@ -254,15 +256,13 @@ static int db_get(const json_t *request)
         return HTTP_BAD_REQUEST;
     }
 
-    int result = HTTP_NO_CONTENT;
-    int step;
+    int step, result;
 
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         const unsigned char *text = sqlite3_column_text(stmt, 0);
 
         buffer_write(&buffer, (const char *)text);
-        result = HTTP_OK;
     }
     if (step != SQLITE_DONE)
     {
@@ -270,241 +270,16 @@ static int db_get(const json_t *request)
         buffer_write(&buffer, sqlite3_errmsg(db));
         result = HTTP_BAD_REQUEST;
     }
-    sqlite3_finalize(stmt);
-    return result;
-}
-
-static int db_post(const json_t *request)
-{
-    const json_t *path = json_find(request, "path");
-    const json_t *query = json_find(request, "query");
-    const json_t *content = json_find(request, "content");
-    const char *sql = get_sql("POST", path);
-
-    if (!sql || !path || !query || !content)
+    else if (buffer.length > 0)
     {
-        const char *error = "Query can't be performed";
-
-        json_write_line(request, stderr);
-        fprintf(stderr, "%s\n", error);
-        buffer_write(&buffer, error);
-        return HTTP_SERVER_ERROR;
-    }
-
-    sqlite3_stmt *stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        return HTTP_BAD_REQUEST;
-    }
-    if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return HTTP_BAD_REQUEST;
-    }
-    if (sqlite3_step(stmt) != SQLITE_DONE)
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return HTTP_BAD_REQUEST;
-    }
-
-    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
-
-    buffer_format(&buffer, "{\"success\": true, \"id\": %lld}", id);
-    sqlite3_finalize(stmt);
-    return HTTP_CREATED;
-}
-
-static int db_put(const json_t *request)
-{
-    const json_t *path = json_find(request, "path");
-    const json_t *query = json_find(request, "query");
-    const json_t *content = json_find(request, "content");
-    const char *sql = get_sql("PUT", path);
-
-    if (!sql || !path || !query || !content)
-    {
-        const char *error = "Query can't be performed";
-
-        json_write_line(request, stderr);
-        fprintf(stderr, "%s\n", error);
-        buffer_write(&buffer, error);
-        return HTTP_SERVER_ERROR;
-    }
-
-    sqlite3_stmt *stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        return HTTP_BAD_REQUEST;
-    }
-    if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return HTTP_BAD_REQUEST;
-    }
-
-    int result = HTTP_OK;
-
-    if (sqlite3_step(stmt) == SQLITE_DONE)
-    {
-        if (sqlite3_changes(db) > 0)
-        {
-            buffer_write(&buffer, "{\"success\": true}");
-        }
-        else
-        {
-            result = HTTP_NO_CONTENT;
-        }
+        result = get_method(request->key) == POST ? HTTP_CREATED : HTTP_OK; 
     }
     else
     {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        result = HTTP_BAD_REQUEST;
+        result = HTTP_NO_CONTENT;
     }
     sqlite3_finalize(stmt);
     return result;
-}
-
-static int db_patch(json_t *request)
-{
-    const json_t *path = json_find(request, "path");
-    const json_t *query = json_find(request, "query");
-    const json_t *content = json_find(request, "content");
-    const char *sql = get_sql("PATCH", path);
-
-    if (!sql || !path || !query || !content)
-    {
-        const char *error = "Query can't be performed";
-
-        json_write_line(request, stderr);
-        fprintf(stderr, "%s\n", error);
-        buffer_write(&buffer, error);
-        return HTTP_SERVER_ERROR;
-    }
-
-    sqlite3_stmt *stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        return HTTP_BAD_REQUEST;
-    }
-    if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return HTTP_BAD_REQUEST;
-    }
-
-    int result = HTTP_OK;
-
-    if (sqlite3_step(stmt) == SQLITE_DONE)
-    {
-        if (sqlite3_changes(db) > 0)
-        {
-            buffer_write(&buffer, "{\"success\": true}");
-        }
-        else
-        {
-            result = HTTP_NO_CONTENT;
-        }
-    }
-    else
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        result = HTTP_BAD_REQUEST;
-    }
-    sqlite3_finalize(stmt);
-    return result;
-}
-
-static int db_delete(json_t *request)
-{
-    const json_t *path = json_find(request, "path");
-    const json_t *query = json_find(request, "query");
-    const char *sql = get_sql("DELETE", path);
-
-    if (!sql || !path || !query)
-    {
-        const char *error = "Query can't be performed";
-
-        json_write_line(request, stderr);
-        fprintf(stderr, "%s\n", error);
-        buffer_write(&buffer, error);
-        return HTTP_SERVER_ERROR;
-    }
-
-    sqlite3_stmt *stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        return HTTP_BAD_REQUEST;
-    }
-    if (!set_path(stmt, path) || !set_query(stmt, query))
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return HTTP_BAD_REQUEST;
-    }
-
-    int result = HTTP_OK;
-
-    if (sqlite3_step(stmt) == SQLITE_DONE)
-    {
-        if (sqlite3_changes(db) > 0)
-        {
-            buffer_write(&buffer, "{\"success\": true}");
-        }
-        else
-        {
-            result = HTTP_NO_CONTENT;
-        }
-    }
-    else
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        result = HTTP_BAD_REQUEST;
-    }
-    sqlite3_finalize(stmt);
-    return result;
-}
-
-static int db_handle(json_t *request)
-{
-    switch (get_method(request->key))
-    {
-        case GET:
-            return db_get(request);
-        case POST:
-            return db_post(request);
-        case PUT:
-            return db_put(request);
-        case PATCH:
-            return db_patch(request);
-        case DELETE:
-            return db_delete(request);
-        default:
-            return HTTP_NO_CONTENT;
-    }
 }
 
 static void cleanup(json_t *request)

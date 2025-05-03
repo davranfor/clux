@@ -1,22 +1,14 @@
 {
-  "LOAD": [
+  "load": [
     "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE);"
   ],
-  "GET": {
-    "users.all": "SELECT json_group_array(json_object('id', id, 'name', name, 'email', email)) FROM users;",
-    "users.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = $1;"
-  },
-  "POST": {
-    "users.default": "INSERT INTO users (name, email) VALUES (:name, :email);"
-  },
-  "PUT": {
-    "users.default": "UPDATE users SET name = :name, email = :email WHERE id = $1;"
-  },
-  "PATCH": {
-    "users.update_email": "UPDATE users SET email = :email WHERE id = $1;"
-  },
-  "DELETE": {
-    "users.default": "DELETE FROM users WHERE id = $1;"
+  "queries": {
+    "users.get.all": "SELECT json_group_array(json_object('id', id, 'name', name, 'email', email)) FROM users;",
+    "users.get.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = $1;",
+    "users.delete.default": "DELETE FROM users WHERE id = $1 RETURNING id;",
+    "users.patch.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
+    "users.post.default": "INSERT INTO users (name, email) VALUES (:name, :email) RETURNING id;",
+    "users.put.default": "UPDATE users SET name = :name, email = :email WHERE id = $1 RETURNING id;"
   }
 }
 

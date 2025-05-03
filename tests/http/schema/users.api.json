@@ -12,7 +12,7 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "users.all" }
+            "x-notify": { "path": "users.get.all" }
           },
           {
             "properties": {
@@ -20,7 +20,7 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "users.default" }
+            "x-notify": { "path": "users.get.default" }
           }
         ]
       },
@@ -33,7 +33,7 @@
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "users.default" }
+        "x-notify": { "path": "users.post.default" }
       },
       "then": {
         "properties": {
@@ -51,7 +51,7 @@
           "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "users.default" }
+        "x-notify": { "path": "users.put.default" }
       },
       "then": {
         "properties": {
@@ -69,7 +69,7 @@
           "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "users.update_email" }
+        "x-notify": { "path": "users.patch.email" }
       },
       "then": {
         "properties": {
@@ -89,7 +89,7 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "users.default" }
+        "x-notify": { "path": "users.delete.default" }
       },
       "then": true,
       "else": false
