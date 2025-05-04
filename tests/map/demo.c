@@ -1,5 +1,5 @@
 /*!
- *  \brief     clux - json_t and json-schema library for C
+ *  \brief     C library for unixes
  *  \author    David Ranieri <davranfor@gmail.com>
  *  \copyright GNU Public License.
  */

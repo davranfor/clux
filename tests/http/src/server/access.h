@@ -4,12 +4,10 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef READER_H
-#define READER_H
+#ifndef ACCESS_H
+#define ACCESS_H
 
-#include <stddef.h>
-
-int reader_handle(const char *, size_t);
+void access_handle(void);
 
 #endif
 

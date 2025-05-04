@@ -1,4 +1,4 @@
-# clux - json and json-schema library for C
+# C library for unixes
 
 ## Compile and install
 ```
