@@ -4,8 +4,8 @@
  *  \copyright GNU Public License.
  */
 
-#ifndef HEADERS_H
-#define HEADERS_H
+#ifndef HEADER_H
+#define HEADER_H
 
 enum
 {

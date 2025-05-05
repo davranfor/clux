@@ -1,9 +1,6 @@
-CC = gcc
-CFLAGS = -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
-CFLAGS += -Isrc/shared
+CC := gcc
+CFLAGS := -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
 LDFLAGS = -lclux -lsqlite3 -lcrypto
-OBJDIR = obj
-SRCDIR = src
 
 ifeq ($(shell uname -s),Darwin)
     OPENSSL_PREFIX = $(shell brew --prefix openssl@3)
@@ -11,40 +8,24 @@ ifeq ($(shell uname -s),Darwin)
     LDFLAGS += -L$(OPENSSL_PREFIX)/lib
 endif
 
-SERVER_SRC = $(wildcard $(SRCDIR)/server/*.c) $(wildcard $(SRCDIR)/shared/*.c)
-CLIENT_SRC = $(wildcard $(SRCDIR)/client/*.c) $(wildcard $(SRCDIR)/shared/*.c)
+SRC_DIR := src
+OBJ_DIR := obj
+SRC := $(wildcard $(SRC_DIR)/*.c)
+OBJ := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC))
+TARGET := server
 
-SERVER_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SERVER_SRC))
-CLIENT_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(CLIENT_SRC))
+all: $(OBJ_DIR) $(TARGET)
 
-SERVER_BIN = server
-CLIENT_BIN = client
-
-all: $(OBJDIR) $(SERVER_BIN) $(CLIENT_BIN)
-
-$(SERVER_BIN): $(SERVER_OBJ)
+$(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(CLIENT_BIN): $(CLIENT_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)/server $(OBJDIR)/client $(OBJDIR)/shared
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR):
-	@mkdir -p $(OBJDIR)
-
-$(OBJDIR)/server:
-	@mkdir -p $(OBJDIR)/server
-
-$(OBJDIR)/client:
-	@mkdir -p $(OBJDIR)/client
-
-$(OBJDIR)/shared:
-	@mkdir -p $(OBJDIR)/shared
+$(OBJ_DIR):
+	@mkdir -p $@
 
 clean:
-	rm -rf $(OBJDIR) $(SERVER_BIN) $(CLIENT_BIN)
+	rm -rf $(OBJ_DIR) $(TARGET)
 
 .PHONY: all clean
-
