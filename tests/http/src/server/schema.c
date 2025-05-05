@@ -98,32 +98,59 @@ typedef struct
 
 enum {CONTINUE, STOP};
 
-static int set_path(json_t *node, const json_t *path)
+static int set_path(const json_event_t *event, context_t *context)
 {
+    const json_t *path = json_find(event->rule, "path");
+
     if ((path == NULL) || (path->type != JSON_STRING))
     {
+        fprintf(stderr, "Aborted: Malformed schema '%s'\n", context->path); 
+        json_write_line(event->rule, stderr);
+        buffer_format(context->buffer, "Malformed schema '%s'", context->path);
+        context->result = HTTP_SERVER_ERROR;
         return 0;
     }
-    node->string = path->string;
+    json_pointer(event->node, "/path/0")->string = path->string;
     return 1;
 }
 
-static int on_notify(const json_event_t *event)
+static int set_role(const json_event_t *event, context_t *context)
 {
-    json_t *node = json_pointer(event->node, "/path/0");
-    const json_t *path = json_find(event->rule, "path");
+    const json_t *role = json_find(event->rule, "role");
 
-    if (!set_path(node, path))
+    if (role == NULL)
+    {
+        return 1;
+    }
+    if (role->type != JSON_INTEGER)
+    {
+        return 0;
+    }
+
+    const json_t *node = json_find(event->node, "role");
+    
+    if (node->number < role->number) 
+    {
+        buffer_format(context->buffer, "Role < %.0f", role->number);
+        context->result = HTTP_UNAUTHORIZED;
+        return 0;
+    }
+    return 1;
+}
+
+static int on_notify(const json_event_t *event, context_t *context)
+{
+    if (!set_path(event, context) || !set_role(event, context))
     {
         return STOP; 
     }
     return CONTINUE;
 }
 
-static int on_warning(const json_t *rule, const context_t *context)
+static int on_warning(const json_event_t *event, const context_t *context)
 {
     fprintf(stderr, "Warning: Unknow rule '%s' at schema '%s'\n",
-        json_name(rule), context->path);
+        json_name(event->rule), context->path);
     return CONTINUE;
 }
 
@@ -141,10 +168,10 @@ static int on_failure(const json_event_t *event, context_t *context)
     return CONTINUE;
 }
 
-static int on_error(const json_t *rule, context_t *context)
+static int on_error(const json_event_t *event, context_t *context)
 {
     fprintf(stderr, "Aborted: Malformed schema '%s'\n", context->path); 
-    json_write_line(rule, stderr);
+    json_write_line(event->rule, stderr);
     buffer_format(context->buffer, "Malformed schema '%s'", context->path);
     context->result = HTTP_SERVER_ERROR;
     return STOP;
@@ -155,13 +182,13 @@ static int on_validate(const json_event_t *event, void *context)
     switch (event->type)
     {
         case JSON_NOTIFY:
-            return on_notify(event);
+            return on_notify(event, context);
         case JSON_WARNING:
-            return on_warning(event->rule, context);
+            return on_warning(event, context);
         case JSON_FAILURE:
             return on_failure(event, context);
         case JSON_ERROR:
-            return on_error(event->rule, context);
+            return on_error(event, context);
     }
     return STOP;
 }

@@ -15,9 +15,11 @@
 
 #define CHILD_SIZE 8
 
+enum { BAD_REQUEST, FORBIDDEN, RELOAD, STATIC, OK };
+
 typedef struct { char *method, *path, *query, *content; } request_t;
 
-static int parse_static(request_t *request, char *str)
+static int parse_static(auth_t *auth, request_t *request, char *str)
 {
     if (!strncmp(str, "GET /", 5))
     {
@@ -26,21 +28,29 @@ static int parse_static(request_t *request, char *str)
 
         if (end == NULL)
         {
-            return 0;
+            return BAD_REQUEST;
         }
         *end = '\0';
+        if (end == path)
+        {
+            auth->role = 1;
+        }
+        if (auth->role == 0)
+        {
+            return FORBIDDEN;
+        }
         request->path = path;
-        return -1;
+        return STATIC;
     }
     if (!strncmp(str, "POST /reload ", 13))
     {
         loader_reload();
-        return -2;
+        return RELOAD;
     }
-    return 0;
+    return BAD_REQUEST;
 }
 
-static int parse_headers(request_t *request, char *str)
+static int parse_headers(auth_t *auth, request_t *request, char *str)
 {
     char *content = strstr(str, "\r\n\r\n") + 4;
 
@@ -62,6 +72,11 @@ static int parse_headers(request_t *request, char *str)
 
         if (!strncmp(str, array[method], length))
         {
+            if (auth->role == 0)
+            {
+                return FORBIDDEN;
+            }
+
             char *path = str + length - 1;
 
             path[-5] = '\0';
@@ -70,7 +85,7 @@ static int parse_headers(request_t *request, char *str)
 
             if (end == NULL)
             {
-                return 0;
+                return BAD_REQUEST;
             }
             *end = '\0';
             request->method = str;
@@ -80,10 +95,10 @@ static int parse_headers(request_t *request, char *str)
             {
                 *request->query++ = '\0';
             }
-            return 1;
+            return OK;
         }
     }
-    return parse_static(request, str);
+    return parse_static(auth, request, str);
 }
 
 static int parse_path(json_t *parent, json_t *child, char *str)
@@ -191,20 +206,23 @@ static int parse_query(json_t *parent, json_t *child, char *str)
     return 1;
 }
 
-const buffer_t *parser_handle(char *message)
+const buffer_t *parser_handle(auth_t *auth, char *message)
 {
+    (void)auth;
     printf("----------------------------------------------------------------------\n%s\n", message);
 
     request_t request = {0};
 
-    switch (parse_headers(&request, message))
+    switch (parse_headers(auth, &request, message))
     {
-        case -1:
-            return static_get(request.path);
-        case -2:
-            return static_no_content();
-        case 0:
+        case BAD_REQUEST:
             return static_bad_request();
+        case FORBIDDEN:
+            return static_forbidden();
+        case RELOAD:
+            return static_no_content();
+        case STATIC:
+            return static_get(request.path);
     }
 
     json_t path[CHILD_SIZE] = {0}, query[CHILD_SIZE] = {0};
@@ -221,6 +239,16 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_OBJECT
         },
         {
+            .key = "user",
+            .number = auth->user,
+            .type = JSON_INTEGER
+        },
+        {
+            .key = "role",
+            .number = auth->role,
+            .type = JSON_INTEGER
+        },
+        {
             .key = "content",
             .string = request.content,
             .type = request.content ? JSON_STRING : JSON_NULL
@@ -235,7 +263,7 @@ const buffer_t *parser_handle(char *message)
     return writer_handle(&(json_t)
     {
         .key = request.method,
-        .child = (json_t *[]){&node[0], &node[1], &node[2]},
+        .child = (json_t *[]){&node[0], &node[1], &node[2], &node[3], &node[4]},
         .size = sizeof node / sizeof *node,
         .type = JSON_OBJECT
     });

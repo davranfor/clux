@@ -7,7 +7,16 @@
 #ifndef ACCESS_H
 #define ACCESS_H
 
-void access_handle(void);
+#define AUTH_KEY_SIZE 65 
+
+typedef struct
+{
+    int user, role;
+    char key[AUTH_KEY_SIZE];
+} auth_t;
+
+void access_generate_key(auth_t *);
+int access_handle(auth_t *);
 
 #endif
 

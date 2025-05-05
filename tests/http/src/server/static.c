@@ -14,6 +14,7 @@
 
 static buffer_t no_content;
 static buffer_t bad_request;
+static buffer_t forbidden;
 static buffer_t not_found;
 static map_t *map;
 
@@ -39,6 +40,7 @@ static void load(void)
 {
     if (!buffer_write(&no_content, http_no_content) ||
         !fill_buffer(&bad_request, http_bad_request, "Bad Request") ||
+        !fill_buffer(&forbidden, http_forbidden, "Forbidden") ||
         !fill_buffer(&not_found, http_not_found, "Not Found"))
     {
         perror("buffer");
@@ -55,6 +57,7 @@ static void unload(void)
 {
     buffer_clean(&no_content);
     buffer_clean(&bad_request);
+    buffer_clean(&forbidden);
     buffer_clean(&not_found);
     map_destroy(map, free_buffer);
 }
@@ -190,6 +193,11 @@ const buffer_t *static_no_content(void)
 const buffer_t *static_bad_request(void)
 {
     return &bad_request;
+}
+
+const buffer_t *static_forbidden(void)
+{
+    return &forbidden;
 }
 
 const buffer_t *static_not_found(void)

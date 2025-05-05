@@ -8,8 +8,9 @@
 #define PARSER_H
 
 #include <clux/clib_buffer.h>
+#include "access.h"
 
-const buffer_t *parser_handle(char *);
+const buffer_t *parser_handle(auth_t *, char *);
 
 #endif
 

@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "config.h"
+#include "access.h"
 #include "reader.h"
 #include "parser.h"
 #include "server.h"
@@ -113,11 +114,27 @@ static void conn_attach(conn_t *conn, int fd)
     conn->events = POLLIN;
 }
 
+static void auth_attach(auth_t *auth)
+{
+    access_generate_key(auth);
+}
+
 static void conn_reset(conn_t *conn)
 {
     close(conn->fd);
     conn->fd = -1;
     conn->events = 0;
+}
+
+static void auth_reset(auth_t *auth)
+{
+    auth->user = 0;
+    auth->role = 0;
+}
+
+static void pool_reset(pool_t *pool)
+{
+    buffer_reset(pool);
 }
 
 static int conn_recv(conn_t *conn, pool_t *pool)
@@ -202,7 +219,7 @@ static int conn_send(conn_t *conn, pool_t *pool, const buffer_t *message)
     return -1;
 }
 
-static void conn_handle(conn_t *conn, pool_t *pool)
+static void conn_handle(conn_t *conn, auth_t *auth, pool_t *pool)
 {
     if (!(conn->revents & ~(POLLIN | POLLOUT)))
     {
@@ -217,8 +234,8 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                 case -1:
                     return;
                 default:
-                    message = parser_handle(pool->length ? pool->text : buffer);
-                    buffer_reset(pool);
+                    message = parser_handle(auth, pool->length ? pool->text : buffer);
+                    pool_reset(pool);
                     break;
             }
         }
@@ -233,19 +250,21 @@ static void conn_handle(conn_t *conn, pool_t *pool)
                     return;
                 default:
                     conn->events &= ~POLLOUT;
-                    buffer_reset(pool);
+                    pool_reset(pool);
                     return;
             }
         }
     }
 reset:
-    buffer_reset(pool);
     conn_reset(conn);
+    auth_reset(auth);
+    pool_reset(pool);
 }
 
-static void conn_close(conn_t *conn, pool_t *pool)
+static void conn_close(conn_t *conn, auth_t *auth, pool_t *pool)
 {
     conn_reset(conn);
+    auth_reset(auth);
     free(pool->text);
 }
 
@@ -253,6 +272,7 @@ static void server_loop(uint16_t port)
 {
     enum {server = 0, maxfds = MAX_CLIENTS + 1};
     conn_t conn[maxfds] = {0};
+    auth_t auth[maxfds] = {0};
     pool_t pool[maxfds] = {0};
 
     conn_attach(&conn[server], server_listen(port));
@@ -293,6 +313,7 @@ static void server_loop(uint16_t port)
                             break;
                         }
                         conn_attach(&conn[client], fd);
+                        auth_attach(&auth[client]);
                         done = 1;
                         break;
                     }
@@ -307,7 +328,7 @@ static void server_loop(uint16_t port)
         {
             if (conn[client].revents)
             {
-                conn_handle(&conn[client], &pool[client]);
+                conn_handle(&conn[client], &auth[client], &pool[client]);
             }
         }
     }
@@ -315,7 +336,7 @@ static void server_loop(uint16_t port)
     {
         if (conn[fd].fd != -1)
         {
-            conn_close(&conn[fd], &pool[fd]);
+            conn_close(&conn[fd], &auth[fd], &pool[fd]);
         }
     }
 }

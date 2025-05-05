@@ -1295,7 +1295,7 @@ static int test_x_notify(const schema_t *schema, const json_t *rule, const json_
 {
     if ((rule->type != JSON_OBJECT) || abort_on_notify(schema, rule, node))
     {
-        return SCHEMA_ERROR;
+        return SCHEMA_ABORT;
     }
     return SCHEMA_VALID;
 }

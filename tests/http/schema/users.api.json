@@ -12,7 +12,7 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "users.get.all" }
+            "x-notify": { "path": "users.get.all", "role": 2 }
           },
           {
             "properties": {
@@ -89,7 +89,7 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "users.delete.default" }
+        "x-notify": { "path": "users.delete.default", "role": 3 }
       },
       "then": true,
       "else": false
