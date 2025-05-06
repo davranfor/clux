@@ -10,23 +10,27 @@ endif
 
 SRC_DIR := src
 OBJ_DIR := obj
+DEP_DIR := $(OBJ_DIR)/.deps
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC))
+DEP := $(patsubst $(SRC_DIR)/%.c,$(DEP_DIR)/%.d,$(SRC))
 TARGET := server
 
-all: $(OBJ_DIR) $(TARGET)
+all: $(TARGET)
 
 $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR) $(DEP_DIR)
+	$(CC) $(CFLAGS) -MMD -MP -MF $(DEP_DIR)/$*.d -c -o $@ $<
 
-$(OBJ_DIR):
+$(OBJ_DIR) $(DEP_DIR):
 	@mkdir -p $@
 
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET)
+
+-include $(DEP)
 
 .PHONY: all clean
 

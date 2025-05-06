@@ -15,7 +15,7 @@
 
 #define CHILD_SIZE 8
 
-enum { BAD_REQUEST, FORBIDDEN, RELOAD, STATIC, OK };
+enum { BAD_REQUEST, UNAUTHORIZED, RELOAD, STATIC, OK };
 
 typedef struct { char *method, *path, *query, *content; } request_t;
 
@@ -35,10 +35,7 @@ static int parse_static(auth_t *auth, request_t *request, char *str)
         {
             auth->role = 1;
         }
-        if (auth->role == 0)
-        {
-            return FORBIDDEN;
-        }
+        printf("role: %d\nkey:  %s\n", auth->role, auth->key);
         request->path = path;
         return STATIC;
     }
@@ -74,7 +71,7 @@ static int parse_headers(auth_t *auth, request_t *request, char *str)
         {
             if (auth->role == 0)
             {
-                return FORBIDDEN;
+                return UNAUTHORIZED;
             }
 
             char *path = str + length - 1;
@@ -217,8 +214,8 @@ const buffer_t *parser_handle(auth_t *auth, char *message)
     {
         case BAD_REQUEST:
             return static_bad_request();
-        case FORBIDDEN:
-            return static_forbidden();
+        case UNAUTHORIZED:
+            return static_unauthorized();
         case RELOAD:
             return static_no_content();
         case STATIC:

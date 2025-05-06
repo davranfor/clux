@@ -15,6 +15,7 @@ int static_add(const char *);
 const buffer_t *static_get(const char *);
 const buffer_t *static_no_content(void);
 const buffer_t *static_bad_request(void);
+const buffer_t *static_unauthorized(void);
 const buffer_t *static_forbidden(void);
 const buffer_t *static_not_found(void);
 
