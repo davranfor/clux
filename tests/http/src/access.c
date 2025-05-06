@@ -30,9 +30,3 @@ void access_generate_key(auth_t *auth)
     generate_key(auth->key);
 }
 
-int access_handle(auth_t *auth)
-{
-    (void)auth;
-    return 1;
-}
-

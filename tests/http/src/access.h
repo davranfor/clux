@@ -16,7 +16,6 @@ typedef struct
 } auth_t;
 
 void access_generate_key(auth_t *);
-int access_handle(auth_t *);
 
 #endif
 

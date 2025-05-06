@@ -19,7 +19,7 @@ enum { BAD_REQUEST, UNAUTHORIZED, RELOAD, STATIC, OK };
 
 typedef struct { char *method, *path, *query, *content; } request_t;
 
-static int parse_static(auth_t *auth, request_t *request, char *str)
+static int parse_static(request_t *request, char *str)
 {
     if (!strncmp(str, "GET /", 5))
     {
@@ -31,11 +31,6 @@ static int parse_static(auth_t *auth, request_t *request, char *str)
             return BAD_REQUEST;
         }
         *end = '\0';
-        if (end == path)
-        {
-            auth->role = 1;
-        }
-        printf("role: %d\nkey:  %s\n", auth->role, auth->key);
         request->path = path;
         return STATIC;
     }
@@ -47,7 +42,7 @@ static int parse_static(auth_t *auth, request_t *request, char *str)
     return BAD_REQUEST;
 }
 
-static int parse_headers(auth_t *auth, request_t *request, char *str)
+static int parse_headers(request_t *request, char *str)
 {
     char *content = strstr(str, "\r\n\r\n") + 4;
 
@@ -69,11 +64,6 @@ static int parse_headers(auth_t *auth, request_t *request, char *str)
 
         if (!strncmp(str, array[method], length))
         {
-            if (auth->role == 0)
-            {
-                return UNAUTHORIZED;
-            }
-
             char *path = str + length - 1;
 
             path[-5] = '\0';
@@ -95,7 +85,7 @@ static int parse_headers(auth_t *auth, request_t *request, char *str)
             return OK;
         }
     }
-    return parse_static(auth, request, str);
+    return parse_static(request, str);
 }
 
 static int parse_path(json_t *parent, json_t *child, char *str)
@@ -203,14 +193,13 @@ static int parse_query(json_t *parent, json_t *child, char *str)
     return 1;
 }
 
-const buffer_t *parser_handle(auth_t *auth, char *message)
+const buffer_t *parser_handle(char *message)
 {
-    (void)auth;
     printf("----------------------------------------------------------------------\n%s\n", message);
 
     request_t request = {0};
 
-    switch (parse_headers(auth, &request, message))
+    switch (parse_headers(&request, message))
     {
         case BAD_REQUEST:
             return static_bad_request();
@@ -237,12 +226,12 @@ const buffer_t *parser_handle(auth_t *auth, char *message)
         },
         {
             .key = "user",
-            .number = auth->user,
+            .number = 0,
             .type = JSON_INTEGER
         },
         {
             .key = "role",
-            .number = auth->role,
+            .number = 0,
             .type = JSON_INTEGER
         },
         {
