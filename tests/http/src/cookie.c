@@ -19,13 +19,13 @@
 #define TOKEN_SIZE 256
 #define HMAC_SIZE 65
 
-/* Generate token HMAC (user_id:timestamp:hmac) */
-static void generate_token(char *token, int user_id)
+/* Generate token HMAC (user:timestamp:hmac) */
+static void generate_token(char *token, int user)
 {
     char data[128];
     time_t now = time(NULL);
 
-    snprintf(data, sizeof data, "%d:%ld", user_id, now);
+    snprintf(data, sizeof data, "%d:%ld", user, now);
 
     unsigned char hmac[SHA256_DIGEST_LENGTH];
     unsigned int hmac_len;
@@ -43,25 +43,25 @@ static void generate_token(char *token, int user_id)
     snprintf(token, TOKEN_SIZE, "%s:%s", data, hmac_hex);
 }
 
-static int validate_token(char *token, int *user_id)
+static int validate_token(char *token, int *user)
 {
-    *user_id = 0;
+    *user = 0;
 
     char *part[3];
 
     part[0] = token;
-    part[1] = strchr(token, ':');
+    part[1] = strchr(part[0], ':');
     if (part[1] == NULL)
-    {
-        return 0;
-    }
-    part[2] = strchr(part[1] + 1, ':');
-    if (part[2] == NULL)
     {
         return 0;
     }
     part[1][0] = '\0';
     part[1]++;
+    part[2] = strchr(part[1], ':');
+    if (part[2] == NULL)
+    {
+        return 0;
+    }
     part[2][0] = '\0';
     part[2]++;
 
@@ -81,7 +81,7 @@ static int validate_token(char *token, int *user_id)
     unsigned int hmac_len;
 
     HMAC(EVP_sha256(), SECRET_KEY, strlen(SECRET_KEY),
-        (unsigned char*)data, strlen(data), hmac, &hmac_len);
+        (unsigned char *)data, strlen(data), hmac, &hmac_len);
 
     char hmac_hex[HMAC_SIZE];
 
@@ -94,19 +94,19 @@ static int validate_token(char *token, int *user_id)
     {
         return 0;
     }
-    *user_id = (int)strtol(part[0], NULL, 10);
+    *user = (int)strtol(part[0], NULL, 10);
     return 1;
 }
 
-const buffer_t *cookie_create(int user_id)
+const buffer_t *cookie_create(int user)
 {
-    (void)user_id;
+    (void)user;
     return NULL;
 }
 
-int cookie_parse(char *token, int *user_id)
+int cookie_parse(char *token, int *user)
 {
-    return validate_token(token, user_id);
+    return validate_token(token, user);
 }
 
 /*

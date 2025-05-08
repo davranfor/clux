@@ -10,13 +10,17 @@
 </head>
 <body>
     <header>
-        <img src="https://i.ibb.co/hJpg6C8Y/logo.png" alt="logo" border="0">
-        <p class="user-name">David Ranieri Forteza</p>
-        <button id="user-button" class="user-button"></button>
+        <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo" border="0">
+        <!--<img src="https://i.ibb.co/hJpg6C8Y/logo.png" alt="logo" border="0">-->
+        <div id="user-panel" class="user-panel">
+            <p class="user-text">David Ranieri Forteza</p>
+            <button id="user-button" class="user-button"></button>
+        </div>
     </header>
     <div class="container">
         <div class="menu">
-            <div class="menu-item active" onclick="setActive(this)" data-item="fichajes">
+            <!--<div class="menu-item active" onclick="setActive(this)" data-item="fichajes">-->
+            <div class="menu-item" onclick="setActive(this)" data-item="fichajes">
                 <i class="ti ti-clock"></i>
                 <span class="menu-text">Fichajes</span>
             </div>
@@ -63,6 +67,7 @@
     </div>
     <script>
         let isClockedIn = false;
+        const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
         function updateUserButton() {
             if (isClockedIn) {
@@ -78,14 +83,15 @@
         userButton.addEventListener("click", function() {
             isClockedIn = !isClockedIn;
             updateUserButton();
-            
         });
         updateUserButton();
 
         const dynamicTitle = document.getElementById('dynamic-title');
+/*
         document.addEventListener('DOMContentLoaded', function() {
             setActive(document.querySelector('.menu-item.active'));
         });
+*/
         function setActive(element) {
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
@@ -93,6 +99,10 @@
             element.classList.add('active');
             const itemText = element.querySelector('.menu-text').textContent;
             dynamicTitle.textContent = itemText;
+            const itemId = element.dataset.item;
+            if (itemId === 'perfil') {
+                userPanel.style.display = "flex";
+            }
         }
     </script>
 </body>

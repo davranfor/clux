@@ -1,7 +1,11 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
+    background-color: #2d3748;
     color: #fff;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
     padding: 0;
     margin: 0;
 }
@@ -15,25 +19,35 @@ header {
     border-bottom: 1px solid #64758a;
     background-color: #2d3748;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    overflow: hidden;
-    padding: 6px;
+    align-items: center;
+    top: 0;
+    position: sticky;
+    z-index: 1000;
+    min-width: 0;
+    padding: 10px;
     margin: 0;
 }
 
-.logo {
-    flex-shrink: 0;
+.user-panel {
+    display: none;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 10px;
+    padding-left: 10px;
 }
 
-.user-name {
+.user-text {
     font-size: 16px;
-    text-align: right;
-    flex: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 10px;
+    text-align: right;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
 }
 
 .user-button {
@@ -47,7 +61,8 @@ header {
     width: 80px;
     height: 40px;
     transition: background 0.3s;
-    margin: 0 5px;
+    padding: 0;
+    margin: 0;
 }
 
 .clock-in {
@@ -59,13 +74,14 @@ header {
 }
 
 .container {
-    min-height: 100vh;
     display: flex;
 }
 
 .menu {
+    border-right: 1px solid #64758a;
     background-color: #2d3748;
     flex: 0 0 auto;
+    width: 226px;
     padding: 0;
     margin: 0;
 }
