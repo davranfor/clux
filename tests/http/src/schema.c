@@ -93,6 +93,7 @@ typedef struct
 {
     buffer_t *buffer;
     const char *path;
+    json_t *request;
     int result;
 } context_t;
 
@@ -110,7 +111,7 @@ static int set_path(const json_event_t *event, context_t *context)
         context->result = HTTP_SERVER_ERROR;
         return 0;
     }
-    json_pointer(event->node, "/path/0")->string = path->string;
+    json_pointer(context->request, "/path/0")->string = path->string;
     return 1;
 }
 
@@ -127,7 +128,7 @@ static int set_role(const json_event_t *event, context_t *context)
         return 0;
     }
 
-    const json_t *node = json_find(event->node, "role");
+    const json_t *node = json_find(context->request, "role");
     
     if (node->number < role->number) 
     {
@@ -195,7 +196,7 @@ static int on_validate(const json_event_t *event, void *context)
 
 int schema_validate(json_t *request, buffer_t *buffer)
 {
-    json_print(request);
+    json_write_line(request, stdout);
     buffer_reset(buffer);
 
     const char *path = json_string(json_pointer(request, "/path/0")); 
@@ -231,8 +232,14 @@ int schema_validate(json_t *request, buffer_t *buffer)
         return 0;
     }
 
-    json_t entry = {.type = JSON_OBJECT, .child = (json_t *[]){request}, .size = 1};
-    context_t context = {.buffer = buffer, .path = path, .result = 0};
+    json_t entry =
+    {
+        .type = JSON_OBJECT, .child = (json_t *[]){request}, .size = 1
+    };
+    context_t context =
+    {
+        .buffer = buffer, .path = path, .request = request, .result = 0
+    };
     int result = HTTP_OK;
 
     if (!json_validate(rules, &entry, map, on_validate, &context))

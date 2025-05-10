@@ -20,6 +20,7 @@ static buffer_t buffer;
 static json_t *catalog;
 static json_t *queries;
 static sqlite3 *db;
+static int user_id;
 
 static void load_db(void)
 {
@@ -57,6 +58,17 @@ static void load_db(void)
     json_sort(queries, NULL);
 }
 
+static void get_user_id(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 0)
+    {
+        sqlite3_result_error(context, "user() doesn't take arguments", -1);
+        return;
+    }
+    sqlite3_result_int(context, user_id);
+}
+
 static void load(void)
 {
     json_error_t error = {0};
@@ -74,6 +86,15 @@ static void load(void)
         exit(EXIT_FAILURE);
     }
     load_db();
+
+    int rc = sqlite3_create_function(
+        db, "user", 0, SQLITE_UTF8, NULL, get_user_id, NULL, NULL);
+    
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
 }
 
 static void unload(void)
@@ -219,6 +240,7 @@ static int db_handle(const json_t *request)
         buffer_write(&buffer, error);
         return HTTP_SERVER_ERROR;
     }
+    user_id = (int)json_number(json_find(request, "user"));
 
     sqlite3_stmt *stmt;
 
@@ -252,7 +274,7 @@ static int db_handle(const json_t *request)
     }
     else if (buffer.length > 0)
     {
-        result = strcmp(request->key, "POST") ? HTTP_OK : HTTP_CREATED; 
+        result = strcmp(request->key, "POST") ? HTTP_OK : HTTP_CREATED;
     }
     sqlite3_finalize(stmt);
     return result;

@@ -29,6 +29,10 @@ header {
     margin: 0;
 }
 
+.hidden {
+    display: none;
+}
+
 .user-panel {
     display: none;
     justify-content: flex-end;
@@ -128,7 +132,7 @@ header {
 }
 
 .login-wrapper {
-    display: flex;
+    display: none;
     justify-content: center;
     padding: 10px 10px 0;
 }
