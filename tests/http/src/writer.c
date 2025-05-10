@@ -28,7 +28,7 @@ static void load_db(void)
 
     if (tables == NULL)
     {
-        fprintf(stderr, "'app.json': 'load' section must exist\n");
+        fprintf(stderr, "Catalog: 'load' section must exist\n");
         exit(EXIT_FAILURE);
     }
     for (unsigned i = 0; i < tables->size; i++)
@@ -37,7 +37,7 @@ static void load_db(void)
 
         if (entry->type != JSON_STRING)
         {
-            fprintf(stderr, "'app.json': 'load[%u]' must be a string\n", i);
+            fprintf(stderr, "Catalog': 'load[%u]' must be a string\n", i);
             exit(EXIT_FAILURE);
         }
 
@@ -52,7 +52,7 @@ static void load_db(void)
     }
     if (!(queries = json_find(catalog, "queries")))
     {
-        fprintf(stderr, "'app.json': 'queries' section must exist\n");
+        fprintf(stderr, "Catalog: 'queries' section must exist\n");
         exit(EXIT_FAILURE);
     }
     json_sort(queries, NULL);
@@ -69,18 +69,18 @@ static void get_user_id(sqlite3_context *context, int argc, sqlite3_value **argv
     sqlite3_result_int(context, user_id);
 }
 
-static void load(void)
+static void load(const char *path_catalog, const char *path_db)
 {
     json_error_t error = {0};
 
-    printf("Loading 'app.json'\n");
-    if (!(catalog = json_parse_file("app.json", &error)))
+    printf("Loading '%s'\n", path_catalog);
+    if (!(catalog = json_parse_file(path_catalog, &error)))
     {
         json_print_error(&error);
         exit(EXIT_FAILURE);
     }
-    printf("Loading 'app.db'\n");
-    if (sqlite3_open("app.db", &db))
+    printf("Loading '%s'\n", path_db);
+    if (sqlite3_open(path_db, &db))
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         exit(EXIT_FAILURE);
@@ -104,16 +104,16 @@ static void unload(void)
     sqlite3_close(db);
 }
 
-void writer_load(void)
+void writer_load(const char *path_catalog, const char *path_db)
 {
     atexit(unload);
-    load();
+    load(path_catalog, path_db);
 }
 
-void writer_reload(void)
+void writer_reload(const char *path_catalog, const char *path_db)
 {
     unload();
-    load();
+    load(path_catalog, path_db);
 }
 
 static const char *get_sql(const json_t *path)

@@ -54,7 +54,7 @@ void loader_load(void)
     {
         exit(EXIT_FAILURE);
     }
-    writer_load();
+    writer_load("data/api.json", "data/api.db");
 }
 
 void loader_reload(void)
@@ -65,6 +65,6 @@ void loader_reload(void)
     {
         exit(EXIT_FAILURE);
     }
-    writer_reload();
+    writer_reload("data/api.json", "data/api.db");
 }
 
