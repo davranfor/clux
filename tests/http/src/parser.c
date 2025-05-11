@@ -15,34 +15,9 @@
 
 #define CHILD_SIZE 8
 
-enum { BAD_REQUEST, UNAUTHORIZED, RELOAD, STATIC, OK };
-
 typedef struct { char *method, *path, *query, *content; } request_t;
 
-static int parse_static(request_t *request, char *str)
-{
-    if (!strncmp(str, "GET /", 5))
-    {
-        char *path = str + 5;
-        char *end = strchr(path, ' ');
-
-        if (end == NULL)
-        {
-            return BAD_REQUEST;
-        }
-        *end = '\0';
-        request->path = path;
-        return STATIC;
-    }
-    if (!strncmp(str, "POST /reload ", 13))
-    {
-        loader_reload();
-        return RELOAD;
-    }
-    return BAD_REQUEST;
-}
-
-static int parse_headers(request_t *request, char *str)
+static const buffer_t *parse_headers(request_t *request, char *str)
 {
     char *content = strstr(str, "\r\n\r\n") + 4;
 
@@ -72,7 +47,7 @@ static int parse_headers(request_t *request, char *str)
 
             if (end == NULL)
             {
-                return BAD_REQUEST;
+                return static_bad_request();
             }
             *end = '\0';
             request->method = str;
@@ -82,10 +57,27 @@ static int parse_headers(request_t *request, char *str)
             {
                 *request->query++ = '\0';
             }
-            return OK;
+            return NULL;
         }
     }
-    return parse_static(request, str);
+    if (!strncmp(str, "GET /", 5))
+    {
+        char *path = str + 5;
+        char *end = strchr(path, ' ');
+
+        if (end == NULL)
+        {
+            return static_bad_request();
+        }
+        *end = '\0';
+        return static_get(path);
+    }
+    if (!strncmp(str, "POST /reload ", 13))
+    {
+        loader_reload();
+        return static_no_content();
+    }
+    return static_bad_request();
 }
 
 static int parse_path(json_t *parent, json_t *child, char *str)
@@ -199,16 +191,11 @@ const buffer_t *parser_handle(char *message)
 
     request_t request = {0};
 
-    switch (parse_headers(&request, message))
+    const buffer_t *buffer = parse_headers(&request, message);
+
+    if (buffer != NULL)
     {
-        case BAD_REQUEST:
-            return static_bad_request();
-        case UNAUTHORIZED:
-            return static_unauthorized();
-        case RELOAD:
-            return static_no_content();
-        case STATIC:
-            return static_get(request.path);
+        return buffer;
     }
 
     json_t path[CHILD_SIZE] = {0}, query[CHILD_SIZE] = {0};
