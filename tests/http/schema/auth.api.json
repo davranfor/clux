@@ -13,9 +13,10 @@
         }
       }
     },
-    "additionalProperties": false
+    "additionalProperties": false,
+    "x-notify": { "path": "auth.get" }
   },
-  "then": { "x-notify": { "path": "auth.get" } },
+  "then": true,
   "else": false
 }
 

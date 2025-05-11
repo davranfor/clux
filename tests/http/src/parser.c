@@ -226,7 +226,7 @@ const buffer_t *parser_handle(char *message)
         },
         {
             .key = "user",
-            .number = 0,
+            .number = 1,
             .type = JSON_INTEGER
         },
         {
