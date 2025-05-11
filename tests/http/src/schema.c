@@ -172,7 +172,7 @@ static int on_failure(const json_event_t *event, context_t *context)
     if ((event->pointer->size < 2) ||
         (event->pointer->path[1] != json_index(context->request, "content")))
     {
-        buffer_format(context->buffer, "No toqués las bolas loco ...");
+        buffer_write(context->buffer, "No toqués las bolas loco ...");
         return STOP;
     }
     if (context->buffer->length > BUFFER_LIMIT)
