@@ -20,7 +20,7 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "users.get.default" }
+            "x-notify": { "path": "users.get.default", "role": 1 }
           }
         ]
       },
@@ -33,7 +33,7 @@
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "users.post.default" }
+        "x-notify": { "path": "users.post.default", "role": 1 }
       },
       "then": {
         "properties": {
@@ -51,7 +51,7 @@
           "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "users.put.default" }
+        "x-notify": { "path": "users.put.default", "role": 1 }
       },
       "then": {
         "properties": {
@@ -69,7 +69,7 @@
           "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "users.patch.email" }
+        "x-notify": { "path": "users.patch.email", "role": 3 }
       },
       "then": {
         "properties": {

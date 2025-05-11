@@ -105,7 +105,6 @@ static int set_path(const json_event_t *event, context_t *context)
     if ((path == NULL) || (path->type != JSON_STRING))
     {
         fprintf(stderr, "x-notify: 'path' was expected (%s)\n", get_path(context));
-        json_write_line(event->rule, stderr);
         buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
         context->result = HTTP_SERVER_ERROR;
         return 0;
@@ -118,25 +117,20 @@ static int set_role(const json_event_t *event, context_t *context)
 {
     const json_t *role = json_find(event->rule, "role");
 
-    if (role == NULL)
+    if ((role == NULL) || (role->type != JSON_INTEGER))
     {
-        return 1;
-    }
-    if (role->type != JSON_INTEGER)
-    {
-        fprintf(stderr, "x-notify: 'role' must be integer (%s)\n", get_path(context));
-        json_write_line(event->rule, stderr);
+        fprintf(stderr, "x-notify: A 'role' was expected (%s)\n", get_path(context));
         buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
         context->result = HTTP_SERVER_ERROR;
         return 0;
     }
 
-    const json_t *node = json_find(context->request, "role");
-    
-    if (node->number < role->number) 
+    double number = json_pointer(context->request, "/session/role")->number;
+
+    if (number < role->number) 
     {
-        buffer_format(context->buffer, "Role < %.0f", role->number);
-        context->result = HTTP_UNAUTHORIZED;
+        buffer_write(context->buffer, "Forbidden");
+        context->result = HTTP_FORBIDDEN;
         return 0;
     }
     return 1;

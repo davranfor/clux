@@ -10,12 +10,17 @@
 #include <clux/json_private.h>
 #include "loader.h"
 #include "static.h"
+#include "cookie.h"
 #include "writer.h"
 #include "parser.h"
 
 #define CHILD_SIZE 8
 
-typedef struct { char *method, *path, *query, *content; } request_t;
+typedef struct
+{
+    char *method, *path, *query, *content;
+    session_t session;
+} request_t;
 
 static const buffer_t *parse_headers(request_t *request, char *str)
 {
@@ -53,6 +58,7 @@ static const buffer_t *parse_headers(request_t *request, char *str)
             request->method = str;
             request->path = path;
             request->query = strchr(path, '?');
+            request->session.token = "";
             if (request->query != NULL)
             {
                 *request->query++ = '\0';
@@ -187,7 +193,7 @@ static int parse_query(json_t *parent, json_t *child, char *str)
 
 const buffer_t *parser_handle(char *message)
 {
-    printf("----------------------------------------------------------------------\n%s\n", message);
+    printf("-------------------\n%s\n", message);
 
     request_t request = {0};
 
@@ -199,6 +205,29 @@ const buffer_t *parser_handle(char *message)
     }
 
     json_t path[CHILD_SIZE] = {0}, query[CHILD_SIZE] = {0};
+    json_t session[] =
+    {
+        {
+            .key = "user",
+            .number = request.session.user,
+            .type = JSON_INTEGER
+        },
+        {
+            .key = "role",
+            .number = request.session.role,
+            .type = JSON_INTEGER
+        },
+        {
+            .key = "timestamp",
+            .number = request.session.timestamp,
+            .type = JSON_INTEGER
+        },
+        {
+            .key = "token",
+            .string = request.session.token,
+            .type = JSON_STRING
+        }
+    };
     json_t node[] =
     {
         {
@@ -212,14 +241,10 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_OBJECT
         },
         {
-            .key = "user",
-            .number = 0,
-            .type = JSON_INTEGER
-        },
-        {
-            .key = "role",
-            .number = 0,
-            .type = JSON_INTEGER
+            .key = "session",
+            .child = (json_t *[]) {&session[0], &session[1], &session[2], &session[3]},
+            .type = JSON_OBJECT,
+            .size = sizeof session / sizeof *session
         },
         {
             .key = "content",
@@ -236,7 +261,7 @@ const buffer_t *parser_handle(char *message)
     return writer_handle(&(json_t)
     {
         .key = request.method,
-        .child = (json_t *[]){&node[0], &node[1], &node[2], &node[3], &node[4]},
+        .child = (json_t *[]) {&node[0], &node[1], &node[2], &node[3]},
         .size = sizeof node / sizeof *node,
         .type = JSON_OBJECT
     });

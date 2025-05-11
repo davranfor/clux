@@ -305,6 +305,10 @@ static const buffer_t *process(int header)
             code = http_unauthorized;
             type = "text/plain";
             break;
+        case HTTP_FORBIDDEN:
+            code = http_forbidden;
+            type = "text/plain";
+            break;
         case HTTP_NOT_FOUND:
             code = http_not_found;
             type = "text/plain";
