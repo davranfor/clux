@@ -14,7 +14,6 @@
 #include "header.h"
 #include "schema.h"
 #include "cookie.h"
-#include "static.h"
 #include "writer.h"
 
 static sqlite3 *db;
@@ -126,25 +125,18 @@ static int verify_token(void)
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         return 0;
     }
-
-    int index;
-
-    if ((index = sqlite3_bind_parameter_index(stmt, ":token")) == 0)
-    {
-        goto error;
-    }
-    if (sqlite3_bind_text(stmt, index, token, -1, SQLITE_STATIC) != SQLITE_OK)
+    if (sqlite3_bind_text(stmt, 1, token, -1, SQLITE_STATIC) != SQLITE_OK)
     {
         goto error;
     }
 
-    int rc, verified = 0;
+    int step, verified = 0;
 
-    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         verified = sqlite3_column_int(stmt, 0);
     }
-    if (rc != SQLITE_DONE)
+    if (step != SQLITE_DONE)
     {
         goto error;
     }
@@ -223,7 +215,7 @@ static int set_content(sqlite3_stmt *stmt, const json_t *content)
     for (unsigned i = 0; i < content->size; i++)
     {
         const json_t *child = content->child[i];
-        int result = SQLITE_OK;
+        int status = SQLITE_OK;
         char key[128];
         int index;
 
@@ -235,27 +227,27 @@ static int set_content(sqlite3_stmt *stmt, const json_t *content)
         switch (child->type)
         {
             case JSON_STRING:
-                result = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
+                status = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
                 break;
             case JSON_INTEGER:
-                result = sqlite3_bind_int64(stmt, index, (int64_t)child->number);
+                status = sqlite3_bind_int64(stmt, index, (int64_t)child->number);
                 break;
             case JSON_REAL:
-                result = sqlite3_bind_double(stmt, index, child->number);
+                status = sqlite3_bind_double(stmt, index, child->number);
                 break;
             case JSON_TRUE:
-                result = sqlite3_bind_int(stmt, index, 1);
+                status = sqlite3_bind_int(stmt, index, 1);
                 break;
             case JSON_FALSE:
-                result = sqlite3_bind_int(stmt, index, 0);
+                status = sqlite3_bind_int(stmt, index, 0);
                 break;
             case JSON_NULL:
-                result = sqlite3_bind_null(stmt, index);
+                status = sqlite3_bind_null(stmt, index);
                 break;
             default:
                 return 0;
         }
-        if (result != SQLITE_OK)
+        if (status != SQLITE_OK)
         {
             return 0;
         }
@@ -281,9 +273,9 @@ static int set_query(sqlite3_stmt *stmt, const json_t *query)
             return 0;
         }
 
-        int result = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
+        int status = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
 
-        if (result != SQLITE_OK)
+        if (status != SQLITE_OK)
         {
             return 0;
         }
@@ -309,9 +301,9 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
             return 0; 
         }
 
-        int result = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
+        int status = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
 
-        if (result != SQLITE_OK)
+        if (status != SQLITE_OK)
         {
             return 0;
         }

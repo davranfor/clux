@@ -7,22 +7,19 @@
       "POST": {
         "properties": {
           "path": { "minItems": 1, "maxItems": 1 },
-          "query": { "type": "null" }
+          "query": { "type": "null" },
+          "content": {
+            "$ref": "/users.schema/definitions/content",
+            "minProperties": 2, "maxProperties": 2,
+            "required": ["email", "password"]
+          }
         }
       }
     },
     "additionalProperties": false,
     "x-notify": { "path": "login.post", "role": 1 }
   },
-  "then": {
-    "properties": {
-      "content": {
-        "$ref": "/users.schema/definitions/content",
-        "minProperties": 2, "maxProperties": 2,
-        "required": ["email", "password"]
-      }
-    }
-  },
+  "then": true,
   "else": false
 }
 
