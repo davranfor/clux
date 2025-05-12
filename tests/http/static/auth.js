@@ -32,7 +32,7 @@ async function checkSession() {
 
         clearTimeout(timeoutId);
 
-        // Caso 1: Sesión válida con datos (200 + JSON)
+        // Caso 1: Sesión válida con datos (200 Ok + JSON)
         if (response.status === 200) {
             try {
                 const data = await response.json();
@@ -44,12 +44,12 @@ async function checkSession() {
             } catch (jsonError) {
                 showError(`Error al parsear JSON: ${jsonError}`);
             }
-        // Caso 2: Sesión válida sin datos (204 No Content)
-        } else if (response.status === 204) {
-            showError('Sesión invalida');
-        // Caso 3: Crear sesión (login)
-        } else {
+        // Caso 2: Sin sesión (401 Unauthorized) (login)
+        } else if (response.status === 401) {
             handleLoggedOut();
+        // Caso 3: Sesión inválida, presumiblemente cookie manipulada
+        } else {
+            showError('Sesión inválida, por favor, contacte con el administrador.');
         }
     } catch (error) {
         clearTimeout(timeoutId);
@@ -70,7 +70,7 @@ elements.loginForm.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('/login', {
+        const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
