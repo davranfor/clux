@@ -8,8 +8,7 @@
         "properties": {
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" },
-          "content": { "type": "null" },
-          "user": { "type": "integer", "minimum": 1 }
+          "content": { "type": "null" }
         }
       }
     },

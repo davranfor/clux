@@ -9,14 +9,16 @@
 
 #include <clux/clib_buffer.h>
 
+#define TOKEN_SIZE 256
+
 typedef struct
 {
-    double user, role, timestamp;
-    char *token;
-} session_t;
+    double user, role, time;
+    char *hmac;
+} token_t;
 
-const buffer_t *cookie_create(int);
-int cookie_parse(char *, int *);
+int cookie_parse(const char *, token_t *, char *);
+int cookie_handle(token_t *, char *);
 
 #endif
 

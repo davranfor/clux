@@ -16,10 +16,58 @@
 #define SECRET_KEY "0123456789ABCDEFGHIJKabcdefghijk" // 32 bytes (for tests)
 //#define TOKEN_EXPIRATION 86400 // 1 day
 #define TOKEN_EXPIRATION 5 // 30 seconds (for tests)
-#define TOKEN_SIZE 256
 #define HMAC_SIZE 65
 
-/* Generate token HMAC (user:timestamp:hmac) */
+int cookie_parse(const char *path, token_t *token, char *str)
+{
+    //Set-Cookie: auth=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure
+    if (!strncmp(str, "Cookie: auth=", 13))
+    {
+        str += 13;
+
+        char *end = strchr(path, ';');
+
+        if (end == NULL)
+        {
+            return -1;
+        }
+        *end = '\0';
+
+        long data[3] = {0};
+
+        for (int i = 0; i < 3; i++)
+        {
+            char *ptr = NULL;
+
+            data[i] = strtol(str, &ptr, 10);
+            if ((*ptr != ':') || (data[i] <= 0))
+            {
+                return -1;
+            }
+            str = ptr + 1;
+        }
+        if (end - str != HMAC_SIZE - 1)
+        {
+            return -1;
+        }
+        token->user = (double)data[0];
+        token->role = (double)data[1];
+        token->time = (double)data[2];
+        token->hmac = str;
+        return 1;
+    }
+    else if (!strcmp(path, "/login"))
+    {
+        token->hmac = "";
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/* Generate token HMAC (user:timestamp:hmac)
 static void generate_token(char *token, int user)
 {
     char data[128];
@@ -104,12 +152,6 @@ const buffer_t *cookie_create(int user)
     return NULL;
 }
 
-int cookie_parse(char *token, int *user)
-{
-    return validate_token(token, user);
-}
-
-/*
 // Endpoint /api/login
 static void handle_login(int client_socket, const char *body)
 {

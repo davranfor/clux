@@ -19,7 +19,7 @@
 typedef struct
 {
     char *method, *path, *query, *content;
-    session_t session;
+    token_t token;
 } request_t;
 
 static const buffer_t *parse_headers(request_t *request, char *str)
@@ -54,14 +54,18 @@ static const buffer_t *parse_headers(request_t *request, char *str)
             {
                 return static_bad_request();
             }
-            *end = '\0';
+            *end++ = '\0';
             request->method = str;
             request->path = path;
             request->query = strchr(path, '?');
-            request->session.token = "";
             if (request->query != NULL)
             {
                 *request->query++ = '\0';
+            }
+            switch (cookie_parse(request->path, &request->token, end))
+            {
+                case -1: return static_bad_request();
+                case 0: return static_unauthorized();
             }
             return NULL;
         }
@@ -205,28 +209,12 @@ const buffer_t *parser_handle(char *message)
     }
 
     json_t path[CHILD_SIZE] = {0}, query[CHILD_SIZE] = {0};
-    json_t session[] =
+    json_t token[] =
     {
-        {
-            .key = "user",
-            .number = request.session.user,
-            .type = JSON_INTEGER
-        },
-        {
-            .key = "role",
-            .number = request.session.role,
-            .type = JSON_INTEGER
-        },
-        {
-            .key = "timestamp",
-            .number = request.session.timestamp,
-            .type = JSON_INTEGER
-        },
-        {
-            .key = "token",
-            .string = request.session.token,
-            .type = JSON_STRING
-        }
+        { .key = "user", .number = request.token.user, .type = JSON_INTEGER },
+        { .key = "role", .number = request.token.role, .type = JSON_INTEGER },
+        { .key = "time", .number = request.token.time, .type = JSON_INTEGER },
+        { .key = "hmac", .string = request.token.hmac, .type = JSON_STRING }
     };
     json_t node[] =
     {
@@ -241,10 +229,10 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_OBJECT
         },
         {
-            .key = "session",
-            .child = (json_t *[]) {&session[0], &session[1], &session[2], &session[3]},
+            .key = "token",
+            .child = (json_t *[]) {&token[0], &token[1], &token[2], &token[3]},
             .type = JSON_OBJECT,
-            .size = sizeof session / sizeof *session
+            .size = sizeof token / sizeof *token
         },
         {
             .key = "content",

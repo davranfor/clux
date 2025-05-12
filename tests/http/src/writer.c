@@ -13,14 +13,20 @@
 #include <sqlite3.h>
 #include "header.h"
 #include "schema.h"
+#include "cookie.h"
 #include "static.h"
 #include "writer.h"
 
-static buffer_t buffer;
-static json_t *catalog;
-static json_t *queries;
 static sqlite3 *db;
-static int user_id;
+
+static buffer_t buffer;
+
+static json_t *catalog;
+static json_t *session;
+static json_t *queries;
+
+static const json_t *token_object;
+static char token_str[TOKEN_SIZE];
 
 static void load_db(void)
 {
@@ -50,6 +56,11 @@ static void load_db(void)
             exit(EXIT_FAILURE);
         }
     }
+    if (!(session = json_find(catalog, "session")))
+    {
+        fprintf(stderr, "Catalog: 'session' section must exist\n");
+        exit(EXIT_FAILURE);
+    }
     if (!(queries = json_find(catalog, "queries")))
     {
         fprintf(stderr, "Catalog: 'queries' section must exist\n");
@@ -58,15 +69,91 @@ static void load_db(void)
     json_sort(queries, NULL);
 }
 
-static void get_user_id(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void set_token(const json_t *token)
+{
+    token_object = token;
+    token_str[0] = '\0';
+}
+
+static void get_token(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     (void)argv;
     if (argc != 0)
     {
-        sqlite3_result_error(context, "user() doesn't take arguments", -1);
+        sqlite3_result_error(context, "token() doesn't take arguments", -1);
         return;
     }
+/*
     sqlite3_result_int(context, user_id);
+*/
+}
+
+static void new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 2)
+    {
+        sqlite3_result_error(context, "new_token() takes 2 arguments", -1);
+        return;
+    }
+/*
+    sqlite3_result_int(context, user_id);
+*/
+}
+
+static int verify_token(void)
+{
+    const char *sql = json_string(json_find(session, "verify"));
+
+    if (sql == NULL)
+    {
+        fprintf(stderr, "Session: A 'verify' string must exist\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char token[TOKEN_SIZE];
+
+    snprintf(token, sizeof token, "%d:%d:%ld:%s",
+        (int)token_object->child[0]->number,
+        (int)token_object->child[1]->number,
+        (long int)token_object->child[2]->number,
+        token_object->child[3]->string);
+
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        return 0;
+    }
+
+    int index;
+
+    if ((index = sqlite3_bind_parameter_index(stmt, ":token")) == 0)
+    {
+        goto error;
+    }
+    if (sqlite3_bind_text(stmt, index, token, -1, SQLITE_STATIC) != SQLITE_OK)
+    {
+        goto error;
+    }
+
+    int rc, verified = 0;
+
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        verified = sqlite3_column_int(stmt, 0);
+    }
+    if (rc != SQLITE_DONE)
+    {
+        goto error;
+    }
+    sqlite3_finalize(stmt);
+    return verified;
+error:
+    fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
+    return 0;
 }
 
 static void load(const char *path_catalog, const char *path_db)
@@ -87,10 +174,18 @@ static void load(const char *path_catalog, const char *path_db)
     }
     load_db();
 
-    int rc = sqlite3_create_function(
-        db, "user", 0, SQLITE_UTF8, NULL, get_user_id, NULL, NULL);
-    
-    if (rc != SQLITE_OK)
+    int status;
+
+    status = sqlite3_create_function(
+        db, "get_token", 0, SQLITE_UTF8, NULL, get_token, NULL, NULL);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
+    status = sqlite3_create_function(
+        db, "new_token", 2, SQLITE_UTF8, NULL, new_token, NULL, NULL);
+    if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         exit(EXIT_FAILURE);
@@ -226,6 +321,16 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
 
 static int db_handle(const json_t *request)
 {
+    if (!verify_token())
+    {
+        const char *error = "Unauthorized";
+
+        fprintf(stderr, "%s\n", error);
+        json_write_line(token_object, stderr);
+        buffer_write(&buffer, error);
+        return HTTP_UNAUTHORIZED;
+    }
+
     const json_t *path = json_find(request, "path");
     const json_t *query = json_find(request, "query");
     const json_t *content = json_find(request, "content");
@@ -240,7 +345,6 @@ static int db_handle(const json_t *request)
         buffer_write(&buffer, error);
         return HTTP_SERVER_ERROR;
     }
-    user_id = (int)json_number(json_find(request, "user"));
 
     sqlite3_stmt *stmt;
 
@@ -288,41 +392,65 @@ static void cleanup(json_t *request)
 
 static const buffer_t *process(int header)
 {
+    char strings[TOKEN_SIZE + 128];
+    char headers[TOKEN_SIZE + 256];
     const char *code, *type;
-    char headers[128];
 
     switch (header)
     {
         case HTTP_OK:
             code = http_ok;
-            type = "application/json";
+            type = "application/json\r\n";
             break;
         case HTTP_CREATED:
             code = http_created;
-            type = "application/json";
+            type = "application/json\r\n";
+            break;
+        case HTTP_NO_CONTENT:
+            code = http_no_content;
+            type = "\r\n";
             break;
         case HTTP_UNAUTHORIZED:
             code = http_unauthorized;
-            type = "text/plain";
+            type = "text/plain\r\n";
             break;
         case HTTP_FORBIDDEN:
             code = http_forbidden;
-            type = "text/plain";
+            type = "text/plain\r\n";
             break;
         case HTTP_NOT_FOUND:
             code = http_not_found;
-            type = "text/plain";
+            type = "text/plain\r\n";
             break;
         case HTTP_SERVER_ERROR:
             code = http_server_error;
-            type = "text/plain";
+            type = "text/plain\r\n";
             break;
         default:
             code = http_bad_request;
-            type = "text/plain";
+            type = "text/plain\r\n";
             break;
     }
-    snprintf(headers, sizeof headers, code, type, buffer.length);
+    if (token_str[0] != '\0')
+    {
+        // Con https recordar secure:
+        // Set-Cookie: auth=token; Path=/; Secure; HttpOnly; SameSite=Strict
+        snprintf(strings, sizeof strings,
+            "%sSet Cookie auth=%s; Path=/; HttpOnly; SameSite=Strict",
+            type, token_str);
+    }
+    else
+    {
+        snprintf(strings, sizeof strings, "%sServer: Unix", type);
+    }
+    if (header != HTTP_NO_CONTENT)
+    {
+        snprintf(headers, sizeof headers, code, strings, buffer.length);
+    }
+    else
+    {
+        snprintf(headers, sizeof headers, code, strings);
+    }
     buffer_insert(&buffer, 0, headers, strlen(headers));
     return buffer.length ? &buffer : NULL;
 }
@@ -331,16 +459,13 @@ const buffer_t *writer_handle(json_t *request)
 {
     int result = schema_validate(request, &buffer);
 
+    set_token(json_find(request, "token"));
     if (result == HTTP_OK)
     {
         buffer_reset(&buffer);
         result = db_handle(request);
         cleanup(request);
     }
-    if (result != HTTP_NO_CONTENT)
-    {
-        return process(result);
-    }
-    return static_no_content();
+    return process(result);
 }
 

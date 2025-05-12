@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/login",
+  "type": "object",
+  "if": {
+    "properties": {
+      "POST": {
+        "properties": {
+          "path": { "minItems": 1, "maxItems": 1 },
+          "query": { "type": "null" }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "x-notify": { "path": "login.post", "role": 1 }
+  },
+  "then": {
+    "properties": {
+      "content": {
+        "$ref": "/users.schema/definitions/content",
+        "minProperties": 2, "maxProperties": 2,
+        "required": ["email", "password"]
+      }
+    }
+  },
+  "else": false
+}
+

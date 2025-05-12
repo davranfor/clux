@@ -1,11 +1,15 @@
 {
   "load": [
-    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE);"
+    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, role INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, token TEXT NOT NULL UNIQUE DEFAULT '', password TEXT NOT NULL);"
   ],
+  "session": {
+    "verify": "SELECT 1 FROM users WHERE token = get_token();"
+  },
   "queries": {
-    "auth.get": "SELECT json_object('name', name) FROM users WHERE id = user();",
-    "users.get.all": "SELECT json_group_array(json_object('id', id, 'name', name, 'email', email)) FROM users;",
-    "users.get.default": "SELECT json_object('id', id, 'name', name, 'email', email) FROM users WHERE id = $1;",
+    "auth.get": "SELECT json_object('name', name) FROM users WHERE token = get_token();",
+    "login.post": "UPDATE users SET token = new_token(id, role) WHERE email = :email and password = :password;",
+    "users.get.all": "SELECT json_group_array(json_object('id', id, 'role', role, 'name', name, 'email', email)) FROM users;",
+    "users.get.default": "SELECT json_object('id', id, 'role', role, 'name', name, 'email', email) FROM users WHERE id = $1;",
     "users.delete.default": "DELETE FROM users WHERE id = $1 RETURNING id;",
     "users.patch.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
     "users.post.default": "INSERT INTO users (name, email) VALUES (:name, :email) RETURNING id;",

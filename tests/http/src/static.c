@@ -39,7 +39,7 @@ static void free_buffer(void *buffer)
 
 static void load(void)
 {
-    if (!buffer_write(&no_content, http_no_content) ||
+    if (!buffer_format(&no_content, http_no_content, "") ||
         !fill_buffer(&bad_request, http_bad_request, "Bad Request") ||
         !fill_buffer(&unauthorized, http_unauthorized, "Unauthorized") ||
         !fill_buffer(&forbidden, http_forbidden, "Forbidden") ||
