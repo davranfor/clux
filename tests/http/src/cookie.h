@@ -9,16 +9,18 @@
 
 #include <clux/clib_buffer.h>
 
-#define TOKEN_SIZE 256
+#define COOKIE_SIZE 128
+
+enum {COOKIE_USER, COOKIE_ROLE, COOKIE_TOKEN};
 
 typedef struct
 {
-    double user, role, time;
-    char *hmac;
-} token_t;
+    int user, role;
+    char *token;
+} cookie_t;
 
-int cookie_parse(const char *, token_t *, char *);
-int cookie_handle(token_t *, char *);
+int cookie_parse(cookie_t *, const char *, char *);
+int cookie_create(int, int, char *);
 
 #endif
 

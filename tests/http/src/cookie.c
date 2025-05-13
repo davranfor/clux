@@ -7,25 +7,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> // sleep (for tests)
 #include <time.h>
-#include <openssl/hmac.h>
-#include <openssl/sha.h>
+#include <openssl/rand.h>
 #include "cookie.h"
 
-#define SECRET_KEY "0123456789ABCDEFGHIJKabcdefghijk" // 32 bytes (for tests)
 //#define TOKEN_EXPIRATION 86400 // 1 day
 #define TOKEN_EXPIRATION 5 // 30 seconds (for tests)
-#define HMAC_SIZE 65
+#define TOKEN_SIZE 65
 
-int cookie_parse(const char *path, token_t *token, char *str)
+int cookie_parse(cookie_t *cookie, const char *path, char *str)
 {
     //Set-Cookie: auth=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure
-    if (!strncmp(str, "Cookie: auth=", 13))
+    if ((str = strstr(str, "Cookie: auth=")))
     {
         str += 13;
 
-        char *end = strchr(path, ';');
+        char *end = strchr(str, '\r');
 
         if (end == NULL)
         {
@@ -33,38 +30,56 @@ int cookie_parse(const char *path, token_t *token, char *str)
         }
         *end = '\0';
 
-        long data[3] = {0};
+        int data[2] = {0};
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 2; i++)
         {
-            char *ptr = NULL;
+            char *ptr;
 
-            data[i] = strtol(str, &ptr, 10);
+            data[i] = (int)strtol(str, &ptr, 10);
             if ((*ptr != ':') || (data[i] <= 0))
             {
                 return -1;
             }
             str = ptr + 1;
         }
-        if (end - str != HMAC_SIZE - 1)
+        if (end - str != TOKEN_SIZE - 1)
         {
             return -1;
         }
-        token->user = (double)data[0];
-        token->role = (double)data[1];
-        token->time = (double)data[2];
-        token->hmac = str;
+        cookie->user = data[0];
+        cookie->role = data[1];
+        cookie->token = str;
         return 1;
     }
     else if (!strcmp(path, "/login"))
     {
-        token->hmac = "";
+        cookie->token = "";
         return 1;
     }
     else
     {
         return 0;
     }
+}
+
+int cookie_create(int user, int role, char *cookie)
+{
+    unsigned char bytes[TOKEN_SIZE / 2];
+
+    if (RAND_bytes(bytes, sizeof(bytes)) != 1)
+    {
+        return 0;
+    }
+
+    char *token = cookie + snprintf(cookie, COOKIE_SIZE, "%d:%d:", user, role);
+
+    for (size_t i = 0; i < sizeof bytes; i++)
+    {
+        snprintf(token + (i * 2), 3, "%02x", bytes[i]);
+    }
+    token[TOKEN_SIZE - 1] = '\0';
+    return 1;
 }
 
 /* Generate token HMAC (user:timestamp:hmac)

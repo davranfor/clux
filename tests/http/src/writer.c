@@ -24,8 +24,8 @@ static json_t *catalog;
 static json_t *session;
 static json_t *queries;
 
-static const json_t *token_object;
-static char token_str[TOKEN_SIZE];
+static const json_t *cookie;
+static char cookie_str[COOKIE_SIZE];
 
 static void load_db(void)
 {
@@ -68,84 +68,34 @@ static void load_db(void)
     json_sort(queries, NULL);
 }
 
-static void set_token(const json_t *token)
-{
-    token_object = token;
-    token_str[0] = '\0';
-}
-
-static void get_token(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void get_user(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     (void)argv;
     if (argc != 0)
     {
-        sqlite3_result_error(context, "token() doesn't take arguments", -1);
+        sqlite3_result_error(context, "user() doesn't take arguments", -1);
         return;
     }
-/*
-    sqlite3_result_int(context, user_id);
-*/
+    sqlite3_result_int(context, (int)cookie->child[COOKIE_USER]->number);
 }
 
 static void new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
-    (void)argv;
     if (argc != 2)
     {
         sqlite3_result_error(context, "new_token() takes 2 arguments", -1);
         return;
     }
-/*
-    sqlite3_result_int(context, user_id);
-*/
-}
 
-static int verify_token(void)
-{
-    const char *sql = json_string(json_find(session, "verify"));
+    int user = sqlite3_value_int(argv[0]);
+    int role = sqlite3_value_int(argv[1]);
 
-    if (sql == NULL)
+    if (!cookie_create(user, role, cookie_str))
     {
-        fprintf(stderr, "Session: A 'verify' string must exist\n");
-        exit(EXIT_FAILURE);
+        sqlite3_result_error(context, "new_token() failed", -1);
+        return;
     }
-
-    char token[TOKEN_SIZE];
-
-    snprintf(token, sizeof token, "%d:%d:%ld:%s",
-        (int)token_object->child[0]->number,
-        (int)token_object->child[1]->number,
-        (long int)token_object->child[2]->number,
-        token_object->child[3]->string);
-
-    sqlite3_stmt *stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        return 0;
-    }
-    if (sqlite3_bind_text(stmt, 1, token, -1, SQLITE_STATIC) != SQLITE_OK)
-    {
-        goto error;
-    }
-
-    int step, verified = 0;
-
-    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
-    {
-        verified = sqlite3_column_int(stmt, 0);
-    }
-    if (step != SQLITE_DONE)
-    {
-        goto error;
-    }
-    sqlite3_finalize(stmt);
-    return verified;
-error:
-    fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-    sqlite3_finalize(stmt);
-    return 0;
+    sqlite3_result_text(context, strrchr(cookie_str, ':') + 1, -1, SQLITE_STATIC);
 }
 
 static void load(const char *path_catalog, const char *path_db)
@@ -169,7 +119,7 @@ static void load(const char *path_catalog, const char *path_db)
     int status;
 
     status = sqlite3_create_function(
-        db, "get_token", 0, SQLITE_UTF8, NULL, get_token, NULL, NULL);
+        db, "user", 0, SQLITE_UTF8, NULL, get_user, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
@@ -201,6 +151,64 @@ void writer_reload(const char *path_catalog, const char *path_db)
 {
     unload();
     load(path_catalog, path_db);
+}
+
+static void set_cookie(const json_t *object)
+{
+    cookie = object;
+    cookie_str[0] = '\0';
+}
+
+static int verify_cookie(void)
+{
+    int user = (int)cookie->child[COOKIE_USER]->number;
+    int role = (int)cookie->child[COOKIE_ROLE]->number;
+    const char *token = cookie->child[COOKIE_TOKEN]->string;
+
+    if ((user == 0) && (role == 0))
+    {
+        return 1;
+    }
+
+    const char *sql = json_string(json_find(session, "verify"));
+
+    if (sql == NULL)
+    {
+        fprintf(stderr, "Session: A 'verify' string must exist\n");
+        exit(EXIT_FAILURE);
+    }
+
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        return 0;
+    }
+
+    if ((sqlite3_bind_int(stmt, 1, user) != SQLITE_OK) ||
+        (sqlite3_bind_int(stmt, 2, role) != SQLITE_OK) ||
+        (sqlite3_bind_text(stmt, 3, token, -1, SQLITE_STATIC) != SQLITE_OK))
+    {
+        goto error;
+    }
+
+    int step, verified = 0;
+
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+        verified = sqlite3_column_int(stmt, 0);
+    }
+    if (step != SQLITE_DONE)
+    {
+        goto error;
+    }
+    sqlite3_finalize(stmt);
+    return verified;
+error:
+    fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
+    return 0;
 }
 
 static const char *get_sql(const json_t *path)
@@ -313,12 +321,12 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
 
 static int db_handle(const json_t *request)
 {
-    if (!verify_token())
+    if (!verify_cookie())
     {
         const char *error = "Unauthorized";
 
         fprintf(stderr, "%s\n", error);
-        json_write_line(token_object, stderr);
+        json_write_line(cookie, stderr);
         buffer_write(&buffer, error);
         return HTTP_UNAUTHORIZED;
     }
@@ -384,8 +392,8 @@ static void cleanup(json_t *request)
 
 static const buffer_t *process(int header)
 {
-    char strings[TOKEN_SIZE + 128];
-    char headers[TOKEN_SIZE + 256];
+    char strings[COOKIE_SIZE + 256];
+    char headers[COOKIE_SIZE + 512];
     const char *code, *type;
 
     switch (header)
@@ -423,13 +431,13 @@ static const buffer_t *process(int header)
             type = "text/plain\r\n";
             break;
     }
-    if (token_str[0] != '\0')
+    if (cookie_str[0] != '\0')
     {
         // Con https recordar secure:
         // Set-Cookie: auth=token; Path=/; Secure; HttpOnly; SameSite=Strict
         snprintf(strings, sizeof strings,
-            "%sSet Cookie auth=%s; Path=/; HttpOnly; SameSite=Strict",
-            type, token_str);
+            "%sSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict",
+            type, cookie_str);
     }
     else
     {
@@ -451,7 +459,7 @@ const buffer_t *writer_handle(json_t *request)
 {
     int result = schema_validate(request, &buffer);
 
-    set_token(json_find(request, "token"));
+    set_cookie(json_find(request, "cookie"));
     if (result == HTTP_OK)
     {
         buffer_reset(&buffer);

@@ -31,9 +31,8 @@ async function checkSession() {
         });
 
         clearTimeout(timeoutId);
-
         // Caso 1: Sesión válida con datos (200 Ok + JSON)
-        if (response.status === 200) {
+        if (response.ok) {
             try {
                 const data = await response.json();
                 if (data?.name) {
@@ -44,8 +43,8 @@ async function checkSession() {
             } catch (jsonError) {
                 showError(`Error al parsear JSON: ${jsonError}`);
             }
-        // Caso 2: Sin sesión (401 Unauthorized) (login)
-        } else if (response.status === 401) {
+        // Caso 2: Sin sesión (403 Forbidden) (login)
+        } else if (response.status === 403) {
             handleLoggedOut();
         // Caso 3: Sesión inválida, presumiblemente cookie manipulada
         } else {
@@ -79,12 +78,12 @@ elements.loginForm.addEventListener('submit', async (e) => {
 
         if (response.ok) {
             checkSession();
-        } else {
-            alert("Credenciales incorrectas");
+        } else if (response.status !== 403) {
+            showError('Sesión inválida, por favor, contacte con el administrador.');
         }
     } catch (error) {
         //console.error("Error:", error);
-        alert(error);
+        showError(`Error inesperado: ${error}`);
     }
 });
 

@@ -17,7 +17,7 @@
       }
     },
     "additionalProperties": false,
-    "x-notify": { "path": "login.post", "role": 1 }
+    "x-notify": { "path": "login.post", "role": 0 }
   },
   "then": true,
   "else": false

@@ -19,7 +19,7 @@
 typedef struct
 {
     char *method, *path, *query, *content;
-    token_t token;
+    cookie_t cookie;
 } request_t;
 
 static const buffer_t *parse_headers(request_t *request, char *str)
@@ -62,7 +62,7 @@ static const buffer_t *parse_headers(request_t *request, char *str)
             {
                 *request->query++ = '\0';
             }
-            switch (cookie_parse(request->path, &request->token, end))
+            switch (cookie_parse(&request->cookie, request->path, end))
             {
                 case -1: return static_bad_request();
                 case 0: return static_unauthorized();
@@ -209,12 +209,11 @@ const buffer_t *parser_handle(char *message)
     }
 
     json_t path[CHILD_SIZE] = {0}, query[CHILD_SIZE] = {0};
-    json_t token[] =
+    json_t cookie[] =
     {
-        { .key = "user", .number = request.token.user, .type = JSON_INTEGER },
-        { .key = "role", .number = request.token.role, .type = JSON_INTEGER },
-        { .key = "time", .number = request.token.time, .type = JSON_INTEGER },
-        { .key = "hmac", .string = request.token.hmac, .type = JSON_STRING }
+        { .key = "user", .number = request.cookie.user, .type = JSON_INTEGER },
+        { .key = "role", .number = request.cookie.role, .type = JSON_INTEGER },
+        { .key = "token", .string = request.cookie.token, .type = JSON_STRING }
     };
     json_t node[] =
     {
@@ -229,10 +228,10 @@ const buffer_t *parser_handle(char *message)
             .type = JSON_OBJECT
         },
         {
-            .key = "token",
-            .child = (json_t *[]) {&token[0], &token[1], &token[2], &token[3]},
+            .key = "cookie",
+            .child = (json_t *[]) {&cookie[0], &cookie[1], &cookie[2]},
             .type = JSON_OBJECT,
-            .size = sizeof token / sizeof *token
+            .size = sizeof cookie / sizeof *cookie
         },
         {
             .key = "content",
