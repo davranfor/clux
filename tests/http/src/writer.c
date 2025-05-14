@@ -442,7 +442,6 @@ static const buffer_t *process(int header)
         snprintf(headers, sizeof headers, code, strings);
     }
     buffer_insert(&buffer, 0, headers, strlen(headers));
-if (buffer.length)puts(buffer.text);
     return buffer.length ? &buffer : NULL;
 }
 
