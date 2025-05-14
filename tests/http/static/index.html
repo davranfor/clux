@@ -61,7 +61,6 @@
             </div>
         </div>
         <div class="content">
-            <h2 class="hidden" id="error-text"></h2>
             <div class="login-wrapper" id="login-wrapper">
                 <div class="login-box">
                     <h2>Iniciar sesión</h2>
@@ -78,14 +77,17 @@
                     </form>
                 </div>
             </div>
+            <span class="hidden" id="login-text"></h2>
         </div>
     </div>
     <script>
-        let isClockedIn = false;
+        const user = { id: 0, role: 0, name: "", isClockedIn: 0 };
+
+        const userText = document.getElementById("user-text");
         const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
         function updateUserButton() {
-            if (isClockedIn) {
+            if (user.isClockedIn) {
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
@@ -96,7 +98,7 @@
             }
         }
         userButton.addEventListener("click", function() {
-            isClockedIn = !isClockedIn;
+            user.isClockedIn = Number(!user.isClockedIn);
             updateUserButton();
         });
         updateUserButton();

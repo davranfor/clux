@@ -197,10 +197,9 @@ static int parse_query(json_t *parent, json_t *child, char *str)
 
 const buffer_t *parser_handle(char *message)
 {
-    printf("-------------------\n%s\n", message);
+    printf("----\n%s\n", message);
 
     request_t request = {0};
-
     const buffer_t *buffer = parse_headers(&request, message);
 
     if (buffer != NULL)

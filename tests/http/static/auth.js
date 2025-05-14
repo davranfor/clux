@@ -1,68 +1,81 @@
 const elements = {
-    userText: document.getElementById('user-text'),
     loginWrapper: document.getElementById('login-wrapper'),
-    loginForm: document.getElementById('login-form')
-/*
-    fichajeSection: document.getElementById('fichajeSection'),
-    welcomeMessage: document.getElementById('welcomeMessage'),
-    ficharBtn: document.getElementById('ficharBtn'),
-    logoutBtn: document.getElementById('logoutBtn')
-*/
+    loginForm: document.getElementById('login-form'),
+    loginText: document.getElementById('login-text')
 };
 
 function showError(message) {
-    const errorText = document.getElementById('error-text');
-    errorText.style.display = "block";
-    errorText.textContent = message;
+    elements.loginText.style.display = "block";
+    elements.loginText.textContent = message;
 }
 
-// Verificar sesión al cargar
+function isValidUserData(data) {
+    return (
+        data &&
+        typeof data.id === 'number' &&
+        typeof data.role === 'number' &&
+        typeof data.name === 'string' &&
+        typeof data.isClockedIn === 'number'
+    );
+}
+
+function handleLoggedIn(data) {
+    user.id = data.id;
+    user.role = data.role;
+    user.name = data.name;
+    user.isClockedIn = data.isClockedIn;
+
+    elements.loginWrapper.style.display = "none";
+    elements.loginText.style.display = "none";
+
+    userText.textContent = user.name;
+    userPanel.style.display = "flex";
+    menu.style.display = "block";
+}
+
+function handleLoggedOut() {
+    elements.loginWrapper.style.display = "flex";
+}
+
 checkSession();
 
 async function checkSession() {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5 segundos
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     try {
         const response = await fetch('/api/auth', {
             method: 'GET',
-            credentials: 'include',   // Incluye cookies para autenticación
-            signal: controller.signal // Para cancelar la petición
+            credentials: 'include',
+            signal: controller.signal,
         });
 
         clearTimeout(timeoutId);
-        // Caso 1: Sesión válida con datos (200 Ok + JSON)
-        if (response.ok) {
-            try {
-                const data = await response.json();
-                if (data?.name) {
-                    handleLoggedIn(data.name);
-                } else {
-                    showError('Sesión invalida');
-                }
-            } catch (jsonError) {
-                showError(`Error al parsear JSON: ${jsonError}`);
+        if (response.status === 200) { // Ok
+            const data = await response.json();
+            if (isValidUserData(data)) {
+                handleLoggedIn(data);
+            } else {
+                throw new Error('Sesión inválida');
             }
-        // Caso 2: Sin sesión (403 Forbidden) (login)
-        } else if (response.status === 403) {
+        } else if (response.status === 204) { // No Content
+            throw new Error('Sesión inválida');
+        } else if (response.status === 401) { // Unauthorized
             handleLoggedOut();
-        // Caso 3: Sesión inválida, presumiblemente cookie manipulada
         } else {
-            showError('Sesión inválida, por favor, contacte con el administrador.');
+            const data = await response.text();
+            if (!data || data.trim() === '') {
+                throw new Error('Sesión inválida');
+            } else {
+                throw new Error(data);
+            }
         }
     } catch (error) {
         clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
-            showError('Timeout al verificar sesión');
-        } else if (error.name === 'TypeError') {
-            showError(`Error de red o URL inválida: ${error.message}`);
-        } else {
-            showError(`Error inesperado: ${error}`);
-        }
+        showError(error.message);
     }
 }
 
-// Login
 elements.loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -76,37 +89,22 @@ elements.loginForm.addEventListener('submit', async (e) => {
             credentials: 'include'
         });
 
-        if (response.ok) {
+        if (response.status === 200) { // Ok
             checkSession();
-        } else if (response.status !== 403) {
-            showError('Sesión inválida, por favor, contacte con el administrador.');
+        } else if (response.status === 204) { // No Content
+            throw new Error('Sesión inválida, revise sus credenciales');
+        } else {
+            const data = await response.text();
+            if (!data || data.trim() === '') {
+                throw new Error('Sesión inválida, revise sus credenciales');
+            } else {
+                throw new Error(data);
+            }
         }
     } catch (error) {
-        //console.error("Error:", error);
-        showError(`Error inesperado: ${error}`);
+        showError(error.message);
     }
 });
-
-function handleLoggedIn(name) {
-/*
-    document.body.classList.remove('logged-out');
-    document.body.classList.add('logged-in');
-    elements.welcomeMessage.textContent = `Bienvenido, ${username}`;
-*/
-    elements.loginWrapper.style.display = "none";
-    elements.userText.textContent = name;
-    userPanel.style.display = "flex";
-    menu.style.display = "block";
-}
-
-function handleLoggedOut() {
-/*
-    document.body.classList.remove('logged-in');
-    document.body.classList.add('logged-out');
-    elements.loginForm.reset();
-*/
-    elements.loginWrapper.style.display = "flex";
-}
 
 /*
 // Login

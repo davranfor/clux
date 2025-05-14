@@ -24,7 +24,7 @@ static json_t *catalog;
 static json_t *session;
 static json_t *queries;
 
-static const json_t *cookie;
+static cookie_t cookie;
 static char cookie_str[COOKIE_SIZE];
 
 static void load_db(void)
@@ -76,7 +76,7 @@ static void get_user(sqlite3_context *context, int argc, sqlite3_value **argv)
         sqlite3_result_error(context, "user() doesn't take arguments", -1);
         return;
     }
-    sqlite3_result_int(context, (int)cookie->child[COOKIE_USER]->number);
+    sqlite3_result_int(context, cookie.user);
 }
 
 static void new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
@@ -155,21 +155,14 @@ void writer_reload(const char *path_catalog, const char *path_db)
 
 static void set_cookie(const json_t *object)
 {
-    cookie = object;
+    cookie.user = (int)object->child[COOKIE_USER]->number;
+    cookie.role = (int)object->child[COOKIE_ROLE]->number;
+    cookie.token = object->child[COOKIE_TOKEN]->string;
     cookie_str[0] = '\0';
 }
 
 static int verify_cookie(void)
 {
-    int user = (int)cookie->child[COOKIE_USER]->number;
-    int role = (int)cookie->child[COOKIE_ROLE]->number;
-    const char *token = cookie->child[COOKIE_TOKEN]->string;
-
-    if ((user == 0) && (role == 0))
-    {
-        return 1;
-    }
-
     const char *sql = json_string(json_find(session, "verify"));
 
     if (sql == NULL)
@@ -186,9 +179,9 @@ static int verify_cookie(void)
         return 0;
     }
 
-    if ((sqlite3_bind_int(stmt, 1, user) != SQLITE_OK) ||
-        (sqlite3_bind_int(stmt, 2, role) != SQLITE_OK) ||
-        (sqlite3_bind_text(stmt, 3, token, -1, SQLITE_STATIC) != SQLITE_OK))
+    if ((sqlite3_bind_int(stmt, 1, cookie.user) != SQLITE_OK) ||
+        (sqlite3_bind_int(stmt, 2, cookie.role) != SQLITE_OK) ||
+        (sqlite3_bind_text(stmt, 3, cookie.token, -1, SQLITE_STATIC) != SQLITE_OK))
     {
         goto error;
     }
@@ -321,12 +314,12 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
 
 static int db_handle(const json_t *request)
 {
-    if (!verify_cookie())
+    if (cookie.role && !verify_cookie())
     {
         const char *error = "Unauthorized";
 
+        json_write_line(request, stderr);
         fprintf(stderr, "%s\n", error);
-        json_write_line(cookie, stderr);
         buffer_write(&buffer, error);
         return HTTP_UNAUTHORIZED;
     }
@@ -378,7 +371,7 @@ static int db_handle(const json_t *request)
     }
     else if (buffer.length > 0)
     {
-        result = strcmp(request->key, "POST") ? HTTP_OK : HTTP_CREATED;
+        result = HTTP_OK;
     }
     sqlite3_finalize(stmt);
     return result;
@@ -393,17 +386,13 @@ static void cleanup(json_t *request)
 static const buffer_t *process(int header)
 {
     char strings[COOKIE_SIZE + 256];
-    char headers[COOKIE_SIZE + 512];
+    char headers[COOKIE_SIZE + 384];
     const char *code, *type;
 
     switch (header)
     {
         case HTTP_OK:
             code = http_ok;
-            type = "application/json\r\n";
-            break;
-        case HTTP_CREATED:
-            code = http_created;
             type = "application/json\r\n";
             break;
         case HTTP_NO_CONTENT:
@@ -433,10 +422,11 @@ static const buffer_t *process(int header)
     }
     if (cookie_str[0] != '\0')
     {
-        // Con https recordar secure:
-        // Set-Cookie: auth=token; Path=/; Secure; HttpOnly; SameSite=Strict
+        // Set-Cookie: auth=token; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000
+        // Max-Age de un año
+        // Con https recordar secure
         snprintf(strings, sizeof strings,
-            "%sSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict",
+            "%sSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000",
             type, cookie_str);
     }
     else
@@ -452,6 +442,7 @@ static const buffer_t *process(int header)
         snprintf(headers, sizeof headers, code, strings);
     }
     buffer_insert(&buffer, 0, headers, strlen(headers));
+if (buffer.length)puts(buffer.text);
     return buffer.length ? &buffer : NULL;
 }
 

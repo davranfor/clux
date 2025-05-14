@@ -6,8 +6,8 @@
     "verify": "SELECT 1 FROM users WHERE id = ? AND role = ? AND token = ?;"
   },
   "queries": {
-    "auth.get": "SELECT json_object('name', name) FROM users WHERE id = user();",
-    "login.post": "UPDATE users SET token = new_token(id, role) WHERE email = :email and password = :password;",
+    "auth.get": "SELECT json_object('id', id, 'role', role, 'name', name, 'isClockedIn', 0) FROM users WHERE id = user();",
+    "login.post": "UPDATE users SET token = new_token(id, role) WHERE email = :email and password = :password RETURNING 1;",
     "users.get.all": "SELECT json_group_array(json_object('id', id, 'role', role, 'name', name, 'email', email)) FROM users;",
     "users.get.default": "SELECT json_object('id', id, 'role', role, 'name', name, 'email', email) FROM users WHERE id = $1;",
     "users.delete.default": "DELETE FROM users WHERE id = $1 RETURNING id;",
