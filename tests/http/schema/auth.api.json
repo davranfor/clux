@@ -13,7 +13,7 @@
       }
     },
     "additionalProperties": false,
-    "x-notify": { "path": "auth.get", "role": 1 }
+    "x-notify": { "path": "auth", "role": 1 }
   },
   "then": true,
   "else": false

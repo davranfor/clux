@@ -15,22 +15,28 @@ function isValidUserData(data) {
         typeof data.id === 'number' &&
         typeof data.role === 'number' &&
         typeof data.name === 'string' &&
-        typeof data.isClockedIn === 'number'
+        (data.clock_in === null || typeof data.clock_in === 'string')
     );
 }
 
 function handleLoggedIn(data) {
-    user.id = data.id;
-    user.role = data.role;
-    user.name = data.name;
-    user.isClockedIn = data.isClockedIn;
-
     elements.loginWrapper.style.display = "none";
     elements.loginText.style.display = "none";
 
-    userText.textContent = user.name;
+    user.id = data.id;
+    user.role = data.role;
+    user.name = data.name;
+    user.clock_in = data.clock_in;
+
+    if (user.clock_in === null) {
+        userText.textContent = user.name;
+    } else {
+        userText.textContent = `${user.name} | Último fichaje: ${user.clock_in}`;
+    }
     userPanel.style.display = "flex";
     menu.style.display = "block";
+
+    updateUserButton();
 }
 
 function handleLoggedOut() {

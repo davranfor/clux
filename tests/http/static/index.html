@@ -81,13 +81,12 @@
         </div>
     </div>
     <script>
-        const user = { id: 0, role: 0, name: "", isClockedIn: 0 };
-
+        const user = { id: 0, role: 0, name: "", clock_in: null };
         const userText = document.getElementById("user-text");
         const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
         function updateUserButton() {
-            if (user.isClockedIn) {
+            if (user.clock_in !== null) {
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
@@ -98,10 +97,9 @@
             }
         }
         userButton.addEventListener("click", function() {
-            user.isClockedIn = Number(!user.isClockedIn);
+            user.clock_in = user.clock_in === null ? new Date().toISOString() : null;
             updateUserButton();
         });
-        updateUserButton();
 
         const menu = document.getElementById('menu');
         function setActive(element) {

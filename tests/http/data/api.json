@@ -1,19 +1,21 @@
 {
   "load": [
-    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, role INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, token TEXT NOT NULL UNIQUE DEFAULT '', password TEXT NOT NULL);"
+    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, role INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, clock_in DATETIME, token TEXT NOT NULL UNIQUE DEFAULT '', password TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS timesheet (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, clock_in DATETIME NOT NULL, clock_out DATETIME, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE);"
   ],
   "session": {
     "verify": "SELECT 1 FROM users WHERE id = ? AND role = ? AND token = ?;"
   },
   "queries": {
-    "auth.get": "SELECT json_object('id', id, 'role', role, 'name', name, 'isClockedIn', 0) FROM users WHERE id = user();",
-    "login.post": "UPDATE users SET token = new_token(id, role) WHERE email = :email and password = :password RETURNING 1;",
-    "users.get.all": "SELECT json_group_array(json_object('id', id, 'role', role, 'name', name, 'email', email)) FROM users;",
-    "users.get.default": "SELECT json_object('id', id, 'role', role, 'name', name, 'email', email) FROM users WHERE id = $1;",
-    "users.delete.default": "DELETE FROM users WHERE id = $1 RETURNING id;",
-    "users.patch.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
-    "users.post.default": "INSERT INTO users (name, email) VALUES (:name, :email) RETURNING id;",
-    "users.put.default": "UPDATE users SET name = :name, email = :email WHERE id = $1 RETURNING id;"
+    "temp": "UPDATE users SET clock_in = datetime('now', 'localtime') WHERE id = session_id();",
+    "auth": "SELECT json_object('id', id, 'role', role, 'name', name, 'clock_in', clock_in) FROM users WHERE id = session_id();",
+    "login": "UPDATE users SET token = new_token(id, role) WHERE email = :email and password = :password RETURNING 1;",
+    "users.select": "SELECT json_object('id', id, 'role', role, 'name', name, 'email', email) FROM users WHERE id = $1;",
+    "users.select.all": "SELECT json_group_array(json_object('id', id, 'role', role, 'name', name, 'email', email)) FROM users;",
+    "users.insert": "INSERT INTO users (name, email) VALUES (:name, :email) RETURNING id;",
+    "users.update": "UPDATE users SET name = :name, email = :email WHERE id = $1 RETURNING id;",
+    "users.update.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
+    "users.delete": "DELETE FROM users WHERE id = $1 RETURNING id;"
   }
 }
 

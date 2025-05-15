@@ -17,15 +17,14 @@
 #include "writer.h"
 
 static sqlite3 *db;
-
-static buffer_t buffer;
-
 static json_t *catalog;
 static json_t *session;
 static json_t *queries;
 
 static cookie_t cookie;
 static char cookie_str[COOKIE_SIZE];
+
+static buffer_t buffer;
 
 static void load_db(void)
 {
@@ -68,7 +67,7 @@ static void load_db(void)
     json_sort(queries, NULL);
 }
 
-static void get_user(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     (void)argv;
     if (argc != 0)
@@ -119,7 +118,7 @@ static void load(const char *path_catalog, const char *path_db)
     int status;
 
     status = sqlite3_create_function(
-        db, "user", 0, SQLITE_UTF8, NULL, get_user, NULL, NULL);
+        db, "session_id", 0, SQLITE_UTF8, NULL, session_id, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
@@ -178,7 +177,6 @@ static int verify_cookie(void)
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         return 0;
     }
-
     if ((sqlite3_bind_int(stmt, 1, cookie.user) != SQLITE_OK) ||
         (sqlite3_bind_int(stmt, 2, cookie.role) != SQLITE_OK) ||
         (sqlite3_bind_text(stmt, 3, cookie.token, -1, SQLITE_STATIC) != SQLITE_OK))
@@ -269,10 +267,6 @@ static int set_query(sqlite3_stmt *stmt, const json_t *query)
         {
             return 0;
         }
-        if (child->type != JSON_STRING)
-        {
-            return 0;
-        }
 
         int status = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
 
@@ -297,10 +291,6 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
         {
             return 0;
         }
-        if (child->type != JSON_STRING)
-        {
-            return 0; 
-        }
 
         int status = sqlite3_bind_text(stmt, index, child->string, -1, SQLITE_STATIC);
 
@@ -318,7 +308,6 @@ static int db_handle(const json_t *request)
     {
         const char *error = "Unauthorized";
 
-        json_write_line(request, stderr);
         fprintf(stderr, "%s\n", error);
         buffer_write(&buffer, error);
         return HTTP_UNAUTHORIZED;
@@ -333,7 +322,6 @@ static int db_handle(const json_t *request)
     {
         const char *error = "Query can't be performed";
 
-        json_write_line(request, stderr);
         fprintf(stderr, "%s\n", error);
         buffer_write(&buffer, error);
         return HTTP_SERVER_ERROR;
@@ -442,6 +430,7 @@ static const buffer_t *process(int header)
         snprintf(headers, sizeof headers, code, strings);
     }
     buffer_insert(&buffer, 0, headers, strlen(headers));
+if (buffer.length) puts(buffer.text);
     return buffer.length ? &buffer : NULL;
 }
 
