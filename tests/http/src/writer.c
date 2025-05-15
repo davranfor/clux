@@ -306,10 +306,10 @@ static int db_handle(const json_t *request)
 {
     if (cookie.role && !verify_cookie())
     {
-        const char *error = "Unauthorized";
+        const char *msg = "Unauthorized";
 
-        fprintf(stderr, "%s\n", error);
-        buffer_write(&buffer, error);
+        fprintf(stderr, "%s\n", msg);
+        buffer_write(&buffer, msg);
         return HTTP_UNAUTHORIZED;
     }
 
@@ -318,29 +318,36 @@ static int db_handle(const json_t *request)
     const json_t *content = json_find(request, "content");
     const char *sql = get_sql(path);
 
-    if (!sql || !path || !query || !content)
+    if (!path || !query || !content || !sql)
     {
-        const char *error = "Query can't be performed";
+        const char *msg = "Malformed query";
 
-        fprintf(stderr, "%s\n", error);
-        buffer_write(&buffer, error);
+        fprintf(stderr, "%s\n", msg);
+        buffer_write(&buffer, msg);
         return HTTP_SERVER_ERROR;
+    }
+
+    int writting;
+    char *error;
+
+    // Methods POST, PUT, PATCH and DELETE starts a transaction, GET doesn't
+    if ((writting = strcmp(request->key, "GET")) &&
+        (sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &error) != SQLITE_OK))
+    {
+        fprintf(stderr, "%s\n", error);
+        sqlite3_free(error);
+        exit(EXIT_FAILURE);
     }
 
     sqlite3_stmt *stmt;
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        return HTTP_BAD_REQUEST;
+        goto bad_request;
     }
     if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
     {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return HTTP_BAD_REQUEST;
+        goto bad_request;
     }
 
     int step, result = HTTP_NO_CONTENT;
@@ -353,16 +360,31 @@ static int db_handle(const json_t *request)
     }
     if (step != SQLITE_DONE)
     {
-        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-        buffer_write(&buffer, sqlite3_errmsg(db));
-        result = HTTP_BAD_REQUEST;
+        goto bad_request;
     }
     else if (buffer.length > 0)
     {
         result = HTTP_OK;
     }
     sqlite3_finalize(stmt);
+    if (writting && (sqlite3_exec(db, "COMMIT;", NULL, NULL, &error) != SQLITE_OK))
+    {
+        fprintf(stderr, "%s\n", error);
+        sqlite3_free(error);
+        exit(EXIT_FAILURE);
+    }
     return result;
+bad_request:
+    fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+    buffer_write(&buffer, sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
+    if (writting && (sqlite3_exec(db, "ROLLBACK;", NULL, NULL, &error) != SQLITE_OK))
+    {
+        fprintf(stderr, "%s\n", error);
+        sqlite3_free(error);
+        exit(EXIT_FAILURE);
+    }
+    return HTTP_BAD_REQUEST;
 }
 
 static void cleanup(json_t *request)
