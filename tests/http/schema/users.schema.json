@@ -7,12 +7,13 @@
       "type": "object",
       "properties": {
         "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "tin": { "type": "string", "minLength": 8, "maxLength": 14 },
         "email": { "type": "string", "format": "email" },
-        "password": { "type": "string", "minLength": 6, "maxLength": 25 }
+        "password": { "minLength": 8, "maxLength": 25 }
       },
       "additionalProperties": false
     },
-    "contentRequired": { "required": [ "name", "email" ] }
+    "contentRequired": { "required": [ "name", "tin", "email" ] }
   },
   "$ref": "#/definitions/content",
   "$ref": "#/definitions/contentRequired"

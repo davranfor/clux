@@ -7,11 +7,11 @@
     <title>IGASA - Panel de Control</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+    <script src="timekeep.js"></script>
 </head>
 <body>
     <header>
         <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo" border="0">
-        <!--<img src="https://i.ibb.co/hJpg6C8Y/logo.png" alt="logo" border="0">-->
         <div id="user-panel" class="user-panel">
             <p class="user-text" id="user-text"></p>
             <button id="user-button" class="user-button"></button>
@@ -96,8 +96,8 @@
                 userButton.textContent = "Entrar";
             }
         }
-        userButton.addEventListener("click", function() {
-            user.clock_in = user.clock_in === null ? new Date().toISOString() : null;
+        userButton.addEventListener("click", async function() {
+            user.clock_in = await punch();
             updateUserButton();
         });
 
