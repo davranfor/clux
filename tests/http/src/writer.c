@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <clux/clib.h>
 #include <clux/json.h>
 #include <clux/json_private.h>
@@ -67,6 +68,35 @@ static void load_db(void)
     json_sort(queries, NULL);
 }
 
+static void round_minute(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 0)
+    {
+        sqlite3_result_error(context, "user() doesn't take arguments", -1);
+        return;
+    }
+
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    if (tm.tm_sec < 30)
+    {
+        tm.tm_sec = 0;
+    }
+    else
+    {
+        tm.tm_min += 1;
+        tm.tm_sec = 0;
+    }
+    mktime(&tm);
+    
+    char minute[20];
+
+    strftime(minute, sizeof minute, "%Y-%m-%d %H:%M:00", &tm);
+    sqlite3_result_text(context, minute, -1, SQLITE_TRANSIENT);
+}
+
 static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     (void)argv;
@@ -117,6 +147,13 @@ static void load(const char *path_catalog, const char *path_db)
 
     int status;
 
+    status = sqlite3_create_function(
+        db, "round_minute", 0, SQLITE_UTF8, NULL, round_minute, NULL, NULL);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
     status = sqlite3_create_function(
         db, "session_id", 0, SQLITE_UTF8, NULL, session_id, NULL, NULL);
     if (status != SQLITE_OK)

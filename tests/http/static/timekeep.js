@@ -8,7 +8,7 @@ async function punch() {
         if (response.status === 200) { // Ok
             const data = await response.json();
             if (data && typeof data === 'object') {
-                return data[1] === '0000-00-00 00:00:00' ? data[0] : null;
+                user.clock_in = data[1] === '0000-00-00 00:00:00' ? data[0] : null;
             } else {
                 throw new Error('Sesión inválida');
             }
@@ -19,11 +19,9 @@ async function punch() {
             } else {
                 throw new Error(data);
             }
-            return null;
         }
     } catch (error) {
         alert(error.message);
-        return null;
     }
 }
 

@@ -97,7 +97,7 @@
             }
         }
         userButton.addEventListener("click", async function() {
-            user.clock_in = await punch();
+            await punch();
             updateUserButton();
         });
 
