@@ -110,16 +110,17 @@ static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
 
 static void new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        sqlite3_result_error(context, "new_token() takes 2 arguments", -1);
+        sqlite3_result_error(context, "new_token() takes 3 arguments", -1);
         return;
     }
 
     int user = sqlite3_value_int(argv[0]);
     int role = sqlite3_value_int(argv[1]);
+    const unsigned char *token = sqlite3_value_text(argv[2]);
 
-    if (!cookie_create(user, role, cookie_str))
+    if (!cookie_create(user, role, (const char *)token, cookie_str))
     {
         sqlite3_result_error(context, "new_token() failed", -1);
         return;
@@ -162,7 +163,7 @@ static void load(const char *path_catalog, const char *path_db)
         exit(EXIT_FAILURE);
     }
     status = sqlite3_create_function(
-        db, "new_token", 2, SQLITE_UTF8, NULL, new_token, NULL, NULL);
+        db, "new_token", 3, SQLITE_UTF8, NULL, new_token, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));

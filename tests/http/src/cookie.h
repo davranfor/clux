@@ -20,7 +20,7 @@ typedef struct
 } cookie_t;
 
 int cookie_parse(cookie_t *, const char *, char *);
-int cookie_create(int, int, char *);
+int cookie_create(int, int, const char *, char *);
 
 #endif
 

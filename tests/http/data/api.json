@@ -8,7 +8,7 @@
   },
   "queries": {
     "auth": "SELECT json_object('id', id, 'role', role, 'name', name, 'clock_in', NULL) FROM users WHERE id = session_id();",
-    "login": "UPDATE users SET token = new_token(id, role) WHERE email = :email and password = :password RETURNING 1;",
+    "login": "UPDATE users SET token = new_token(id, role, token) WHERE email = :email and password = :password RETURNING 1;",
     "users.select": "SELECT json_object('id', id, 'role', role, 'name', name, 'email', email) FROM users WHERE id = $1;",
     "users.select.all": "SELECT json_group_array(json_object('id', id, 'role', role, 'name', name, 'email', email)) FROM users;",
     "users.insert": "INSERT INTO users (name, email) VALUES (:name, :email) RETURNING id;",

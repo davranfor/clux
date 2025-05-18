@@ -63,22 +63,29 @@ int cookie_parse(cookie_t *cookie, const char *path, char *str)
     }
 }
 
-int cookie_create(int user, int role, char *cookie)
+int cookie_create(int user, int role, const char *token, char *cookie)
 {
-    unsigned char bytes[TOKEN_SIZE / 2];
-
-    if (RAND_bytes(bytes, sizeof(bytes)) != 1)
+    if (token[0] != '\0')
     {
-        return 0;
+        snprintf(cookie, COOKIE_SIZE, "%d:%d:%s", user, role, token);
     }
-
-    char *token = cookie + snprintf(cookie, COOKIE_SIZE, "%d:%d:", user, role);
-
-    for (size_t i = 0; i < sizeof bytes; i++)
+    else
     {
-        snprintf(token + (i * 2), 3, "%02x", bytes[i]);
+        unsigned char bytes[TOKEN_SIZE / 2];
+
+        if (RAND_bytes(bytes, sizeof(bytes)) != 1)
+        {
+            return 0;
+        }
+
+        char *output = cookie + snprintf(cookie, COOKIE_SIZE, "%d:%d:", user, role);
+
+        for (size_t i = 0; i < sizeof bytes; i++)
+        {
+            snprintf(output + (i * 2), 3, "%02x", bytes[i]);
+        }
+        output[TOKEN_SIZE - 1] = '\0';
     }
-    token[TOKEN_SIZE - 1] = '\0';
     return 1;
 }
 
