@@ -80,10 +80,6 @@ static void round_minute(sqlite3_context *context, int argc, sqlite3_value **arg
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    if (tm.tm_sec >= 30)
-    {
-        tm.tm_min += 1;
-    }
     mktime(&tm);
     
     char minute[20];

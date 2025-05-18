@@ -4,51 +4,39 @@ const elements = {
     loginText: document.getElementById('login-text')
 };
 
+function updateUI() {
+    elements.loginWrapper.style.display = "none";
+    elements.loginText.style.display = "none";
+    userText.textContent = user.name;
+    userPanel.style.display = "flex";
+    menu.style.display = "block";
+}
+
 function showError(message) {
     elements.loginText.style.display = "block";
     elements.loginText.textContent = message;
 }
 
-function isValidUserData(data) {
-    return (
-        data &&
-        typeof data.id === 'number' &&
-        typeof data.role === 'number' &&
-        typeof data.name === 'string' &&
-        (data.clock_in === null || typeof data.clock_in === 'string')
-    );
-}
-
-function handleLoggedIn(data) {
-
-    user.id = data.id;
-    user.role = data.role;
-    user.name = data.name;
-
-    getClockIn().then(clock_in => {
-        user.clock_in = clock_in;
-        if (user.clock_in === null) {
-            userText.textContent = user.name;
-        } else {
-            userText.textContent = `${user.name} | Último fichaje: ${user.clock_in}`;
+async function handleLoggedIn(data) {
+    try {
+        user.id = data.id;
+        user.role = data.role;
+        user.name = data.name;
+        try {
+            user.clock_in = await getClockIn();
+        } catch (error) {
+            throw new Error(error);
         }
         updateUserButton();
-    }).catch(error => {
-        userText.textContent = user.name;
-        user.clock_in = null;
-    });
-
-    elements.loginWrapper.style.display = "none";
-    elements.loginText.style.display = "none";
-    userPanel.style.display = "flex";
-    menu.style.display = "block";
+        updateUI();
+    } catch (error) {
+        showError(error.message || "Sesión inválida");
+    }
 }
 
 function handleLoggedOut() {
     elements.loginWrapper.style.display = "flex";
 }
-
-checkSession();
 
 async function checkSession() {
     const controller = new AbortController();
@@ -62,28 +50,20 @@ async function checkSession() {
         });
 
         clearTimeout(timeoutId);
-        if (response.status === 200) { // Ok
+        if (response.status === 200) {
             const data = await response.json();
-            if (isValidUserData(data)) {
-                handleLoggedIn(data);
-            } else {
-                throw new Error('Sesión inválida');
-            }
-        } else if (response.status === 204) { // No Content
-            throw new Error('Sesión inválida');
-        } else if (response.status === 401) { // Unauthorized
+            await handleLoggedIn(data);
+        } else if (response.status === 401) {
             handleLoggedOut();
         } else {
             const data = await response.text();
-            if (!data || data.trim() === '') {
-                throw new Error('Sesión inválida');
-            } else {
-                throw new Error(data);
-            }
+            throw new Error(data);
         }
     } catch (error) {
         clearTimeout(timeoutId);
-        showError(error.message);
+        showError(error.message || 'Sesión inválida');
+    } finally {
+        controller.abort();
     }
 }
 
@@ -96,24 +76,20 @@ elements.loginForm.addEventListener('submit', async (e) => {
         const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            credentials: 'include'
+            credentials: 'include',
+            body: JSON.stringify({ email, password })
         });
 
-        if (response.status === 200) { // Ok
-            checkSession();
-        } else if (response.status === 204) { // No Content
-            throw new Error('Sesión inválida, revise sus credenciales');
+        if (response.status === 200) {
+            await checkSession();
         } else {
             const data = await response.text();
-            if (!data || data.trim() === '') {
-                throw new Error('Sesión inválida, revise sus credenciales');
-            } else {
-                throw new Error(data);
-            }
+            throw new Error(data || 'Sesión inválida, revise sus credenciales');
         }
     } catch (error) {
-        showError(error.message);
+        showError(error.message || "Sesión inválida");
     }
 });
+
+checkSession();
 
