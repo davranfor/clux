@@ -20,23 +20,28 @@ function isValidUserData(data) {
 }
 
 function handleLoggedIn(data) {
-    elements.loginWrapper.style.display = "none";
-    elements.loginText.style.display = "none";
 
     user.id = data.id;
     user.role = data.role;
     user.name = data.name;
-    user.clock_in = data.clock_in;
 
-    if (user.clock_in === null) {
+    getClockIn().then(clock_in => {
+        user.clock_in = clock_in;
+        if (user.clock_in === null) {
+            userText.textContent = user.name;
+        } else {
+            userText.textContent = `${user.name} | Último fichaje: ${user.clock_in}`;
+        }
+        updateUserButton();
+    }).catch(error => {
         userText.textContent = user.name;
-    } else {
-        userText.textContent = `${user.name} | Último fichaje: ${user.clock_in}`;
-    }
+        user.clock_in = null;
+    });
+
+    elements.loginWrapper.style.display = "none";
+    elements.loginText.style.display = "none";
     userPanel.style.display = "flex";
     menu.style.display = "block";
-
-    updateUserButton();
 }
 
 function handleLoggedOut() {
@@ -111,75 +116,4 @@ elements.loginForm.addEventListener('submit', async (e) => {
         showError(error.message);
     }
 });
-
-/*
-// Login
-elements.loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include'
-        });
-
-        if (response.ok) {
-            checkSession();
-        } else {
-            alert("Credenciales incorrectas");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-});
-
-document.getElementById('login-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    let isValid = true;
-    if (isValid) {
-        userPanel.style.display = "flex";
-        menu.style.display = "block";
-        loginWrapper.style.display = "none";
-    }
-});
-*/
-
-/*
-// Fichar
-elements.ficharBtn.addEventListener('click', async () => {
-    const response = await fetch('/api/fichar', { 
-        method: 'POST',
-        credentials: 'include'
-    });
-    if (response.ok) {
-        alert("Fichaje registrado");
-    }
-});
-
-// Logout
-elements.logoutBtn.addEventListener('click', async () => {
-    await fetch('/api/logout', { 
-        method: 'POST',
-        credentials: 'include' 
-    });
-    handleLoggedOut();
-});
-
-// Helpers
-function handleLoggedIn(username) {
-    document.body.classList.remove('logged-out');
-    document.body.classList.add('logged-in');
-    elements.welcomeMessage.textContent = `Bienvenido, ${username}`;
-}
-
-function handleLoggedOut() {
-    document.body.classList.remove('logged-in');
-    document.body.classList.add('logged-out');
-    elements.loginForm.reset();
-}
-*/
 

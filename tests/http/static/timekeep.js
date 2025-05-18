@@ -1,3 +1,17 @@
+function getClockIn() {
+    return fetch('/api/timesheet', {
+        method: 'GET',
+        credentials: 'include'
+    })
+    .then(response => {
+        if (response.status === 200) { // Ok
+            return response.text().then(text => text || null);
+        }
+        return null; // Para status 204 y otros
+    })
+    .catch(() => null);
+}
+
 async function punch() {
     try {
         const response = await fetch('/api/timesheet', {

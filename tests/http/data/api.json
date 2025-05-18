@@ -15,6 +15,7 @@
     "users.update": "UPDATE users SET name = :name, email = :email WHERE id = $1 RETURNING id;",
     "users.update.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
     "users.delete": "DELETE FROM users WHERE id = $1 RETURNING id;",
+    "timesheet.select": "SELECT clock_in FROM timesheet WHERE user_id = session_id() AND clock_out = '0000-00-00 00:00:00';",
     "timesheet.upsert": "INSERT INTO timesheet (user_id, clock_in, clock_out) VALUES (session_id(), round_minute(), '0000-00-00 00:00:00') ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_out = excluded.clock_in WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = '0000-00-00 00:00:00' RETURNING json_array(clock_in, clock_out);"
   }
 }

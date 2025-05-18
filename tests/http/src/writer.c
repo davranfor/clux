@@ -73,21 +73,16 @@ static void round_minute(sqlite3_context *context, int argc, sqlite3_value **arg
     (void)argv;
     if (argc != 0)
     {
-        sqlite3_result_error(context, "user() doesn't take arguments", -1);
+        sqlite3_result_error(context, "round_minute() doesn't take arguments", -1);
         return;
     }
 
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    if (tm.tm_sec < 30)
-    {
-        tm.tm_sec = 0;
-    }
-    else
+    if (tm.tm_sec >= 30)
     {
         tm.tm_min += 1;
-        tm.tm_sec = 0;
     }
     mktime(&tm);
     
@@ -102,7 +97,7 @@ static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
     (void)argv;
     if (argc != 0)
     {
-        sqlite3_result_error(context, "user() doesn't take arguments", -1);
+        sqlite3_result_error(context, "session_id() doesn't take arguments", -1);
         return;
     }
     sqlite3_result_int(context, cookie.user);

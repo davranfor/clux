@@ -2,20 +2,32 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "/timesheet",
   "type": "object",
-  "if": {
-    "properties": {
-      "POST": {
+  "properties": {
+    "GET": {
+      "if": {
         "properties": {
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" },
           "content": { "type": "null" }
-        }
-      }
+        },
+        "x-notify": { "path": "timesheet.select", "role": 1 }
+      },
+      "then": true,
+      "else": false
     },
-    "additionalProperties": false,
-    "x-notify": { "path": "timesheet.upsert", "role": 1 }
+    "POST": {
+      "if": {
+        "properties": {
+          "path": { "minItems": 1, "maxItems": 1 },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
+        },
+        "x-notify": { "path": "timesheet.upsert", "role": 1 }
+      },
+      "then": true,
+      "else": false
+    }
   },
-  "then": true,
-  "else": false
+  "additionalProperties": false
 }
 
