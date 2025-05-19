@@ -24,7 +24,7 @@ async function punch() {
             const data = await response.json();
             user.clock_in = data[1] === 0 ? data[0] : null;
         } else if (response.status === 204) {
-            throw new Error('Deben pasar al menos 5 segundos entre fichajes');
+            throw new Error('Deben pasar al menos 5 segundos entre entrada y salida');
         } else {
             const data = await response.text();
             throw new Error(data);

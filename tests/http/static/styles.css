@@ -69,6 +69,14 @@ header {
     margin: 0;
 }
 
+.user-button:disabled {
+    cursor: not-allowed;
+}
+
+.user-button:disabled::after {
+    cursor: pointer;
+}
+
 .clock-in {
     background: #4CAF50;
 }
