@@ -5,7 +5,7 @@
     "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id ON timesheet(user_id);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_clock_in ON timesheet(clock_in);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_clock_out ON timesheet(clock_out);",
-    "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id_clock_in_desc ON timesheet(user_id, clock_in DESC);",
+    "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id_clock_in ON timesheet(user_id, clock_in);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id_clock_out ON timesheet(user_id, clock_out);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id_clock_out_0 ON timesheet(user_id) WHERE clock_out = 0;"
   ],
@@ -22,7 +22,7 @@
     "users.update.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
     "users.delete": "DELETE FROM users WHERE id = $1 RETURNING id;",
     "timesheet.select": "SELECT clock_in FROM timesheet WHERE user_id = session_id() AND clock_out = 0;",
-    "timesheet.upsert": "INSERT INTO timesheet (user_id, clock_in) SELECT session_id(), datetime('now', 'localtime') WHERE NOT EXISTS (SELECT 1 FROM (SELECT clock_out FROM timesheet WHERE user_id = session_id() ORDER BY clock_in DESC LIMIT 1) WHERE datetime(clock_out, '+5 seconds') > datetime('now', 'localtime')) ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_out = excluded.clock_in WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = 0 AND excluded.clock_in > datetime(timesheet.clock_in, '+5 seconds') RETURNING json_array(clock_in, clock_out);"
+    "timesheet.upsert": "INSERT INTO timesheet (user_id, clock_in) VALUES (session_id(), datetime('now', 'localtime')) ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_out = excluded.clock_in WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = 0 AND excluded.clock_in > datetime(timesheet.clock_in, '+5 seconds') RETURNING json_array(clock_in, clock_out);"
   }
 }
 

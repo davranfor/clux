@@ -85,6 +85,8 @@
         const userText = document.getElementById("user-text");
         const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
+
+        let isProcessing = false;
         function updateUserButton() {
             if (user.clock_in !== null) {
                 userButton.classList.remove("clock-in");
@@ -97,8 +99,21 @@
             }
         }
         userButton.addEventListener("click", async function() {
-            await punch();
-            updateUserButton();
+            if (isProcessing) return;
+            isProcessing = true;
+            userButton.disabled = true;
+            try {
+                await punch();
+                updateUserButton();
+                setTimeout(() => {
+                    userButton.disabled = false;
+                    isProcessing = false;
+                }, 5000);
+        
+            } catch (error) {
+                userButton.disabled = false;
+                isProcessing = false;
+            }
         });
 
         const menu = document.getElementById('menu');
