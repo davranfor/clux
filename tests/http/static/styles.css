@@ -1,7 +1,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
-    background-color: #2d3748;
+    background: #2d3748;
     color: #fff;
     display: grid;
     grid-template-rows: auto 1fr;
@@ -17,7 +17,7 @@ hr {
 
 header {
     border-bottom: 1px solid #64758a;
-    background-color: #2d3748;
+    background: #2d3748;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -29,14 +29,10 @@ header {
     margin: 0;
 }
 
-.hidden {
-    display: none;
-}
-
 .user-panel {
-    display: none;
-    justify-content: flex-end;
+    display: none; /* flex */
     align-items: center;
+    justify-content: flex-end;
     flex: 1;
     min-width: 0;
     gap: 10px;
@@ -59,14 +55,19 @@ header {
     font-size: 14px;
     border: none;
     border-radius: 6px;
+    background: transparent;
+    transition: background 0.3s;
     color: #fff;
     cursor: pointer;
     flex-shrink: 0;
     width: 80px;
     height: 40px;
-    transition: background 0.3s;
     padding: 0;
     margin: 0;
+}
+
+.user-button:hover {
+    opacity: 0.9;
 }
 
 .user-button:disabled {
@@ -90,9 +91,9 @@ header {
 }
 
 .menu {
+    display: none; /* block */
     border-right: 1px solid #64758a;
-    background-color: #2d3748;
-    display: none;
+    background: #2d3748;
     flex: 0 0 auto;
     width: 226px;
     padding: 0;
@@ -109,7 +110,7 @@ header {
 }
 
 .menu-item:hover {
-    background-color: #4a5568;
+    background: #4a5568;
 }
 
 .menu-item:hover .ti {
@@ -117,7 +118,7 @@ header {
 }
     
 .menu-item.active {
-    background-color: #718096;
+    background: #718096;
 }
 
 .menu-item.active .ti {
@@ -133,39 +134,67 @@ header {
 }
 
 .content {
-    background-color: #1e2734;
-    color: #8a9bb4;
+    background: #1e2734;
+    color: #a0aec0;
     flex: 1;
     text-align: center;
+    padding: 5px;
 }
 
-.login-wrapper {
-    display: none;
+.content-wrapper {
+    display: none; /* flex */
     justify-content: center;
-    padding: 10px;
+    padding: 5px;
 }
 
-.login-box {
-    background-color: #2d3748;
+.content-box {
+    background: #2d3748;
     border: 1px solid #64758a;
     border-radius: 6px;
-    padding: 1.5rem 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    margin-top: 10px;
+    padding: 1.5rem 2rem;
+    margin-top: 5px;
 }
 
-.login-box h2 {
+.content-box h2 {
     color: #fff;
     margin: 0 0 1rem 0;
     font-size: 1.5rem;
 }
 
-.login-form {
+.content-form {
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+}
+
+.content-button {
+    border: none;
+    border-radius: 4px;
+    background: #4CAF50;
+    transition: background 0.3s;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.content-button:hover {
+    background: #3e8e41;
+}
+
+.content-button:disabled {
+    background: #718096;
+    cursor: not-allowed;
+}
+
+.content-button:disabled:hover {
+    background: #718096;
 }
 
 .form-group {
@@ -176,50 +205,22 @@ header {
 }
 
 .form-group label {
-    color: #a0aec0;
     font-size: 0.9rem;
 }
 
 .form-group input {
-    padding: 0.75rem;
-    background-color: #1e2734;
     border: 1px solid #64758a;
     border-radius: 4px;
+    background: #1e2734;
     color: #fff;
     font-size: 1rem;
     transition: all 0.3s;
+    padding: 0.75rem;
 }
 
 .form-group input:focus {
-    outline: none;
     border-color: #718096;
     box-shadow: 0 0 0 2px rgba(113, 128, 150, 0.3);
-}
-
-.login-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 0.75rem;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-top: 0.5rem;
-    transition: background-color 0.3s;
-    width: 100%;
-}
-
-.login-button:hover {
-    background-color: #3e8e41;
-}
-
-.login-button:disabled {
-    background-color: #718096;
-    cursor: not-allowed;
-}
-
-.login-button:disabled:hover {
-    background-color: #718096;
+    outline: none;
 }
 

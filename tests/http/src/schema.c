@@ -215,8 +215,8 @@ int schema_validate(json_t *request, buffer_t *buffer)
 
     if (rules == NULL)
     {
-        buffer_format(buffer, "Collection '%s' not found", path);
-        return 0;
+        buffer_format(buffer, "Resource '%s' not found", path);
+        return HTTP_NOT_FOUND;
     }
 
     unsigned content_id = json_index(request, "content");
@@ -240,7 +240,7 @@ int schema_validate(json_t *request, buffer_t *buffer)
         buffer_write(buffer, "Error parsing content");
         json_print_error(&error);
         json_free(node);
-        return 0;
+        return HTTP_BAD_REQUEST;
     }
 
     json_t entry = {.type = JSON_OBJECT, .child = (json_t *[]){request}, .size = 1};

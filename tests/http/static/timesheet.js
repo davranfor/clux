@@ -1,4 +1,4 @@
-function getClockIn() {
+function getClockInTime() {
     return fetch('/api/timesheet', {
         method: 'GET',
         credentials: 'include'
@@ -6,14 +6,14 @@ function getClockIn() {
     .then(response => {
         return response.text().then(text => {
             if (response.ok) {
-                return text || null;
+                return text || 0;
             }
             throw new Error(text || `HTTP Error ${response.status}`);
         });
     });
 }
 
-async function punch() {
+async function logHours() {
     try {
         const response = await fetch('/api/timesheet', {
             method: 'POST',
@@ -22,7 +22,7 @@ async function punch() {
 
         if (response.status === 200) {
             const data = await response.json();
-            user.clock_in = data[1] === 0 ? data[0] : null;
+            user.clockInTime = data[1] === 0 ? data[0] : 0;
         } else if (response.status === 204) {
             throw new Error('Deben pasar al menos 5 segundos entre entrada y salida');
         } else {

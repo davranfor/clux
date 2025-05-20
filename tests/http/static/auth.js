@@ -1,73 +1,50 @@
-const elements = {
-    loginWrapper: document.getElementById('login-wrapper'),
-    loginForm: document.getElementById('login-form'),
-    loginText: document.getElementById('login-text')
+const login = {
+    frame: document.getElementById('login-frame'),
+    form: document.getElementById('login-form'),
+    text: document.getElementById('login-text')
 };
 
-function updateUI() {
-    elements.loginWrapper.style.display = "none";
-    elements.loginText.style.display = "none";
-    userText.textContent = user.name;
-    userPanel.style.display = "flex";
-    menu.style.display = "block";
+function showLogin() {
+    login.text.style.display = "none";
+    login.frame.style.display = "flex";
 }
 
-function showError(message) {
-    elements.loginText.style.display = "block";
-    elements.loginText.textContent = message;
+function hideLogin() {
+    hideLoginError();
+    login.frame.style.display = "none";
+    start();
 }
 
-async function handleLoggedIn(data) {
+function showLoginError(message) {
+    if (login.text.style.display === "none") {
+        login.text.style.display = "block";
+    }
+    login.text.textContent = message;
+}
+
+function hideLoginError() {
+    if (login.text.style.display === "block") {
+        login.text.style.display = "none";
+    }
+}
+
+async function handleLogin(data) {
     try {
         user.id = data.id;
         user.role = data.role;
         user.name = data.name;
         try {
-            user.clock_in = await getClockIn();
+            user.clockInTime = await getClockInTime();
         } catch (error) {
             throw new Error(error);
         }
-        updateUserButton();
-        updateUI();
+        hideLogin();
     } catch (error) {
-        showError(error.message || "Sesión inválida");
+        showLoginError(error.message || "Sesión inválida");
     }
 }
 
-function handleLoggedOut() {
-    elements.loginWrapper.style.display = "flex";
-}
-
-async function checkSession() {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    try {
-        const response = await fetch('/api/auth', {
-            method: 'GET',
-            credentials: 'include',
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-        if (response.status === 200) {
-            const data = await response.json();
-            await handleLoggedIn(data);
-        } else if (response.status === 401) {
-            handleLoggedOut();
-        } else {
-            const data = await response.text();
-            throw new Error(data);
-        }
-    } catch (error) {
-        clearTimeout(timeoutId);
-        showError(error.message || 'Sesión inválida');
-    } finally {
-        controller.abort();
-    }
-}
-
-elements.loginForm.addEventListener('submit', async (e) => {
+login.form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -87,9 +64,38 @@ elements.loginForm.addEventListener('submit', async (e) => {
             throw new Error(data || 'Sesión inválida, revise sus credenciales');
         }
     } catch (error) {
-        showError(error.message || "Sesión inválida");
+        showLoginError(error.message || "Sesión inválida");
     }
 });
+
+async function checkSession() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    try {
+        const response = await fetch('/api/auth', {
+            method: 'GET',
+            credentials: 'include',
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+        if (response.status === 200) {
+            const data = await response.json();
+            await handleLogin(data);
+        } else if (response.status === 401) {
+            showLogin();
+        } else {
+            const data = await response.text();
+            throw new Error(data);
+        }
+    } catch (error) {
+        clearTimeout(timeoutId);
+        showLoginError(error.message || 'Sesión inválida');
+    } finally {
+        controller.abort();
+    }
+}
 
 checkSession();
 
