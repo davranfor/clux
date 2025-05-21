@@ -24,6 +24,7 @@ static json_t *queries;
 
 static cookie_t cookie;
 static char cookie_str[COOKIE_SIZE];
+static int station;
 
 static buffer_t buffer;
 
@@ -79,6 +80,17 @@ static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
     sqlite3_result_int(context, cookie.user);
 }
 
+static void station_id(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 0)
+    {
+        sqlite3_result_error(context, "station_id() doesn't take arguments", -1);
+        return;
+    }
+    sqlite3_result_int(context, station);
+}
+
 static void new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     if (argc != 3)
@@ -121,6 +133,13 @@ static void load(const char *path_catalog, const char *path_db)
 
     status = sqlite3_create_function(
         db, "session_id", 0, SQLITE_UTF8, NULL, session_id, NULL, NULL);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
+    status = sqlite3_create_function(
+        db, "station_id", 0, SQLITE_UTF8, NULL, station_id, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
@@ -190,7 +209,8 @@ static int verify_cookie(void)
 
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW)
     {
-        verified = sqlite3_column_int(stmt, 0);
+        station = sqlite3_column_int(stmt, 0);
+        verified = 1;
     }
     if (step != SQLITE_DONE)
     {

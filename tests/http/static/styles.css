@@ -135,7 +135,8 @@ header {
 
 .content {
     background: #1e2734;
-    color: #a0aec0;
+    /*color: #a0aec0;*/
+	color: #cbd5e0;
     flex: 1;
     text-align: center;
     padding: 5px;

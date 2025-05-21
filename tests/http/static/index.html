@@ -19,8 +19,8 @@
     </header>
     <div class="container">
         <div class="menu" id="menu">
-            <div class="menu-item active" onclick="setActive(this)" data-item="fichajes">
-            <!--<div class="menu-item" onclick="setActive(this)" data-item="fichajes">-->
+            <!--<div class="menu-item active" onclick="setActive(this)" data-item="item_clocking">-->
+            <div class="menu-item" onclick="setActive(this)" data-item="item-clocking">
                 <i class="ti ti-clock"></i>
                 <span class="menu-text">Fichajes</span>
             </div>
@@ -28,7 +28,7 @@
                 <i class="ti ti-calendar-time"></i>
                 <span class="menu-text">Horarios</span>
             </div>
-            <div class="menu-item" onclick="setActive(this)" data-item="ausencias">
+            <div class="menu-item" onclick="setActive(this)" data-item="item-absences">
                 <i class="ti ti-ghost"></i>
                 <span class="menu-text">Ausencias</span>
             </div>
@@ -74,8 +74,19 @@
                             <input type="password" id="password" placeholder="••••••••" required>
                         </div>
                         <button type="submit" class="content-button">Ingresar</button>
-                        <span id="login-text"></span>
+                        <b id="login-text"></b>
                     </form>
+                </div>
+            </div>
+            <div class="content-wrapper" id="clocking-frame">
+                <div class="content-box">
+                    <h2>Fichajes</h2>
+                    <b id="clocking-text"></b>
+                </div>
+            </div>
+            <div class="content-wrapper" id="absences-frame">
+                <div class="content-box">
+                    <h2>Ausencias</h2>
                 </div>
             </div>
         </div>
@@ -86,16 +97,22 @@
         const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
 
+
+        const clockingFrame = document.getElementById("clocking-frame");
+        const clockingText = document.getElementById("clocking-text");
+
         let clocking = false;
-        function updateUserButton() {
+        function updateUserPanel() {
             if (user.clockInTime !== 0) {
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
+                clockingText.textContent = `Último fichaje: ${user.clockInTime}`;
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
                 userButton.textContent = "Entrar";
+                clockingText.textContent = '';
             }
         }
         userButton.addEventListener("click", async function() {
@@ -104,33 +121,46 @@
             userButton.disabled = true;
             try {
                 await logHours();
-                updateUserButton();
-                setTimeout(() => {
-                    userButton.disabled = false;
-                    clocking = false;
-                }, 10000);
+                updateUserPanel();
+                setTimeout(() => { userButton.disabled = false; clocking = false; }, 10000);
             } catch (error) {
                 userButton.disabled = false;
                 clocking = false;
             }
         });
 
-        const menu = document.getElementById('menu');
+        const menu = document.getElementById("menu");
+
+        const absencesFrame = document.getElementById("absences-frame");
+
         function setActive(element) {
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            element.classList.add('active');
-            const itemId = element.dataset.item;
-            if (itemId === 'perfil') {
+            const activeItem = document.querySelector('#menu .menu-item.active');
+
+            if (activeItem) {
+                activeItem.classList.remove('active');
+                switch (activeItem.dataset.item) {
+                    case 'item-clocking': clockingFrame.style.display = "none"; break;
+                    case 'item-absences': absencesFrame.style.display = "none"; break;
+                }
             }
+            element.classList.add('active');
+            switch (element.dataset.item) {
+                case 'item-clocking': clockingFrame.style.display = "flex"; break;
+                case 'item-absences': absencesFrame.style.display = "flex"; break;
+            }
+        }
+        function setActiveByKey(itemKey) {
+            const element = document.querySelector(`#menu .menu-item[data-item="${itemKey}"]`);
+
+            if (element) setActive(element);
         }
 
         function start() {
             userText.textContent = user.name;
-            updateUserButton();
+            updateUserPanel();
             userPanel.style.display = "flex";
             menu.style.display = "block";
+            setActiveByKey("item-clocking");
         }
     </script>
     <script src="auth.js"></script>
