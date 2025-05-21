@@ -7,6 +7,7 @@
     <title>IGASA - Panel de Control</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+    <script src="functions.js"></script>
     <script src="timesheet.js"></script>
 </head>
 <body>
@@ -107,7 +108,7 @@
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
-                clockingText.textContent = `Último fichaje: ${user.clockInTime}`;
+                clockingText.textContent = `Último fichaje: ${longDateTime(user.clockInTime)}`;
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
