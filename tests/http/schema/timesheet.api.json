@@ -5,12 +5,24 @@
   "properties": {
     "GET": {
       "if": {
-        "properties": {
-          "path": { "minItems": 1, "maxItems": 1 },
-          "query": { "type": "null" },
-          "content": { "type": "null" }
-        },
-        "x-notify": { "path": "timesheet.select", "role": 1 }
+        "anyOf": [
+          {
+            "properties": {
+              "path": { "minItems": 1, "maxItems": 1 },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "timesheet.select", "role": 1 }
+          },
+          {
+            "properties": {
+              "path": { "items": [{}, { "const": "week" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "timesheet.select.week", "pathRemove": [1], "role": 1 }
+          }
+        ]
       },
       "then": true,
       "else": false

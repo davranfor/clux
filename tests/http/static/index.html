@@ -83,6 +83,7 @@
                 <div class="content-box">
                     <h2>Fichajes</h2>
                     <b id="clocking-text"></b>
+                    <pre id="clocking-week"></pre>
                 </div>
             </div>
             <div class="content-wrapper" id="absences-frame">
@@ -98,41 +99,7 @@
         const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
 
-
-        const clockingFrame = document.getElementById("clocking-frame");
-        const clockingText = document.getElementById("clocking-text");
-
-        let clocking = false;
-        function updateUserPanel() {
-            if (user.clockInTime !== 0) {
-                userButton.classList.remove("clock-in");
-                userButton.classList.add("clock-out");
-                userButton.textContent = "Salir";
-                clockingText.textContent = `Último fichaje: ${longDateTime(user.clockInTime)}`;
-            } else {
-                userButton.classList.remove("clock-out");
-                userButton.classList.add("clock-in");
-                userButton.textContent = "Entrar";
-                clockingText.textContent = '';
-            }
-        }
-        userButton.addEventListener("click", async function() {
-            if (clocking) return;
-            clocking = true;
-            userButton.disabled = true;
-            try {
-                await logHours();
-                updateUserPanel();
-                setTimeout(() => { userButton.disabled = false; clocking = false; }, 10000);
-            } catch (error) {
-                userButton.disabled = false;
-                clocking = false;
-            }
-        });
-
         const menu = document.getElementById("menu");
-
-        const absencesFrame = document.getElementById("absences-frame");
 
         function setActive(element) {
             const activeItem = document.querySelector('#menu .menu-item.active');
@@ -155,6 +122,42 @@
 
             if (element) setActive(element);
         }
+
+        const clockingFrame = document.getElementById("clocking-frame");
+        const clockingText = document.getElementById("clocking-text");
+        const clockingWeek = document.getElementById("clocking-week");
+
+        let clocking = false;
+
+        function updateUserPanel() {
+            if (user.clockInTime !== 0) {
+                userButton.classList.remove("clock-in");
+                userButton.classList.add("clock-out");
+                userButton.textContent = "Salir";
+                clockingText.textContent = `Último fichaje: ${longDateTime(user.clockInTime)}`;
+            } else {
+                userButton.classList.remove("clock-out");
+                userButton.classList.add("clock-in");
+                userButton.textContent = "Entrar";
+                clockingText.textContent = '';
+            }
+        }
+        userButton.addEventListener("click", async function() {
+            if (clocking) return;
+            clocking = true;
+            userButton.disabled = true;
+            try {
+                await logHours();
+                updateUserPanel();
+                await showWeek(clockingWeek);
+                setTimeout(() => { userButton.disabled = false; clocking = false; }, 10000);
+            } catch (error) {
+                userButton.disabled = false;
+                clocking = false;
+            }
+        });
+
+        const absencesFrame = document.getElementById("absences-frame");
 
         function start() {
             userText.textContent = user.name;

@@ -34,3 +34,25 @@ async function logHours() {
     }
 }
 
+async function showWeek(target) {
+    try {
+        const response = await fetch('/api/timesheet/week', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            target.textContent = JSON.stringify(data, null, 2) || '';
+        } else if (response.status === 204) {
+            target.textContent = '';
+        } else {
+            const data = await response.text();
+            throw new Error(data);
+        }
+    } catch (error) {
+        alert(error.message || `HTTP Error ${response.status}`);
+    }
+}
+
+
