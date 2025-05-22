@@ -20,7 +20,7 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "timesheet.select.week", "pathRemove": [1], "role": 1 }
+            "x-notify": { "path": "timesheet.select.week", "size": 1, "role": 1 }
           }
         ]
       },

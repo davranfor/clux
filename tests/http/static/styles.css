@@ -1,7 +1,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
-    background: #2d3748;
+    background-color: #2d3748;
     color: #fff;
     display: grid;
     grid-template-rows: auto 1fr;
@@ -17,7 +17,7 @@ hr {
 
 header {
     border-bottom: 1px solid #64758a;
-    background: #2d3748;
+    background-color: #2d3748;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -55,7 +55,7 @@ header {
     font-size: 14px;
     border: none;
     border-radius: 6px;
-    background: transparent;
+    background-color: transparent;
     transition: background 0.3s;
     color: #fff;
     cursor: pointer;
@@ -79,11 +79,11 @@ header {
 }
 
 .clock-in {
-    background: #4CAF50;
+    background-color: #4caf50;
 }
 
 .clock-out {
-    background: #f44336;
+    background-color: #f44336;
 }
 
 .container {
@@ -93,7 +93,7 @@ header {
 .menu {
     display: none; /* block */
     border-right: 1px solid #64758a;
-    background: #2d3748;
+    background-color: #2d3748;
     flex: 0 0 auto;
     width: 226px;
     padding: 0;
@@ -110,7 +110,7 @@ header {
 }
 
 .menu-item:hover {
-    background: #4a5568;
+    background-color: #4a5568;
 }
 
 .menu-item:hover .ti {
@@ -118,7 +118,7 @@ header {
 }
     
 .menu-item.active {
-    background: #718096;
+    background-color: #718096;
 }
 
 .menu-item.active .ti {
@@ -134,9 +134,8 @@ header {
 }
 
 .content {
-    background: #1e2734;
-    /*color: #a0aec0;*/
-	color: #cbd5e0;
+    background-color: #1e2734;
+    color: #cbd5e0;
     flex: 1;
     text-align: center;
     padding: 5px;
@@ -149,12 +148,12 @@ header {
 }
 
 .content-box {
-    background: #2d3748;
+    background-color: #2d3748;
     border: 1px solid #64758a;
     border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     padding: 1.5rem 2rem;
     margin-top: 5px;
 }
@@ -178,7 +177,7 @@ header {
 .content-button {
     border: none;
     border-radius: 4px;
-    background: #4CAF50;
+    background-color: #4caf50;
     transition: background 0.3s;
     color: #fff;
     font-weight: bold;
@@ -190,16 +189,16 @@ header {
 }
 
 .content-button:hover {
-    background: #3e8e41;
+    background-color: #3e8e41;
 }
 
 .content-button:disabled {
-    background: #718096;
+    background-color: #718096;
     cursor: not-allowed;
 }
 
 .content-button:disabled:hover {
-    background: #718096;
+    background-color: #718096;
 }
 
 .form-group {
@@ -216,7 +215,7 @@ header {
 .form-group input {
     border: 1px solid #64758a;
     border-radius: 4px;
-    background: #1e2734;
+    background-color: #1e2734;
     color: #fff;
     font-size: 1rem;
     transition: all 0.3s;

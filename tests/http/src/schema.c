@@ -98,47 +98,6 @@ static const char *get_path(const context_t *context)
     return json_string(json_pointer(context->request, "/path/0"));
 }
 
-static int path_remove(const json_event_t *event, context_t *context, json_t *path)
-{
-    const json_t *array = json_find(event->rule, "pathRemove");
-
-    if (array == NULL)
-    {
-        return 1;
-    }
-    if (array->type != JSON_ARRAY)
-    {
-        fprintf(stderr, "x-notify: 'pathRemove' must be an array\n");
-        buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
-        context->result = HTTP_SERVER_ERROR;
-        return 0;
-    }
-    for (unsigned i = 0; i < array->size; i++)
-    {
-        if ((array->child[i]->type != JSON_INTEGER) ||
-            (array->child[i]->number == 0) || (array->child[i]->number >= path->size))
-        {
-            fprintf(stderr, "x-notify: 'pathRemove' -> item %u doesn't match\n", i);
-            buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
-            context->result = HTTP_SERVER_ERROR;
-            return 0;
-        }
-        path->child[(unsigned)array->child[i]->number]->type = JSON_UNDEFINED;
-    }
-    for (unsigned i = 1; i < path->size; i++)
-    {
-        if (path->child[i]->type == JSON_UNDEFINED)
-        {
-            for (unsigned j = i + 1; j < path->size; j++)
-            {
-                path->child[j - 1] = path->child[j];
-            }
-            path->size--;
-        }
-    }
-    return 1; 
-}
-
 static int set_path(const json_event_t *event, context_t *context)
 {
     const json_t *path = json_find(event->rule, "path");
@@ -154,7 +113,23 @@ static int set_path(const json_event_t *event, context_t *context)
     json_t *node = json_find(context->request, "path");
 
     node->child[0]->string = path->string;
-    return path_remove(event, context, node);
+
+    const json_t *size = json_find(event->rule, "size");
+
+    if (size == NULL)
+    {
+        return 1;
+    }
+    if ((size->type != JSON_INTEGER) ||
+        (size->number < 1) || (size->number > node->size))
+    {
+        fprintf(stderr, "x-notify: 'size' wants an integer >0 <=%u\n", node->size);
+        buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
+        context->result = HTTP_SERVER_ERROR;
+        return 0;
+    }
+    node->size = (unsigned)size->number;
+    return 1;
 }
 
 static int test_role(const json_event_t *event, context_t *context)

@@ -30,7 +30,7 @@ async function logHours() {
             throw new Error(data);
         }
     } catch (error) {
-        alert(error.message || 'Sesión inválida');
+        throw new Error(error.message || `HTTP Error ${response.status}`);
     }
 }
 
@@ -51,8 +51,7 @@ async function showWeek(target) {
             throw new Error(data);
         }
     } catch (error) {
-        alert(error.message || `HTTP Error ${response.status}`);
+        throw new Error(error.message || `HTTP Error ${response.status}`);
     }
 }
-
 

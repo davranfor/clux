@@ -1,3 +1,9 @@
+function isMobileDevice()
+{
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+        && window.innerWidth <= 768;
+}
+
 function shortDateTime(datetime) {
   const [date, time] = datetime.split(' ');
   const [y, m, d] = date.split('-');
@@ -12,6 +18,4 @@ function longDateTime(datetime) {
   
   return `${d}/${m}/${y} ${time}`;
 }
-
-
 

@@ -33,11 +33,7 @@ async function handleLogin(data) {
         user.id = data.id;
         user.role = data.role;
         user.name = data.name;
-        try {
-            user.clockInTime = await getClockInTime();
-        } catch (error) {
-            throw new Error(error);
-        }
+        user.clockInTime = await getClockInTime();
         hideLogin();
     } catch (error) {
         showLoginError(error.message || "Sesión inválida");

@@ -154,16 +154,19 @@
             } catch (error) {
                 userButton.disabled = false;
                 clocking = false;
+                alert(error.message || 'No se puede fichar en este momento');
             }
         });
 
         const absencesFrame = document.getElementById("absences-frame");
 
+        isMobile = isMobileDevice();
+
         function start() {
             userText.textContent = user.name;
             updateUserPanel();
             userPanel.style.display = "flex";
-            menu.style.display = "block";
+            if (!isMobile) menu.style.display = "block";
             setActiveByKey("item-clocking");
         }
     </script>
