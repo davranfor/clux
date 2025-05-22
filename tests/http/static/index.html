@@ -83,6 +83,8 @@
                 <div class="content-box">
                     <h2>Fichajes</h2>
                     <b id="clocking-text"></b>
+                    <b id="clocking-station"></b>
+                    <b id="clocking-timer"></b>
                     <pre id="clocking-week"></pre>
                 </div>
             </div>
@@ -94,7 +96,7 @@
         </div>
     </div>
     <script>
-        const user = { id: 0, role: 0, name: "", clockInTime: 0 };
+        const user = { id: 0, role: 0, name: "", stationName: "", clockInTime: 0 };
         const userText = document.getElementById("user-text");
         const userPanel = document.getElementById("user-panel");
         const userButton = document.getElementById("user-button");
@@ -125,21 +127,32 @@
 
         const clockingFrame = document.getElementById("clocking-frame");
         const clockingText = document.getElementById("clocking-text");
+        const clockingStation = document.getElementById("clocking-station");
+        const clockingTimer = document.getElementById("clocking-timer");
         const clockingWeek = document.getElementById("clocking-week");
 
         let clocking = false;
 
-        function updateUserPanel() {
+        async function updateUserPanel() {
             if (user.clockInTime !== 0) {
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
-                clockingText.textContent = `Último fichaje: ${longDateTime(user.clockInTime)}`;
+                clockingText.innerHTML = `Último fichaje: ${longDateTime(user.clockInTime)}<br>`;
+                clockingStation.textContent = `${user.stationName} | `;
+                startChrono(user.clockInTime);
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
                 userButton.textContent = "Entrar";
-                clockingText.textContent = '';
+                clockingText.textContent = "";
+                clockingStation.textContent = "";
+                stopChrono();
+            }
+            try {
+                await showWeek(clockingWeek);
+            } catch (error) {
+                if (error.message) alert(error.message);
             }
         }
         userButton.addEventListener("click", async function() {
@@ -149,7 +162,6 @@
             try {
                 await logHours();
                 updateUserPanel();
-                await showWeek(clockingWeek);
                 setTimeout(() => { userButton.disabled = false; clocking = false; }, 10000);
             } catch (error) {
                 userButton.disabled = false;
@@ -166,8 +178,12 @@
             userText.textContent = user.name;
             updateUserPanel();
             userPanel.style.display = "flex";
-            if (!isMobile) menu.style.display = "block";
-            setActiveByKey("item-clocking");
+            if (!isMobile) {
+                menu.style.display = "block";
+                setActiveByKey("item-clocking");
+            } else {
+                clockingFrame.style.display = "flex";
+            }
         }
     </script>
     <script src="auth.js"></script>

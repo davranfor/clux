@@ -28,18 +28,6 @@ function hideLoginError() {
     }
 }
 
-async function handleLogin(data) {
-    try {
-        user.id = data.id;
-        user.role = data.role;
-        user.name = data.name;
-        user.clockInTime = await getClockInTime();
-        hideLogin();
-    } catch (error) {
-        showLoginError(error.message || "Sesión inválida");
-    }
-}
-
 login.form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -77,8 +65,9 @@ async function checkSession() {
 
         clearTimeout(timeoutId);
         if (response.status === 200) {
-            const data = await response.json();
-            await handleLogin(data);
+            [user.id, user.role, user.name] = await response.json();
+            [user.stationName, user.clockInTime] = await getClockIn();
+            hideLogin();
         } else if (response.status === 401) {
             showLogin();
         } else {

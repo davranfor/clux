@@ -1,16 +1,22 @@
-function getClockInTime() {
-    return fetch('/api/timesheet', {
-        method: 'GET',
-        credentials: 'include'
-    })
-    .then(response => {
-        return response.text().then(text => {
-            if (response.ok) {
-                return text || 0;
-            }
-            throw new Error(text || `HTTP Error ${response.status}`);
+async function getClockIn() {
+    try {
+        const response = await fetch('/api/timesheet', {
+            method: 'GET',
+            credentials: 'include'
         });
-    });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return data;
+        } else if (response.status === 204) {
+            return ["", 0];
+        } else {
+            const text = await response.text();
+            throw new Error(text || `HTTP Error ${response.status}`);
+        }
+    } catch (error) {
+        throw new Error(error.message || 'Unhandled error');
+    }
 }
 
 async function logHours() {
@@ -22,15 +28,16 @@ async function logHours() {
 
         if (response.status === 200) {
             const data = await response.json();
-            user.clockInTime = data[1] === 0 ? data[0] : 0;
+            user.stationName = data[0];
+            user.clockInTime = data[2] === 0 ? data[1] : 0;
         } else if (response.status === 204) {
             throw new Error('Deben pasar al menos 5 segundos entre entrada y salida');
         } else {
-            const data = await response.text();
-            throw new Error(data);
+            const text = await response.text();
+            throw new Error(text || `HTTP Error ${response.status}`);
         }
     } catch (error) {
-        throw new Error(error.message || `HTTP Error ${response.status}`);
+        throw new Error(error.message || 'Unhandled error');
     }
 }
 
@@ -47,11 +54,11 @@ async function showWeek(target) {
         } else if (response.status === 204) {
             target.textContent = '';
         } else {
-            const data = await response.text();
-            throw new Error(data);
+            const text = await response.text();
+            throw new Error(text || `HTTP Error ${response.status}`);
         }
     } catch (error) {
-        throw new Error(error.message || `HTTP Error ${response.status}`);
+        throw new Error(error.message || 'Unhandled error');
     }
 }
 
