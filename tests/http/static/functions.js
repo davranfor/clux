@@ -103,13 +103,9 @@ function showModal(message = "Sistema de fichaje | IGASA") {
 
     const button = document.createElement('button');
 
-    button.style.border = 'none';
-    button.style.borderRadius = '4px';
     button.style.backgroundColor = '#4caf50';
     button.style.color = '#ffffff';
-    button.style.fontWeight = 'bold';
     button.style.padding = '10px 20px';
-    button.style.cursor = 'pointer';
     button.textContent = 'Aceptar';
 
     button.addEventListener('click', function() {
