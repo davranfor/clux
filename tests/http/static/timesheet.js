@@ -31,7 +31,7 @@ async function logHours() {
             user.stationName = data[0];
             user.clockInTime = data[2] === 0 ? data[1] : 0;
         } else if (response.status === 204) {
-            throw new Error('Deben pasar al menos 5 segundos entre entrada y salida');
+            throw new Error('Deben transcurrir al menos 5 segundos entre fichajes');
         } else {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);

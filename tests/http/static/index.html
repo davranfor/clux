@@ -131,7 +131,7 @@
         const clockingTimer = document.getElementById("clocking-timer");
         const clockingWeek = document.getElementById("clocking-week");
 
-        let clocking = false;
+        let lastClocking = null;
 
         async function updateUserPanel() {
             if (user.clockInTime !== 0) {
@@ -152,27 +152,30 @@
             try {
                 await showWeek(clockingWeek);
             } catch (error) {
-                if (error.message) alert(error.message);
+                if (error.message) showModal(error.message);
             }
         }
         userButton.addEventListener("click", async function() {
-            if (clocking) return;
-            clocking = true;
+            now = Date.now();
+            if (lastClocking != null && ((now - lastClocking) / 1000) < 5) {
+                showModal('Deben transcurrir al menos 5 segundos entre fichajes');
+                return;
+            }
             userButton.disabled = true;
             try {
                 await logHours();
                 updateUserPanel();
-                setTimeout(() => { userButton.disabled = false; clocking = false; }, 10000);
+                lastClocking = now;
             } catch (error) {
+                showModal(error.message || 'No se puede fichar en este momento');
+            } finally {
                 userButton.disabled = false;
-                clocking = false;
-                alert(error.message || 'No se puede fichar en este momento');
             }
         });
 
         const absencesFrame = document.getElementById("absences-frame");
 
-        isMobile = isMobileDevice();
+        let isMobile = isMobileDevice();
 
         function start() {
             userText.textContent = user.name;
@@ -183,6 +186,9 @@
                 setActiveByKey("item-clocking");
             } else {
                 clockingFrame.style.display = "flex";
+            }
+            if (user.clockInTime !== 0) {
+                lastClocking = new Date(user.clockInTime);
             }
         }
     </script>
