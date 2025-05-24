@@ -1,3 +1,45 @@
+const clocking = {
+    time: null, start: null, timeout: 0,
+    running: false
+};
+
+function updateChrono() {
+    clockingTime.textContent = formatTime(Date.now() - clocking.start);
+    const msToNextSecond = 1000 - (Date.now() % 1000);
+    clocking.timeout = setTimeout(updateChrono, msToNextSecond);
+}
+
+function startClocking(target, time = null) {
+    if (clocking.timeout) clearTimeout(clocking.timeout);
+
+    if (time) {
+        const dateParts = time.split(/[- :]/);
+        const dateObj = new Date(
+            parseInt(dateParts[0]),     // year
+            parseInt(dateParts[1]) - 1, // month (0-11)
+            parseInt(dateParts[2]),     // day
+            parseInt(dateParts[3]),     // hours
+            parseInt(dateParts[4]),     // minutes
+            parseInt(dateParts[5])      // seconds
+        );
+
+        clocking.start = dateObj.getTime();
+    } else {
+        clocking.start = Date.now();
+    }
+    target.textContent = '00:00:00';
+    clocking.running = true;
+    updateChrono();
+}
+
+function stopClocking(target) {
+    if (clocking.running) {
+        clearTimeout(clocking.timeout);
+        target.textContent = '';
+        clocking.running = false;
+    }
+}
+
 async function getClockIn() {
     try {
         const response = await fetch('/api/timesheet', {
