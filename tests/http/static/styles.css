@@ -10,6 +10,18 @@ button {
     cursor: pointer;
 }
 
+button:hover {
+    opacity: 0.9;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+button:disabled::after {
+    cursor: pointer;
+}
+
 hr {
     border: 0;
     border-top: 1px solid #64758a;
@@ -71,18 +83,6 @@ header {
     height: 40px;
     padding: 0;
     margin: 0;
-}
-
-.user-button:hover {
-    opacity: 0.9;
-}
-
-.user-button:disabled {
-    cursor: not-allowed;
-}
-
-.user-button:disabled::after {
-    cursor: pointer;
 }
 
 .clock-in {
@@ -188,19 +188,6 @@ header {
     width: 100%;
     padding: 0.75rem;
     margin-top: 0.5rem;
-}
-
-.content-button:hover {
-    background-color: #3e8e41;
-}
-
-.content-button:disabled {
-    background-color: #718096;
-    cursor: not-allowed;
-}
-
-.content-button:disabled:hover {
-    background-color: #718096;
 }
 
 .form-group {

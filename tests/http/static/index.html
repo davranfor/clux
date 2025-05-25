@@ -119,8 +119,8 @@
                 case 'item-absences': absencesFrame.style.display = "flex"; break;
             }
         }
-        function setActiveByKey(itemKey) {
-            const element = document.querySelector(`#menu .menu-item[data-item="${itemKey}"]`);
+        function setActiveByKey(key) {
+            const element = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
 
             if (element) setActive(element);
         }
@@ -135,7 +135,7 @@
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
                 clockingTitle.innerHTML = `Último fichaje: ${longDateTime(user.clockInTime)}<br>${user.workplace} `;
-                clocking.start(user.clockInTime);
+                clocking.start(new Date(user.clockInTime));
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
@@ -151,15 +151,14 @@
         }
         userButton.addEventListener("click", async function() {
             now = Date.now();
-            if (clocking.time != null && ((now - clocking.time) / 1000) < 5) {
-                showModal('Deben transcurrir al menos 5 segundos entre fichajes');
+            if (clocking.time !== null && ((now - clocking.time) / 1000 < 10)) {
+                showModal('Deben transcurrir al menos 10 segundos entre fichajes');
                 return;
             }
             userButton.disabled = true;
             try {
                 await logHours();
                 updateUserPanel();
-                clocking.time = now;
             } catch (error) {
                 showModal(error.message || 'No se puede fichar en este momento');
             } finally {
@@ -178,9 +177,6 @@
                 setActiveByKey("item-clocking");
             } else {
                 clockingFrame.style.display = "flex";
-            }
-            if (user.clockInTime !== 0) {
-                clocking.time = new Date(user.clockInTime);
             }
         }
     </script>
