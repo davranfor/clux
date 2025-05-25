@@ -216,3 +216,22 @@ header {
     outline: none;
 }
 
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    padding: 0;
+    margin: 5px 0 0 0;
+}
+
+th, td {
+    padding: 6px 0;
+    /*text-align: center;*/
+/*    border-top: 1px solid #e0e0e0;*/
+    border-top: 1px solid #64758a;
+}
+
+td:first-child {
+    text-align: left !important;
+}
+

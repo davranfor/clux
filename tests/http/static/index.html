@@ -85,7 +85,10 @@
                     <h2>Fichajes</h2>
                     <b id="clocking-title"></b>
                     <b id="clocking-text"></b>
-                    <pre id="clocking-week"></pre>
+                    <table id="records">
+                        <tbody></tbody>
+                    </table>
+                    <!--<pre id="clocking-week"></pre>-->
                 </div>
             </div>
             <div class="content-wrapper" id="absences-frame">
@@ -127,7 +130,7 @@
 
         const clockingFrame = document.getElementById("clocking-frame");
         const clockingTitle = document.getElementById("clocking-title");
-        const clockingWeek = document.getElementById("clocking-week");
+        //const clockingWeek = document.getElementById("clocking-week");
 
         async function updateUserPanel() {
             if (user.clockInTime !== 0) {
@@ -144,7 +147,7 @@
                 clocking.stop();
             }
             try {
-                await showWeek(clockingWeek);
+                await showWeek();
             } catch (error) {
                 if (error.message) showModal(error.message);
             }
@@ -165,6 +168,23 @@
                 userButton.disabled = false;
             }
         });
+        function showRecords(data) {
+            const tbody = document.querySelector('#records tbody');
+
+            tbody.replaceChildren();
+            data.reverse();
+            data.forEach(record => {
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td data-label="Ubicación">${record[0]}</td>
+                    <td data-label="Entrada">${record[1].replace(/ /g, '<br>')}</td>
+                    <td data-label="Salida">${record[2].replace(/ /g, '<br>')}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
 
         const absencesFrame = document.getElementById("absences-frame");
 

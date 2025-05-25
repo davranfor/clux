@@ -67,7 +67,7 @@ async function logHours() {
     }
 }
 
-async function showWeek(target) {
+async function showWeek() {
     try {
         const response = await fetch('/api/timesheet/week', {
             method: 'GET',
@@ -76,9 +76,10 @@ async function showWeek(target) {
 
         if (response.status === 200) {
             const data = await response.json();
-            target.textContent = JSON.stringify(data, null, 2) || '';
+            showRecords(data);
+            //target.textContent = JSON.stringify(data, null, 2) || '';
         } else if (response.status === 204) {
-            target.textContent = '';
+            //target.textContent = '';
         } else {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);
