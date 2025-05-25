@@ -1,9 +1,9 @@
 {
   "load": [
-    "CREATE TABLE IF NOT EXISTS stations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);",
-    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, role INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, station_id INTEGER NOT NULL, token TEXT NOT NULL DEFAULT '', password TEXT NOT NULL, FOREIGN KEY (station_id) REFERENCES stations(id));",
-    "CREATE TABLE IF NOT EXISTS timesheet (station_id INTEGER NOT NULL, user_id INTEGER NOT NULL, clock_in DATETIME NOT NULL, clock_out DATETIME NOT NULL DEFAULT 0, FOREIGN KEY (station_id) REFERENCES stations(id), FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, UNIQUE(user_id, clock_in), UNIQUE(user_id, clock_out));",
-    "CREATE INDEX IF NOT EXISTS idx_timesheet_station_id ON timesheet(station_id);",
+    "CREATE TABLE IF NOT EXISTS workplaces (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);",
+    "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, role INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, workplace_id INTEGER NOT NULL, token TEXT NOT NULL DEFAULT '', password TEXT NOT NULL, FOREIGN KEY (workplace_id) REFERENCES workplaces(id));",
+    "CREATE TABLE IF NOT EXISTS timesheet (workplace_id INTEGER NOT NULL, user_id INTEGER NOT NULL, clock_in DATETIME NOT NULL, clock_out DATETIME NOT NULL DEFAULT 0, FOREIGN KEY (workplace_id) REFERENCES workplaces(id), FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, UNIQUE(user_id, clock_in), UNIQUE(user_id, clock_out));",
+    "CREATE INDEX IF NOT EXISTS idx_timesheet_workplace_id ON timesheet(workplace_id);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id ON timesheet(user_id);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_clock_in ON timesheet(clock_in);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_clock_out ON timesheet(clock_out);",
@@ -12,7 +12,7 @@
     "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id_clock_out_0 ON timesheet(user_id) WHERE clock_out = 0;"
   ],
   "session": {
-    "verify": "SELECT station_id FROM users WHERE id = ? AND role = ? AND token = ?;"
+    "verify": "SELECT workplace_id FROM users WHERE id = ? AND role = ? AND token = ?;"
   },
   "queries": {
     "auth": "SELECT json_array(id, role, name) FROM users WHERE id = session_id();",
@@ -23,9 +23,9 @@
     "users.update": "UPDATE users SET name = :name, email = :email WHERE id = $1 RETURNING id;",
     "users.update.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
     "users.delete": "DELETE FROM users WHERE id = $1 RETURNING id;",
-    "timesheet.select": "SELECT json_array(s.name, t.clock_in) FROM timesheet t JOIN stations s ON t.station_id = s.id WHERE t.user_id = session_id() AND t.clock_out = 0;",
-    "timesheet.select.week": "SELECT json_group_array(json_array(s.name, t.clock_in, t.clock_out)) FROM timesheet t JOIN stations s ON t.station_id = s.id WHERE t.user_id = session_id() AND t.clock_out != 0 AND (date(t.clock_in) >= date('now', '-6 days') OR date(t.clock_out) >= date('now', '-6 days'));",
-    "timesheet.upsert": "INSERT INTO timesheet (station_id, user_id, clock_in) VALUES (station_id(), session_id(), datetime('now', 'localtime')) ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_out = excluded.clock_in WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = 0 AND excluded.clock_in > datetime(timesheet.clock_in, '+5 seconds') RETURNING json_array((SELECT name FROM stations WHERE id = station_id), clock_in, clock_out);"
+    "timesheet.select": "SELECT json_array(w.name, t.clock_in) FROM timesheet t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = session_id() AND t.clock_out = 0;",
+    "timesheet.select.week": "SELECT json_group_array(json_array(w.name, t.clock_in, t.clock_out)) FROM timesheet t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = session_id() AND t.clock_out != 0 AND (date(t.clock_in) >= date('now', '-6 days') OR date(t.clock_out) >= date('now', '-6 days'));",
+    "timesheet.upsert": "INSERT INTO timesheet (workplace_id, user_id, clock_in) VALUES (workplace_id(), session_id(), datetime('now', 'localtime')) ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_out = excluded.clock_in WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = 0 AND excluded.clock_in > datetime(timesheet.clock_in, '+5 seconds') RETURNING json_array((SELECT name FROM workplaces WHERE id = workplace_id), clock_in, clock_out);"
   }
 }
 

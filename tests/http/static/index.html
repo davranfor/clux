@@ -7,14 +7,15 @@
     <title>IGASA - Panel de Control</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
-    <script src="functions.js"></script>
-    <script src="timesheet.js"></script>
+    <script src="functions.js" defer></script>
+    <script src="timesheet.js" defer></script>
+    <script src="auth.js" defer></script>
 </head>
 <body>
     <header>
         <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo" border="0">
-        <div class="user-panel" id="user-panel">
-            <p class="user-text" id="user-text"></p>
+        <div id="user-panel">
+            <p id="user-title"></p>
             <button class="user-button" id="user-button"></button>
         </div>
     </header>
@@ -82,8 +83,8 @@
             <div class="content-wrapper" id="clocking-frame">
                 <div class="content-box">
                     <h2>Fichajes</h2>
+                    <b id="clocking-title"></b>
                     <b id="clocking-text"></b>
-                    <b id="clocking-time"></b>
                     <pre id="clocking-week"></pre>
                 </div>
             </div>
@@ -95,9 +96,9 @@
         </div>
     </div>
     <script>
-        const user = { id: 0, role: 0, name: "", stationName: "", clockInTime: 0 };
-        const userText = document.getElementById("user-text");
+        const user = { id: 0, role: 0, name: "", workplace: "", clockInTime: 0 };
         const userPanel = document.getElementById("user-panel");
+        const userTitle = document.getElementById("user-title");
         const userButton = document.getElementById("user-button");
 
         const menu = document.getElementById("menu");
@@ -125,8 +126,7 @@
         }
 
         const clockingFrame = document.getElementById("clocking-frame");
-        const clockingText = document.getElementById("clocking-text");
-        const clockingTime = document.getElementById("clocking-time");
+        const clockingTitle = document.getElementById("clocking-title");
         const clockingWeek = document.getElementById("clocking-week");
 
         async function updateUserPanel() {
@@ -134,14 +134,14 @@
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
-                clockingText.innerHTML = `Último fichaje: ${longDateTime(user.clockInTime)}<br>${user.stationName} `;
-                startClocking(clockingTime, user.clockInTime);
+                clockingTitle.innerHTML = `Último fichaje: ${longDateTime(user.clockInTime)}<br>${user.workplace} `;
+                clocking.start(user.clockInTime);
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
                 userButton.textContent = "Entrar";
-                clockingText.textContent = "";
-                stopClocking(clockingTime);
+                clockingTitle.textContent = "";
+                clocking.stop();
             }
             try {
                 await showWeek(clockingWeek);
@@ -169,13 +169,11 @@
 
         const absencesFrame = document.getElementById("absences-frame");
 
-        let isMobile = isMobileDevice();
-
         function start() {
-            userText.textContent = user.name;
+            userTitle.textContent = user.name;
             updateUserPanel();
             userPanel.style.display = "flex";
-            if (!isMobile) {
+            if (!isMobileDevice()) {
                 menu.style.display = "block";
                 setActiveByKey("item-clocking");
             } else {
@@ -186,7 +184,6 @@
             }
         }
     </script>
-    <script src="auth.js"></script>
 </body>
 </html>
 

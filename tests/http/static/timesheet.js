@@ -1,42 +1,37 @@
 const clocking = {
-    time: null, start: null, timeout: 0,
-    running: false
-};
+    time: null, epoch: null, timeout: 0, running: false,
+    text: document.getElementById('clocking-text'),
+    update() {
+        this.text.textContent = formatTime(Date.now() - this.epoch);
+        this.timeout = setTimeout(() => this.update(), 1000 - (Date.now() % 1000));
+    },
+    start(time = null) {
+        if (this.timeout) clearTimeout(this.timeout);
+        if (time) {
+            const dateParts = time.split(/[- :]/);
+            const dateObj = new Date(
+                parseInt(dateParts[0]),     // year
+                parseInt(dateParts[1]) - 1, // month (0-11)
+                parseInt(dateParts[2]),     // day
+                parseInt(dateParts[3]),     // hours
+                parseInt(dateParts[4]),     // minutes
+                parseInt(dateParts[5])      // seconds
+            );
 
-function updateChrono() {
-    clockingTime.textContent = formatTime(Date.now() - clocking.start);
-    const msToNextSecond = 1000 - (Date.now() % 1000);
-    clocking.timeout = setTimeout(updateChrono, msToNextSecond);
-}
-
-function startClocking(target, time = null) {
-    if (clocking.timeout) clearTimeout(clocking.timeout);
-
-    if (time) {
-        const dateParts = time.split(/[- :]/);
-        const dateObj = new Date(
-            parseInt(dateParts[0]),     // year
-            parseInt(dateParts[1]) - 1, // month (0-11)
-            parseInt(dateParts[2]),     // day
-            parseInt(dateParts[3]),     // hours
-            parseInt(dateParts[4]),     // minutes
-            parseInt(dateParts[5])      // seconds
-        );
-
-        clocking.start = dateObj.getTime();
-    } else {
-        clocking.start = Date.now();
-    }
-    target.textContent = '00:00:00';
-    clocking.running = true;
-    updateChrono();
-}
-
-function stopClocking(target) {
-    if (clocking.running) {
-        clearTimeout(clocking.timeout);
-        target.textContent = '';
-        clocking.running = false;
+            this.epoch = dateObj.getTime();
+        } else {
+            this.epoch = Date.now();
+        }
+        this.text.textContent = '00:00:00';
+        this.running = true;
+        this.update();
+    },
+    stop() {
+        if (this.running) {
+            clearTimeout(this.timeout);
+            this.text.textContent = '';
+            this.running = false;
+        }
     }
 }
 
@@ -70,7 +65,7 @@ async function logHours() {
 
         if (response.status === 200) {
             const data = await response.json();
-            user.stationName = data[0];
+            user.workplace = data[0];
             user.clockInTime = data[2] === 0 ? data[1] : 0;
         } else if (response.status === 204) {
             throw new Error('Deben transcurrir al menos 5 segundos entre fichajes');

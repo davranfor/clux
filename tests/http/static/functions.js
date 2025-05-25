@@ -21,6 +21,7 @@ function longDateTime(datetime) {
   
   return `${d}/${m}/${y} ${time}`;
 }
+
 function isMobileDevice()
 {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
