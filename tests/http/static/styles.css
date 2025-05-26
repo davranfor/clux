@@ -219,19 +219,33 @@ header {
 table {
     border-collapse: collapse;
     width: 100%;
-    table-layout: fixed;
     padding: 0;
     margin: 5px 0 0 0;
 }
 
-th, td {
+td {
     padding: 6px 0;
-    /*text-align: center;*/
-/*    border-top: 1px solid #e0e0e0;*/
-    border-top: 1px solid #64758a;
 }
 
-td:first-child {
+td.full {
+    border-top: 1px solid #64758a;
+    padding-bottom: 0;
+}
+
+td:nth-child(1) {
     text-align: left !important;
+    width: 30% !important;
+}
+
+td:nth-child(2) {
+    text-align: center !important;
+}
+
+td:nth-child(3) {
+    text-align: center !important;
+}
+
+td:nth-child(4) {
+    text-align: right !important;
 }
 

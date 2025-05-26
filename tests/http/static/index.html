@@ -138,7 +138,7 @@
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
                 clockingTitle.innerHTML = `Último fichaje: ${longDateTime(user.clockInTime)}<br>${user.workplace} `;
-                clocking.start(new Date(user.clockInTime));
+                clocking.start(new Date(user.clockInTime.replace(' ', 'T')));
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
@@ -174,15 +174,22 @@
             tbody.replaceChildren();
             data.reverse();
             data.forEach(record => {
-                const tr = document.createElement('tr');
+                const trWorkplace = document.createElement('tr');
                 
-                tr.innerHTML = `
-                    <td data-label="Ubicación">${record[0]}</td>
-                    <td data-label="Entrada">${record[1].replace(/ /g, '<br>')}</td>
-                    <td data-label="Salida">${record[2].replace(/ /g, '<br>')}</td>
+                trWorkplace.innerHTML = `<td data-label="Centro" class="full" colspan="4">${record[0]}</td>`
+                tbody.appendChild(trWorkplace);
+
+                const datetime1 = new Date(record[1].replace(' ', 'T'));
+                const datetime2 = new Date(record[2].replace(' ', 'T'));
+                const trDetail = document.createElement('tr');
+
+                trDetail.innerHTML = `
+                    <td data-label="Día">${longDateTime(record[1]).split(' ')[0]}<br>${weekDay(datetime1)}</td>
+                    <td data-label="Entrada">${record[1].split(' ')[1]}</td>
+                    <td data-label="Salida">${record[2].split(' ')[1]}</td>
+                    <td data-label="Diferencia">${timeDiff(datetime2, datetime1)}</td>
                 `;
-                
-                tbody.appendChild(tr);
+                tbody.appendChild(trDetail);
             });
         }
 
