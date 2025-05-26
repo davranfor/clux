@@ -76,11 +76,8 @@ async function showWeek() {
 
         if (response.status === 200) {
             const data = await response.json();
-            showRecords(data);
-            //target.textContent = JSON.stringify(data, null, 2) || '';
-        } else if (response.status === 204) {
-            //target.textContent = '';
-        } else {
+            showWeekRecords(data);
+        } else if (response.status !== 204) {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);
         }

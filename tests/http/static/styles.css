@@ -218,7 +218,8 @@ header {
 
 #clocking-week {
     border-collapse: collapse;
-    margin: 5px 0 0 0;
+    width: 100%;
+    margin-top: 5px;
 }
 
 #clocking-week td {
@@ -226,7 +227,7 @@ header {
     padding: 4px;
 }
 
-#clocking-week td.full {
+#clocking-week td.workday {
     background-color: #4a5568;
 }
 
@@ -234,7 +235,7 @@ header {
     width: 30% !important;
 }
 
-#clocking-week td.full:first-child {
+#clocking-week td.workday:first-child {
     text-align: left !important;
 }
 

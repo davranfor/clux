@@ -168,7 +168,7 @@
                 userButton.disabled = false;
             }
         });
-        function showRecords(data) {
+        function showWeekRecords(data) {
             const tbody = document.querySelector('#clocking-week tbody');
 
             tbody.replaceChildren();
@@ -180,8 +180,8 @@
                 const tr2 = document.createElement('tr');
 
                 tr1.innerHTML = `
-                    <td data-label="Centro" class="full" colspan="3">${record[0]}</td>
-                    <td data-label="Dia" class="full">${dayOfWeek(dt1)}</td>
+                    <td data-label="Centro" class="workday" colspan="3">${record[0]}</td>
+                    <td data-label="Dia" class="workday">${dayOfWeek(dt1)}</td>
                 `;
                 tr2.innerHTML = `
                     <td data-label="Fecha">${longDateTime(record[1]).split(' ')[0]}<br></td>
