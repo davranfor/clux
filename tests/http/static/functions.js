@@ -15,10 +15,10 @@ function timeDiff(a, b) {
     const m = diffMin % 60;
     const sign = diffMs < 0 ? '-' : '';
 
-    return `${sign}${String(h)}h${String(m).padStart(2, '0')}m`;
+    return `${sign}${String(h)}h ${String(m).padStart(2, '0')}m`;
 }
 
-function weekDay(datetime) {
+function dayOfWeek(datetime) {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
     return days[datetime.getDay()];
@@ -76,7 +76,7 @@ function showModal(message = "Sistema de fichaje | IGASA") {
     const text = document.createElement('p');
 
     text.style.marginBottom = '20px';
-    text.style.color = '#fffff';
+    text.style.color = '#ffffff';
     text.textContent = message;
 
     const button = document.createElement('button');

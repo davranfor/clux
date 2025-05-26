@@ -121,7 +121,7 @@ header {
 }
 
 .menu-item:hover .ti {
-    color: #ffffff;
+    color: #fff;
 }
     
 .menu-item.active {
@@ -129,7 +129,7 @@ header {
 }
 
 .menu-item.active .ti {
-    color: #ffffff;
+    color: #fff;
 }
 
 .ti {
@@ -216,36 +216,25 @@ header {
     outline: none;
 }
 
-table {
+#clocking-week {
     border-collapse: collapse;
-    width: 100%;
-    padding: 0;
     margin: 5px 0 0 0;
 }
 
-td {
-    padding: 6px 0;
+#clocking-week td {
+    border: 1px solid #64758a;
+    padding: 4px;
 }
 
-td.full {
-    border-top: 1px solid #64758a;
-    padding-bottom: 0;
+#clocking-week td.full {
+    background-color: #4a5568;
 }
 
-td:nth-child(1) {
-    text-align: left !important;
+#clocking-week td:first-child {
     width: 30% !important;
 }
 
-td:nth-child(2) {
-    text-align: center !important;
-}
-
-td:nth-child(3) {
-    text-align: center !important;
-}
-
-td:nth-child(4) {
-    text-align: right !important;
+#clocking-week td.full:first-child {
+    text-align: left !important;
 }
 

@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IGASA - Panel de Control</title>
     <link rel="stylesheet" href="styles.css">
@@ -13,7 +12,7 @@
 </head>
 <body>
     <header>
-        <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo" border="0">
+        <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo">
         <div id="user-panel">
             <p id="user-title"></p>
             <button class="user-button" id="user-button"></button>
@@ -85,10 +84,9 @@
                     <h2>Fichajes</h2>
                     <b id="clocking-title"></b>
                     <b id="clocking-text"></b>
-                    <table id="records">
+                    <table id="clocking-week">
                         <tbody></tbody>
                     </table>
-                    <!--<pre id="clocking-week"></pre>-->
                 </div>
             </div>
             <div class="content-wrapper" id="absences-frame">
@@ -130,15 +128,16 @@
 
         const clockingFrame = document.getElementById("clocking-frame");
         const clockingTitle = document.getElementById("clocking-title");
-        //const clockingWeek = document.getElementById("clocking-week");
 
         async function updateUserPanel() {
             if (user.clockInTime !== 0) {
+                const datetime = new Date(user.clockInTime.replace(' ', 'T'));
+
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
-                clockingTitle.innerHTML = `Último fichaje: ${longDateTime(user.clockInTime)}<br>${user.workplace} `;
-                clocking.start(new Date(user.clockInTime.replace(' ', 'T')));
+                clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockInTime)}<br>${user.workplace} `;
+                clocking.start(datetime);
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
@@ -153,7 +152,8 @@
             }
         }
         userButton.addEventListener("click", async function() {
-            now = Date.now();
+            const now = Date.now();
+
             if (clocking.time !== null && ((now - clocking.time) / 1000 < 10)) {
                 showModal('Deben transcurrir al menos 10 segundos entre fichajes');
                 return;
@@ -169,27 +169,28 @@
             }
         });
         function showRecords(data) {
-            const tbody = document.querySelector('#records tbody');
+            const tbody = document.querySelector('#clocking-week tbody');
 
             tbody.replaceChildren();
             data.reverse();
             data.forEach(record => {
-                const trWorkplace = document.createElement('tr');
-                
-                trWorkplace.innerHTML = `<td data-label="Centro" class="full" colspan="4">${record[0]}</td>`
-                tbody.appendChild(trWorkplace);
+                const dt1 = new Date(record[1].replace(' ', 'T'));
+                const dt2 = new Date(record[2].replace(' ', 'T'));
+                const tr1 = document.createElement('tr');
+                const tr2 = document.createElement('tr');
 
-                const datetime1 = new Date(record[1].replace(' ', 'T'));
-                const datetime2 = new Date(record[2].replace(' ', 'T'));
-                const trDetail = document.createElement('tr');
-
-                trDetail.innerHTML = `
-                    <td data-label="Día">${longDateTime(record[1]).split(' ')[0]}<br>${weekDay(datetime1)}</td>
+                tr1.innerHTML = `
+                    <td data-label="Centro" class="full" colspan="3">${record[0]}</td>
+                    <td data-label="Dia" class="full">${dayOfWeek(dt1)}</td>
+                `;
+                tr2.innerHTML = `
+                    <td data-label="Fecha">${longDateTime(record[1]).split(' ')[0]}<br></td>
                     <td data-label="Entrada">${record[1].split(' ')[1]}</td>
                     <td data-label="Salida">${record[2].split(' ')[1]}</td>
-                    <td data-label="Diferencia">${timeDiff(datetime2, datetime1)}</td>
+                    <td data-label="Diferencia">${timeDiff(dt2, dt1)}</td>
                 `;
-                tbody.appendChild(trDetail);
+                tbody.appendChild(tr1);
+                tbody.appendChild(tr2);
             });
         }
 
