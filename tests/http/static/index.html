@@ -148,14 +148,14 @@
             try {
                 await showWeek();
             } catch (error) {
-                if (error.message) showModal(error.message);
+                if (error.message) showMessage(error.message);
             }
         }
         userButton.addEventListener("click", async function() {
             const now = Date.now();
 
             if (clocking.time !== null && ((now - clocking.time) / 1000 < 10)) {
-                showModal('Deben transcurrir al menos 10 segundos entre fichajes');
+                showMessage('Deben transcurrir al menos 10 segundos entre fichajes');
                 return;
             }
             userButton.disabled = true;
@@ -174,19 +174,19 @@
             tbody.replaceChildren();
             data.reverse();
             data.forEach(record => {
-                const dt1 = new Date(record[1].replace(' ', 'T'));
-                const dt2 = new Date(record[2].replace(' ', 'T'));
+                const dt1 = new Date(record[2].replace(' ', 'T'));
+                const dt2 = new Date(record[3].replace(' ', 'T'));
                 const tr1 = document.createElement('tr');
                 const tr2 = document.createElement('tr');
 
                 tr1.innerHTML = `
-                    <td data-label="Centro" class="workday" colspan="3">${record[0]}</td>
+                    <td data-label="Centro" class="workday" colspan="3" onclick="alert(${record[0]});"><div><i class="ti ti-edit"></i><span> ${record[1]}</span></div></td>
                     <td data-label="Dia" class="workday">${dayOfWeek(dt1)}</td>
                 `;
                 tr2.innerHTML = `
-                    <td data-label="Fecha">${longDateTime(record[1]).split(' ')[0]}<br></td>
-                    <td data-label="Entrada">${record[1].split(' ')[1]}</td>
-                    <td data-label="Salida">${record[2].split(' ')[1]}</td>
+                    <td data-label="Fecha">${longDateTime(record[2]).split(' ')[0]}<br></td>
+                    <td data-label="Entrada">${record[2].split(' ')[1]}</td>
+                    <td data-label="Salida">${record[3].split(' ')[1]}</td>
                     <td data-label="Diferencia">${timeDiff(dt2, dt1)}</td>
                 `;
                 tbody.appendChild(tr1);

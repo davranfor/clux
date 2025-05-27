@@ -45,7 +45,7 @@ function isMobileDevice()
         && window.innerWidth <= 768;
 }
 
-function showModal(message = "Sistema de fichaje | IGASA") {
+function showMessage(message = "") {
     if (message.length > 512) {
         message = message.substring(0, 509) + '...';
     }

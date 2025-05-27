@@ -116,23 +116,23 @@ header {
     white-space: nowrap;
 }
 
-.menu-item:hover {
-    background-color: #4a5568;
-}
-
-.menu-item:hover .ti {
-    color: #fff;
-}
-    
 .menu-item.active {
-    background-color: #718096;
+    background-color: #4a5568;
 }
 
 .menu-item.active .ti {
     color: #fff;
 }
 
-.ti {
+.menu-item:hover {
+    background-color: #718096;
+}
+
+.menu-item:hover .ti {
+    color: #fff;
+}
+
+.menu-item .ti {
     font-size: 1.5rem;
     margin-right: 15px;
     color: #a0aec0;
@@ -155,8 +155,8 @@ header {
 }
 
 .content-box {
-    background-color: #2d3748;
     border: 1px solid #64758a;
+    background-color: #2d3748;
     border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     width: 100%;
@@ -231,11 +231,19 @@ header {
     background-color: #4a5568;
 }
 
-#clocking-week td:first-child {
-    width: 30% !important;
+#clocking-week td.workday:first-child:hover {
+    background-color: #1e2734;
+    cursor: pointer;
 }
 
-#clocking-week td.workday:first-child {
-    text-align: left !important;
+#clocking-week td.workday > div {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#clocking-week td.workday > div > .ti {
+    font-size: 1.5rem;
+    color: #fff;
 }
 
