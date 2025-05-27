@@ -1,25 +1,31 @@
 const clocking = {
-    time: null, timeout: 0, running: false,
+    time: null, timeout: null,
     text: document.getElementById('clocking-text'),
     update() {
-        this.text.textContent = formatTime(Date.now() - this.time);
-        this.timeout = setTimeout(() => this.update(), 1000 - (Date.now() % 1000));
+        const now = Date.now();
+
+        this.text.textContent = formatTime(now - this.time);
+        this.timeout = setTimeout(() => this.update(), 1000 - (now % 1000));
     },
     start(time) {
-        if (!this.running) {
-            if (this.timeout) clearTimeout(this.timeout);
-            this.text.textContent = '00:00:00';
-            this.time = time;
-            this.running = true;
-            this.update();
+        const now = Date.now();
+
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
         }
+        this.time = time > now ? now : time;
+        this.text.textContent = '00:00:00';
+        this.update();
     },
     stop() {
-        if (this.running) {
+        if (this.timeout) {
             clearTimeout(this.timeout);
+            this.timeout = null;
+        }
+        if (this.time) {
             this.text.textContent = '';
             this.time = Date.now();
-            this.running = false;
         }
     }
 }

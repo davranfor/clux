@@ -163,7 +163,7 @@
                 await logHours();
                 updateUserPanel();
             } catch (error) {
-                showModal(error.message || 'No se puede fichar en este momento');
+                showMessage(error.message || 'No se puede fichar en este momento');
             } finally {
                 userButton.disabled = false;
             }
@@ -180,8 +180,9 @@
                 const tr2 = document.createElement('tr');
 
                 tr1.innerHTML = `
-                    <td data-label="Centro" class="workday" colspan="3" onclick="alert(${record[0]});"><div><i class="ti ti-edit"></i><span> ${record[1]}</span></div></td>
-                    <td data-label="Dia" class="workday">${dayOfWeek(dt1)}</td>
+                    <td data-label="Centro" class="workday" colspan="4" onclick="showMessage(${record[0]});">
+                    <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
+                    </td>
                 `;
                 tr2.innerHTML = `
                     <td data-label="Fecha">${longDateTime(record[2]).split(' ')[0]}<br></td>

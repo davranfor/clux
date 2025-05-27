@@ -83,6 +83,7 @@ function showMessage(message = "") {
 
     button.style.backgroundColor = '#4caf50';
     button.style.color = '#ffffff';
+    button.style.outline = 'none';
     button.style.padding = '10px 20px';
     button.textContent = 'Aceptar';
 
