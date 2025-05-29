@@ -21,6 +21,14 @@
               "content": { "type": "null" }
             },
             "x-notify": { "path": "timesheet.select.week", "size": 1, "role": 1 }
+          },
+          {
+            "properties": {
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "edit" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "timesheet.select.edit", "size": 2, "role": 1 }
           }
         ]
       },

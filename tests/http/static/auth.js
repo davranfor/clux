@@ -30,8 +30,8 @@ function hideLoginError() {
 
 login.form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const email = login.form.querySelector('input[name="email"]').value;
+    const password = login.form.querySelector('input[name="password"]').value;
 
     try {
         const response = await fetch('/api/login', {

@@ -2,6 +2,11 @@ html {
     font-size: 14px;
 }
 
+hr {
+    border: 0;
+    border-top: 1px solid #64758a;
+}
+
 button {
     border: none;
     border-radius: 6px;
@@ -20,11 +25,6 @@ button:disabled {
 
 button:disabled::after {
     cursor: pointer;
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid #64758a;
 }
 
 body {
@@ -181,8 +181,17 @@ header {
     gap: 1.2rem;
 }
 
-.content-button {
+.content-submit {
     background-color: #4caf50;
+    transition: background 0.3s;
+    color: #fff;
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.content-cancel {
+    background-color: #4a5568;
     transition: background 0.3s;
     color: #fff;
     width: 100%;
@@ -206,17 +215,15 @@ header {
 .form-group label {
 }
 
-.form-group input {
+.form-group input, .form-group select {
+    font-size: 1rem;
     border: 1px solid #64758a;
     border-radius: 4px;
     background-color: #1e2734;
     color: #fff;
-    font-size: 1rem;
     transition: all 0.3s;
-
     width: auto;
     min-width: 0;
-
     padding: 0.75rem;
 }
 
@@ -261,3 +268,12 @@ header {
     display: none; /* flex */
     margin-top: 5px;
 }
+
+/* Hack safari desktop */
+@supports (-webkit-appearance: none) and (-webkit-hyphens: none) and (not (overflow:-webkit-marquee)) {
+    select {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+

@@ -68,13 +68,13 @@
                     <form class="content-form" id="login-form">
                         <div class="form-group">
                             <label for="email">Correo electrónico</label>
-                            <input type="email" id="email" placeholder="tu@email.com" required>
+                            <input type="email" name="email" placeholder="tu@email.com" required>
                         </div>
                         <div class="form-group">
                             <label for="password">Contraseña</label>
-                            <input type="password" id="password" placeholder="••••••••" required>
+                            <input type="password" name="password" placeholder="••••••••" required>
                         </div>
-                        <button type="submit" class="content-button">Ingresar</button>
+                        <button type="submit" class="content-submit">Ingresar</button>
                         <b id="login-text"></b>
                     </form>
                 </div>
@@ -88,17 +88,34 @@
                         <tbody></tbody>
                     </table>
                     <form class="content-form" id="clocking-form">
+                        <div class="form-group">
+                            <label for="workplace_id">Centro de trabajo</label>
+                            <select name="workplace_id"></select>
+                        </div>
                         <div class="form-2columns">
                             <div class="form-group">
-                                <label>Fecha de entrada</label>
-                                <input type="date">
+                                <label for="clock_in_date">Fecha de entrada</label>
+                                <input type="date" name="clock_in_date" required>
                             </div>
                             <div class="form-group">
-                                <label>Hora de entrada</label>
-                                <input type="time">
+                                <label for="clock_in_time">Hora de entrada</label>
+                                <input type="time" name="clock_in_time" required>
                             </div>
                         </div>
-                        <button type="submit" class="content-button">Ingresar</button>
+                        <div class="form-2columns">
+                            <div class="form-group">
+                                <label for="clock_out_date">Fecha de salida</label>
+                                <input type="date" name="clock_out_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clock_out_time">Hora de salida</label>
+                                <input type="time" name="clock_out_time" required>
+                            </div>
+                        </div>
+                        <div class="form-2columns">
+                            <button type="submit" class="content-submit">Solicitar</button>
+                            <button type="button" id="clocking-cancel" class="content-cancel">Cancelar</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -183,39 +200,6 @@
                 userButton.disabled = false;
             }
         });
-
-        function clockingShow(data) {
-            const tbody = document.querySelector('#clocking-table tbody');
-
-            tbody.replaceChildren();
-            data.reverse();
-            data.forEach(record => {
-                const dt1 = new Date(record[2].replace(' ', 'T'));
-                const dt2 = new Date(record[3].replace(' ', 'T'));
-                const tr1 = document.createElement('tr');
-                const tr2 = document.createElement('tr');
-
-                tr1.innerHTML = `
-                    <td data-label="Centro" class="workday" colspan="4" onclick="clockingEdit(${record[0]});">
-                    <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
-                    </td>
-                `;
-                tr2.innerHTML = `
-                    <td data-label="Fecha">${longDateTime(record[2]).split(' ')[0]}<br></td>
-                    <td data-label="Entrada">${record[2].split(' ')[1]}</td>
-                    <td data-label="Salida">${record[3].split(' ')[1]}</td>
-                    <td data-label="Diferencia">${timeDiff(dt2, dt1)}</td>
-                `;
-                tbody.appendChild(tr1);
-                tbody.appendChild(tr2);
-            });
-        }
-        function clockingEdit(id) {
-            clockingTable.style.display = "none";
-            clockingForm.style.display = "flex";
-            //alert(`ID seleccionado: ${id}`);
-            //clockingTable.style.display = "table";
-        }
 
         const absencesFrame = document.getElementById("absences-frame");
 
