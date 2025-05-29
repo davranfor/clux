@@ -82,7 +82,7 @@ async function showWeek() {
 
         if (response.status === 200) {
             const data = await response.json();
-            showWeekRecords(data);
+            clockingShow(data);
         } else if (response.status !== 204) {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);

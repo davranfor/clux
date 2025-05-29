@@ -84,9 +84,22 @@
                     <h2>Fichajes</h2>
                     <b id="clocking-title"></b>
                     <b id="clocking-text"></b>
-                    <table id="clocking-week">
+                    <table id="clocking-table">
                         <tbody></tbody>
                     </table>
+                    <form class="content-form" id="clocking-form">
+                        <div class="form-2columns">
+                            <div class="form-group">
+                                <label>Fecha de entrada</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>Hora de entrada</label>
+                                <input type="time">
+                            </div>
+                        </div>
+                        <button type="submit" class="content-button">Ingresar</button>
+                    </form>
                 </div>
             </div>
             <div class="content-wrapper" id="absences-frame">
@@ -128,6 +141,8 @@
 
         const clockingFrame = document.getElementById("clocking-frame");
         const clockingTitle = document.getElementById("clocking-title");
+        const clockingTable = document.getElementById("clocking-table");
+        const clockingForm = document.getElementById("clocking-form");
 
         async function updateUserPanel() {
             if (user.clockInTime !== 0) {
@@ -168,8 +183,9 @@
                 userButton.disabled = false;
             }
         });
-        function showWeekRecords(data) {
-            const tbody = document.querySelector('#clocking-week tbody');
+
+        function clockingShow(data) {
+            const tbody = document.querySelector('#clocking-table tbody');
 
             tbody.replaceChildren();
             data.reverse();
@@ -180,7 +196,7 @@
                 const tr2 = document.createElement('tr');
 
                 tr1.innerHTML = `
-                    <td data-label="Centro" class="workday" colspan="4" onclick="showMessage(${record[0]});">
+                    <td data-label="Centro" class="workday" colspan="4" onclick="clockingEdit(${record[0]});">
                     <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
                     </td>
                 `;
@@ -193,6 +209,12 @@
                 tbody.appendChild(tr1);
                 tbody.appendChild(tr2);
             });
+        }
+        function clockingEdit(id) {
+            clockingTable.style.display = "none";
+            clockingForm.style.display = "flex";
+            //alert(`ID seleccionado: ${id}`);
+            //clockingTable.style.display = "table";
         }
 
         const absencesFrame = document.getElementById("absences-frame");
