@@ -130,7 +130,7 @@ async function timesheetEdit(id) {
             const data = await response.json();
             timesheetEditUI(data);
         } else if (response.status === 204) {
-            throw new Error('El registro ya no existe');
+            showMessage('El registro ya no existe');
         } else {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);
