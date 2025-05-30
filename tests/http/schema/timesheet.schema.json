@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/timesheet.schema",
+  "type": "object",
+  "definitions": {
+    "content": {
+      "type": "object",
+      "properties": {
+        "workplace_id": { "type": "integer" },
+        "clock_in": { "type": "string", "format": "date-time-local", "minLength": 1 },
+        "clock_out": { "type": "string", "format": "date-time-local", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "contentRequired": { "required": [ "workplace_id", "clock_in", "clock_out" ] }
+  },
+  "$ref": "#/definitions/content",
+  "$ref": "#/definitions/contentRequired"
+}
+

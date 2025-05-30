@@ -119,6 +119,19 @@ function showWeekUI(data) {
     });
 }
 
+const timesheet = {
+    id: clockingForm.querySelector('input[name="id"]'),
+    workplaceId: clockingForm.querySelector('select[name="workplace_id"]'),
+    clockIn: {
+        date: clockingForm.querySelector('input[name="clock_in_date"]'),
+        time: clockingForm.querySelector('input[name="clock_in_time"]')
+    },
+    clockOut: {
+        date: clockingForm.querySelector('input[name="clock_out_date"]'),
+        time: clockingForm.querySelector('input[name="clock_out_time"]')
+    }
+}
+
 async function timesheetEdit(id) {
     try {
         const response = await fetch(`/api/timesheet/${id}/edit`, {
@@ -144,27 +157,77 @@ function timesheetEditUI(data) {
     clockingTable.style.display = "none";
     clockingForm.style.display = "flex";
 
-    const select = clockingForm.querySelector('select[name="workplace_id"]');
-    select.innerHTML = '';
+    timesheet.id.value = data.id;
+
+    timesheet.workplaceId.innerHTML = '';
     data.workplaces.forEach(workplace => {
         const option = document.createElement('option');
 
         option.value = workplace[0];
         option.textContent = workplace[1];
-        select.appendChild(option);
+        timesheet.workplaceId.appendChild(option);
     });
-    select.value = data.workplace_id;
+    timesheet.workplaceId.value = data.workplace_id;
 
     let date, time;
     [date, time] = data.clock_in.split(" ");
-    clockingForm.querySelector('input[name="clock_in_date"]').value = date;
-    clockingForm.querySelector('input[name="clock_in_time"]').value = time.substring(0, 5);
+    timesheet.clockIn.date.value = date;
+    timesheet.clockIn.time.value = time.substring(0, 5);
     [date, time] = data.clock_out.split(" ");
-    clockingForm.querySelector('input[name="clock_out_date"]').value = date;
-    clockingForm.querySelector('input[name="clock_out_time"]').value = time.substring(0, 5);
+    timesheet.clockOut.date.value = date;
+    timesheet.clockOut.time.value = time.substring(0, 5);
 }
 
+[timesheet.clockIn.date, timesheet.clockIn.time,
+ timesheet.clockOut.date, timesheet.clockOut.time].forEach(field => {
+    field.addEventListener('change', () => {
+        timesheet.clockIn.date.setCustomValidity("");
+    });
+});
+
+clockingForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const workplace_id = Number(timesheet.workplaceId.value);
+    const clock_in = `${timesheet.clockIn.date.value} ${timesheet.clockIn.time.value}:00`;
+    const clock_out = `${timesheet.clockOut.date.value} ${timesheet.clockOut.time.value}:00`;
+
+    const dt1 = new Date(clock_in.replace(' ', 'T'));
+    const dt2 = new Date(clock_out.replace(' ', 'T'));
+
+    if (dt1 >= dt2) {
+        timesheet.clockIn.date.setCustomValidity("La fecha de entrada no puede ser igual o superior a la de salida"); 
+        timesheet.clockIn.date.reportValidity();
+        return;
+    }
+    if (dt2 - dt1 > 12 * 60 * 60 * 1000) {
+        timesheet.clockIn.date.setCustomValidity("Han transcurrido más de 12 horas entre la fecha de entrada y la de salida"); 
+        timesheet.clockIn.date.reportValidity();
+        return;
+    }
+    try {
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ workplace_id, clock_in, clock_out })
+        });
+
+        if (response.status === 200) {
+            clockingForm.style.display = "none";
+            clockingTable.style.display = "table";
+            await showWeek();
+        } else {
+            const data = await response.text();
+            throw new Error(data || 'Unhandled error');
+        }
+    } catch (error) {
+        showMessage(error.message || 'Undhandled error');
+    }
+});
+
 document.getElementById("clocking-cancel").addEventListener("click", () => {
+    timesheet.clockIn.date.setCustomValidity("");
     clockingForm.style.display = "none";
     clockingTable.style.display = "table";
 });

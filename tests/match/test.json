@@ -11,6 +11,10 @@
   {"test": "date-time", "a-valid-date-time-4": "2001-01-01T00:00:00Z"},
   {"test": "date-time", "invalid-date-time-1": "2001-01-01T24:00"},
   {"test": "date-time", "invalid-date-time-2": "2001-01-01T00:00X"},
+  {"test": "date-time", "invalid-date-time-3": "2001-01-01 00:00:00"},
+
+  {"test": "date-time-local", "a-valid-date-time-local": "2001-01-01 00:00:00"},
+  {"test": "date-time-local", "invalid-date-time-local": "2001-01-01T00:00:00"},
 
   {"test": "hostname", "a-valid-hostname": "some.host.com"},
   {"test": "hostname", "invalid-hostname": "!"},

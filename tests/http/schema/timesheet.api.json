@@ -45,7 +45,24 @@
         "x-notify": { "path": "timesheet.upsert", "role": 1 }
       },
       "then": true,
-      "else": false
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "save" }], "additionalItems": false },
+            "query": { "type": "null" }
+          },
+          "x-notify": { "path": "timesheet.update", "size": 2, "role": 1 }
+        },
+        "then": {
+          "properties": {
+            "content": {
+              "$ref": "/timesheet.schema/definitions/content",
+              "$ref": "/timesheet.schema/definitions/contentRequired"
+            }
+          }
+        },
+        "else": false
+      }
     }
   },
   "additionalProperties": false

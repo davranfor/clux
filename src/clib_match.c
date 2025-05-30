@@ -140,14 +140,7 @@ int test_is_date(const char *str)
     return (str = test_date(str)) && (*str == '\0');
 }
 
-static int is_time_suffix(const char *str)
-{
-    return test_mask(str, "+09:00")
-        || test_mask(str, "-09:00")
-        || test_mask(str, "\\Z");
-}
-
-int test_is_time(const char *str)
+static const char *test_time(const char *str)
 {
     const char *time = test_mask(str, "00:00:00*");
 
@@ -157,8 +150,24 @@ int test_is_time(const char *str)
             (strtol(&str[3], NULL, 10) < 60) &&
             (strtol(&str[6], NULL, 10) < 60))
         {
-            return *time ? is_time_suffix(time) : 1;
+            return time;
         }
+    }
+    return NULL;
+}
+
+static int is_time_suffix(const char *str)
+{
+    return test_mask(str, "+09:00")
+        || test_mask(str, "-09:00")
+        || test_mask(str, "\\Z");
+}
+
+int test_is_time(const char *str)
+{
+    if ((str = test_time(str)))
+    {
+        return *str ? is_time_suffix(str) : 1;
     }
     return 0;
 }
@@ -168,6 +177,16 @@ int test_is_date_time(const char *str)
     if ((str = test_date(str)) && (*str == 'T'))
     {
         return test_is_time(str + 1);
+    }
+    return 0;
+}
+
+/* Extension: YYYY-MM-DD HH:MM:SS (support for HTML datetime-local) */
+int test_is_date_time_local(const char *str)
+{
+    if ((str = test_date(str)) && (*str == ' '))
+    {
+        return (str = test_time(str + 1)) && (str[0] == '\0');
     }
     return 0;
 }
@@ -357,6 +376,7 @@ int test_match(const char *text, const char *pattern)
         !strcmp(pattern, "date") ? test_is_date :
         !strcmp(pattern, "time") ? test_is_time :
         !strcmp(pattern, "date-time") ? test_is_date_time :
+        !strcmp(pattern, "date-time-local") ? test_is_date_time_local :
         !strcmp(pattern, "hostname") ? test_is_hostname :
         !strcmp(pattern, "email") ? test_is_email :
         !strcmp(pattern, "ipv4") ? test_is_ipv4 :
