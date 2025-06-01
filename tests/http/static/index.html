@@ -128,7 +128,7 @@
         </div>
     </div>
     <script>
-        const user = { id: 0, role: 0, name: "", workplace: "", clockInTime: 0 };
+        const user = { id: 0, role: 0, name: "", workplace: "", clockIn: 0 };
         const userPanel = document.getElementById("user-panel");
         const userTitle = document.getElementById("user-title");
         const userButton = document.getElementById("user-button");
@@ -163,13 +163,13 @@
         const clockingForm = document.getElementById("clocking-form");
 
         async function updateUserPanel() {
-            if (user.clockInTime !== 0) {
-                const datetime = new Date(user.clockInTime.replace(' ', 'T'));
+            if (user.clockIn !== 0) {
+                const datetime = new Date(user.clockIn.replace(' ', 'T'));
 
                 userButton.classList.remove("clock-in");
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
-                clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockInTime)}<br>${user.workplace} `;
+                clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)}<br>${user.workplace} `;
                 clocking.start(datetime);
             } else {
                 userButton.classList.remove("clock-out");

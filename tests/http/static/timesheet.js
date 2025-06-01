@@ -61,7 +61,7 @@ async function logHours() {
         if (response.status === 200) {
             const data = await response.json();
             user.workplace = data[0];
-            user.clockInTime = data[2] === 0 ? data[1] : 0;
+            user.clockIn = data[2] === 0 ? data[1] : 0;
         } else if (response.status === 204) {
             throw new Error('No se puede fichar en este momento');
         } else {
@@ -196,12 +196,12 @@ clockingForm.addEventListener('submit', async (e) => {
     const dt2 = new Date(clock_out.replace(' ', 'T'));
 
     if (dt1 >= dt2) {
-        timesheet.clockIn.date.setCustomValidity("La fecha de entrada no puede ser igual o superior a la de salida"); 
+        timesheet.clockIn.date.setCustomValidity("La fecha de entrada no puede ser igual o superior a la de salida");
         timesheet.clockIn.date.reportValidity();
         return;
     }
     if (dt2 - dt1 > 12 * 60 * 60 * 1000) {
-        timesheet.clockIn.date.setCustomValidity("Han transcurrido más de 12 horas entre la fecha de entrada y la de salida"); 
+        timesheet.clockIn.date.setCustomValidity("No pueden transcurrir más de 12 horas entre la fecha de entrada y la de salida");
         timesheet.clockIn.date.reportValidity();
         return;
     }

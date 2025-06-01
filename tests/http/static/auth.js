@@ -54,7 +54,7 @@ login.form.addEventListener('submit', async (e) => {
 
 async function checkSession() {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
     try {
         const response = await fetch('/api/auth', {
@@ -63,10 +63,10 @@ async function checkSession() {
             signal: controller.signal,
         });
 
-        clearTimeout(timeoutId);
+        clearTimeout(timeout);
         if (response.status === 200) {
             [user.id, user.role, user.name] = await response.json();
-            [user.workplace, user.clockInTime] = await getClockIn();
+            [user.workplace, user.clockIn] = await getClockIn();
             hideLogin();
         } else if (response.status === 401) {
             showLogin();
@@ -75,7 +75,7 @@ async function checkSession() {
             throw new Error(data);
         }
     } catch (error) {
-        clearTimeout(timeoutId);
+        clearTimeout(timeout);
         showLoginError(error.message || 'Sesión inválida');
     } finally {
         controller.abort();
