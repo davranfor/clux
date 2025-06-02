@@ -110,8 +110,8 @@ function showWeekUI(data) {
         `;
         tr2.innerHTML = `
             <td>${longDate(record[2])}</td>
-            <td>${longTime(record[2])}</td>
-            <td>${longTime(record[3])}</td>
+            <td>${shortTime(record[2])}</td>
+            <td>${shortTime(record[3])}</td>
             <td>${timeDiff(dt2, dt1)}</td>
         `;
         tbody.appendChild(tr1);
@@ -131,8 +131,8 @@ function showWeekUI(data) {
             `;
             tr4.innerHTML = `
                 <td>${longDate(obj.clock_in)}</td>
-                <td>${longTime(obj.clock_in)}</td>
-                <td>${longTime(obj.clock_out)}</td>
+                <td>${shortTime(obj.clock_in)}</td>
+                <td>${shortTime(obj.clock_out)}</td>
                 <td>${timeDiff(dt4, dt3)}</td>
             `;
             tbody.appendChild(tr3);
@@ -192,10 +192,10 @@ function timesheetEditUI(data) {
     timesheet.workplace.value = data.workplace_id;
 
     let date, time;
-    [date, time] = roundDateTime(data.clock_in);
+    [date, time] = pairDateTime(data.clock_in);
     timesheet.clockIn.date.value = date;
     timesheet.clockIn.time.value = time;
-    [date, time] = roundDateTime(data.clock_out);
+    [date, time] = pairDateTime(data.clock_out);
     timesheet.clockOut.date.value = date;
     timesheet.clockOut.time.value = time;
 }

@@ -57,18 +57,11 @@ function longDateTime(datetime) {
     return `${d}/${m}/${y} ${time}`;
 }
 
-function roundDateTime(datetime) {
-    const result = new Date(datetime.replace(' ', 'T'));
+function pairDateTime(datetime) {
+    const [date, time] = datetime.split(' ');
+    const [h, M, s] = time.split(':');
 
-    result.setSeconds(result.getSeconds() + 30);
-
-    const y = result.getFullYear();
-    const m = String(result.getMonth() + 1).padStart(2, '0');
-    const d = String(result.getDate()).padStart(2, '0');
-    const h = String(result.getHours()).padStart(2, '0');
-    const M = String(result.getMinutes()).padStart(2, '0');
-
-    return [`${y}-${m}-${d}`, `${h}:${M}`];
+    return [date, `${h}:${M}`];
 }
 
 function isMobileDevice()
