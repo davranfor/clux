@@ -12,7 +12,13 @@
       },
       "additionalProperties": false
     },
-    "contentRequired": { "required": [ "workplace_id", "clock_in", "clock_out" ] }
+    "contentRequired": { "required": [ "workplace_id", "clock_in", "clock_out" ] },
+    "contentState": {
+      "type": "object",
+      "properties": { "state": { "type": "string", "minLength": 1 } },
+      "additionalProperties": false,
+      "required": [ "state" ]
+    }
   },
   "$ref": "#/definitions/content",
   "$ref": "#/definitions/contentRequired"

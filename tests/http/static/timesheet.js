@@ -109,19 +109,41 @@ function showWeekUI(data) {
             </td>
         `;
         tr2.innerHTML = `
-            <td>${longDateTime(record[2]).split(' ')[0]}<br></td>
-            <td>${record[2].split(' ')[1]}</td>
-            <td>${record[3].split(' ')[1]}</td>
+            <td>${longDate(record[2])}</td>
+            <td>${longTime(record[2])}</td>
+            <td>${longTime(record[3])}</td>
             <td>${timeDiff(dt2, dt1)}</td>
         `;
         tbody.appendChild(tr1);
         tbody.appendChild(tr2);
+
+        if (record[4] !== null) {
+            const obj = JSON.parse(record[4]);
+            const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
+            const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
+            const tr3 = document.createElement('tr');
+            const tr4 = document.createElement('tr');
+
+            tr3.innerHTML = `
+                <td class="workday" colspan="4" onclick="showMessage('Pendiente de aprobación');">
+                <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt3)}, ${obj.workplace_name}</span></div>
+                </td>
+            `;
+            tr4.innerHTML = `
+                <td>${longDate(obj.clock_in)}</td>
+                <td>${longTime(obj.clock_in)}</td>
+                <td>${longTime(obj.clock_out)}</td>
+                <td>${timeDiff(dt4, dt3)}</td>
+            `;
+            tbody.appendChild(tr3);
+            tbody.appendChild(tr4);
+        }
     });
 }
 
 const timesheet = {
     id: clockingForm.querySelector('input[name="id"]'),
-    workplaceId: clockingForm.querySelector('select[name="workplace_id"]'),
+    workplace: clockingForm.querySelector('select[name="workplace"]'),
     clockIn: {
         date: clockingForm.querySelector('input[name="clock_in_date"]'),
         time: clockingForm.querySelector('input[name="clock_in_time"]')
@@ -159,23 +181,23 @@ function timesheetEditUI(data) {
 
     timesheet.id.value = data.id;
 
-    timesheet.workplaceId.innerHTML = '';
+    timesheet.workplace.innerHTML = '';
     data.workplaces.forEach(workplace => {
         const option = document.createElement('option');
 
         option.value = workplace[0];
         option.textContent = workplace[1];
-        timesheet.workplaceId.appendChild(option);
+        timesheet.workplace.appendChild(option);
     });
-    timesheet.workplaceId.value = data.workplace_id;
+    timesheet.workplace.value = data.workplace_id;
 
     let date, time;
-    [date, time] = data.clock_in.split(" ");
+    [date, time] = roundDateTime(data.clock_in);
     timesheet.clockIn.date.value = date;
-    timesheet.clockIn.time.value = time.substring(0, 5);
-    [date, time] = data.clock_out.split(" ");
+    timesheet.clockIn.time.value = time;
+    [date, time] = roundDateTime(data.clock_out);
     timesheet.clockOut.date.value = date;
-    timesheet.clockOut.time.value = time.substring(0, 5);
+    timesheet.clockOut.time.value = time;
 }
 
 [timesheet.clockIn.date, timesheet.clockIn.time,
@@ -188,7 +210,8 @@ function timesheetEditUI(data) {
 clockingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const workplace_id = Number(timesheet.workplaceId.value);
+    const workplace_id = Number(timesheet.workplace.value);
+    const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
     const clock_in = `${timesheet.clockIn.date.value} ${timesheet.clockIn.time.value}:00`;
     const clock_out = `${timesheet.clockOut.date.value} ${timesheet.clockOut.time.value}:00`;
 
@@ -200,17 +223,20 @@ clockingForm.addEventListener('submit', async (e) => {
         timesheet.clockIn.date.reportValidity();
         return;
     }
-    if (dt2 - dt1 > 12 * 60 * 60 * 1000) {
-        timesheet.clockIn.date.setCustomValidity("No pueden transcurrir más de 12 horas entre la fecha de entrada y la de salida");
+    if (dt2 - dt1 > 9 * 60 * 60 * 1000) {
+        timesheet.clockIn.date.setCustomValidity("No pueden transcurrir más de 9 horas entre la fecha de entrada y la de salida");
         timesheet.clockIn.date.reportValidity();
         return;
     }
+
+    const state = `${JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out })}`;
+
     try {
-        const response = await fetch(`/api/timesheet/${timesheet.id.value}/save`, {
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}/change`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ workplace_id, clock_in, clock_out })
+            body: JSON.stringify({ state })
         });
 
         if (response.status === 200) {

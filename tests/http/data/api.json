@@ -2,7 +2,7 @@
   "load": [
     "CREATE TABLE IF NOT EXISTS workplaces (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);",
     "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, role INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, workplace_id INTEGER NOT NULL, token TEXT NOT NULL DEFAULT '', password TEXT NOT NULL, FOREIGN KEY (workplace_id) REFERENCES workplaces(id));",
-    "CREATE TABLE IF NOT EXISTS timesheet (id INTEGER PRIMARY KEY AUTOINCREMENT, workplace_id INTEGER NOT NULL, user_id INTEGER NOT NULL, clock_in DATETIME NOT NULL, clock_out DATETIME NOT NULL DEFAULT 0, FOREIGN KEY (workplace_id) REFERENCES workplaces(id), FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, UNIQUE(user_id, clock_in), UNIQUE(user_id, clock_out));",
+    "CREATE TABLE IF NOT EXISTS timesheet (id INTEGER PRIMARY KEY AUTOINCREMENT, workplace_id INTEGER NOT NULL, user_id INTEGER NOT NULL, clock_in DATETIME NOT NULL, clock_out DATETIME NOT NULL DEFAULT 0, state TEXT, FOREIGN KEY (workplace_id) REFERENCES workplaces(id), FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, UNIQUE(user_id, clock_in), UNIQUE(user_id, clock_out));",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_id ON timesheet(id);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_workplace_id ON timesheet(workplace_id);",
     "CREATE INDEX IF NOT EXISTS idx_timesheet_user_id ON timesheet(user_id);",
@@ -25,10 +25,11 @@
     "users.update.email": "UPDATE users SET email = :email WHERE id = $1 RETURNING id;",
     "users.delete": "DELETE FROM users WHERE id = $1 RETURNING id;",
     "timesheet.select": "SELECT json_array(w.name, t.clock_in) FROM timesheet t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = session_id() AND t.clock_out = 0;",
-    "timesheet.select.week": "SELECT json_group_array(json_array(t.id, w.name, t.clock_in, t.clock_out)) FROM timesheet t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = session_id() AND t.clock_out != 0 AND (date(t.clock_in) >= date('now', '-6 days') OR date(t.clock_out) >= date('now', '-6 days'));",
+    "timesheet.select.week": "SELECT json_group_array(json_array(t.id, w.name, t.clock_in, t.clock_out, t.state)) FROM timesheet t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = session_id() AND t.clock_out != 0 AND (date(t.clock_in) >= date('now', '-6 days') OR date(t.clock_out) >= date('now', '-6 days'));",
     "timesheet.select.edit": "SELECT json_object('id', t.id, 'workplace_id', t.workplace_id, 'clock_in', t.clock_in, 'clock_out', t.clock_out, 'workplaces', (SELECT json_group_array(json_array(w.id, w.name)) FROM workplaces w)) FROM timesheet t WHERE t.id = $1;",
     "timesheet.upsert": "INSERT INTO timesheet (workplace_id, user_id, clock_in) VALUES (workplace_id(), session_id(), datetime('now', 'localtime')) ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_out = excluded.clock_in WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = 0 AND excluded.clock_in > datetime(timesheet.clock_in, '+5 seconds') RETURNING json_array((SELECT name FROM workplaces WHERE id = workplace_id), clock_in, clock_out);",
-    "timesheet.update": "UPDATE timesheet SET workplace_id = :workplace_id, clock_in = :clock_in, clock_out = :clock_out WHERE id = $1 RETURNING id;"
+    "timesheet.update": "UPDATE timesheet SET workplace_id = :workplace_id, clock_in = :clock_in, clock_out = :clock_out WHERE id = $1 RETURNING id;",
+    "timesheet.update.state": "UPDATE timesheet SET state = :state WHERE id = $1 RETURNING id;"
   }
 }
 

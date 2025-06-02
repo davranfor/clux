@@ -37,12 +37,24 @@
     },
     "POST": {
       "if": {
-        "properties": {
-          "path": { "minItems": 1, "maxItems": 1 },
-          "query": { "type": "null" },
-          "content": { "type": "null" }
-        },
-        "x-notify": { "path": "timesheet.upsert", "role": 1 }
+        "anyOf": [
+          {
+            "properties": {
+              "path": { "minItems": 1, "maxItems": 1 },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "timesheet.upsert", "role": 1 }
+          },
+          {
+            "properties": {
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "change" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "$ref": "/timesheet.schema/definitions/contentState" }
+            },
+            "x-notify": { "path": "timesheet.update.state", "size": 2, "role": 1 }
+          }
+        ]
       },
       "then": true,
       "else": {

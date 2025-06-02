@@ -24,19 +24,51 @@ function dayOfWeek(datetime) {
     return days[datetime.getDay()];
 }
 
+function longDate(datetime) {
+    const [y, m, d] = datetime.split(' ')[0].split('-');
+
+    return `${d}/${m}/${y}`;
+}
+
+function shortTime(datetime) {
+    const [h, m, s] = datetime.split(' ')[1].split(':');
+
+    return `${h}:${m}`;
+}
+
+function longTime(datetime) {
+    const [h, m, s] = datetime.split(' ')[1].split(':');
+
+    return `${h}:${m}:${s}`;
+}
+
 function shortDateTime(datetime) {
-  const [date, time] = datetime.split(' ');
-  const [y, m, d] = date.split('-');
-  const [h, M, s] = time.split(':');
-  
-  return `${d}/${m}/${y} ${h}:${M}`;
+    const [date, time] = datetime.split(' ');
+    const [y, m, d] = date.split('-');
+    const [h, M, s] = time.split(':');
+
+    return `${d}/${m}/${y} ${h}:${M}`;
 }
 
 function longDateTime(datetime) {
-  const [date, time] = datetime.split(' ');
-  const [y, m, d] = date.split('-');
-  
-  return `${d}/${m}/${y} ${time}`;
+    const [date, time] = datetime.split(' ');
+    const [y, m, d] = date.split('-');
+
+    return `${d}/${m}/${y} ${time}`;
+}
+
+function roundDateTime(datetime) {
+    const result = new Date(datetime.replace(' ', 'T'));
+
+    result.setSeconds(result.getSeconds() + 30);
+
+    const y = result.getFullYear();
+    const m = String(result.getMonth() + 1).padStart(2, '0');
+    const d = String(result.getDate()).padStart(2, '0');
+    const h = String(result.getHours()).padStart(2, '0');
+    const M = String(result.getMinutes()).padStart(2, '0');
+
+    return [`${y}-${m}-${d}`, `${h}:${M}`];
 }
 
 function isMobileDevice()
