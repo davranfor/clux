@@ -1,5 +1,5 @@
 const clocking = {
-    time: null, timeout: null,
+    elapsed: 0, time: null, timeout: null,
     text: document.getElementById('clocking-text'),
     update() {
         const now = Date.now();
@@ -7,14 +7,12 @@ const clocking = {
         this.text.textContent = formatTime(now - this.time);
         this.timeout = setTimeout(() => this.update(), 1000 - (now % 1000));
     },
-    start(time) {
-        const now = Date.now();
-
+    start() {
         if (this.timeout) {
             clearTimeout(this.timeout);
             this.timeout = null;
         }
-        this.time = time > now ? now : time;
+        this.time = Date.now() - (this.elapsed * 1000);
         this.text.textContent = '00:00:00';
         this.update();
     },
@@ -27,6 +25,7 @@ const clocking = {
             this.text.textContent = '';
             this.time = Date.now();
         }
+        this.elapsed = 0;
     }
 }
 
@@ -41,7 +40,7 @@ async function getClockIn() {
             const data = await response.json();
             return data;
         } else if (response.status === 204) {
-            return ["", 0];
+            return ["", 0, 0];
         } else {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);
@@ -125,7 +124,7 @@ function showWeekUI(data) {
             const tr4 = document.createElement('tr');
 
             tr3.innerHTML = `
-                <td class="workday" colspan="4" onclick="showMessage('Pendiente de aprobación');">
+                <td class="workday" colspan="4" onclick="timesheetUndo(${record[0]});">
                 <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt3)}, ${obj.workplace_name}</span></div>
                 </td>
             `;
@@ -200,15 +199,20 @@ function timesheetEditUI(data) {
     timesheet.clockOut.time.value = time;
 }
 
-[timesheet.clockIn.date, timesheet.clockIn.time,
- timesheet.clockOut.date, timesheet.clockOut.time].forEach(field => {
-    field.addEventListener('change', () => {
-        timesheet.clockIn.date.setCustomValidity("");
-    });
-});
+async function timesheetUndo(id) {
+    const response = await confirmMessage("Se eliminará la solicitud de fichaje");
+
+    if (response) alert("Sí"); else alert("No");
+}
 
 clockingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const focusedField = document.activeElement;
+
+    if (focusedField && focusedField.tagName === 'INPUT' && clockingForm.contains(focusedField)) {
+        focusedField.blur();
+    }
 
     const workplace_id = Number(timesheet.workplace.value);
     const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
@@ -219,13 +223,15 @@ clockingForm.addEventListener('submit', async (e) => {
     const dt2 = new Date(clock_out.replace(' ', 'T'));
 
     if (dt1 >= dt2) {
-        timesheet.clockIn.date.setCustomValidity("La fecha de entrada no puede ser igual o superior a la de salida");
-        timesheet.clockIn.date.reportValidity();
+        showMessage("La fecha de entrada no puede ser igual o superior a la de salida").then(() => {
+            focusedField.focus();
+        });
         return;
     }
     if (dt2 - dt1 > 9 * 60 * 60 * 1000) {
-        timesheet.clockIn.date.setCustomValidity("No pueden transcurrir más de 9 horas entre la fecha de entrada y la de salida");
-        timesheet.clockIn.date.reportValidity();
+        showMessage("No pueden transcurrir más de 9 horas entre la fecha de entrada y la de salida").then(() => {
+            focusedField.focus();
+        });
         return;
     }
 
@@ -253,7 +259,6 @@ clockingForm.addEventListener('submit', async (e) => {
 });
 
 document.getElementById("clocking-cancel").addEventListener("click", () => {
-    timesheet.clockIn.date.setCustomValidity("");
     clockingForm.style.display = "none";
     clockingTable.style.display = "table";
 });

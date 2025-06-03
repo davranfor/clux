@@ -170,7 +170,7 @@
                 userButton.classList.add("clock-out");
                 userButton.textContent = "Salir";
                 clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)}<br>${user.workplace} `;
-                clocking.start(datetime);
+                clocking.start();
             } else {
                 userButton.classList.remove("clock-out");
                 userButton.classList.add("clock-in");
