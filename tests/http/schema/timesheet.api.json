@@ -37,42 +37,65 @@
     },
     "POST": {
       "if": {
+        "properties": {
+          "path": { "minItems": 1, "maxItems": 1 },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
+        },
+        "x-notify": { "path": "timesheet.upsert", "role": 1 }
+      },
+      "then": true,
+      "else": false
+    },
+    "PUT": {
+      "if": {
         "anyOf": [
           {
             "properties": {
-              "path": { "minItems": 1, "maxItems": 1 },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "save" }], "additionalItems": false },
+              "query": { "type": "null" }
             },
-            "x-notify": { "path": "timesheet.upsert", "role": 1 }
+            "x-notify": { "path": "timesheet.update", "size": 2, "role": 1 }
           },
           {
             "properties": {
               "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "change" }], "additionalItems": false },
-              "query": { "type": "null" },
-              "content": { "$ref": "/timesheet.schema/definitions/contentState" }
+              "query": { "type": "null" }
             },
-            "x-notify": { "path": "timesheet.update.state", "size": 2, "role": 1 }
+            "x-notify": { "path": "timesheet.update.state.change", "size": 2, "role": 1 }
           }
         ]
       },
-      "then": true,
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "/timesheet.schema/definitions/content",
+            "$ref": "/timesheet.schema/definitions/contentRequired"
+          }
+        }
+      },
       "else": {
         "if": {
-          "properties": {
-            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "save" }], "additionalItems": false },
-            "query": { "type": "null" }
-          },
-          "x-notify": { "path": "timesheet.update", "size": 2, "role": 1 }
-        },
-        "then": {
-          "properties": {
-            "content": {
-              "$ref": "/timesheet.schema/definitions/content",
-              "$ref": "/timesheet.schema/definitions/contentRequired"
+          "anyOf": [
+            {
+              "properties": {
+                "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "clear" }], "additionalItems": false },
+                "query": { "type": "null" },
+                "content": { "type": "null" }
+              },
+              "x-notify": { "path": "timesheet.update.state.clear", "size": 2, "role": 1 }
+            },
+            {
+              "properties": {
+                "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "undo" }], "additionalItems": false },
+                "query": { "type": "null" },
+                "content": { "type": "null" }
+              },
+              "x-notify": { "path": "timesheet.update.state.undo", "size": 2, "role": 1 }
             }
-          }
+          ]
         },
+        "then": true,
         "else": false
       }
     }

@@ -7,18 +7,13 @@
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
+        "workplace_name": { "type": "string" },
         "clock_in": { "type": "string", "format": "date-time-local", "minLength": 1 },
         "clock_out": { "type": "string", "format": "date-time-local", "minLength": 1 }
       },
       "additionalProperties": false
     },
-    "contentRequired": { "required": [ "workplace_id", "clock_in", "clock_out" ] },
-    "contentState": {
-      "type": "object",
-      "properties": { "state": { "type": "string", "minLength": 1 } },
-      "additionalProperties": false,
-      "required": [ "state" ]
-    }
+    "contentRequired": { "required": [ "workplace_id", "clock_in", "clock_out" ] }
   },
   "$ref": "#/definitions/content",
   "$ref": "#/definitions/contentRequired"

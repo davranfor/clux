@@ -115,8 +115,16 @@ function showWeekUI(data) {
         `;
         tbody.appendChild(tr1);
         tbody.appendChild(tr2);
+        if (record[4] === '{}') {
+            const tr3 = document.createElement('tr');
 
-        if (record[4] !== null) {
+            tr3.innerHTML = `
+                <td class="workday" colspan="4" onclick="timesheetUndo(${record[0]});">
+                <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
+                </td>
+            `;
+            tbody.appendChild(tr3);
+        } else if (record[4] !== null) {
             const obj = JSON.parse(record[4]);
             const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
             const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
@@ -125,7 +133,7 @@ function showWeekUI(data) {
 
             tr3.innerHTML = `
                 <td class="workday" colspan="4" onclick="timesheetUndo(${record[0]});">
-                <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt3)}, ${obj.workplace_name}</span></div>
+                <div><i class="ti ti-refresh"></i><span>Modificado, ${obj.workplace_name}</span></div>
                 </td>
             `;
             tr4.innerHTML = `
@@ -170,7 +178,7 @@ async function timesheetEdit(id) {
             throw new Error(text || `HTTP Error ${response.status}`);
         }
     } catch (error) {
-        showMessage(error.message || 'Unhandled error');
+        showMessage(error.message || 'No se puede editar el registro');
     }
 }
 
@@ -199,12 +207,6 @@ function timesheetEditUI(data) {
     timesheet.clockOut.time.value = time;
 }
 
-async function timesheetUndo(id) {
-    const response = await confirmMessage("Se eliminará la solicitud de fichaje");
-
-    if (response) alert("Sí"); else alert("No");
-}
-
 clockingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -223,32 +225,53 @@ clockingForm.addEventListener('submit', async (e) => {
     const dt2 = new Date(clock_out.replace(' ', 'T'));
 
     if (dt1 >= dt2) {
-        showMessage("La fecha de entrada no puede ser igual o superior a la de salida").then(() => {
+        showMessage("La hora de entrada no puede ser igual o superior a la de salida").then(() => {
             focusedField.focus();
         });
         return;
     }
     if (dt2 - dt1 > 9 * 60 * 60 * 1000) {
-        showMessage("No pueden transcurrir más de 9 horas entre la fecha de entrada y la de salida").then(() => {
+        showMessage("No pueden transcurrir más de 9 horas entre la hora de entrada y la de salida").then(() => {
             focusedField.focus();
         });
         return;
     }
-
-    const state = `${JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out })}`;
-
     try {
         const response = await fetch(`/api/timesheet/${timesheet.id.value}/change`, {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ state })
+            body: JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out })
         });
 
         if (response.status === 200) {
             clockingForm.style.display = "none";
             clockingTable.style.display = "table";
             await showWeek();
+        } else if (response.status === 204) {
+            throw new Error('No hay ningún cambio que solicitar');
+        } else {
+            const data = await response.text();
+            throw new Error(data || 'Unhandled error');
+        }
+    } catch (error) {
+        showMessage(error.message || 'Undhandled error');
+    }
+});
+
+document.getElementById("clocking-clear").addEventListener("click", async () => {
+    try {
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}/clear`, {
+            method: 'PUT',
+            credentials: 'include'
+        });
+
+        if (response.status === 200) {
+            clockingForm.style.display = "none";
+            clockingTable.style.display = "table";
+            await showWeek();
+        } else if (response.status === 204) {
+            throw new Error('No hay nada que eliminar');
         } else {
             const data = await response.text();
             throw new Error(data || 'Unhandled error');
@@ -262,4 +285,30 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
     clockingForm.style.display = "none";
     clockingTable.style.display = "table";
 });
+
+async function timesheetUndo(id) {
+    const undo = await confirmMessage("Se eliminará la solicitud pendiente");
+
+    if (!undo) return;
+
+    try {
+        const response = await fetch(`/api/timesheet/${id}/undo`, {
+            method: 'PUT',
+            credentials: 'include'
+        });
+
+        if (response.status === 200) {
+            clockingForm.style.display = "none";
+            clockingTable.style.display = "table";
+            await showWeek();
+        } else if (response.status === 204) {
+            throw new Error('No hay nada que actualizar');
+        } else {
+            const data = await response.text();
+            throw new Error(data || 'Unhandled error');
+        }
+    } catch (error) {
+        showMessage(error.message || 'Undhandled error');
+    }
+}
 

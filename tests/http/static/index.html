@@ -113,9 +113,10 @@
                                 <input type="time" name="clock_out_time" required>
                             </div>
                         </div>
-                        <div class="form-2columns">
+                        <div class="form-3columns">
                             <button type="submit" class="content-submit">Solicitar</button>
-                            <button type="button" id="clocking-cancel" class="content-cancel">Cancelar</button>
+                            <button type="button" id="clocking-clear" class="content-button">Eliminar</button>
+                            <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -187,8 +188,8 @@
         userButton.addEventListener("click", async function() {
             const now = Date.now();
 
-            if (clocking.time !== null && ((now - clocking.time) / 1000 < 10)) {
-                showMessage('Deben transcurrir al menos 10 segundos entre fichajes');
+            if (clocking.time !== null && ((now - clocking.time) / 1000 < 60)) {
+                showMessage('Debe haber un intervalo mínimo de 1 minuto entre fichajes');
                 return;
             }
             userButton.disabled = true;

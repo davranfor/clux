@@ -190,7 +190,7 @@ header {
     margin-top: 0.5rem;
 }
 
-.content-cancel {
+.content-button {
     background-color: #4a5568;
     transition: background 0.3s;
     color: #fff;
@@ -209,6 +209,12 @@ header {
 .form-2columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+}
+
+.form-3columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 1.2rem;
 }
 
