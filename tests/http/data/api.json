@@ -16,7 +16,7 @@
     "verify": "SELECT workplace_id FROM users WHERE id = ? AND role = ? AND token = ?;"
   },
   "queries": {
-    "auth": "SELECT json_array(id, role, name) FROM users WHERE id = session_id();",
+    "auth": "SELECT json_array(json_array(u.role, u.name), COALESCE((SELECT json_array(w.name, t.clock_in, strftime('%s', datetime('now', 'localtime')) - strftime('%s', t.clock_in)) FROM timesheet t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = u.id AND t.clock_out = 0), json_array('', 0, 0))) FROM users u WHERE u.id = session_id();",
     "login": "UPDATE users SET token = new_token(id, role, token) WHERE email = :email and password = :password RETURNING 1;",
     "users.select": "SELECT json_object('id', id, 'role', role, 'name', name, 'email', email) FROM users WHERE id = $1;",
     "users.select.all": "SELECT json_group_array(json_object('id', id, 'role', role, 'name', name, 'email', email)) FROM users;",

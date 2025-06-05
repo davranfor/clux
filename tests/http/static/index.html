@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IGASA - Panel de Control</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
     <script src="functions.js" defer></script>
@@ -129,7 +130,7 @@
         </div>
     </div>
     <script>
-        const user = { id: 0, role: 0, name: "", workplace: "", clockIn: 0 };
+        const user = { role: 0, name: "", workplace: "", clockIn: 0 };
         const userPanel = document.getElementById("user-panel");
         const userTitle = document.getElementById("user-title");
         const userButton = document.getElementById("user-button");
@@ -148,7 +149,7 @@
             }
             element.classList.add('active');
             switch (element.dataset.item) {
-                case 'item-clocking': clockingFrame.style.display = "flex"; break;
+                case 'item-clocking': updateUserPanel(); clockingFrame.style.display = "flex"; break;
                 case 'item-absences': absencesFrame.style.display = "flex"; break;
             }
         }
@@ -207,14 +208,11 @@
 
         function start() {
             userTitle.textContent = user.name;
-            updateUserPanel();
             userPanel.style.display = "flex";
             if (!isMobileDevice()) {
                 menu.style.display = "block";
-                setActiveByKey("item-clocking");
-            } else {
-                clockingFrame.style.display = "flex";
             }
+            setActiveByKey("item-clocking");
         }
     </script>
 </body>
