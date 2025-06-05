@@ -79,8 +79,8 @@ static const buffer_t *parse_headers(request_t *request, char *str)
         {
             return static_bad_request();
         }
-        *end = '\0';
-        return static_get(path);
+        *end++ = '\0';
+        return static_get(path, end);
     }
     if (!strncmp(str, "POST /reload ", 13))
     {

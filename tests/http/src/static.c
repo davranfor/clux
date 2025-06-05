@@ -8,11 +8,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <openssl/evp.h>
 #include <clux/clib.h>
 #include "header.h"
 #include "static.h"
 
+#define ETAG_SIZE EVP_MAX_MD_SIZE
+
 static buffer_t no_content;
+static buffer_t not_modified;
 static buffer_t bad_request;
 static buffer_t unauthorized;
 static buffer_t forbidden;
@@ -40,6 +44,7 @@ static void free_buffer(void *buffer)
 static void load(void)
 {
     if (!buffer_format(&no_content, http_no_content, "") ||
+        !buffer_format(&not_modified, http_not_modified, "") ||
         !fill_buffer(&bad_request, http_bad_request, "Bad Request") ||
         !fill_buffer(&unauthorized, http_unauthorized, "Unauthorized") ||
         !fill_buffer(&forbidden, http_forbidden, "Forbidden") ||
@@ -58,6 +63,7 @@ static void load(void)
 static void unload(void)
 {
     buffer_clean(&no_content);
+    buffer_clean(&not_modified);
     buffer_clean(&bad_request);
     buffer_clean(&unauthorized);
     buffer_clean(&forbidden);
@@ -104,6 +110,34 @@ static const char *path_type(const char *path)
     return NULL;
 }
 
+static int calculate_etag(const char *input, size_t length, char *output)
+{
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+
+    if (ctx == NULL)
+    {
+        return 0;
+    }
+
+    unsigned int size = 0;
+
+    if (!EVP_DigestInit_ex(ctx, EVP_sha1(), NULL) ||
+        !EVP_DigestUpdate(ctx, input, length) ||
+        !EVP_DigestFinal_ex(ctx, hash, &size))
+    {
+        EVP_MD_CTX_free(ctx);
+        return 0;
+    }
+    EVP_MD_CTX_free(ctx);
+    for (unsigned i = 0; i < size; i++)
+    {
+        snprintf(output + (i * 2), 3, "%02x", hash[i]);
+    }
+    output[size * 2] = '\0';
+    return 1;
+}
+
 int static_add(const char *path)
 {
     if (path == NULL)
@@ -143,9 +177,18 @@ int static_add(const char *path)
     buffer->length = length;
     buffer->size = length + 1;
 
-    char headers[128];
+    char etag[ETAG_SIZE];
 
-    snprintf(headers, sizeof headers, http_ok, type, length); 
+    if (!calculate_etag(buffer->text, buffer->length, etag))
+    {
+        perror("calculate_etag");
+        free_buffer(buffer);
+        return 0;
+    }
+
+    char headers[256];
+
+    snprintf(headers, sizeof headers, http_no_cache, etag, type, length); 
     if (!buffer_insert(buffer, 0, headers, strlen(headers)))
     {
         perror("buffer_insert");
@@ -168,29 +211,56 @@ int static_add(const char *path)
     return 1;
 }
 
-static const buffer_t *search(const char *resource)
+static const buffer_t *search(const char *resource, const char *headers)
 {
     buffer_t *buffer = map_search(map, resource);
 
-    if (buffer != NULL)
+    if (buffer == NULL)
+    {
+        return &not_found;
+    }
+
+    const char *etag_client = strstr(headers, "If-None-Match: ");
+
+    if (etag_client == NULL)
     {
         return buffer;
     }
-    return &not_found;
+
+    const char *etag_server = strstr(buffer->text, "ETag: ");
+    
+    if (etag_server == NULL)
+    {
+        return buffer;
+    }
+
+    etag_client += 15; // Length "If-None-Match: "
+    etag_server += 6;  // Length "ETag: "
+    // Length of SHA1 (20 digits) formatted as %02x = 40 + "" = 42 
+    if (strncmp(etag_server, etag_client, 42) == 0)
+    {
+        return &not_modified;
+    }
+    return buffer;
 }
 
-const buffer_t *static_get(const char *resource)
+const buffer_t *static_get(const char *resource, const char *headers)
 {
     if (resource == NULL)
     {
         return &bad_request;
     }
-    return search(*resource ? resource : "index.html");
+    return search(*resource ? resource : "index.html", headers);
 }
 
 const buffer_t *static_no_content(void)
 {
     return &no_content;
+}
+
+const buffer_t *static_not_modified(void)
+{
+    return &not_modified;
 }
 
 const buffer_t *static_bad_request(void)

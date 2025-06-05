@@ -11,6 +11,7 @@ enum
 {
     HTTP_OK = 200,
     HTTP_NO_CONTENT = 204,
+    HTTP_NOT_MODIFIED = 304,
     HTTP_BAD_REQUEST = 400,
     HTTP_UNAUTHORIZED = 401,
     HTTP_FORBIDDEN = 403,
@@ -24,8 +25,16 @@ static const char *http_ok =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n\r\n";
+static const char *http_no_cache =
+    "HTTP/1.1 200 OK\r\n"
+    "Cache-Control: no-cache\r\n"
+    "ETag: \"%s\"\r\n"
+    "Content-Type: %s\r\n"
+    "Content-Length: %zu\r\n\r\n";
 static const char *http_no_content =
     "HTTP/1.1 204 No Content%s\r\n\r\n";
+static const char *http_not_modified =
+    "HTTP/1.1 304 Not Modified%s\r\n\r\n";
 static const char *http_bad_request =
     "HTTP/1.1 400 Bad Request\r\n"
     "Content-Type: %s\r\n"
