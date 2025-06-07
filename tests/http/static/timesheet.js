@@ -83,7 +83,7 @@ function showWeekUI(data) {
         const tr2 = document.createElement('tr');
 
         tr1.innerHTML = `
-            <td class="workday" colspan="4" onclick="timesheetEdit(${record[0]});">
+            <td class="editable" colspan="4" onclick="timesheetEdit(${record[0]});">
             <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
             </td>
         `;
@@ -99,8 +99,17 @@ function showWeekUI(data) {
             const tr3 = document.createElement('tr');
 
             tr3.innerHTML = `
-                <td class="workday" colspan="4" onclick="timesheetUndo(${record[0]});">
+                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
                 <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
+                </td>
+            `;
+            tbody.appendChild(tr3);
+        } else if (record[4] === '!') {
+            const tr3 = document.createElement('tr');
+
+            tr3.innerHTML = `
+                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, false);">
+                <div><i class="ti ti-x"></i><span>Solicitud rechazada</span></div>
                 </td>
             `;
             tbody.appendChild(tr3);
@@ -112,7 +121,7 @@ function showWeekUI(data) {
             const tr4 = document.createElement('tr');
 
             tr3.innerHTML = `
-                <td class="workday" colspan="4" onclick="timesheetUndo(${record[0]});">
+                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
                 <div><i class="ti ti-refresh"></i><span>Modificado, ${obj.workplace_name}</span></div>
                 </td>
             `;
@@ -218,7 +227,7 @@ clockingForm.addEventListener('submit', async (e) => {
     }
     try {
         const response = await fetch(`/api/timesheet/${timesheet.id.value}/change`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out })
@@ -239,10 +248,10 @@ clockingForm.addEventListener('submit', async (e) => {
     }
 });
 
-document.getElementById("clocking-clear").addEventListener("click", async () => {
+document.getElementById("clocking-delete").addEventListener("click", async () => {
     try {
-        const response = await fetch(`/api/timesheet/${timesheet.id.value}/clear`, {
-            method: 'PUT',
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}/delete`, {
+            method: 'PATCH',
             credentials: 'include'
         });
 
@@ -266,14 +275,13 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
     clockingTable.style.display = "table";
 });
 
-async function timesheetUndo(id) {
-    const undo = await confirmMessage("Se eliminará la solicitud pendiente");
-
-    if (!undo) return;
-
+async function timesheetClear(id, askConfirm) {
+    if (askConfirm && !await confirmMessage("Se eliminará la solicitud pendiente")) {
+        return;
+    }
     try {
-        const response = await fetch(`/api/timesheet/${id}/undo`, {
-            method: 'PUT',
+        const response = await fetch(`/api/timesheet/${id}/clear`, {
+            method: 'PATCH',
             credentials: 'include'
         });
 

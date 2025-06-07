@@ -250,22 +250,22 @@ header {
     padding: 4px;
 }
 
-#clocking-table td.workday {
+#clocking-table td.editable {
     background-color: #4a5568;
 }
 
-#clocking-table td.workday:hover {
+#clocking-table td.editable:hover {
     background-color: #1e2734;
     cursor: pointer;
 }
 
-#clocking-table td.workday > div {
+#clocking-table td.editable > div {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-#clocking-table td.workday > div > .ti {
+#clocking-table td.editable > div > .ti {
     font-size: 1.5rem;
     color: #fff;
 }

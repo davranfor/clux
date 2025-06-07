@@ -30,8 +30,8 @@
     "timesheet.upsert": "INSERT INTO timesheet (workplace_id, user_id, clock_in) VALUES (workplace_id(), session_id(), datetime('now', 'localtime')) ON CONFLICT(user_id, clock_out) DO UPDATE SET clock_in = strftime('%Y-%m-%d %H:%M:00', clock_in, '+30 seconds'), clock_out = strftime('%Y-%m-%d %H:%M:00', excluded.clock_in, '+30 seconds') WHERE timesheet.user_id = excluded.user_id AND timesheet.clock_out = 0 RETURNING json_array((SELECT name FROM workplaces WHERE id = workplace_id), clock_in, clock_out);",
     "timesheet.update": "UPDATE timesheet SET workplace_id = :workplace_id, clock_in = :clock_in, clock_out = :clock_out WHERE id = $1 RETURNING id;",
     "timesheet.update.state.change": "UPDATE timesheet SET state = json_object('workplace_id', :workplace_id, 'workplace_name', :workplace_name, 'clock_in', :clock_in, 'clock_out', :clock_out) WHERE id = $1 AND (workplace_id != :workplace_id OR clock_in != :clock_in OR clock_out != :clock_out) RETURNING id;",
-    "timesheet.update.state.clear": "UPDATE timesheet SET state = '{}' WHERE id = $1 RETURNING id;",
-    "timesheet.update.state.undo": "UPDATE timesheet SET state = NULL WHERE id = $1 AND state IS NOT NULL RETURNING id;"
+    "timesheet.update.state.delete": "UPDATE timesheet SET state = '{}' WHERE id = $1 RETURNING id;",
+    "timesheet.update.state.clear": "UPDATE timesheet SET state = NULL WHERE id = $1 AND state IS NOT NULL RETURNING id;"
   }
 }
 

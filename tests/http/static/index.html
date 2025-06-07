@@ -116,7 +116,7 @@
                         </div>
                         <div class="form-3columns">
                             <button type="submit" class="content-submit">Solicitar</button>
-                            <button type="button" id="clocking-clear" class="content-button">Eliminar</button>
+                            <button type="button" id="clocking-delete" class="content-button">Eliminar</button>
                             <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
                         </div>
                     </form>
@@ -214,6 +214,18 @@
             }
             setActiveByKey("item-clocking");
         }
+
+        function refreshClocking() {
+            setTimeout(async () => {
+                const activeItem = document.querySelector('#menu .menu-item.active');
+
+                if (activeItem?.dataset.item === 'item-clocking') {
+                    await showWeek().catch(() => {});
+                }
+                refreshClocking();
+            }, 5 * 60 * 1000); // 5 minutes
+        }
+        refreshClocking();
     </script>
 </body>
 </html>
