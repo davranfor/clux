@@ -276,8 +276,10 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
 });
 
 async function timesheetClear(id, askConfirm) {
-    if (askConfirm && !await confirmMessage("Se eliminará la solicitud pendiente")) {
-        return;
+    if (askConfirm) {
+        const confirmed = await confirmMessage("Se eliminará la solicitud pendiente");
+
+        if (!confirmed) return;
     }
     try {
         const response = await fetch(`/api/timesheet/${id}/clear`, {
