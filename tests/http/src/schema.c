@@ -270,6 +270,7 @@ int schema_validate(json_t *request, buffer_t *buffer)
     {
         fprintf(stderr, "A result was expected at schema '%s'\n", path);
         buffer_format(buffer, "Malformed schema '%s'", path);
+        json_free(node);
         return HTTP_SERVER_ERROR;
     }
 

@@ -480,9 +480,10 @@ if (buffer.length) puts(buffer.text);
 
 const buffer_t *writer_handle(json_t *request)
 {
+    set_cookie(json_find(request, "cookie"));
+
     int result = schema_validate(request, &buffer);
 
-    set_cookie(json_find(request, "cookie"));
     if (result == HTTP_OK)
     {
         buffer_reset(&buffer);
