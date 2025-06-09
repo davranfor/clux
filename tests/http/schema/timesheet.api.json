@@ -49,55 +49,38 @@
     },
     "PATCH": {
       "if": {
-        "anyOf": [
-          {
-            "properties": {
-              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "save" }], "additionalItems": false },
-              "query": { "type": "null" }
-            },
-            "x-notify": { "path": "timesheet.update", "size": 2, "role": 1 }
-          },
-          {
-            "properties": {
-              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "change" }], "additionalItems": false },
-              "query": { "type": "null" },
-              "content": { "required": [ "reason" ] }
-            },
-            "x-notify": { "path": "timesheet.update.request.change", "size": 2, "role": 1 }
-          }
-        ]
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "change" }], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "timesheet.update.request.change", "size": 2, "role": 1 }
       },
       "then": {
-        "properties": {
-          "content": {
-            "$ref": "/timesheet.schema/definitions/content",
-            "$ref": "/timesheet.schema/definitions/contentRequired"
-          }
-        }
+        "properties": { "content": { "$ref": "/timesheet.schema/definitions/update.request.change" } }
       },
       "else": {
         "if": {
-          "anyOf": [
-            {
-              "properties": {
-                "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "delete" }], "additionalItems": false },
-                "query": { "type": "null" },
-                "content": { "$ref": "/timesheet.schema/definitions/content", "required": [ "reason" ] }
-              },
-              "x-notify": { "path": "timesheet.update.request.delete", "size": 2, "role": 1 }
-            },
-            {
-              "properties": {
-                "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "clear" }], "additionalItems": false },
-                "query": { "type": "null" },
-                "content": { "type": "null" }
-              },
-              "x-notify": { "path": "timesheet.update.request.clear", "size": 2, "role": 1 }
-            }
-          ]
+          "properties": {
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "delete" }], "additionalItems": false },
+              "query": { "type": "null" }
+          },
+          "x-notify": { "path": "timesheet.update.request.delete", "size": 2, "role": 1 }
         },
-        "then": true,
-        "else": false
+        "then": {
+          "properties": { "content": { "$ref": "/timesheet.schema/definitions/update.request.delete" } }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "clear" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "timesheet.update.request.clear", "size": 2, "role": 1 }
+          },
+          "then": true,
+          "else": false
+        }
       }
     }
   },

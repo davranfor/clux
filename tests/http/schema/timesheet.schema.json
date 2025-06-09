@@ -3,7 +3,7 @@
   "$id": "/timesheet.schema",
   "type": "object",
   "definitions": {
-    "content": {
+    "update.request.change": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
@@ -12,11 +12,17 @@
         "clock_out": { "type": "string", "format": "date-time-local", "minLength": 1 },
         "reason": { "type": "string", "minLength": 1, "maxLength": 50 }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [ "workplace_id", "workplace_name", "clock_in", "clock_out", "reason" ]
     },
-    "contentRequired": { "required": [ "workplace_id", "clock_in", "clock_out" ] }
-  },
-  "$ref": "#/definitions/content",
-  "$ref": "#/definitions/contentRequired"
+    "update.request.delete": {
+      "type": "object",
+      "properties": {
+        "reason": { "type": "string", "minLength": 1, "maxLength": 50 }
+      },
+      "additionalProperties": false,
+      "required": [ "reason" ]
+    }
+  }
 }
 
