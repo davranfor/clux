@@ -88,7 +88,7 @@
                     <table id="clocking-table">
                         <tbody></tbody>
                     </table>
-                    <form class="content-form" id="clocking-form">
+                    <form class="content-form" id="clocking-form"i autocomplete="off">
                         <input type="hidden" name="id" required>
                         <div class="form-group">
                             <label for="workplace">Centro de trabajo</label>
@@ -113,6 +113,18 @@
                                 <label for="clock_out_time">Hora de salida</label>
                                 <input type="time" name="clock_out_time" required>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="workplace">Motivo del cambio / baja</label>
+                            <input type="text" list="reason-list" name="reason" maxlength="50" required>
+                            <datalist id="reason-list">
+                                <option value="Cambio de centro de trabajo">
+                                <option value="He olvidado fichar la entrada">
+                                <option value="He olvidado fichar la salida">
+                                <option value="No tenía acceso a internet">
+                                <option value="No tenía un punto de acceso para fichar">
+                                <option value="No he podido fichar debido a problemas técnicos">
+                            </datalist>
                         </div>
                         <div class="form-3columns">
                             <button type="submit" class="content-submit">Solicitar</button>
@@ -149,7 +161,7 @@
             }
             element.classList.add('active');
             switch (element.dataset.item) {
-                case 'item-clocking': updateUserPanel(); clockingFrame.style.display = "flex"; break;
+                case 'item-clocking': refreshClockingTable(); clockingFrame.style.display = "flex"; break;
                 case 'item-absences': absencesFrame.style.display = "flex"; break;
             }
         }
@@ -164,7 +176,7 @@
         const clockingTable = document.getElementById("clocking-table");
         const clockingForm = document.getElementById("clocking-form");
 
-        async function updateUserPanel() {
+        function refreshUserData() {
             if (user.clockIn !== 0) {
                 const datetime = new Date(user.clockIn.replace(' ', 'T'));
 
@@ -180,11 +192,6 @@
                 clockingTitle.textContent = "";
                 clocking.stop();
             }
-            try {
-                await showWeek();
-            } catch (error) {
-                if (error.message) showMessage(error.message);
-            }
         }
         userButton.addEventListener("click", async function() {
             const now = Date.now();
@@ -196,7 +203,8 @@
             userButton.disabled = true;
             try {
                 await logHours();
-                updateUserPanel();
+                refreshUserData();
+                await refreshClockingTable();
             } catch (error) {
                 showMessage(error.message || 'No se puede fichar en este momento');
             } finally {
@@ -209,6 +217,7 @@
         function start() {
             userTitle.textContent = user.name;
             userPanel.style.display = "flex";
+            refreshUserData();
             if (!isMobileDevice()) {
                 menu.style.display = "block";
             }
@@ -220,7 +229,7 @@
                 const activeItem = document.querySelector('#menu .menu-item.active');
 
                 if (activeItem?.dataset.item === 'item-clocking') {
-                    await showWeek().catch(() => {});
+                    await updateTimesheetTable().catch(() => {});
                 }
                 refreshClocking();
             }, 5 * 60 * 1000); // 5 minutes

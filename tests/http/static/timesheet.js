@@ -52,7 +52,7 @@ async function logHours() {
     }
 }
 
-async function showWeek() {
+async function refreshClockingTable() {
     try {
         const response = await fetch('/api/timesheet/week', {
             method: 'GET',
@@ -61,7 +61,7 @@ async function showWeek() {
 
         if (response.status === 200) {
             const data = await response.json();
-            showWeekUI(data);
+            refreshClockingTableUI(data);
         } else if (response.status !== 204) {
             const text = await response.text();
             throw new Error(text || `HTTP Error ${response.status}`);
@@ -71,7 +71,7 @@ async function showWeek() {
     }
 }
 
-function showWeekUI(data) {
+function refreshClockingTableUI(data) {
     const tbody = document.querySelector('#clocking-table tbody');
 
     tbody.replaceChildren();
@@ -95,30 +95,17 @@ function showWeekUI(data) {
         `;
         tbody.appendChild(tr1);
         tbody.appendChild(tr2);
-        if (record[4] === '{}') {
-            const tr3 = document.createElement('tr');
+        if (record[4] === null) {
+            return;
+        }
 
-            tr3.innerHTML = `
-                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
-                <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
-                </td>
-            `;
-            tbody.appendChild(tr3);
-        } else if (record[4] === '!') {
-            const tr3 = document.createElement('tr');
-
-            tr3.innerHTML = `
-                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, false);">
-                <div><i class="ti ti-x"></i><span>Solicitud rechazada</span></div>
-                </td>
-            `;
-            tbody.appendChild(tr3);
-        } else if (record[4] !== null) {
-            const obj = JSON.parse(record[4]);
+        const obj = JSON.parse(record[4]);
+        if (Object.keys(obj).length > 1) {
             const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
             const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
             const tr3 = document.createElement('tr');
             const tr4 = document.createElement('tr');
+            const tr5 = document.createElement('tr');
 
             tr3.innerHTML = `
                 <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
@@ -131,6 +118,20 @@ function showWeekUI(data) {
                 <td>${shortTime(obj.clock_out)}</td>
                 <td>${timeDiff(dt4, dt3)}</td>
             `;
+            tr5.innerHTML = `<td class="text-align-left" colspan="4">&nbsp;${obj.reason}</td>`;
+            tbody.appendChild(tr3);
+            tbody.appendChild(tr4);
+            tbody.appendChild(tr5);
+        } else {
+            const tr3 = document.createElement('tr');
+            const tr4 = document.createElement('tr');
+
+            tr3.innerHTML = `
+                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
+                <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
+                </td>
+            `;
+            tr4.innerHTML = `<td class="text-align-left" colspan="4">&nbsp;${obj.reason}</td>`;
             tbody.appendChild(tr3);
             tbody.appendChild(tr4);
         }
@@ -147,7 +148,8 @@ const timesheet = {
     clockOut: {
         date: clockingForm.querySelector('input[name="clock_out_date"]'),
         time: clockingForm.querySelector('input[name="clock_out_time"]')
-    }
+    },
+    reason: clockingForm.querySelector('input[name="reason"]'),
 }
 
 async function timesheetEdit(id) {
@@ -194,7 +196,13 @@ function timesheetEditUI(data) {
     [date, time] = pairDateTime(data.clock_out);
     timesheet.clockOut.date.value = date;
     timesheet.clockOut.time.value = time;
+
+    timesheet.reason.value = "";
 }
+
+timesheet.reason.addEventListener("blur", function() {
+    this.value = this.value.trim();
+});
 
 clockingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -209,6 +217,7 @@ clockingForm.addEventListener('submit', async (e) => {
     const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
     const clock_in = `${timesheet.clockIn.date.value} ${timesheet.clockIn.time.value}:00`;
     const clock_out = `${timesheet.clockOut.date.value} ${timesheet.clockOut.time.value}:00`;
+    const reason = timesheet.reason.value;
 
     const dt1 = new Date(clock_in.replace(' ', 'T'));
     const dt2 = new Date(clock_out.replace(' ', 'T'));
@@ -230,18 +239,18 @@ clockingForm.addEventListener('submit', async (e) => {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out })
+            body: JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason })
         });
 
         if (response.status === 200) {
             clockingForm.style.display = "none";
             clockingTable.style.display = "table";
-            await showWeek();
+            await refreshClockingTable();
         } else if (response.status === 204) {
             throw new Error('No hay ningún cambio que solicitar');
         } else {
             const data = await response.text();
-            throw new Error(data || 'Unhandled error');
+            throw new Error(data || `HTTP ${response.status}`);
         }
     } catch (error) {
         showMessage(error.message || 'Undhandled error');
@@ -249,21 +258,31 @@ clockingForm.addEventListener('submit', async (e) => {
 });
 
 document.getElementById("clocking-delete").addEventListener("click", async () => {
+    const reason = timesheet.reason.value;
+
+    if (reason === "") {
+        showMessage("Debe especificar un motivo para dar de baja el registro").then(() => {
+            timesheet.reason.focus();
+        });
+        return;
+    }
     try {
         const response = await fetch(`/api/timesheet/${timesheet.id.value}/delete`, {
             method: 'PATCH',
-            credentials: 'include'
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ reason })
         });
 
         if (response.status === 200) {
             clockingForm.style.display = "none";
             clockingTable.style.display = "table";
-            await showWeek();
+            await refreshClockingTable();
         } else if (response.status === 204) {
             throw new Error('No hay nada que eliminar');
         } else {
             const data = await response.text();
-            throw new Error(data || 'Unhandled error');
+            throw new Error(data || `HTTP ${response.status}`);
         }
     } catch (error) {
         showMessage(error.message || 'Undhandled error');
@@ -290,12 +309,12 @@ async function timesheetClear(id, askConfirm) {
         if (response.status === 200) {
             clockingForm.style.display = "none";
             clockingTable.style.display = "table";
-            await showWeek();
+            await refreshClockingTable();
         } else if (response.status === 204) {
             throw new Error('No hay nada que actualizar');
         } else {
             const data = await response.text();
-            throw new Error(data || 'Unhandled error');
+            throw new Error(data || `HTTP ${response.status}`);
         }
     } catch (error) {
         showMessage(error.message || 'Undhandled error');

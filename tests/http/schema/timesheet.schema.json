@@ -9,7 +9,8 @@
         "workplace_id": { "type": "integer" },
         "workplace_name": { "type": "string" },
         "clock_in": { "type": "string", "format": "date-time-local", "minLength": 1 },
-        "clock_out": { "type": "string", "format": "date-time-local", "minLength": 1 }
+        "clock_out": { "type": "string", "format": "date-time-local", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 50 }
       },
       "additionalProperties": false
     },

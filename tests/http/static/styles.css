@@ -275,6 +275,10 @@ header {
     margin-top: 5px;
 }
 
+.text-align-left {
+    text-align: left;
+}
+
 /* Hack safari desktop */
 @supports (-webkit-appearance: none) and (-webkit-hyphens: none) and (not (overflow:-webkit-marquee)) {
     select {
