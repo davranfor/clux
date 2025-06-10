@@ -118,7 +118,7 @@ function refreshClockingTableUI(data) {
                 <td>${shortTime(obj.clock_out)}</td>
                 <td>${timeDiff(dt4, dt3)}</td>
             `;
-            tr5.innerHTML = `<td class="text-align-left" colspan="4">&nbsp;${obj.reason}</td>`;
+            tr5.innerHTML = `<td class="taLeft" colspan="4">&nbsp;${obj.reason}</td>`;
             tbody.appendChild(tr3);
             tbody.appendChild(tr4);
             tbody.appendChild(tr5);
@@ -131,7 +131,7 @@ function refreshClockingTableUI(data) {
                 <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
                 </td>
             `;
-            tr4.innerHTML = `<td class="text-align-left" colspan="4">&nbsp;${obj.reason}</td>`;
+            tr4.innerHTML = `<td class="taLeft" colspan="4">&nbsp;${obj.reason}</td>`;
             tbody.appendChild(tr3);
             tbody.appendChild(tr4);
         }

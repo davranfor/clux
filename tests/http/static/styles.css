@@ -171,10 +171,6 @@ header {
     margin: 0 0 1rem 0;
 }
 
-.content-box pre {
-    text-align: left;
-}
-
 .content-form {
     display: flex;
     flex-direction: column;
@@ -275,7 +271,7 @@ header {
     margin-top: 5px;
 }
 
-.text-align-left {
+.taLeft {
     text-align: left;
 }
 
