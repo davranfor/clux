@@ -171,36 +171,36 @@ function confirmMessage(message = "") {
         buttonsContainer.style.gap = '10px';
         buttonsContainer.style.justifyContent = 'center';
 
-        const buttonYes = document.createElement('button');
+        const buttonOk = document.createElement('button');
 
-        buttonYes.style.backgroundColor = '#4caf50';
-        buttonYes.style.color = '#ffffff';
-        buttonYes.style.outline = 'none';
-        buttonYes.style.padding = '10px 20px';
-        buttonYes.textContent = 'Aceptar';
+        buttonOk.style.backgroundColor = '#4caf50';
+        buttonOk.style.color = '#ffffff';
+        buttonOk.style.outline = 'none';
+        buttonOk.style.padding = '10px 20px';
+        buttonOk.textContent = 'Aceptar';
 
-        const buttonNo = document.createElement('button');
+        const buttonCancel = document.createElement('button');
 
-        buttonNo.style.backgroundColor = '#4a5568';
-        buttonNo.style.color = '#ffffff';
-        buttonNo.style.outline = 'none';
-        buttonNo.style.padding = '10px 20px';
-        buttonNo.textContent = 'Cancelar';
+        buttonCancel.style.backgroundColor = '#4a5568';
+        buttonCancel.style.color = '#ffffff';
+        buttonCancel.style.outline = 'none';
+        buttonCancel.style.padding = '10px 20px';
+        buttonCancel.textContent = 'Cancelar';
 
-        buttonYes.addEventListener('click', function() {
+        buttonOk.addEventListener('click', function() {
             document.body.removeChild(overlay);
             document.body.style.overflow = '';
             resolve(true);
         });
 
-        buttonNo.addEventListener('click', function() {
+        buttonCancel.addEventListener('click', function() {
             document.body.removeChild(overlay);
             document.body.style.overflow = '';
             resolve(false);
         });
 
-        buttonsContainer.appendChild(buttonYes);
-        buttonsContainer.appendChild(buttonNo);
+        buttonsContainer.appendChild(buttonOk);
+        buttonsContainer.appendChild(buttonCancel);
         modal.appendChild(text);
         modal.appendChild(buttonsContainer);
         overlay.appendChild(modal);
@@ -208,7 +208,117 @@ function confirmMessage(message = "") {
         document.body.style.overflow = 'hidden';
         document.body.appendChild(overlay);
 
-        buttonYes.focus();
+        buttonOk.focus();
+    });
+}
+
+function promptMessage(message = "", defaultValue = "") {
+    return new Promise((resolve) => {
+        if (message.length > 512) {
+            message = message.substring(0, 509) + '...';
+        }
+
+        const overlay = document.createElement('div');
+
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        overlay.style.zIndex = '1000';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+
+        const modal = document.createElement('div');
+
+        modal.style.borderRadius = '8px';
+        modal.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+        modal.style.backgroundColor = '#2d3748';
+        modal.style.maxWidth = '400px';
+        modal.style.width = '80%';
+        modal.style.textAlign = 'center';
+        modal.style.padding = '20px';
+
+        const text = document.createElement('p');
+
+        text.style.color = '#ffffff';
+        text.textContent = message;
+
+        const input = document.createElement('input');
+
+        input.type = 'text';
+        input.style.fontSize = '1rem';
+        input.style.boxSizing = 'border-box';
+        input.style.width = 'calc(100% - 20px)';
+        input.style.borderRadius = '4px';
+        input.style.border = '1px solid #64758a';
+        input.style.backgroundColor = '#1e2734';
+        input.style.color = '#ffffff';
+        input.style.outline = 'none';
+        input.style.padding = '10px';
+        input.style.marginBottom = '20px';
+        input.value = defaultValue;
+
+        const buttonsContainer = document.createElement('div');
+
+        buttonsContainer.style.display = 'flex';
+        buttonsContainer.style.gap = '10px';
+        buttonsContainer.style.justifyContent = 'center';
+
+        const buttonOk = document.createElement('button');
+
+        buttonOk.style.backgroundColor = '#4caf50';
+        buttonOk.style.color = '#ffffff';
+        buttonOk.style.outline = 'none';
+        buttonOk.style.padding = '10px 20px';
+        buttonOk.textContent = 'Aceptar';
+
+        const buttonCancel = document.createElement('button');
+
+        buttonCancel.style.backgroundColor = '#4a5568';
+        buttonCancel.style.color = '#ffffff';
+        buttonCancel.style.outline = 'none';
+        buttonCancel.style.padding = '10px 20px';
+        buttonCancel.textContent = 'Cancelar';
+
+        input.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                document.body.removeChild(overlay);
+                document.body.style.overflow = '';
+                resolve(input.value.trim());
+            } else if (e.key === 'Escape') {
+                document.body.removeChild(overlay);
+                document.body.style.overflow = '';
+                resolve(null);
+            }
+        });
+
+        buttonOk.addEventListener('click', function() {
+            document.body.removeChild(overlay);
+            document.body.style.overflow = '';
+            resolve(input.value.trim());
+        });
+
+        buttonCancel.addEventListener('click', function() {
+            document.body.removeChild(overlay);
+            document.body.style.overflow = '';
+            resolve(null);
+        });
+
+        buttonsContainer.appendChild(buttonOk);
+        buttonsContainer.appendChild(buttonCancel);
+        modal.appendChild(text);
+        modal.appendChild(input);
+        modal.appendChild(buttonsContainer);
+        overlay.appendChild(modal);
+
+        document.body.style.overflow = 'hidden';
+        document.body.appendChild(overlay);
+
+        input.focus();
+        input.select();
     });
 }
 

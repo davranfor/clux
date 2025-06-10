@@ -359,6 +359,13 @@ async function timesheetDelete() {
 }
 
 async function timesheetRequestClear(id) {
+/*
+    const nombre = await promptMessage("Por favor ingrese su nombre:", "John Doe");
+
+    if (nombre === null) {
+        return;
+    }
+*/
     if (!await confirmMessage("Se eliminará la solicitud pendiente")) {
         return;
     }
