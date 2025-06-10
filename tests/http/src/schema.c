@@ -185,6 +185,8 @@ static int on_failure(const json_event_t *event, context_t *context)
     if ((event->pointer->size < 2) ||
         (event->pointer->path[1] != json_index(context->request, "content")))
     {
+    fprintf(stderr, "'%s' at schema '%s'\n",
+        json_name(event->rule), get_path(context));
         return STOP;
     }
     if (context->buffer->length > BUFFER_LIMIT)

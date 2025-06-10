@@ -1,9 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "/timesheet.schema",
-  "type": "object",
   "definitions": {
-    "update.request.change": {
+    "update": {
+      "type": "object",
+      "properties": {
+        "workplace_id": { "type": "integer" },
+        "clock_in": { "type": "string", "format": "date-time-local", "minLength": 1 },
+        "clock_out": { "type": "string", "format": "date-time-local", "minLength": 1 }
+      },
+      "additionalProperties": false,
+      "required": [ "workplace_id", "clock_in", "clock_out" ]
+    },
+    "request.update": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
@@ -15,7 +24,7 @@
       "additionalProperties": false,
       "required": [ "workplace_id", "workplace_name", "clock_in", "clock_out", "reason" ]
     },
-    "update.request.delete": {
+    "request.delete": {
       "type": "object",
       "properties": {
         "reason": { "type": "string", "minLength": 1, "maxLength": 50 }

@@ -108,7 +108,7 @@ function refreshClockingTableUI(data) {
             const tr5 = document.createElement('tr');
 
             tr3.innerHTML = `
-                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
+                <td class="editable" colspan="4" onclick="timesheetRequestClear(${record[0]});">
                 <div><i class="ti ti-refresh"></i><span>Modificado, ${obj.workplace_name}</span></div>
                 </td>
             `;
@@ -127,7 +127,7 @@ function refreshClockingTableUI(data) {
             const tr4 = document.createElement('tr');
 
             tr3.innerHTML = `
-                <td class="editable" colspan="4" onclick="timesheetClear(${record[0]}, true);">
+                <td class="editable" colspan="4" onclick="timesheetRequestClear(${record[0]});">
                 <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
                 </td>
             `;
@@ -204,7 +204,7 @@ timesheet.reason.addEventListener("blur", function() {
     this.value = this.value.trim();
 });
 
-clockingForm.addEventListener('submit', async (e) => {
+clockingForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const focusedField = document.activeElement;
@@ -214,10 +214,8 @@ clockingForm.addEventListener('submit', async (e) => {
     }
 
     const workplace_id = Number(timesheet.workplace.value);
-    const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
     const clock_in = `${timesheet.clockIn.date.value} ${timesheet.clockIn.time.value}:00`;
     const clock_out = `${timesheet.clockOut.date.value} ${timesheet.clockOut.time.value}:00`;
-    const reason = timesheet.reason.value;
 
     const dt1 = new Date(clock_in.replace(' ', 'T'));
     const dt2 = new Date(clock_out.replace(' ', 'T'));
@@ -234,12 +232,44 @@ clockingForm.addEventListener('submit', async (e) => {
         });
         return;
     }
+    if (user.role !== role.ADMIN) {
+        const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
+        const reason = timesheet.reason.value;
+
+        timesheetRequestUpdate(JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason }));
+    } else {
+        timesheetUpdate(JSON.stringify({ workplace_id, clock_in, clock_out }));
+    }
+});
+
+document.getElementById("clocking-delete").addEventListener("click", () => {
+    if (user.role !== role.ADMIN) {
+        const reason = timesheet.reason.value;
+
+        if (reason === "") {
+            showMessage("Debe especificar un motivo para eliminar el registro").then(() => {
+                timesheet.reason.focus();
+            });
+            return;
+        }
+        timesheetRequestDelete(JSON.stringify({ reason }));
+    } else {
+        timesheetDelete();
+    }
+});
+
+document.getElementById("clocking-cancel").addEventListener("click", () => {
+    clockingForm.style.display = "none";
+    clockingTable.style.display = "table";
+});
+
+async function timesheetRequestUpdate(data) {
     try {
-        const response = await fetch(`/api/timesheet/${timesheet.id.value}/change`, {
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}/update`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason })
+            body: data
         });
 
         if (response.status === 200) {
@@ -255,23 +285,37 @@ clockingForm.addEventListener('submit', async (e) => {
     } catch (error) {
         showMessage(error.message || 'Undhandled error');
     }
-});
+}
 
-document.getElementById("clocking-delete").addEventListener("click", async () => {
-    const reason = timesheet.reason.value;
-
-    if (reason === "") {
-        showMessage("Debe especificar un motivo para dar de baja el registro").then(() => {
-            timesheet.reason.focus();
+async function timesheetUpdate(data) {
+    try {
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}/update`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: data
         });
-        return;
+
+        if (response.status === 200) {
+            clockingForm.style.display = "none";
+            clockingTable.style.display = "table";
+            await refreshClockingTable();
+        } else {
+            const data = await response.text();
+            throw new Error(data || `HTTP ${response.status}`);
+        }
+    } catch (error) {
+        showMessage(error.message || 'Undhandled error');
     }
+}
+
+async function timesheetRequestDelete(reason) {
     try {
         const response = await fetch(`/api/timesheet/${timesheet.id.value}/delete`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ reason })
+            body: reason
         });
 
         if (response.status === 200) {
@@ -287,18 +331,36 @@ document.getElementById("clocking-delete").addEventListener("click", async () =>
     } catch (error) {
         showMessage(error.message || 'Undhandled error');
     }
-});
+}
 
-document.getElementById("clocking-cancel").addEventListener("click", () => {
-    clockingForm.style.display = "none";
-    clockingTable.style.display = "table";
-});
+async function timesheetDelete() {
+    if (!await confirmMessage("Se eliminará el registro seleccionado")) {
+        return;
+    }
+    try {
+        const response = await fetch(`/api/timesheet/${timesheet.id.value}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
 
-async function timesheetClear(id, askConfirm) {
-    if (askConfirm) {
-        const confirmed = await confirmMessage("Se eliminará la solicitud pendiente");
+        if (response.status === 200) {
+            clockingForm.style.display = "none";
+            clockingTable.style.display = "table";
+            await refreshClockingTable();
+        } else if (response.status === 204) {
+            throw new Error('No hay nada que eliminar');
+        } else {
+            const data = await response.text();
+            throw new Error(data || `HTTP ${response.status}`);
+        }
+    } catch (error) {
+        showMessage(error.message || 'Undhandled error');
+    }
+}
 
-        if (!confirmed) return;
+async function timesheetRequestClear(id) {
+    if (!await confirmMessage("Se eliminará la solicitud pendiente")) {
+        return;
     }
     try {
         const response = await fetch(`/api/timesheet/${id}/clear`, {

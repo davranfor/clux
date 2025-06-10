@@ -1,21 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "/users.schema",
-  "type": "object",
   "definitions": {
-    "content": {
+    "update.token": {
       "type": "object",
       "properties": {
-        "name": { "type": "string", "minLength": 1, "maxLength": 50 },
-        "tin": { "type": "string", "minLength": 8, "maxLength": 14 },
         "email": { "type": "string", "format": "email" },
-        "password": { "minLength": 8, "maxLength": 25 }
+        "password": { "type": "string", "minLength": 8, "maxLength": 25 }
       },
-      "additionalProperties": false
-    },
-    "contentRequired": { "required": [ "name", "tin", "email" ] }
-  },
-  "$ref": "#/definitions/content",
-  "$ref": "#/definitions/contentRequired"
+      "additionalProperties": false,
+      "required": [ "email", "password" ]
+    }
+  }
 }
 

@@ -4,36 +4,32 @@
   "type": "object",
   "properties": {
     "GET": {
-      "if": {
-        "anyOf": [
-          {
-            "properties": {
-              "path": { "minItems": 1, "maxItems": 1 },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
-            },
-            "x-notify": { "path": "timesheet.select", "role": 1 }
+      "anyOf": [
+        {
+          "properties": {
+            "path": { "minItems": 1, "maxItems": 1 },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
           },
-          {
-            "properties": {
-              "path": { "items": [{}, { "const": "week" }], "additionalItems": false },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
-            },
-            "x-notify": { "path": "timesheet.select.week", "size": 1, "role": 1 }
+          "x-notify": { "path": "timesheet.select", "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "week" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
           },
-          {
-            "properties": {
-              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "edit" }], "additionalItems": false },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
-            },
-            "x-notify": { "path": "timesheet.select.edit", "size": 2, "role": 1 }
-          }
-        ]
-      },
-      "then": true,
-      "else": false
+          "x-notify": { "path": "timesheet.select.week", "size": 1, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "edit" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "timesheet.select.edit", "size": 2, "role": 1 }
+        }
+      ]
     },
     "POST": {
       "if": {
@@ -47,27 +43,40 @@
       "then": true,
       "else": false
     },
+    "PUT": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "update" }], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "timesheet.update", "size": 2, "role": 3 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "/timesheet.schema/definitions/update" } }
+      },
+      "else": false
+    },
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "change" }], "additionalItems": false },
+          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "update" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "timesheet.update.request.change", "size": 2, "role": 1 }
+        "x-notify": { "path": "timesheet.request.update", "size": 2, "role": 1 }
       },
       "then": {
-        "properties": { "content": { "$ref": "/timesheet.schema/definitions/update.request.change" } }
+        "properties": { "content": { "$ref": "/timesheet.schema/definitions/request.update" } }
       },
       "else": {
         "if": {
           "properties": {
-              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "delete" }], "additionalItems": false },
-              "query": { "type": "null" }
+            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "delete" }], "additionalItems": false },
+            "query": { "type": "null" }
           },
-          "x-notify": { "path": "timesheet.update.request.delete", "size": 2, "role": 1 }
+          "x-notify": { "path": "timesheet.request.delete", "size": 2, "role": 1 }
         },
         "then": {
-          "properties": { "content": { "$ref": "/timesheet.schema/definitions/update.request.delete" } }
+          "properties": { "content": { "$ref": "/timesheet.schema/definitions/request.delete" } }
         },
         "else": {
           "if": {
@@ -76,12 +85,23 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "timesheet.update.request.clear", "size": 2, "role": 1 }
+            "x-notify": { "path": "timesheet.request.clear", "size": 2, "role": 1 }
           },
           "then": true,
           "else": false
         }
       }
+    },
+    "DELETE": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "timesheet.delete", "role": 3 }
+      },
+      "then": true,
+      "else": false
     }
   },
   "additionalProperties": false

@@ -8,16 +8,12 @@
         "properties": {
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" },
-          "content": {
-            "$ref": "/users.schema/definitions/content",
-            "minProperties": 2, "maxProperties": 2,
-            "required": ["email", "password"]
-          }
+          "content": { "$ref": "/users.schema/definitions/update.token" }
         }
       }
     },
     "additionalProperties": false,
-    "x-notify": { "path": "login", "role": 0 }
+    "x-notify": { "path": "users.update.token", "role": 0 }
   },
   "then": true,
   "else": false
