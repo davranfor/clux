@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <clux/clib_string.h>
 #include "reader.h"
 
@@ -12,7 +13,7 @@
 
 int reader_handle(const char *message, size_t length)
 {
-    const char *delimiter = string_search(message, length, "\r\n\r\n", 4);
+    const char *delimiter = strstr(message, "\r\n\r\n");
 
     if (delimiter == NULL)
     {

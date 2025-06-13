@@ -7,6 +7,10 @@ hr {
     border-top: 1px solid #64758a;
 }
 
+textarea {
+    resize: none;
+}
+
 button {
     border: none;
     border-radius: 6px;
@@ -208,6 +212,12 @@ header {
     gap: 1.2rem;
 }
 
+.form-2columnsA {
+    display: grid;
+    grid-template-columns: 1.5fr 0.5fr;
+    gap: 1.2rem;
+}
+
 .form-3columns {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -217,7 +227,7 @@ header {
 .form-group label {
 }
 
-.form-group input, .form-group select {
+.form-group input, .form-group textarea, .form-group select {
     font-size: 1rem;
     border: 1px solid #64758a;
     border-radius: 4px;
@@ -229,7 +239,7 @@ header {
     padding: 0.75rem;
 }
 
-.form-group input:focus {
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus  {
     border-color: #718096;
     box-shadow: 0 0 0 2px rgba(113, 128, 150, 0.3);
     outline: none;

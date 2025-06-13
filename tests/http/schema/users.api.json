@@ -5,93 +5,13 @@
   "properties": {
     "GET": {
       "if": {
-        "anyOf": [
-          {
-            "properties": {
-              "path": { "minItems": 1, "maxItems": 1 },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
-            },
-            "x-notify": { "path": "users.select.all", "role": 2 }
-          },
-          {
-            "properties": {
-              "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
-            },
-            "x-notify": { "path": "users.select", "role": 1 }
-          }
-        ]
-      },
-      "then": true, 
-      "else": false
-    },
-    "POST": {
-      "if": {
         "properties": {
-          "path": { "minItems": 1, "maxItems": 1 },
-          "query": { "type": "null" }
-        },
-        "x-notify": { "path": "users.insert", "role": 1 }
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "/users.schema/definitions/content",
-            "$ref": "/users.schema/definitions/contentRequired"
-          }
-        }
-      },
-      "else": false
-    },
-    "PUT": {
-      "if": {
-        "properties": {
-          "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
-          "query": { "type": "null" }
-        },
-        "x-notify": { "path": "users.update", "role": 1 }
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "/users.schema/definitions/content",
-            "$ref": "/users.schema/definitions/contentRequired"
-          }
-        }
-      },
-      "else": false
-    },
-    "PATCH": {
-      "if": {
-        "properties": {
-          "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
-          "query": { "type": "null" }
-        },
-        "x-notify": { "path": "users.update.email", "role": 3 }
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "/users.schema/definitions/content",
-            "minProperties": 1, "maxProperties": 1,
-            "required": ["email"]
-          }
-        }
-      },
-      "else": false
-    },
-    "DELETE": {
-      "if": {
-        "properties": {
-          "path": { "items": [{}, { "x-mask": "099999" }], "additionalItems": false },
-          "query": { "type": "null" },
+          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "edit" }], "additionalItems": false },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "users.delete", "role": 3 }
+        "x-notify": { "path": "users.select.edit", "size": 2, "role": 1 }
       },
-      "then": true,
+      "then": true, 
       "else": false
     }
   }

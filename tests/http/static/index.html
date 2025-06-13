@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
     <script src="functions.js" defer></script>
     <script src="timesheet.js" defer></script>
+    <script src="manager.js" defer></script>
     <script src="auth.js" defer></script>
 </head>
 <body>
@@ -48,7 +49,7 @@
                 <span class="menu-text">Estadísticas</span>
             </div>
             <hr>
-            <div class="menu-item" onclick="setActive(this)" data-item="perfil">
+            <div class="menu-item" onclick="setActive(this)" data-item="item-profile">
                 <i class="ti ti-user"></i>
                 <span class="menu-text">Perfil</span>
             </div>
@@ -88,7 +89,7 @@
                     <table id="clocking-table">
                         <tbody></tbody>
                     </table>
-                    <form class="content-form" id="clocking-form"i autocomplete="off">
+                    <form class="content-form" id="clocking-form" autocomplete="off">
                         <input type="hidden" name="id" required>
                         <div class="form-group">
                             <label for="workplace">Centro de trabajo</label>
@@ -139,33 +140,84 @@
                     <h2>Ausencias</h2>
                 </div>
             </div>
+            <div class="content-wrapper" id="profile-frame">
+                <div class="content-box">
+                    <h2>Perfil</h2>
+                    <form class="content-form" id="profile-form" autocomplete="off">
+                        <input type="hidden" name="id" required>
+                        <div class="form-group">
+                            <label for="workplace">Centro de trabajo</label>
+                            <select name="workplace" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Nivel de acceso</label>
+                            <select name="role" required>
+                                <option value="1">Básico</option>
+                                <option value="2">Supervisor</option>
+                                <option value="3">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="form-2columnsA">
+                            <div class="form-group">
+                                <label for="name">Apellidos, Nombre</label>
+                                <input name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tin">DNI o NIE</label>
+                                <input name="tin" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Dirección</label>
+                            <textarea name="address" rows="3" cols="50"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Teléfono</label>
+                            <input name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Correo electrónico</label>
+                            <input type="email" name="email" required>
+                        </div>
+                        <div class="form-2columns">
+                            <button type="submit" class="content-submit">Aceptar</button>
+                            <button type="button" class="content-button">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <script>
         const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
-        const user = { role: 0, name: "", workplace: "", clockIn: 0 };
+        const user = { id: 0, role: 0, name: "", workplace: "", clockIn: 0 };
         const userPanel = document.getElementById("user-panel");
         const userTitle = document.getElementById("user-title");
         const userButton = document.getElementById("user-button");
 
         const menu = document.getElementById("menu");
 
-        function setActive(element) {
+        async function setActive(element) {
             const activeItem = document.querySelector('#menu .menu-item.active');
 
             if (activeItem) {
                 activeItem.classList.remove('active');
                 switch (activeItem.dataset.item) {
                     case 'item-clocking': clockingFrame.style.display = "none"; break;
-                    case 'item-absences': absencesFrame.style.display = "none"; break;
+                    case 'item-profile': profileFrame.style.display = "none"; break;
                 }
             }
             element.classList.add('active');
-            switch (element.dataset.item) {
-                case 'item-clocking': refreshClockingTable(); clockingFrame.style.display = "flex"; break;
-                case 'item-absences': absencesFrame.style.display = "flex"; break;
+            try {
+                switch (element.dataset.item) {
+                    case 'item-clocking': await refreshClockingTable(); clockingFrame.style.display = "flex"; break;
+                    case 'item-profile': await profileEdit(user.id); profileFrame.style.display = "flex"; break;
+                }
+            } catch (error) {
+                if (error.message) showMessage(error.message);
             }
+
         }
         function setActiveByKey(key) {
             const element = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
@@ -214,7 +266,8 @@
             }
         });
 
-        const absencesFrame = document.getElementById("absences-frame");
+        const profileFrame = document.getElementById("profile-frame");
+        const profileForm = document.getElementById("profile-form");
 
         function UIConfig() {
             if (user.role === role.ADMIN) {
