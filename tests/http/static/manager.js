@@ -10,29 +10,25 @@ const profile = {
 }
 
 async function profileEdit(id) {
-    try {
-        const response = await fetch(`/api/users/${id}/edit`, {
-            method: 'GET',
-            credentials: 'include'
-        });
+    const response = await fetch(`/api/users/${id}/edit`, {
+        method: 'GET',
+        credentials: 'include'
+    });
 
-        if (response.status === 200) {
-            const data = await response.json();
-            profileEditUI(data);
-        } else if (response.status === 204) {
-            showMessage('El registro ya no existe');
-        } else {
-            const text = await response.text();
-            throw new Error(text || `HTTP Error ${response.status}`);
-        }
-    } catch (error) {
-        showMessage(error.message || 'No se puede editar el registro');
+    if (response.status === 200) {
+        const data = await response.json();
+        profileEditUI(data);
+    } else if (response.status === 204) {
+        showMessage('El registro ya no existe');
+    } else {
+        const text = await response.text();
+        throw new Error(text || `HTTP Error ${response.status}`);
     }
 }
 
 function profileEditUI(data) {
     profile.id.value = data.id;
-    profile.workplace.innerHTML = '';
+    profile.workplace.replaceChildren();
     data.workplaces.forEach(workplace => {
         const option = document.createElement('option');
 
@@ -48,4 +44,8 @@ function profileEditUI(data) {
     profile.phone.value = data.phone;
     profile.email.value = data.email;
 }
+
+document.getElementById("profile-cancel").addEventListener("click", () => {
+    profileEdit(user.id).catch(error => { if (error.message) showMessage(error.message); });
+});
 

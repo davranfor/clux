@@ -31,43 +31,35 @@ const clocking = {
 }
 
 async function logHours() {
-    try {
-        const response = await fetch('/api/timesheet', {
-            method: 'POST',
-            credentials: 'include'
-        });
+    const response = await fetch('/api/timesheet', {
+        method: 'POST',
+        credentials: 'include'
+    });
 
-        if (response.status === 200) {
-            const data = await response.json();
-            user.workplace = data[0];
-            user.clockIn = data[2] === 0 ? data[1] : 0;
-        } else if (response.status === 204) {
-            throw new Error('No se puede fichar en este momento');
-        } else {
-            const text = await response.text();
-            throw new Error(text || `HTTP Error ${response.status}`);
-        }
-    } catch (error) {
-        throw new Error(error.message || 'Unhandled error');
+    if (response.status === 200) {
+        const data = await response.json();
+        user.workplace = data[0];
+        user.clockIn = data[2] === 0 ? data[1] : 0;
+    } else if (response.status === 204) {
+        throw new Error('No se puede fichar en este momento');
+    } else {
+        const text = await response.text();
+        throw new Error(text || `HTTP Error ${response.status}`);
     }
 }
 
 async function refreshClockingTable() {
-    try {
-        const response = await fetch('/api/timesheet/week', {
-            method: 'GET',
-            credentials: 'include'
-        });
+    const response = await fetch('/api/timesheet/week', {
+        method: 'GET',
+        credentials: 'include'
+    });
 
-        if (response.status === 200) {
-            const data = await response.json();
-            refreshClockingTableUI(data);
-        } else if (response.status !== 204) {
-            const text = await response.text();
-            throw new Error(text || `HTTP Error ${response.status}`);
-        }
-    } catch (error) {
-        throw new Error(error.message || 'Unhandled error');
+    if (response.status === 200) {
+        const data = await response.json();
+        refreshClockingTableUI(data);
+    } else if (response.status !== 204) {
+        const text = await response.text();
+        throw new Error(text || `HTTP Error ${response.status}`);
     }
 }
 
@@ -166,7 +158,7 @@ async function timesheetEdit(id) {
             showMessage('El registro ya no existe');
         } else {
             const text = await response.text();
-            throw new Error(text || `HTTP Error ${response.status}`);
+            showMessage(text || `HTTP Error ${response.status}`);
         }
     } catch (error) {
         showMessage(error.message || 'No se puede editar el registro');
@@ -179,7 +171,7 @@ function timesheetEditUI(data) {
 
     timesheet.id.value = data.id;
 
-    timesheet.workplace.innerHTML = '';
+    timesheet.workplace.replaceChildren();
     data.workplaces.forEach(workplace => {
         const option = document.createElement('option');
 
@@ -277,13 +269,13 @@ async function timesheetRequestUpdate(data) {
             clockingTable.style.display = "table";
             await refreshClockingTable();
         } else if (response.status === 204) {
-            throw new Error('No hay ningún cambio que solicitar');
+            showMessage('No hay ningún cambio que solicitar');
         } else {
-            const data = await response.text();
-            throw new Error(data || `HTTP ${response.status}`);
+            const text = await response.text();
+            showMessage(text || `HTTP ${response.status}`);
         }
     } catch (error) {
-        showMessage(error.message || 'Undhandled error');
+        showMessage(error.message || 'No se puede actualizar el registro');
     }
 }
 
@@ -300,12 +292,14 @@ async function timesheetUpdate(data) {
             clockingForm.style.display = "none";
             clockingTable.style.display = "table";
             await refreshClockingTable();
+        } else if (response.status === 204) {
+            showMessage('No hay nada que guardar');
         } else {
-            const data = await response.text();
-            throw new Error(data || `HTTP ${response.status}`);
+            const text = await response.text();
+            showMessage(text || `HTTP ${response.status}`);
         }
     } catch (error) {
-        showMessage(error.message || 'Undhandled error');
+        showMessage(error.message || 'No se puede actualizar el registro');
     }
 }
 
@@ -323,13 +317,13 @@ async function timesheetRequestDelete(reason) {
             clockingTable.style.display = "table";
             await refreshClockingTable();
         } else if (response.status === 204) {
-            throw new Error('No hay nada que eliminar');
+            showMessage('No hay nada que eliminar');
         } else {
-            const data = await response.text();
-            throw new Error(data || `HTTP ${response.status}`);
+            const text = await response.text();
+            showMessage(text || `HTTP ${response.status}`);
         }
     } catch (error) {
-        showMessage(error.message || 'Undhandled error');
+        showMessage(error.message || 'No se puede actualizar el registro');
     }
 }
 
@@ -348,13 +342,13 @@ async function timesheetDelete() {
             clockingTable.style.display = "table";
             await refreshClockingTable();
         } else if (response.status === 204) {
-            throw new Error('No hay nada que eliminar');
+            showMessage('No hay nada que eliminar');
         } else {
-            const data = await response.text();
-            throw new Error(data || `HTTP ${response.status}`);
+            const text = await response.text();
+            showMessage(text || `HTTP ${response.status}`);
         }
     } catch (error) {
-        showMessage(error.message || 'Undhandled error');
+        showMessage(error.message || 'No se puede actualizar el registro');
     }
 }
 
@@ -380,13 +374,13 @@ async function timesheetRequestClear(id) {
             clockingTable.style.display = "table";
             await refreshClockingTable();
         } else if (response.status === 204) {
-            throw new Error('No hay nada que actualizar');
+            showMessage('No hay nada que actualizar');
         } else {
-            const data = await response.text();
-            throw new Error(data || `HTTP ${response.status}`);
+            const text = await response.text();
+            showMessage(text || `HTTP ${response.status}`);
         }
     } catch (error) {
-        showMessage(error.message || 'Undhandled error');
+        showMessage(error.message || 'No se puede actualizar el registro');
     }
 }
 
