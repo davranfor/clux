@@ -12,7 +12,6 @@
 #include "json_writer.h"
 #include "json_buffer.h"
 #include "json_schema.h"
-#include "json_patch.h"
 #include "json_utils.h"
 
 #endif

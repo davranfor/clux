@@ -36,7 +36,7 @@ char *string_format(const char *fmt, ...)
     return str;
 }
 
-/* Returns an allocated strung using vprintf style */
+/* Returns an allocated string using vprintf style */
 char *string_vprint(const char *fmt, va_list args)
 {
     va_list copy;
@@ -62,32 +62,32 @@ char *string_vprint(const char *fmt, va_list args)
     return str;
 }
 
+/**
+ * memmem implementation
+ * Search for a substring (substr) within a larger string (str) given the lengths
+ */
+char *string_search(const char *str, size_t max, const char *substr, size_t length)
+{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
-/* Search for a substring (b) within a larger string (a) given the lengths */
-char *string_search(const char *a, size_t na, const char *b, size_t nb)
-{
-    if (nb == 0)
+    if (length == 0)
     {
-        return (char *)a;
+        return (char *)str;
     }
-    if (na < nb)
+    if (max < length)
     {
         return NULL;
     }
-
-    const char c = b[0];
-
-    for (size_t i = 0; i <= na - nb; i++)
+    for (size_t i = 0; i <= max - length; i++)
     {
-        if ((a[i] == c) && !memcmp(a + i, b, nb))
+        if ((str[i] == substr[0]) && !memcmp(str + i, substr, length))
         {
-            return (char *)(a + i);
+            return (char *)(str + i);
         }
     }
     return NULL;
-}
 #pragma GCC diagnostic pop
+}
 
 /* Returns the number of multibytes of a string */
 size_t string_length(const char *str)
