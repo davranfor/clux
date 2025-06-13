@@ -1,32 +1,24 @@
 const login = {
     frame: document.getElementById('login-frame'),
     form: document.getElementById('login-form'),
-    text: document.getElementById('login-text')
+    text: document.getElementById('login-text'),
+    show() {
+        this.text.style.display = "none";
+        this.frame.style.display = "flex";
+    },
+    hide() {
+        if (this.text.style.display === "block") {
+            this.text.style.display = "none";
+        }
+        this.frame.style.display = "none";
+    },
+    showError(message) {
+        if (this.text.style.display === "none") {
+            this.text.style.display = "block";
+        }
+        this.text.textContent = message;
+    }
 };
-
-function showLogin() {
-    login.text.style.display = "none";
-    login.frame.style.display = "flex";
-}
-
-function hideLogin() {
-    hideLoginError();
-    login.frame.style.display = "none";
-    start();
-}
-
-function showLoginError(message) {
-    if (login.text.style.display === "none") {
-        login.text.style.display = "block";
-    }
-    login.text.textContent = message;
-}
-
-function hideLoginError() {
-    if (login.text.style.display === "block") {
-        login.text.style.display = "none";
-    }
-}
 
 login.form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -45,10 +37,10 @@ login.form.addEventListener('submit', async (e) => {
             await checkSession();
         } else {
             const data = await response.text();
-            throw new Error(data || 'Sesión inválida, revise sus credenciales');
+            login.showError(data || 'Sesión inválida, revise sus credenciales');
         }
     } catch (error) {
-        showLoginError(error.message || "Sesión inválida");
+        login.showError(error.message || "Sesión inválida");
     }
 });
 
@@ -69,16 +61,17 @@ async function checkSession() {
                 [user.id, user.role, user.name],
                 [user.workplace, user.clockIn, clocking.elapsed]
             ] = await response.json();
-            hideLogin();
+            login.hide();
+            start();
         } else if (response.status === 401) {
-            showLogin();
+            login.show();
         } else {
             const data = await response.text();
-            throw new Error(data);
+            login.showError(data || 'Sesión inválida');
         }
     } catch (error) {
         clearTimeout(timeout);
-        showLoginError(error.message || 'Sesión inválida');
+        login.showError(error.message || 'Sesión inválida');
     } finally {
         controller.abort();
     }
