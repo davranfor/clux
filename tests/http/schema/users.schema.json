@@ -2,10 +2,37 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "/users.schema",
   "definitions": {
+    "update": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "tin": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 500 },
+        "phone": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "minLength": 1}
+      },
+      "additionalProperties": false,
+      "required": [ "name", "tin", "address", "phone", "email" ]
+    },
+    "update.all": {
+      "type": "object",
+      "properties": {
+        "workplace_id": { "type": "integer" },
+        "category_id": { "type": "integer" },
+        "role": { "type": "integer" },
+        "name": { "type": "string", "maxLength": 100 },
+        "tin": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 500 },
+        "phone": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "minLength": 1}
+      },
+      "additionalProperties": false,
+      "required": [ "workplace_id", "category_id", "role", "name", "tin", "address", "phone", "email" ]
+    },
     "update.token": {
       "type": "object",
       "properties": {
-        "email": { "type": "string", "format": "email" },
+        "email": { "type": "string", "format": "email", "minLength": 1 },
         "password": { "type": "string", "minLength": 8, "maxLength": 25 }
       },
       "additionalProperties": false,

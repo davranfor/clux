@@ -239,7 +239,7 @@ document.getElementById("clocking-delete").addEventListener("click", () => {
         const reason = timesheet.reason.value;
 
         if (reason === "") {
-            showMessage("Debe especificar un motivo para eliminar el registro").then(() => {
+            showMessage("Especifica el motivo para eliminar el registro").then(() => {
                 timesheet.reason.focus();
             });
             return;

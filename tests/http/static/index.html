@@ -117,7 +117,7 @@
                         </div>
                         <div id="clocking-reason" class="form-group">
                             <label for="workplace">Motivo del cambio o baja</label>
-                            <input type="text" list="reason-list" name="reason" maxlength="50" required>
+                            <input type="text" list="reason-list" name="reason" maxlength="100" required>
                             <datalist id="reason-list">
                                 <option value="Cambio de centro de trabajo">
                                 <option value="He olvidado fichar la entrada">
@@ -146,25 +146,31 @@
                     <form class="content-form" id="profile-form" autocomplete="off">
                         <input type="hidden" name="id" required>
                         <div class="form-group">
-                            <label for="workplace">Centro de trabajo</label>
+                            <label for="workplace">Centro de trabajo habitual</label>
                             <select name="workplace" required></select>
                         </div>
-                        <div class="form-group">
-                            <label for="role">Nivel de acceso</label>
-                            <select name="role" required>
-                                <option value="1">Básico</option>
-                                <option value="2">Supervisor</option>
-                                <option value="3">Administrador</option>
-                            </select>
+                        <div class="form-2columnsA">
+                            <div class="form-group">
+                                <label for="category">Categoría</label>
+                                <select name="category" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Nivel de acceso</label>
+                                <select name="role" required>
+                                    <option value="1">Básico</option>
+                                    <option value="2">Supervisor</option>
+                                    <option value="3">Administrador</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-2columnsA">
                             <div class="form-group">
                                 <label for="name">Apellidos, Nombre</label>
-                                <input name="name" required>
+                                <input name="name" maxLength="100" required>
                             </div>
                             <div class="form-group">
                                 <label for="tin">DNI o NIE</label>
-                                <input name="tin" required>
+                                <input name="tin" maxLength="100" required>
                             </div>
                         </div>
                         <div class="form-group">
@@ -173,14 +179,14 @@
                         </div>
                         <div class="form-group">
                             <label for="phone">Teléfono</label>
-                            <input name="phone">
+                            <input name="phone" maxLength="100">
                         </div>
                         <div class="form-group">
                             <label for="email">Correo electrónico</label>
-                            <input type="email" name="email" required>
+                            <input type="email" name="email" maxLength="1024" required>
                         </div>
                         <div class="form-2columns">
-                            <button type="submit" class="content-submit">Aceptar</button>
+                            <button type="submit" class="content-submit">Guardar</button>
                             <button type="button" id="profile-cancel" class="content-button">Cancelar</button>
                         </div>
                     </form>
@@ -191,7 +197,7 @@
     <script>
         const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
-        const user = { id: 0, role: 0, name: "", workplace: "", clockIn: 0 };
+        const user = { role: 0, name: "", workplace: "", clockIn: 0 };
         const userPanel = document.getElementById("user-panel");
         const userTitle = document.getElementById("user-title");
         const userButton = document.getElementById("user-button");
@@ -202,6 +208,7 @@
             const activeItem = document.querySelector('#menu .menu-item.active');
 
             if (activeItem) {
+                if (activeItem === element) return;
                 activeItem.classList.remove('active');
                 switch (activeItem.dataset.item) {
                     case 'item-clocking': clockingFrame.style.display = "none"; break;
@@ -270,7 +277,14 @@
         const profileForm = document.getElementById("profile-form");
 
         function UIConfig() {
-            if (user.role === role.ADMIN) {
+            if (user.role !== role.ADMIN) {
+                profile.workplace.disabled = true;
+                profile.workplace.classList.add("cursorForbidden");
+                profile.category.disabled = true;
+                profile.category.classList.add("cursorForbidden");
+                profile.role.disabled = true;
+                profile.role.classList.add("cursorForbidden");
+            } else {
                 document.getElementById("clocking-submit").textContent = "Guardar";
                 document.getElementById("clocking-reason").style.display = "none";
                 timesheet.reason.required = false;

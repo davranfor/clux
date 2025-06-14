@@ -6,13 +6,41 @@
     "GET": {
       "if": {
         "properties": {
-          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "edit" }], "additionalItems": false },
+          "path": { "items": [{}, { "const": "edit" }], "additionalItems": false },
+          "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "users.select.edit", "size": 2, "role": 1 }
+        "x-notify": { "path": "users.select.edit", "size": 1, "role": 1 }
       },
       "then": true, 
       "else": false
+    },
+    "PUT": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "const": "update" }], "additionalItems": false },
+          "query": { "type": "null" },
+          "cookie": { "properties": { "role": { "enum": [1, 2] } } }
+        },
+        "x-notify": { "path": "users.update", "size": 1, "role": 1 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "/users.schema/definitions/update" } }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "items": [{}, { "const": "update" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "cookie": { "properties": { "role": { "const": 3 } } }
+          },
+          "x-notify": { "path": "users.update.all", "size": 1, "role": 3 }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "/users.schema/definitions/update.all" } }
+        },
+        "else": false
+      }
     }
   }
 }

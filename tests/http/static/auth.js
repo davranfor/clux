@@ -37,7 +37,7 @@ login.form.addEventListener('submit', async (e) => {
             await checkSession();
         } else {
             const data = await response.text();
-            login.showError(data || 'Sesión inválida, revise sus credenciales');
+            login.showError(data || 'Los datos introducidos no son correctos');
         }
     } catch (error) {
         login.showError(error.message || "Sesión inválida");
@@ -58,7 +58,7 @@ async function checkSession() {
         clearTimeout(timeout);
         if (response.status === 200) {
             [
-                [user.id, user.role, user.name],
+                [user.role, user.name],
                 [user.workplace, user.clockIn, clocking.elapsed]
             ] = await response.json();
             login.hide();

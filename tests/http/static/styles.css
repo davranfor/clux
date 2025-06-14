@@ -214,7 +214,7 @@ header {
 
 .form-2columnsA {
     display: grid;
-    grid-template-columns: 1.5fr 0.5fr;
+    grid-template-columns: 2fr 1fr;
     gap: 1.2rem;
 }
 
@@ -283,6 +283,10 @@ header {
 
 .taLeft {
     text-align: left;
+}
+
+.cursorForbidden:disabled {
+    cursor: not-allowed;
 }
 
 /* Hack safari desktop */
