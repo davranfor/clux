@@ -1,319 +1,319 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IGASA - Panel de Control</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
-    <script src="functions.js" defer></script>
-    <script src="timesheet.js" defer></script>
-    <script src="manager.js" defer></script>
-    <script src="auth.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IGASA - Panel de Control</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+  <script src="functions.js" defer></script>
+  <script src="timesheet.js" defer></script>
+  <script src="manager.js" defer></script>
+  <script src="auth.js" defer></script>
 </head>
 <body>
-    <header>
-        <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo">
-        <div id="user-panel">
-            <p id="user-title"></p>
-            <button class="user-button" id="user-button"></button>
-        </div>
-    </header>
-    <div class="container">
-        <div class="menu" id="menu">
-            <!--<div class="menu-item active" onclick="setActive(this)" data-item="item_clocking">-->
-            <div class="menu-item" onclick="setActive(this)" data-item="item-clocking">
-                <i class="ti ti-clock"></i>
-                <span class="menu-text">Fichajes</span>
-            </div>
-            <div class="menu-item" onclick="setActive(this)" data-item="horarios">
-                <i class="ti ti-calendar-time"></i>
-                <span class="menu-text">Horarios</span>
-            </div>
-            <div class="menu-item" onclick="setActive(this)" data-item="item-absences">
-                <i class="ti ti-ghost"></i>
-                <span class="menu-text">Ausencias</span>
-            </div>
-            <hr>
-            <div class="menu-item" onclick="setActive(this)" data-item="tareas">
-                <i class="ti ti-checklist"></i>
-                <span class="menu-text">Tareas</span>
-            </div>
-            <div class="menu-item" onclick="setActive(this)" data-item="equipo">
-                <i class="ti ti-world-longitude"></i>
-                <span class="menu-text">Equipo</span>
-            </div>
-            <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
-                <i class="ti ti-chart-bar"></i>
-                <span class="menu-text">Estadísticas</span>
-            </div>
-            <hr>
-            <div class="menu-item" onclick="setActive(this)" data-item="item-profile">
-                <i class="ti ti-user"></i>
-                <span class="menu-text">Perfil</span>
-            </div>
-            <div class="menu-item" onclick="setActive(this)" data-item="configuracion">
-                <i class="ti ti-settings"></i>
-                <span class="menu-text">Configuración</span>
-            </div>
-            <hr>
-            <div class="menu-item" onclick="setActive(this)" data-item="ayuda">
-                <i class="ti ti-help"></i>
-                <span class="menu-text">Ayuda</span>
-            </div>
-        </div>
-        <div class="content">
-            <div class="content-wrapper" id="login-frame">
-                <div class="content-box">
-                    <h2>Iniciar sesión</h2>
-                    <form class="content-form" id="login-form">
-                        <div class="form-group">
-                            <label for="email">Correo electrónico</label>
-                            <input type="email" name="email" placeholder="tu@email.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Contraseña</label>
-                            <input type="password" name="password" placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="content-submit">Ingresar</button>
-                        <b id="login-text"></b>
-                    </form>
-                </div>
-            </div>
-            <div class="content-wrapper" id="clocking-frame">
-                <div class="content-box">
-                    <h2>Fichajes</h2>
-                    <b id="clocking-title"></b>
-                    <b id="clocking-text"></b>
-                    <table id="clocking-table">
-                        <tbody></tbody>
-                    </table>
-                    <form class="content-form" id="clocking-form" autocomplete="off">
-                        <input type="hidden" name="id" required>
-                        <div class="form-group">
-                            <label for="workplace">Centro de trabajo</label>
-                            <select name="workplace"></select>
-                        </div>
-                        <div class="form-2columns">
-                            <div class="form-group">
-                                <label for="clock_in_date">Fecha de entrada</label>
-                                <input type="date" name="clock_in_date" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="clock_in_time">Hora de entrada</label>
-                                <input type="time" name="clock_in_time" required>
-                            </div>
-                        </div>
-                        <div class="form-2columns">
-                            <div class="form-group">
-                                <label for="clock_out_date">Fecha de salida</label>
-                                <input type="date" name="clock_out_date" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="clock_out_time">Hora de salida</label>
-                                <input type="time" name="clock_out_time" required>
-                            </div>
-                        </div>
-                        <div id="clocking-reason" class="form-group">
-                            <label for="workplace">Motivo del cambio o baja</label>
-                            <input type="text" list="reason-list" name="reason" maxlength="100" required>
-                            <datalist id="reason-list">
-                                <option value="Cambio de centro de trabajo">
-                                <option value="He olvidado fichar la entrada">
-                                <option value="He olvidado fichar la salida">
-                                <option value="No tenía acceso a internet">
-                                <option value="No tenía un punto de acceso para fichar">
-                                <option value="No he podido fichar debido a problemas técnicos">
-                            </datalist>
-                        </div>
-                        <div class="form-3columns">
-                            <button type="submit" id="clocking-submit" class="content-submit">Solicitar</button>
-                            <button type="button" id="clocking-delete" class="content-button">Eliminar</button>
-                            <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="content-wrapper" id="absences-frame">
-                <div class="content-box">
-                    <h2>Ausencias</h2>
-                </div>
-            </div>
-            <div class="content-wrapper" id="profile-frame">
-                <div class="content-box">
-                    <h2>Perfil</h2>
-                    <form class="content-form" id="profile-form" autocomplete="off">
-                        <input type="hidden" name="id" required>
-                        <div class="form-group">
-                            <label for="workplace">Centro de trabajo habitual</label>
-                            <select name="workplace" required></select>
-                        </div>
-                        <div class="form-2columnsA">
-                            <div class="form-group">
-                                <label for="category">Categoría</label>
-                                <select name="category" required></select>
-                            </div>
-                            <div class="form-group">
-                                <label for="role">Nivel de acceso</label>
-                                <select name="role" required>
-                                    <option value="1">Básico</option>
-                                    <option value="2">Supervisor</option>
-                                    <option value="3">Administrador</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-2columnsA">
-                            <div class="form-group">
-                                <label for="name">Apellidos, Nombre</label>
-                                <input name="name" maxLength="100" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="tin">DNI o NIE</label>
-                                <input name="tin" maxLength="100" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="address">Dirección</label>
-                            <textarea name="address" rows="3" cols="50"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Teléfono</label>
-                            <input name="phone" maxLength="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Correo electrónico</label>
-                            <input type="email" name="email" maxLength="1024" required>
-                        </div>
-                        <div class="form-2columns">
-                            <button type="submit" class="content-submit">Guardar</button>
-                            <button type="button" id="profile-cancel" class="content-button">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+  <header>
+    <img src="https://i.postimg.cc/DZ7PHGc2/logo.png" alt="logo">
+    <div id="user-panel">
+      <p id="user-title"></p>
+      <button class="user-button" id="user-button"></button>
     </div>
-    <script>
-        const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
+  </header>
+  <div class="container">
+    <div class="menu" id="menu">
+      <!--<div class="menu-item active" onclick="setActive(this)" data-item="item_clocking">-->
+      <div class="menu-item" onclick="setActive(this)" data-item="item-clocking">
+        <i class="ti ti-clock"></i>
+        <span class="menu-text">Fichajes</span>
+      </div>
+      <div class="menu-item" onclick="setActive(this)" data-item="horarios">
+        <i class="ti ti-calendar-time"></i>
+        <span class="menu-text">Horarios</span>
+      </div>
+      <div class="menu-item" onclick="setActive(this)" data-item="item-absences">
+        <i class="ti ti-ghost"></i>
+        <span class="menu-text">Ausencias</span>
+      </div>
+      <hr>
+      <div class="menu-item" onclick="setActive(this)" data-item="tareas">
+        <i class="ti ti-checklist"></i>
+        <span class="menu-text">Tareas</span>
+      </div>
+      <div class="menu-item" onclick="setActive(this)" data-item="equipo">
+        <i class="ti ti-world-longitude"></i>
+        <span class="menu-text">Equipo</span>
+      </div>
+      <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
+        <i class="ti ti-chart-bar"></i>
+        <span class="menu-text">Estadísticas</span>
+      </div>
+      <hr>
+      <div class="menu-item" onclick="setActive(this)" data-item="item-profile">
+        <i class="ti ti-user"></i>
+        <span class="menu-text">Perfil</span>
+      </div>
+      <div class="menu-item" onclick="setActive(this)" data-item="configuracion">
+        <i class="ti ti-settings"></i>
+        <span class="menu-text">Configuración</span>
+      </div>
+      <hr>
+      <div class="menu-item" onclick="setActive(this)" data-item="ayuda">
+        <i class="ti ti-help"></i>
+        <span class="menu-text">Ayuda</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="content-wrapper" id="login-frame">
+        <div class="content-box">
+          <h2>Iniciar sesión</h2>
+          <form class="content-form" id="login-form">
+            <div class="form-group">
+              <label for="email">Correo electrónico</label>
+              <input type="email" name="email" placeholder="tu@email.com" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Contraseña</label>
+              <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="content-submit">Ingresar</button>
+            <b id="login-text"></b>
+          </form>
+        </div>
+      </div>
+      <div class="content-wrapper" id="clocking-frame">
+        <div class="content-box">
+          <h2>Fichajes</h2>
+          <b id="clocking-title"></b>
+          <b id="clocking-text"></b>
+          <table id="clocking-table">
+            <tbody></tbody>
+          </table>
+          <form class="content-form" id="clocking-form" autocomplete="off">
+            <input type="hidden" name="id" required>
+            <div class="form-group">
+              <label for="workplace">Centro de trabajo</label>
+              <select name="workplace"></select>
+            </div>
+            <div class="form-2columns">
+              <div class="form-group">
+                <label for="clock_in_date">Fecha de entrada</label>
+                <input type="date" name="clock_in_date" required>
+              </div>
+              <div class="form-group">
+                <label for="clock_in_time">Hora de entrada</label>
+                <input type="time" name="clock_in_time" required>
+              </div>
+            </div>
+            <div class="form-2columns">
+              <div class="form-group">
+                <label for="clock_out_date">Fecha de salida</label>
+                <input type="date" name="clock_out_date" required>
+              </div>
+              <div class="form-group">
+                <label for="clock_out_time">Hora de salida</label>
+                <input type="time" name="clock_out_time" required>
+              </div>
+            </div>
+            <div id="clocking-reason" class="form-group">
+              <label for="workplace">Motivo del cambio o baja</label>
+              <input type="text" list="reason-list" name="reason" maxlength="100" required>
+              <datalist id="reason-list">
+                <option value="Cambio de centro de trabajo">
+                <option value="He olvidado fichar la entrada">
+                <option value="He olvidado fichar la salida">
+                <option value="No tenía acceso a internet">
+                <option value="No tenía un punto de acceso para fichar">
+                <option value="No he podido fichar debido a problemas técnicos">
+              </datalist>
+            </div>
+            <div class="form-3columns">
+              <button type="submit" id="clocking-submit" class="content-submit">Solicitar</button>
+              <button type="button" id="clocking-delete" class="content-button">Eliminar</button>
+              <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="content-wrapper" id="absences-frame">
+        <div class="content-box">
+          <h2>Ausencias</h2>
+        </div>
+      </div>
+      <div class="content-wrapper" id="profile-frame">
+        <div class="content-box">
+          <h2>Perfil</h2>
+          <form class="content-form" id="profile-form" autocomplete="off">
+            <input type="hidden" name="id" required>
+            <div class="form-group">
+              <label for="workplace">Centro de trabajo habitual</label>
+              <select name="workplace" required></select>
+            </div>
+            <div class="form-2columnsA">
+              <div class="form-group">
+                <label for="category">Categoría</label>
+                <select name="category" required></select>
+              </div>
+              <div class="form-group">
+                <label for="role">Nivel de acceso</label>
+                <select name="role" required>
+                  <option value="1">Básico</option>
+                  <option value="2">Supervisor</option>
+                  <option value="3">Administrador</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-2columnsA">
+              <div class="form-group">
+                <label for="name">Apellidos, Nombre</label>
+                <input name="name" maxLength="100" required>
+              </div>
+              <div class="form-group">
+                <label for="tin">DNI o NIE</label>
+                <input name="tin" maxLength="100" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="address">Dirección</label>
+              <textarea name="address" rows="3" cols="50"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="phone">Teléfono</label>
+              <input name="phone" maxLength="100">
+            </div>
+            <div class="form-group">
+              <label for="email">Correo electrónico</label>
+              <input type="email" name="email" maxLength="1024" required>
+            </div>
+            <div class="form-2columns">
+              <button type="submit" class="content-submit">Guardar</button>
+              <button type="button" id="profile-cancel" class="content-button">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
-        const user = { role: 0, name: "", workplace: "", clockIn: 0 };
-        const userPanel = document.getElementById("user-panel");
-        const userTitle = document.getElementById("user-title");
-        const userButton = document.getElementById("user-button");
+    const user = { role: 0, name: "", workplace: "", clockIn: 0 };
+    const userPanel = document.getElementById("user-panel");
+    const userTitle = document.getElementById("user-title");
+    const userButton = document.getElementById("user-button");
 
-        const menu = document.getElementById("menu");
+    const menu = document.getElementById("menu");
 
-        async function setActive(element) {
-            const activeItem = document.querySelector('#menu .menu-item.active');
+    async function setActive(element) {
+      const activeItem = document.querySelector('#menu .menu-item.active');
 
-            if (activeItem) {
-                if (activeItem === element) return;
-                activeItem.classList.remove('active');
-                switch (activeItem.dataset.item) {
-                    case 'item-clocking': clockingFrame.style.display = "none"; break;
-                    case 'item-profile': profileFrame.style.display = "none"; break;
-                }
-            }
-            element.classList.add('active');
-            try {
-                switch (element.dataset.item) {
-                    case 'item-clocking': await refreshClockingTable(); clockingFrame.style.display = "flex"; break;
-                    case 'item-profile': await profileEdit(user.id); profileFrame.style.display = "flex"; break;
-                }
-            } catch (error) {
-                if (error.message) showMessage(error.message);
-            }
-
+      if (activeItem) {
+        if (activeItem === element) return;
+        activeItem.classList.remove('active');
+        switch (activeItem.dataset.item) {
+          case 'item-clocking': clockingFrame.style.display = "none"; break;
+          case 'item-profile': profileFrame.style.display = "none"; break;
         }
-        function setActiveByKey(key) {
-            const element = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
-
-            if (element) setActive(element);
+      }
+      element.classList.add('active');
+      try {
+        switch (element.dataset.item) {
+          case 'item-clocking': await refreshClockingTable(); clockingFrame.style.display = "flex"; break;
+          case 'item-profile': await profileEdit(user.id); profileFrame.style.display = "flex"; break;
         }
+      } catch (error) {
+        if (error.message) showMessage(error.message);
+      }
 
-        const clockingFrame = document.getElementById("clocking-frame");
-        const clockingTitle = document.getElementById("clocking-title");
-        const clockingTable = document.getElementById("clocking-table");
-        const clockingForm = document.getElementById("clocking-form");
+    }
+    function setActiveByKey(key) {
+      const element = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
 
-        function refreshUserData() {
-            if (user.clockIn !== 0) {
-                const datetime = new Date(user.clockIn.replace(' ', 'T'));
+      if (element) setActive(element);
+    }
 
-                userButton.classList.remove("clock-in");
-                userButton.classList.add("clock-out");
-                userButton.textContent = "Salir";
-                clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)}<br>${user.workplace} `;
-                clocking.start();
-            } else {
-                userButton.classList.remove("clock-out");
-                userButton.classList.add("clock-in");
-                userButton.textContent = "Entrar";
-                clockingTitle.textContent = "";
-                clocking.stop();
-            }
-        }
-        userButton.addEventListener("click", async function() {
-            const now = Date.now();
+    const clockingFrame = document.getElementById("clocking-frame");
+    const clockingTitle = document.getElementById("clocking-title");
+    const clockingTable = document.getElementById("clocking-table");
+    const clockingForm = document.getElementById("clocking-form");
 
-            if (clocking.time !== null && ((now - clocking.time) / 1000 < 60)) {
-                showMessage('Debe haber un intervalo mínimo de 1 minuto entre fichajes');
-                return;
-            }
-            userButton.disabled = true;
-            try {
-                await logHours();
-                refreshUserData();
-                await refreshClockingTable();
-            } catch (error) {
-                showMessage(error.message || 'No se puede fichar en este momento');
-            } finally {
-                userButton.disabled = false;
-            }
-        });
+    function refreshUserData() {
+      if (user.clockIn !== 0) {
+        const datetime = new Date(user.clockIn.replace(' ', 'T'));
 
-        const profileFrame = document.getElementById("profile-frame");
-        const profileForm = document.getElementById("profile-form");
+        userButton.classList.remove("clock-in");
+        userButton.classList.add("clock-out");
+        userButton.textContent = "Salir";
+        clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)}<br>${user.workplace} `;
+        clocking.start();
+      } else {
+        userButton.classList.remove("clock-out");
+        userButton.classList.add("clock-in");
+        userButton.textContent = "Entrar";
+        clockingTitle.textContent = "";
+        clocking.stop();
+      }
+    }
+    userButton.addEventListener("click", async function() {
+      const now = Date.now();
 
-        function UIConfig() {
-            if (user.role !== role.ADMIN) {
-                profile.workplace.disabled = true;
-                profile.workplace.classList.add("cursorForbidden");
-                profile.category.disabled = true;
-                profile.category.classList.add("cursorForbidden");
-                profile.role.disabled = true;
-                profile.role.classList.add("cursorForbidden");
-            } else {
-                document.getElementById("clocking-submit").textContent = "Guardar";
-                document.getElementById("clocking-reason").style.display = "none";
-                timesheet.reason.required = false;
-            }
-        }
+      if (clocking.time !== null && ((now - clocking.time) / 1000 < 60)) {
+        showMessage('Debe haber un intervalo mínimo de 1 minuto entre fichajes');
+        return;
+      }
+      userButton.disabled = true;
+      try {
+        await logHours();
+        refreshUserData();
+        await refreshClockingTable();
+      } catch (error) {
+        showMessage(error.message || 'No se puede fichar en este momento');
+      } finally {
+        userButton.disabled = false;
+      }
+    });
 
-        function start() {
-            UIConfig();
-            userTitle.textContent = user.name;
-            userPanel.style.display = "flex";
-            refreshUserData();
-            if (!isMobileDevice()) {
-                menu.style.display = "block";
-            }
-            setActiveByKey("item-clocking");
-        }
+    const profileFrame = document.getElementById("profile-frame");
+    const profileForm = document.getElementById("profile-form");
 
-        function refreshClocking() {
-            setTimeout(async () => {
-                const activeItem = document.querySelector('#menu .menu-item.active');
+    function UIConfig() {
+      if (user.role !== role.ADMIN) {
+        profile.workplace.disabled = true;
+        profile.workplace.classList.add("cursorForbidden");
+        profile.category.disabled = true;
+        profile.category.classList.add("cursorForbidden");
+        profile.role.disabled = true;
+        profile.role.classList.add("cursorForbidden");
+      } else {
+        document.getElementById("clocking-submit").textContent = "Guardar";
+        document.getElementById("clocking-reason").style.display = "none";
+        timesheet.reason.required = false;
+      }
+    }
 
-                if (activeItem?.dataset.item === 'item-clocking') {
-                    await refreshClockingTable().catch(() => {});
-                }
-                refreshClocking();
-            }, 5 * 60 * 1000); // 5 minutes
+    function start() {
+      UIConfig();
+      userTitle.textContent = user.name;
+      userPanel.style.display = "flex";
+      refreshUserData();
+      if (!isMobileDevice()) {
+        menu.style.display = "block";
+      }
+      setActiveByKey("item-clocking");
+    }
+
+    function refreshClocking() {
+      setTimeout(async () => {
+        const activeItem = document.querySelector('#menu .menu-item.active');
+
+        if (activeItem?.dataset.item === 'item-clocking') {
+          await refreshClockingTable().catch(() => {});
         }
         refreshClocking();
-    </script>
+      }, 5 * 60 * 1000); // 5 minutes
+    }
+    refreshClocking();
+  </script>
 </body>
 </html>
 

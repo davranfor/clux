@@ -713,7 +713,7 @@ int json_delete(json_t *node)
 /**
  * Deletes a non internal node
  * Useful for destructors with a callback expecting a 'void *' as param
- */  
+ */
 void json_free(void *node)
 {
     if (!node || ((json_t *)node)->packed)
