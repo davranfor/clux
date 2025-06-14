@@ -11,7 +11,7 @@ For this example you may need to install the development libraries for curl
 
 On debian:
 sudo apt install libcurl4-gnutls-dev
- 
+
 On macos:
 brew install curl
 
@@ -47,7 +47,7 @@ static size_t copy_data(void *text, size_t sz, size_t elems, void *stream)
     if (size > data->size)
     {
         char *temp = realloc(data->text, size);
-        
+
         if (temp == NULL)
         {
             return 0;
@@ -127,7 +127,7 @@ static int request(size_t id, const json_t *users, struct data *data)
                 id,
                 json_text(json_find(json_at(users, id), "name")),
                 json_text(json_find(json_at(users, id), "surname"))
-            ); 
+            );
             break;
         default:
             snprintf(fields, sizeof fields, "%s", "");

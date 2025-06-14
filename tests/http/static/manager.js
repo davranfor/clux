@@ -59,10 +59,10 @@ profileForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const elements = profileForm.elements;
-  
+
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
-    
+
     if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
       element.value = element.value.trim();
     }
@@ -78,7 +78,7 @@ profileForm.addEventListener('submit', (e) => {
     const workplace_id = Number(profile.workplace.value);
     const category_id = Number(profile.category.value);
     const role = Number(profile.role.value);
- 
+
     profileUpdate(JSON.stringify({ workplace_id, category_id, role, name, tin, address, phone, email }));
   } else {
     profileUpdate(JSON.stringify({ name, tin, address, phone, email }));

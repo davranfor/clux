@@ -116,7 +116,7 @@ int json_compare(const json_t *a, const json_t *b)
     return a->size || b->size ? compare_children(a, b) : 0;
 }
 
-/* Search a key into an object (properties must be already sorted by key) */ 
+/* Search a key into an object (properties must be already sorted by key) */
 json_t *json_search(const json_t *parent, const json_t *child,
     json_sort_callback callback)
 {

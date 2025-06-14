@@ -354,7 +354,7 @@ static json_t *push(json_t *parent, unsigned index, const char *name, json_t *ch
         }
         index = parent->size;
     }
- 
+
     char *key = NULL;
 
     if ((name != NULL) && !(key = string_clone(name)))
@@ -365,7 +365,7 @@ static json_t *push(json_t *parent, unsigned index, const char *name, json_t *ch
     // Space for inner nodes is incremented when size is a power of 2
     unsigned size = next_size(parent->size);
 
-    if (size > parent->size) 
+    if (size > parent->size)
     {
         json_t **temp = realloc(parent->child, sizeof(*temp) * size);
 
@@ -390,10 +390,10 @@ static json_t *push(json_t *parent, unsigned index, const char *name, json_t *ch
     child->packed = 1;
     parent->child[index] = child;
     parent->size++;
-    return child;    
+    return child;
 }
 
-/* Push 'child' into 'parent' at position 'index' with a 'key' */ 
+/* Push 'child' into 'parent' at position 'index' with a 'key' */
 json_t *json_object_push(json_t *parent, size_t index, const char *key, json_t *child)
 {
     if ((parent == NULL) || (key == NULL) || (child == NULL))
@@ -421,7 +421,7 @@ json_t *json_array_push(json_t *parent, size_t index, json_t *child)
     return NULL;
 }
 
-/* Push 'child' into 'parent' at position 'index' */ 
+/* Push 'child' into 'parent' at position 'index' */
 json_t *json_push_at(json_t *parent, size_t index, json_t *child)
 {
     if ((parent == NULL) || (child == NULL))
@@ -505,10 +505,10 @@ static json_t *move(json_t *source, unsigned source_index, json_t *target, unsig
     {
         index = target->size;
     }
- 
+
     unsigned size = next_size(target->size);
 
-    if (size > target->size) 
+    if (size > target->size)
     {
         json_t **temp = realloc(target->child, sizeof(*temp) * size);
 
@@ -535,7 +535,7 @@ static json_t *move(json_t *source, unsigned source_index, json_t *target, unsig
     child->packed = 1;
     target->child[index] = child;
     target->size++;
-    return child;    
+    return child;
 }
 
 /* Move node from 'target' to 'source' on the same iterable */
@@ -612,7 +612,7 @@ json_t *json_swap(json_t *source, size_t a, json_t *target, size_t b)
     {
         b = target->size - 1;
     }
-    if ((a < source->size) && (b < target->size)) 
+    if ((a < source->size) && (b < target->size))
     {
         json_t *temp = source->child[a];
 

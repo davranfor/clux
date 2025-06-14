@@ -245,7 +245,7 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned
  * The cast from 'const json_t *' to 'json_t *' is needed to pack the children.
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
- */ 
+ */
 static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent,
     size_t max_length)
 {

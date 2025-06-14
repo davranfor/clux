@@ -274,7 +274,7 @@ static int get_test(const json_t *rule)
         case SCHEMA_READ_ONLY:
         case SCHEMA_WRITE_ONLY:
             return rule->type & JSON_BOOLEAN ? SCHEMA_VALID : SCHEMA_ERROR;
-        // Rules that need to be tested 
+        // Rules that need to be tested
         default:
             return test;
     }
@@ -1121,7 +1121,7 @@ static int test_not(const schema_t *schema, const json_t *rule, const json_t *no
         default:
             return SCHEMA_ERROR;
     }
- 
+
     int result = validate(schema, rule, node, NOT_ABORTABLE);
 
     if ((result != SCHEMA_VALID) && (result != SCHEMA_INVALID))
@@ -1221,10 +1221,10 @@ static int test_if(const schema_t *schema, const json_t *parent, unsigned *child
     {
         return SCHEMA_VALID;
     }
-    
+
     const json_t *next = parent->child[index + 1];
     int branch = 0;
- 
+
     if (!strcmp(next->key, "else"))
     {
         branch = 1;
@@ -1267,7 +1267,7 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     }
     else if (rule->type == JSON_FALSE)
     {
-        result = abortable && abort_on_failure(schema, rule, node) 
+        result = abortable && abort_on_failure(schema, rule, node)
             ? SCHEMA_ERROR
             : SCHEMA_INVALID;
     }
@@ -1281,7 +1281,7 @@ static int test_branch(const schema_t *schema, const json_t *parent, unsigned *c
     }
     if (parent->size > index + 1)
     {
-        // Skip next branch if is 'else' or 'then' 
+        // Skip next branch if is 'else' or 'then'
         if (!strcmp(parent->child[index + 1]->key, "else") ||
             !strcmp(parent->child[index + 1]->key, "then"))
         {

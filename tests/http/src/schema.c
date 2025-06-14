@@ -166,7 +166,7 @@ static int on_notify(const json_event_t *event, context_t *context)
     }
     if (!set_path(event, context) || !test_role(event, context))
     {
-        return STOP; 
+        return STOP;
     }
     context->result = HTTP_OK;
     return CONTINUE;
@@ -203,7 +203,7 @@ static int on_failure(const json_event_t *event, context_t *context)
 
 static int on_error(const json_event_t *event, context_t *context)
 {
-    fprintf(stderr, "Aborted: Malformed schema '%s'\n", get_path(context)); 
+    fprintf(stderr, "Aborted: Malformed schema '%s'\n", get_path(context));
     json_write_line(event->rule, stderr);
     buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
     context->result = HTTP_SERVER_ERROR;
@@ -231,7 +231,7 @@ int schema_validate(json_t *request, buffer_t *buffer)
     json_write_line(request, stdout);
     buffer_reset(buffer);
 
-    const char *path = json_string(json_pointer(request, "/path/0")); 
+    const char *path = json_string(json_pointer(request, "/path/0"));
     const json_t *rules = map_search(map, path);
 
     if (rules == NULL)

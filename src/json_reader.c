@@ -420,7 +420,7 @@ static int walk(const json_t *node, unsigned short depth, json_walk_callback cal
  */
 int json_walk(const json_t *node, json_walk_callback callback, void *data)
 {
-    if (node != NULL) 
+    if (node != NULL)
     {
         const json_t parent =
         {

@@ -67,7 +67,7 @@ static json_t *append(json_t *parent, json_t *child)
     // Space for inner nodes is incremented when size is a power of 2
     unsigned size = next_size(parent->size);
 
-    if (size > parent->size) 
+    if (size > parent->size)
     {
         json_t **temp = realloc(parent->child, sizeof(*temp) * size);
 
@@ -168,7 +168,7 @@ static char *parse_key(const char **str)
         return NULL;
     }
 
-    const char *key = ++*str; 
+    const char *key = ++*str;
     const char *end = scan_string(*str);
 
     if (*end != '"')
@@ -232,7 +232,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
         else
         {
             trailing_comma = 0;
-        }        
+        }
     }
     if (trailing_comma != 0)
     {
@@ -240,7 +240,7 @@ static json_t *parse_object(const char **str, unsigned short depth)
         return NULL;
     }
     *str = skip_spaces(++*str);
-    return parent; 
+    return parent;
 }
 
 static json_t *parse_array(const char **str, unsigned short depth)
@@ -280,7 +280,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
         else
         {
             trailing_comma = 0;
-        }        
+        }
     }
     if (trailing_comma != 0)
     {
@@ -288,7 +288,7 @@ static json_t *parse_array(const char **str, unsigned short depth)
         return NULL;
     }
     *str = skip_spaces(++*str);
-    return parent; 
+    return parent;
 }
 
 static json_t *parse_string(const char **str)
@@ -350,7 +350,7 @@ static json_t *parse_number(const char **str)
         node->type = JSON_INTEGER;
     }
     *str = skip_spaces(end);
-    return node; 
+    return node;
 }
 
 static json_t *parse_true(const char **str)

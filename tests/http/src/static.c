@@ -94,7 +94,7 @@ static const char *path_type(const char *path)
 
     const char *types[][2] =
     {
-        {".html", "text/html"}, 
+        {".html", "text/html"},
         {".css", "text/css"},
         {".js", "application/javascript"},
         {".json", "application/json"},
@@ -188,7 +188,7 @@ int static_add(const char *path)
 
     char headers[256];
 
-    snprintf(headers, sizeof headers, http_no_cache, etag, type, length); 
+    snprintf(headers, sizeof headers, http_no_cache, etag, type, length);
     if (!buffer_insert(buffer, 0, headers, strlen(headers)))
     {
         perror("buffer_insert");
@@ -228,7 +228,7 @@ static const buffer_t *search(const char *resource, const char *headers)
     }
 
     const char *etag_server = strstr(buffer->text, "ETag: ");
-    
+
     if (etag_server == NULL)
     {
         return buffer;
@@ -236,7 +236,7 @@ static const buffer_t *search(const char *resource, const char *headers)
 
     etag_client += 15; // Length "If-None-Match: "
     etag_server += 6;  // Length "ETag: "
-    // Length of SHA1 (20 digits) formatted as %02x = 40 + "" = 42 
+    // Length of SHA1 (20 digits) formatted as %02x = 40 + "" = 42
     if (strncmp(etag_server, etag_client, 42) == 0)
     {
         return &not_modified;

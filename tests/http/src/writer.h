@@ -12,7 +12,7 @@
 
 void writer_load(const char *, const char *);
 void writer_reload(const char *, const char *);
-const buffer_t *writer_handle(json_t *); 
+const buffer_t *writer_handle(json_t *);
 
 #endif
 

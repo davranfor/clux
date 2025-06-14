@@ -12,7 +12,7 @@
         },
         "x-notify": { "path": "users.select.edit", "size": 1, "role": 1 }
       },
-      "then": true, 
+      "then": true,
       "else": false
     },
     "PUT": {

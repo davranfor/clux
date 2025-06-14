@@ -44,7 +44,7 @@ char *string_vprint(const char *fmt, va_list args)
     va_copy(copy, args);
 
     int bytes = vsnprintf(NULL, 0, fmt, copy);
- 
+
     va_end(copy);
 
     if (bytes < 0)
