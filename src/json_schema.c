@@ -866,7 +866,7 @@ static int test_format(const json_t *rule, const json_t *node)
     {
         return SCHEMA_ERROR;
     }
-    if ((node->type != JSON_STRING) || (node->string[0] == 0))
+    if (node->type != JSON_STRING)
     {
         return SCHEMA_VALID;
     }

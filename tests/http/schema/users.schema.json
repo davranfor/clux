@@ -9,7 +9,7 @@
         "tin": { "type": "string", "maxLength": 100 },
         "address": { "type": "string", "maxLength": 500 },
         "phone": { "type": "string", "maxLength": 100 },
-        "email": { "type": "string", "format": "email", "minLength": 1}
+        "email": { "type": "string", "format": "email" }
       },
       "additionalProperties": false,
       "required": [ "name", "tin", "address", "phone", "email" ]
@@ -24,7 +24,7 @@
         "tin": { "type": "string", "maxLength": 100 },
         "address": { "type": "string", "maxLength": 500 },
         "phone": { "type": "string", "maxLength": 100 },
-        "email": { "type": "string", "format": "email", "minLength": 1}
+        "email": { "type": "string", "format": "email" }
       },
       "additionalProperties": false,
       "required": [ "workplace_id", "category_id", "role", "name", "tin", "address", "phone", "email" ]
@@ -32,7 +32,7 @@
     "update.token": {
       "type": "object",
       "properties": {
-        "email": { "type": "string", "format": "email", "minLength": 1 },
+        "email": { "type": "string", "format": "email" },
         "password": { "type": "string", "minLength": 8, "maxLength": 25 }
       },
       "additionalProperties": false,
