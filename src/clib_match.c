@@ -14,18 +14,18 @@
 const char *test_mask(const char *text, const char *mask)
 {
     /**
-     *  \'  quote text until next quote (inner quotes must be escaped with \\)
-     *  \\  next character is a literal (not a function) (required)
-     *  \?  next character is a literal (not a function) (optional)
-     *  0   is_digit (required)
-     *  9   is_digit (optional)
-     *  A   is_alpha (required)
-     *  a   is_alpha (optional)
-     *  W   is_alnum (required)
-     *  w   is_alnum (optional)
-     *  X   is_xdigit (required)
-     *  x   is_xdigit (optional)
-     *  *   return the string at this position
+     *  '  quote text until next quote (inner quotes must be escaped with !)
+     *  !  next character is a literal (not a function) (required)
+     *  ?  next character is a literal (not a function) (optional)
+     *  0  is_digit (required)
+     *  9  is_digit (optional)
+     *  A  is_alpha (required)
+     *  a  is_alpha (optional)
+     *  W  is_alnum (required)
+     *  w  is_alnum (optional)
+     *  X  is_xdigit (required)
+     *  x  is_xdigit (optional)
+     *  *  return the string at this position
      */
 
     int quoted = 0;
@@ -43,7 +43,8 @@ const char *test_mask(const char *text, const char *mask)
                 mask++;
                 continue;
             }
-            if (*mask == '\\')
+            if ((mask[0] == '!') &&
+                (mask[1] == '\''))
             {
                 mask++;
             }
@@ -55,11 +56,11 @@ const char *test_mask(const char *text, const char *mask)
                 quoted = 1;
                 mask++;
                 continue;
-            case '\\':
+            case '!':
                 required = 1;
                 mask++;
                 break;
-            case '\?':
+            case '?':
                 mask++;
                 break;
             case '0':
@@ -160,7 +161,7 @@ static int is_time_suffix(const char *str)
 {
     return test_mask(str, "+09:00")
         || test_mask(str, "-09:00")
-        || test_mask(str, "\\Z");
+        || test_mask(str, "Z");
 }
 
 int test_is_time(const char *str)
@@ -344,7 +345,7 @@ int test_is_uuid(const char *str)
 
 int test_is_url(const char *str)
 {
-    const char *url = test_mask(str, "\'http\'\?s://*");
+    const char *url = test_mask(str, "'http'?s://*");
 
     if (url && *url)
     {
