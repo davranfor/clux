@@ -64,6 +64,22 @@ function pairDateTime(datetime) {
   return [date, `${h}:${M}`];
 }
 
+function formHash(form) {
+  let h1 = 0xDEADBEEF, h2 = 0x41C6CE57;
+  
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    const val = el.value || '';
+
+    for (let i = 0; i < val.length; i++) {
+      const c = val.charCodeAt(i);
+
+      h1 = Math.imul(h1 ^ c, 0x85EBCA77);
+      h2 = Math.imul(h2 ^ c, 0xC2B2AE3D);
+    }
+  });
+  return (h1 ^ h2) >>> 0;
+}
+
 function isMobileDevice()
 {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)

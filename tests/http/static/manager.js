@@ -1,4 +1,5 @@
 const profile = {
+  hash: 0,
   id: profileForm.querySelector('input[name="id"]'),
   workplace: profileForm.querySelector('select[name="workplace"]'),
   category: profileForm.querySelector('select[name="category"]'),
@@ -53,20 +54,36 @@ function profileEditUI(data) {
   profile.address.value = data.address;
   profile.phone.value = data.phone;
   profile.email.value = data.email;
+  profile.hash = formHash(profileForm);
 }
+
+document.querySelectorAll('#profile-form input').forEach(element => {
+  element.addEventListener('blur', function() {
+    this.value = this.value.trim();
+  });
+  element.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      this.value = this.value.trim();
+    }
+  });
+});
+
+document.querySelectorAll('#profile-form textarea').forEach(element => {
+  element.addEventListener('blur', function() {
+    this.value = this.value.trim();
+  });
+});
 
 profileForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const elements = profileForm.elements;
+  const hash = formHash(profileForm);
 
-  for (let i = 0; i < elements.length; i++) {
-    const element = elements[i];
-
-    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-      element.value = element.value.trim();
-    }
+  if (profile.hash === hash) {
+    showMessage("No se ha realizado ningún cambio en el registro");
+    return;
   }
+  profile.hash = hash;
 
   const name = profile.name.value;
   const tin = profile.tin.value;
@@ -83,10 +100,14 @@ profileForm.addEventListener('submit', (e) => {
   } else {
     profileUpdate(JSON.stringify({ name, tin, address, phone, email }));
   }
-
 });
 
 document.getElementById("profile-cancel").addEventListener("click", () => {
+  const hash = formHash(profileForm);
+
+  if (profile.hash === hash) {
+    return;
+  }
   profileEdit(user.id).catch(error => { if (error.message) showMessage(error.message); });
 });
 
@@ -101,7 +122,7 @@ async function profileUpdate(data) {
 
     if (response.status === 200) {
       await response.text();
-      showMessage('Registro guardado');
+      showMessage('El registro se ha guardado correctamente');
     } else if (response.status === 204) {
       showMessage('No hay ningún cambio que guardar');
     } else {
@@ -112,5 +133,4 @@ async function profileUpdate(data) {
     showMessage(error.message || 'No se puede actualizar el registro');
   }
 }
-
 

@@ -131,6 +131,7 @@ function refreshClockingTableUI(data) {
 }
 
 const timesheet = {
+  hash: 0,
   id: clockingForm.querySelector('input[name="id"]'),
   workplace: clockingForm.querySelector('select[name="workplace"]'),
   clockIn: {
@@ -190,20 +191,31 @@ function timesheetEditUI(data) {
   timesheet.clockOut.time.value = time;
 
   timesheet.reason.value = "";
+
+  timesheet.hash = formHash(clockingForm);
 }
 
-timesheet.reason.addEventListener("blur", function() {
-  this.value = this.value.trim();
+document.querySelectorAll('#clocking-form input').forEach(element => {
+  element.addEventListener('blur', function() {
+    this.value = this.value.trim();
+  });
+  element.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      this.value = this.value.trim();
+    }
+  });
 });
 
 clockingForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const focusedField = document.activeElement;
+  const hash = formHash(clockingForm);
 
-  if (focusedField && focusedField.tagName === 'INPUT' && clockingForm.contains(focusedField)) {
-    focusedField.blur();
+  if (timesheet.hash === hash) {
+    showMessage("No se ha realizado ningún cambio en el registro");
+    return;
   }
+  timesheet.hash = hash;
 
   const workplace_id = Number(timesheet.workplace.value);
   const clock_in = `${timesheet.clockIn.date.value} ${timesheet.clockIn.time.value}:00`;
@@ -293,7 +305,7 @@ async function timesheetUpdate(data) {
       clockingTable.style.display = "table";
       await refreshClockingTable();
     } else if (response.status === 204) {
-      showMessage('No hay nada que guardar');
+      showMessage('No hay ningún cambio que guardar');
     } else {
       const text = await response.text();
       showMessage(text || `HTTP ${response.status}`);

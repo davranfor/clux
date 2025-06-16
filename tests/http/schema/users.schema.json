@@ -5,8 +5,8 @@
     "update": {
       "type": "object",
       "properties": {
-        "name": { "type": "string", "maxLength": 100 },
-        "tin": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "tin": { "type": "string", "minLength": 1, "maxLength": 100 },
         "address": { "type": "string", "maxLength": 500 },
         "phone": { "type": "string", "maxLength": 100 },
         "email": { "type": "string", "format": "email" }
@@ -20,8 +20,8 @@
         "workplace_id": { "type": "integer" },
         "category_id": { "type": "integer" },
         "role": { "type": "integer" },
-        "name": { "type": "string", "maxLength": 100 },
-        "tin": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "tin": { "type": "string", "minLength": 1, "maxLength": 100 },
         "address": { "type": "string", "maxLength": 500 },
         "phone": { "type": "string", "maxLength": 100 },
         "email": { "type": "string", "format": "email" }
