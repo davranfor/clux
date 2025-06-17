@@ -3,9 +3,9 @@ CFLAGS := -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-protot
 LDFLAGS = -lclux -lsqlite3 -lcrypto
 
 ifeq ($(shell uname -s),Darwin)
-    OPENSSL_PREFIX = $(shell brew --prefix openssl@3)
-    CFLAGS += -I$(OPENSSL_PREFIX)/include
-    LDFLAGS += -L$(OPENSSL_PREFIX)/lib
+	OPENSSL_PREFIX = $(shell brew --prefix openssl@3)
+	CFLAGS += -I$(OPENSSL_PREFIX)/include
+	LDFLAGS += -L$(OPENSSL_PREFIX)/lib
 endif
 
 SRC_DIR := src

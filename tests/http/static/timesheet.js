@@ -67,6 +67,10 @@ function refreshClockingTableUI(data) {
   const tbody = document.querySelector('#clocking-table tbody');
 
   tbody.replaceChildren();
+  if (data.length === 0) {
+    if (user.clockIn === 0) clockingTitle.textContent = 'No hay fichajes que mostrar';
+    return;
+  }
   data.reverse();
   data.forEach(record => {
     const dt1 = new Date(record[2].replace(' ', 'T'));
@@ -110,7 +114,7 @@ function refreshClockingTableUI(data) {
         <td>${shortTime(obj.clock_out)}</td>
         <td>${timeDiff(dt4, dt3)}</td>
       `;
-      tr5.innerHTML = `<td class="taLeft" colspan="4">&nbsp;${obj.reason}</td>`;
+      tr5.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
       tbody.appendChild(tr3);
       tbody.appendChild(tr4);
       tbody.appendChild(tr5);
@@ -123,7 +127,7 @@ function refreshClockingTableUI(data) {
         <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
         </td>
       `;
-      tr4.innerHTML = `<td class="taLeft" colspan="4">&nbsp;${obj.reason}</td>`;
+      tr4.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
       tbody.appendChild(tr3);
       tbody.appendChild(tr4);
     }
@@ -396,7 +400,42 @@ async function timesheetRequestClear(id) {
   }
 }
 
-function refreshScheduleTable() {
+function sumDays(date, days) {
+  const result = new Date(date);
 
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function refreshScheduleTable() {
+  const tbody = document.querySelector('#schedule-table tbody');
+
+  tbody.replaceChildren();
+
+  const today = new Date();
+
+  const tr = document.createElement('tr');
+
+  tr.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
+  tbody.appendChild(tr);
+  for (let i = 0; i < 14; i++) {
+    const tr1 = document.createElement('tr');
+    const tr2 = document.createElement('tr');
+
+    date = sumDays(today, i);
+    tr1.innerHTML = `
+      <td rowspan="2">${dayOfWeek(date)}<br>${formatDate(date)}</td>
+      <td colspan="2">Valor de ejemplo 1</td>
+      <td colspan="2">Valor de ejemplo 2</td>
+    `;
+    tr2.innerHTML = `
+      <td><input type="time" maxLength="5" size="5" value="07:00"></td>
+      <td><input type="time" maxLength="5" size="5" value="15:00"></td>
+      <td><input type="time" maxLength="5" size="5" value="00:00"></td>
+      <td><input type="time" maxLength="5" size="5" value="00:00"></td>
+    `;
+    tbody.appendChild(tr1);
+    tbody.appendChild(tr2);
+  }
 }
 

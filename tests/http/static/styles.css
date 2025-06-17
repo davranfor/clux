@@ -245,15 +245,21 @@ header {
   outline: none;
 }
 
-#clocking-table {
+#clocking-table, #schedule-table {
   border-collapse: collapse;
   width: 100%;
   margin-top: 5px;
 }
 
-#clocking-table td {
+#clocking-table th, #schedule-table th {
+  background-color: #4a5568;
   border: 1px solid #64758a;
-  padding: 4px;
+  padding: 4px 8px;
+}
+
+#clocking-table td, #schedule-table td {
+  border: 1px solid #64758a;
+  padding: 4px 8px;
 }
 
 #clocking-table td.editable {
@@ -276,6 +282,14 @@ header {
   color: #fff;
 }
 
+#schedule-table td > input {
+  border: 1px solid #64758a;
+  background-color: #2d3748;
+  color: #cbd5e0;
+  text-align: center;
+  width: auto;
+}
+
 #clocking-form {
   display: none; /* flex */
   margin-top: 5px;
@@ -283,6 +297,14 @@ header {
 
 .taLeft {
   text-align: left;
+}
+
+.taCenter {
+  text-align: center;
+}
+
+.taRight {
+  text-align: right;
 }
 
 .cursorForbidden:disabled {
