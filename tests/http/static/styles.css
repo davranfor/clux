@@ -236,7 +236,7 @@ header {
   transition: all 0.3s;
   width: auto;
   min-width: 0;
-  padding: 0.75rem;
+  padding: 0.5rem;
 }
 
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
@@ -262,7 +262,7 @@ header {
   padding: 4px 8px;
 }
 
-#clocking-table td.editable {
+#clocking-table td.editable, #schedule-table td.date {
   background-color: #4a5568;
 }
 
@@ -282,12 +282,23 @@ header {
   color: #fff;
 }
 
-#schedule-table td > input {
-  border: 1px solid #64758a;
+#schedule-table td.options {
+}
+
+#schedule-table td.entry {
+  padding: 0;
+}
+
+#schedule-table td.options > select {
+  width: 100%;
+}
+
+#schedule-table td.entry > input, #schedule-table td.options > select {
+  border: none;
   background-color: #2d3748;
   color: #cbd5e0;
-  text-align: center;
-  width: auto;
+  font-size: 1rem;
+  margin: 0;
 }
 
 #clocking-form {

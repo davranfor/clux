@@ -414,6 +414,20 @@ function refreshScheduleTable() {
 
   const today = new Date();
 
+  const workplaces = [
+    [ 1, "SEDE CENTRAL" ],
+    [ 2, "PALMANOVA" ],
+    [ 3, "MAGALLUF" ]
+  ];
+  const options = workplaces.map(t =>`<option value="${t[0]}">${t[1]}</option>`).join('');
+
+  function createSelect() {
+    const select = document.createElement('select');
+
+    select.innerHTML = options;
+    return select;
+  }
+
   const tr = document.createElement('tr');
 
   tr.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
@@ -424,15 +438,21 @@ function refreshScheduleTable() {
 
     date = sumDays(today, i);
     tr1.innerHTML = `
-      <td rowspan="2">${dayOfWeek(date)}<br>${formatDate(date)}</td>
-      <td colspan="2">Valor de ejemplo 1</td>
-      <td colspan="2">Valor de ejemplo 2</td>
+      <td rowspan="2" class="date">${formatDate(date)}<br>${dayOfWeek(date)}</td>
+      <td colspan="2" class="options"></td>
+      <td colspan="2" class="options"></td>
     `;
+
+    const [select1, select2] = tr1.querySelectorAll('.options');
+
+    select1.appendChild(createSelect());
+    select2.appendChild(createSelect());
+
     tr2.innerHTML = `
-      <td><input type="time" maxLength="5" size="5" value="07:00"></td>
-      <td><input type="time" maxLength="5" size="5" value="15:00"></td>
-      <td><input type="time" maxLength="5" size="5" value="00:00"></td>
-      <td><input type="time" maxLength="5" size="5" value="00:00"></td>
+      <td class="entry"><input type="time" maxLength="5" value="07:00"></td>
+      <td class="entry"><input type="time" maxLength="5" value="15:00"></td>
+      <td class="entry"><input type="time" maxLength="5" value="00:00"></td>
+      <td class="entry"><input type="time" maxLength="5" value="00:00"></td>
     `;
     tbody.appendChild(tr1);
     tbody.appendChild(tr2);
