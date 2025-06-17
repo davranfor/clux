@@ -27,7 +27,7 @@
         <i class="ti ti-clock"></i>
         <span class="menu-text">Fichajes</span>
       </div>
-      <div class="menu-item" onclick="setActive(this)" data-item="horarios">
+      <div class="menu-item" onclick="setActive(this)" data-item="item-schedule">
         <i class="ti ti-calendar-time"></i>
         <span class="menu-text">Horarios</span>
       </div>
@@ -135,6 +135,14 @@
           </form>
         </div>
       </div>
+      <div class="content-wrapper" id="schedule-frame">
+        <div class="content-box">
+          <h2>Horarios</h2>
+          <table id="schedule-table">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
       <div class="content-wrapper" id="absences-frame">
         <div class="content-box">
           <h2>Ausencias</h2>
@@ -203,7 +211,11 @@
     const userButton = document.getElementById("user-button");
 
     const menu = document.getElementById("menu");
+    let lastActiveItem = null;
 
+    function menuBack() {
+      if (lastActiveItem !== null) setActive(lastActiveItem);
+    }
     async function setActive(element) {
       const activeItem = document.querySelector('#menu .menu-item.active');
 
@@ -211,20 +223,38 @@
         if (activeItem === element) return;
         activeItem.classList.remove('active');
         switch (activeItem.dataset.item) {
-          case 'item-clocking': clockingFrame.style.display = "none"; break;
-          case 'item-profile': profileFrame.style.display = "none"; break;
+          case 'item-clocking':
+            clockingFrame.style.display = "none";
+            break;
+          case 'item-schedule':
+            scheduleFrame.style.display = "none";
+            break;
+          case 'item-profile':
+            profileFrame.style.display = "none";
+            break;
         }
       }
       element.classList.add('active');
       try {
         switch (element.dataset.item) {
-          case 'item-clocking': await refreshClockingTable(); clockingFrame.style.display = "flex"; break;
-          case 'item-profile': await profileEdit(user.id); profileFrame.style.display = "flex"; break;
+          case 'item-clocking':
+            await refreshClockingTable();
+            clockingFrame.style.display = "flex";
+            lastActiveItem = element;
+            break;
+          case 'item-schedule':
+            await refreshScheduleTable();
+            scheduleFrame.style.display = "flex";
+            lastActiveItem = element;
+            break;
+          case 'item-profile':
+            await profileEdit(user.id);
+            profileFrame.style.display = "flex";
+            break;
         }
       } catch (error) {
         if (error.message) showMessage(error.message);
       }
-
     }
     function setActiveByKey(key) {
       const element = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
@@ -236,6 +266,12 @@
     const clockingTitle = document.getElementById("clocking-title");
     const clockingTable = document.getElementById("clocking-table");
     const clockingForm = document.getElementById("clocking-form");
+
+    const scheduleFrame = document.getElementById("schedule-frame");
+    const scheduleTable = document.getElementById("schedule-table");
+
+    const profileFrame = document.getElementById("profile-frame");
+    const profileForm = document.getElementById("profile-form");
 
     function refreshUserData() {
       if (user.clockIn !== 0) {
@@ -272,9 +308,6 @@
         userButton.disabled = false;
       }
     });
-
-    const profileFrame = document.getElementById("profile-frame");
-    const profileForm = document.getElementById("profile-form");
 
     function UIConfig() {
       if (user.role !== role.ADMIN) {

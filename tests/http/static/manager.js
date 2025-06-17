@@ -105,10 +105,10 @@ profileForm.addEventListener('submit', (e) => {
 document.getElementById("profile-cancel").addEventListener("click", () => {
   const hash = formHash(profileForm);
 
-  if (profile.hash === hash) {
-    return;
+  if (profile.hash !== hash) {
+    profileEdit(user.id).catch(error => { if (error.message) showMessage(error.message); });
   }
-  profileEdit(user.id).catch(error => { if (error.message) showMessage(error.message); });
+  menuBack();
 });
 
 async function profileUpdate(data) {
@@ -122,7 +122,7 @@ async function profileUpdate(data) {
 
     if (response.status === 200) {
       await response.text();
-      showMessage('El registro se ha guardado correctamente');
+      menuBack();
     } else if (response.status === 204) {
       showMessage('No hay ningún cambio que guardar');
     } else {

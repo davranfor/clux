@@ -396,3 +396,7 @@ async function timesheetRequestClear(id) {
   }
 }
 
+function refreshScheduleTable() {
+
+}
+
