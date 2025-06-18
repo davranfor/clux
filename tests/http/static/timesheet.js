@@ -96,6 +96,7 @@ function refreshClockingTableUI(data) {
     }
 
     const obj = JSON.parse(record[4]);
+
     if (Object.keys(obj).length > 1) {
       const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
       const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
@@ -230,13 +231,13 @@ clockingForm.addEventListener('submit', (e) => {
 
   if (dt1 >= dt2) {
     showMessage("La hora de entrada no puede ser igual o superior a la de salida").then(() => {
-      focusedField.focus();
+      timesheet.clockIn.date.focus();
     });
     return;
   }
   if (dt2 - dt1 > 9 * 60 * 60 * 1000) {
     showMessage("No pueden transcurrir más de 9 horas entre la hora de entrada y la de salida").then(() => {
-      focusedField.focus();
+      timesheet.clockIn.date.focus();
     });
     return;
   }
@@ -397,65 +398,6 @@ async function timesheetRequestClear(id) {
     }
   } catch (error) {
     showMessage(error.message || 'No se puede actualizar el registro');
-  }
-}
-
-function sumDays(date, days) {
-  const result = new Date(date);
-
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
-function refreshScheduleTable() {
-  const tbody = document.querySelector('#schedule-table tbody');
-
-  tbody.replaceChildren();
-
-  const today = new Date();
-
-  const workplaces = [
-    [ 1, "SEDE CENTRAL" ],
-    [ 2, "PALMANOVA" ],
-    [ 3, "MAGALLUF" ]
-  ];
-  const options = workplaces.map(t =>`<option value="${t[0]}">${t[1]}</option>`).join('');
-
-  function createSelect() {
-    const select = document.createElement('select');
-
-    select.innerHTML = options;
-    return select;
-  }
-
-  const tr = document.createElement('tr');
-
-  tr.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
-  tbody.appendChild(tr);
-  for (let i = 0; i < 14; i++) {
-    const tr1 = document.createElement('tr');
-    const tr2 = document.createElement('tr');
-
-    date = sumDays(today, i);
-    tr1.innerHTML = `
-      <td rowspan="2" class="date">${formatDate(date)}<br>${dayOfWeek(date)}</td>
-      <td colspan="2" class="options"></td>
-      <td colspan="2" class="options"></td>
-    `;
-
-    const [select1, select2] = tr1.querySelectorAll('.options');
-
-    select1.appendChild(createSelect());
-    select2.appendChild(createSelect());
-
-    tr2.innerHTML = `
-      <td class="entry"><input type="time" maxLength="5" value="07:00"></td>
-      <td class="entry"><input type="time" maxLength="5" value="15:00"></td>
-      <td class="entry"><input type="time" maxLength="5" value="00:00"></td>
-      <td class="entry"><input type="time" maxLength="5" value="00:00"></td>
-    `;
-    tbody.appendChild(tr1);
-    tbody.appendChild(tr2);
   }
 }
 

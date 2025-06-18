@@ -141,6 +141,10 @@
           <table id="schedule-table">
             <tbody></tbody>
           </table>
+          <div class="form-2columns">
+            <button type="button" id="schedule-submit" class="content-submit">Guardar</button>
+            <button type="button" id="schedule-cancel" class="content-button">Cancelar</button>
+          </div>
         </div>
       </div>
       <div class="content-wrapper" id="absences-frame">
@@ -245,7 +249,6 @@
           case 'item-schedule':
             await refreshScheduleTable();
             scheduleFrame.style.display = "flex";
-            lastActiveItem = element;
             break;
           case 'item-profile':
             await profileEdit(user.id);

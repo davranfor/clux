@@ -4,16 +4,24 @@
   "type": "object",
   "properties": {
     "GET": {
-      "if": {
-        "properties": {
-          "path": { "items": [{}, { "const": "edit" }], "additionalItems": false },
-          "query": { "type": "null" },
-          "content": { "type": "null" }
+      "anyOf": [
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "edit" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "users.select.edit", "size": 1, "role": 1 }
         },
-        "x-notify": { "path": "users.select.edit", "size": 1, "role": 1 }
-      },
-      "then": true,
-      "else": false
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "schedule" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "users.select.schedule", "size": 1, "role": 1 }
+        }
+      ]
     },
     "PUT": {
       "if": {

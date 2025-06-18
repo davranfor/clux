@@ -25,6 +25,17 @@ function timeDiff(a, b) {
   return `${sign}${String(h)}h ${String(m).padStart(2, '0')}m`;
 }
 
+function sumDays(date, days) {
+  const result = new Date(date);
+
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function getISODay(date) {
+  return (date.getDay() + 6) % 7;
+}
+
 function dayOfWeek(datetime) {
   const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
