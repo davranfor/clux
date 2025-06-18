@@ -223,8 +223,8 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
       const entries = tr.querySelectorAll('td.entry');
 
       if (entries.length === 2) {
-        data[index][0][0] = entries[0].querySelector('select')?.value || '0';
-        data[index][1][0] = entries[1].querySelector('select')?.value || '0';
+        data[index][0][0] = Number(entries[0].querySelector('select')?.value || '0');
+        data[index][1][0] = Number(entries[1].querySelector('select')?.value || '0');
       }
       else if (entries.length === 4) {
         data[index][0][1] = entries[0].querySelector('input[type="time"]')?.value || '00:00';
