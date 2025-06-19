@@ -153,21 +153,28 @@ function refreshScheduleTableUI(object) {
 
   tbody.replaceChildren();
 
-  const today = new Date(object.today.replace(' ', 'T'));
+  const today = new Date(object.today);
 
   schedule.date = sumDays(today, -getISODay(today));
 
-  let data = null;
+  const parsedObject = JSON.parse(object.schedule);
+  const rotateDate = new Date(parsedObject?.date || schedule.date).getTime() !== schedule.date.getTime();
+  let data = parsedObject?.data || null;
 
-  if (Object.keys(object.schedule).length != 14) {
+  if (!data || data.length !== 14) {
     data = Array.from({ length: 14 }, () => [[object.workplace_id, '00:00', '00:00'], [0, '00:00', '00:00']]);
-  } else {
-    data = object.schedule;
+  }
+  if (rotateDate) {
+    showMessage("Ha rotado");
+    for (let i = 7; i < 14; i++) {
+      data[i - 7] = JSON.parse(JSON.stringify(data[i]));
+      //data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
+    }
   }
 
   const workplaces = object.workplaces;
   const options = [
-    '<option value="0">Seleccione una opción</option>',
+    '<option value="0">Seleccione un centro</option>',
     ...workplaces.map(t => `<option value="${t[0]}">${t[1]}</option>`)
   ].join('');
 
@@ -180,6 +187,8 @@ function refreshScheduleTableUI(object) {
   }
 
   for (let i = 0; i < 14; i++) {
+    const date = sumDays(schedule.date, i);
+
     if ((i % 7) === 0) {
       const tr0 = document.createElement('tr');
 
@@ -190,7 +199,6 @@ function refreshScheduleTableUI(object) {
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
 
-    date = sumDays(schedule.date, i);
     tr1.innerHTML = `
       <th rowspan="2" class="date">${formatDate(date)}<br>${dayOfWeek(date)}</th>
       <td colspan="2" class="entry"></td>
@@ -234,8 +242,12 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
       }
     }
   });
-  console.log(data);
-  menuBack();
+
+  const object = { date: formatISODate(schedule.date), data: data };
+  // const object = { date: "2025-06-23", data: data };
+  const values = JSON.stringify({ schedule: JSON.stringify(object) });
+
+  scheduleUpdate(values);
 });
 
 document.getElementById("schedule-cancel").addEventListener("click", () => {
@@ -264,5 +276,4 @@ async function scheduleUpdate(data) {
     showMessage(error.message || 'No se puede actualizar el registro');
   }
 }
-
 

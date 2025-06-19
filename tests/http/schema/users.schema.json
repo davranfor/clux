@@ -30,6 +30,14 @@
       "additionalProperties": false,
       "required": [ "workplace_id", "category_id", "role", "name", "tin", "address", "phone", "email" ]
     },
+    "update.schedule": {
+      "type": "object",
+      "properties": {
+        "schedule": { "type": "string", "minLength": 2 }
+      },
+      "additionalProperties": false,
+      "required": [ "schedule" ]
+    },
     "update.token": {
       "type": "object",
       "properties": {
@@ -87,6 +95,19 @@
         },
         "else": false
       }
+    },
+    "PATCH": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "const": "schedule" }], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "PATCH /users/schedule", "size": 1, "role": 1 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
+      },
+      "else": false
     }
   }
 }
