@@ -12,7 +12,7 @@ const profile = {
 }
 
 async function profileEdit(id) {
-  const response = await fetch(`/api/users/edit`, {
+  const response = await fetch('/api/users', {
     method: 'GET',
     credentials: 'include'
   });
@@ -108,7 +108,7 @@ document.getElementById("profile-cancel").addEventListener("click", () => {
 
 async function profileUpdate(data) {
   try {
-    const response = await fetch(`/api/users/update`, {
+    const response = await fetch(`/api/users`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -225,8 +225,7 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
       if (entries.length === 2) {
         data[index][0][0] = Number(entries[0].querySelector('select')?.value || '0');
         data[index][1][0] = Number(entries[1].querySelector('select')?.value || '0');
-      }
-      else if (entries.length === 4) {
+      } else if (entries.length === 4) {
         data[index][0][1] = entries[0].querySelector('input[type="time"]')?.value || '00:00';
         data[index][0][2] = entries[1].querySelector('input[type="time"]')?.value || '00:00';
         data[index][1][1] = entries[2].querySelector('input[type="time"]')?.value || '00:00';
@@ -242,4 +241,28 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
 document.getElementById("schedule-cancel").addEventListener("click", () => {
   menuBack();
 });
+
+async function scheduleUpdate(data) {
+  try {
+    const response = await fetch('/api/users/schedule', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: data
+    });
+
+    if (response.status === 200) {
+      await response.text();
+      menuBack();
+    } else if (response.status === 204) {
+      showMessage('No hay ningún cambio que guardar');
+    } else {
+      const text = await response.text();
+      showMessage(text || `HTTP ${response.status}`);
+    }
+  } catch (error) {
+    showMessage(error.message || 'No se puede actualizar el registro');
+  }
+}
+
 

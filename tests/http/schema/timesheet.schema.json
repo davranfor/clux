@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "/timesheet.schema",
+  "$id": "/timesheet",
+  "type": "object",
   "definitions": {
     "update": {
       "type": "object",
@@ -32,6 +33,109 @@
       "additionalProperties": false,
       "required": [ "reason" ]
     }
-  }
+  },
+  "properties": {
+    "GET": {
+      "anyOf": [
+        {
+          "properties": {
+            "path": { "minItems": 1, "maxItems": 1 },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timesheet", "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timesheet/{id}", "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "week" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timesheet/week", "size": 1, "role": 1 }
+        }
+      ]
+    },
+    "POST": {
+      "if": {
+        "properties": {
+          "path": { "minItems": 1, "maxItems": 1 },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
+        },
+        "x-notify": { "path": "POST /timesheet", "role": 1 }
+      },
+      "then": true,
+      "else": false
+    },
+    "PUT": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "PUT /timesheet/{id}", "role": 3 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/update" } }
+      },
+      "else": false
+    },
+    "PATCH": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }, { "const": "update" }], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "PATCH /timesheet/{id}/request/update", "size": 2, "role": 1 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/request.update" } }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }, { "const": "delete" }], "additionalItems": false },
+            "query": { "type": "null" }
+          },
+          "x-notify": { "path": "PATCH /timesheet/{id}/request/delete", "size": 2, "role": 1 }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/request.delete" } }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }, { "const": "clear" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "PATCH /timesheet/{id}/request/clear", "size": 2, "role": 1 }
+          },
+          "then": true,
+          "else": false
+        }
+      }
+    },
+    "DELETE": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "DELETE /timesheet/{id}", "role": 3 }
+      },
+      "then": true,
+      "else": false
+    }
+  },
+  "additionalProperties": false
 }
 

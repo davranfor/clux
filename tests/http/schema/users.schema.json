@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "/users.schema",
+  "$id": "/users",
+  "type": "object",
   "definitions": {
     "update": {
       "type": "object",
@@ -37,6 +38,55 @@
       },
       "additionalProperties": false,
       "required": [ "email", "password" ]
+    }
+  },
+  "properties": {
+    "GET": {
+      "anyOf": [
+        {
+          "properties": {
+            "path": { "minItems": 1, "maxItems": 1 },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users", "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "schedule" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users/schedule", "size": 1, "role": 1 }
+        }
+      ]
+    },
+    "PUT": {
+      "if": {
+        "properties": {
+          "path": { "minItems": 1, "maxItems": 1 },
+          "query": { "type": "null" },
+          "cookie": { "properties": { "role": { "enum": [1, 2] } } }
+        },
+        "x-notify": { "path": "PUT /users", "role": 1 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/update" } }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "minItems": 1, "maxItems": 1 },
+            "query": { "type": "null" },
+            "cookie": { "properties": { "role": { "const": 3 } } }
+          },
+          "x-notify": { "path": "PUT /users role:admin", "role": 3 }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/update.all" } }
+        },
+        "else": false
+      }
     }
   }
 }

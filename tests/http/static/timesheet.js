@@ -152,7 +152,7 @@ const timesheet = {
 
 async function timesheetEdit(id) {
   try {
-    const response = await fetch(`/api/timesheet/${id}/edit`, {
+    const response = await fetch(`/api/timesheet/${id}`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -205,7 +205,7 @@ document.querySelectorAll('#clocking-form input').forEach(element => {
     this.value = this.value.trim();
   });
   element.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !this.list) {
       this.value = this.value.trim();
     }
   });
@@ -274,7 +274,7 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
 
 async function timesheetRequestUpdate(data) {
   try {
-    const response = await fetch(`/api/timesheet/${timesheet.id.value}/update`, {
+    const response = await fetch(`/api/timesheet/${timesheet.id.value}/request/update`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -298,7 +298,7 @@ async function timesheetRequestUpdate(data) {
 
 async function timesheetUpdate(data) {
   try {
-    const response = await fetch(`/api/timesheet/${timesheet.id.value}/update`, {
+    const response = await fetch(`/api/timesheet/${timesheet.id.value}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -322,7 +322,7 @@ async function timesheetUpdate(data) {
 
 async function timesheetRequestDelete(reason) {
   try {
-    const response = await fetch(`/api/timesheet/${timesheet.id.value}/delete`, {
+    const response = await fetch(`/api/timesheet/${timesheet.id.value}/request/delete`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -381,7 +381,7 @@ async function timesheetRequestClear(id) {
     return;
   }
   try {
-    const response = await fetch(`/api/timesheet/${id}/clear`, {
+    const response = await fetch(`/api/timesheet/${id}/request/clear`, {
       method: 'PATCH',
       credentials: 'include'
     });
