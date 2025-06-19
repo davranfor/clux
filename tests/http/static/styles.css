@@ -283,6 +283,11 @@ header {
   color: #fff;
 }
 
+#schedule-table th.date:hover {
+  background-color: #1e2734;
+  cursor: pointer;
+}
+
 #schedule-table td.entry > input, #schedule-table td.entry > select {
   border: none;
   background-color: #2d3748;

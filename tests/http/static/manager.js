@@ -200,7 +200,7 @@ function refreshScheduleTableUI(object) {
     const tr2 = document.createElement('tr');
 
     tr1.innerHTML = `
-      <th rowspan="2" class="date">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+      <th rowspan="2" class="date" onclick="scheduleChange(${i});">${formatDate(date)}<br>${dayOfWeek(date)}</th>
       <td colspan="2" class="entry"></td>
       <td colspan="2" class="entry"></td>
     `;
@@ -218,6 +218,46 @@ function refreshScheduleTableUI(object) {
     `;
     tbody.appendChild(tr1);
     tbody.appendChild(tr2);
+  }
+}
+
+function scheduleChange(selected) {
+  confirmMessage("Se clonarán los datos a los registros con fecha posterior en la semana seleccionada").then((confirmed) => {
+    if (!confirmed) return;
+  });
+
+  const rows = document.querySelectorAll('#schedule-table tr');
+  let data = [[], []];
+  let index = 0;
+
+  for (const tr of rows) {
+    if (tr.querySelector('td.entry')) {
+
+      const entries = tr.querySelectorAll('td.entry');
+
+      if (entries.length === 2) {
+        if (index === selected) {
+          data[0][0] = Number(entries[0].querySelector('select')?.value || '0');
+          data[1][0] = Number(entries[1].querySelector('select')?.value || '0');
+        } else if (index > selected) {
+          entries[0].querySelector('select').value = data[0][0];
+          entries[1].querySelector('select').value = data[1][0];
+        }
+      } else if (entries.length === 4) {
+        if (index === selected) {
+          data[0][1] = entries[0].querySelector('input[type="time"]')?.value || '00:00';
+          data[0][2] = entries[1].querySelector('input[type="time"]')?.value || '00:00';
+          data[1][1] = entries[2].querySelector('input[type="time"]')?.value || '00:00';
+          data[1][2] = entries[3].querySelector('input[type="time"]')?.value || '00:00';
+        } else if (index > selected) {
+          entries[0].querySelector('input[type="time"]').value = data[0][1] ;
+          entries[1].querySelector('input[type="time"]').value = data[0][2] ;
+          entries[2].querySelector('input[type="time"]').value = data[1][1] ;
+          entries[3].querySelector('input[type="time"]').value = data[1][2] ;
+        }
+        if (++index >= selected - (selected % 7) + 7) return;
+      }
+    }
   }
 }
 
