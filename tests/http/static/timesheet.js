@@ -67,10 +67,16 @@ function refreshClockingTableUI(data) {
   const tbody = document.querySelector('#clocking-table tbody');
 
   tbody.replaceChildren();
-  if (data.length === 0) {
-    if (user.clockIn === 0) clockingTitle.textContent = 'No hay fichajes que mostrar';
-    return;
-  }
+
+  const tr0 = document.createElement('tr');
+
+  tr0.innerHTML = `
+    <td class="editable" colspan="4" onclick="timesheetNew();">
+    <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
+    </td>
+  `;
+  tbody.appendChild(tr0);
+
   data.reverse();
   data.forEach(record => {
     const dt1 = new Date(record[2].replace(' ', 'T'));
@@ -150,6 +156,27 @@ const timesheet = {
   reason: clockingForm.querySelector('input[name="reason"]'),
 }
 
+async function timesheetNew() {
+  try {
+    const response = await fetch('/api/timesheet/empty', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (response.status === 200) {
+      const data = await response.json();
+      timesheetEditUI(data);
+    } else if (response.status === 204) {
+      showMessage('No se puede crear el registro');
+    } else {
+      const text = await response.text();
+      showMessage(text || `HTTP Error ${response.status}`);
+    }
+  } catch (error) {
+    showMessage(error.message || 'No se puede crear el registro');
+  }
+}
+
 async function timesheetEdit(id) {
   try {
     const response = await fetch(`/api/timesheet/${id}`, {
@@ -220,7 +247,6 @@ clockingForm.addEventListener('submit', (e) => {
     showMessage("No se ha realizado ningún cambio en el registro");
     return;
   }
-  timesheet.hash = hash;
 
   const workplace_id = Number(timesheet.workplace.value);
   const clock_in = `${timesheet.clockIn.date.value} ${timesheet.clockIn.time.value}:00`;
@@ -250,7 +276,7 @@ clockingForm.addEventListener('submit', (e) => {
     timesheetUpdate(JSON.stringify({ workplace_id, clock_in, clock_out }));
   }
 });
-
+/*
 document.getElementById("clocking-delete").addEventListener("click", () => {
   if (user.role !== role.ADMIN) {
     const reason = timesheet.reason.value;
@@ -266,7 +292,7 @@ document.getElementById("clocking-delete").addEventListener("click", () => {
     timesheetDelete();
   }
 });
-
+*/
 document.getElementById("clocking-cancel").addEventListener("click", () => {
   clockingForm.style.display = "none";
   clockingTable.style.display = "table";

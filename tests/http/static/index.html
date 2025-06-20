@@ -116,7 +116,7 @@
               </div>
             </div>
             <div id="clocking-reason" class="form-group">
-              <label for="workplace">Motivo del cambio o baja</label>
+              <label for="workplace">Motivo del alta o cambio de fichaje</label>
               <input type="text" list="reason-list" name="reason" maxLength="100" required>
               <datalist id="reason-list">
                 <option value="Cambio de centro de trabajo">
@@ -127,9 +127,8 @@
                 <option value="No he podido fichar debido a problemas técnicos">
               </datalist>
             </div>
-            <div class="form-3columns">
+            <div class="form-2columns">
               <button type="submit" id="clocking-submit" class="content-submit">Solicitar</button>
-              <button type="button" id="clocking-delete" class="content-button">Eliminar</button>
               <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
             </div>
           </form>
@@ -141,7 +140,7 @@
           <table id="schedule-table">
             <tbody></tbody>
           </table>
-          <div class="form-2columns">
+          <div id="schedule-buttons" class="form-2columns">
             <button type="button" id="schedule-submit" class="content-submit">Guardar</button>
             <button type="button" id="schedule-cancel" class="content-button">Cancelar</button>
           </div>
@@ -320,6 +319,7 @@
         profile.category.classList.add("cursorForbidden");
         profile.role.disabled = true;
         profile.role.classList.add("cursorForbidden");
+        document.getElementById("schedule-buttons").style.display = "none";
       } else {
         document.getElementById("clocking-submit").textContent = "Guardar";
         document.getElementById("clocking-reason").style.display = "none";

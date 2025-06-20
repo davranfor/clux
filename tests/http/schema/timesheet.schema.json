@@ -55,6 +55,14 @@
         },
         {
           "properties": {
+            "path": { "items": [{}, {"const": "empty"}], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timesheet/empty", "size": 1, "role": 1 }
+        },
+        {
+          "properties": {
             "path": { "items": [{}, { "const": "week" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }

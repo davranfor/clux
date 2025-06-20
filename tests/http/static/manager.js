@@ -83,7 +83,6 @@ profileForm.addEventListener('submit', (e) => {
     showMessage("No se ha realizado ningún cambio en el registro");
     return;
   }
-  profile.hash = hash;
 
   const name = profile.name.value;
   const tin = profile.tin.value;
@@ -139,7 +138,7 @@ async function refreshScheduleTable() {
 
   if (response.status === 200) {
     const data = await response.json();
-    refreshScheduleTableUI(data);
+    user.role === role.BASIC ? refreshScheduleTableRead(data) : refreshScheduleTableWrite(data);
   } else if (response.status === 204) {
     throw new Error('El registro ya no existe');
   } else {
@@ -148,7 +147,7 @@ async function refreshScheduleTable() {
   }
 }
 
-function refreshScheduleTableUI(object) {
+function refreshScheduleTableRead(object) {
   const tbody = document.querySelector('#schedule-table tbody');
 
   tbody.replaceChildren();
@@ -168,8 +167,70 @@ function refreshScheduleTableUI(object) {
     showMessage("Ha rotado");
     for (let i = 7; i < 14; i++) {
       data[i - 7] = JSON.parse(JSON.stringify(data[i]));
-      //data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
+      data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
     }
+  }
+
+  const workplaces = object.workplaces;
+  const workplacesMap = {
+    0: "Sin centro asignado",
+    ...workplaces.reduce((map, workplace) => {
+      map[workplace[0]] = workplace[1];
+      return map;
+    }, {})
+  };
+  for (let i = 0; i < 14; i++) {
+    const date = sumDays(schedule.date, i);
+
+    if ((i % 7) === 0) {
+      const tr0 = document.createElement('tr');
+
+      tr0.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
+      tbody.appendChild(tr0);
+    }
+
+    const tr1 = document.createElement('tr');
+    const tr2 = document.createElement('tr');
+
+    tr1.innerHTML = `
+      <th rowspan="2">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+      <td colspan="2" class="taLeft">${workplacesMap[data[i][0][0]]}</td>
+      <td colspan="2" class="taLeft">${workplacesMap[data[i][1][0]]}</td>
+    `;
+    tr2.innerHTML = `
+      <td>${data[i][0][1]}</td>
+      <td>${data[i][0][2]}</td>
+      <td>${data[i][1][1]}</td>
+      <td>${data[i][1][2]}</td>
+    `;
+    tbody.appendChild(tr1);
+    tbody.appendChild(tr2);
+  }
+}
+
+function refreshScheduleTableWrite(object) {
+  const tbody = document.querySelector('#schedule-table tbody');
+
+  tbody.replaceChildren();
+
+  const today = new Date(object.today);
+
+  schedule.date = sumDays(today, -getISODay(today));
+
+  const parsedObject = JSON.parse(object.schedule);
+  const rotateDate = new Date(parsedObject?.date || schedule.date).getTime() !== schedule.date.getTime();
+  let data = parsedObject?.data || null;
+
+  if (!data || data.length !== 14) {
+    data = Array.from({ length: 14 }, () => [[object.workplace_id, '00:00', '00:00'], [0, '00:00', '00:00']]);
+  }
+  if (rotateDate) {
+    showMessage("Ha rotado");
+    for (let i = 7; i < 14; i++) {
+      data[i - 7] = JSON.parse(JSON.stringify(data[i]));
+      data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
+    }
+    //schedule.date = new Date(parsedObject.date);
   }
 
   const workplaces = object.workplaces;
@@ -283,8 +344,9 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
     }
   });
 
-  const object = { date: formatISODate(schedule.date), data: data };
-  // const object = { date: "2025-06-23", data: data };
+  //const object = { date: formatISODate(schedule.date), data: data };
+  //const object = { date: "2025-06-16", data: data };
+  const object = { date: "2025-06-23", data: data };
   const values = JSON.stringify({ schedule: JSON.stringify(object) });
 
   scheduleUpdate(values);
