@@ -30,24 +30,6 @@ const clocking = {
   }
 }
 
-async function logHours() {
-  const response = await fetch('/api/timesheet', {
-    method: 'POST',
-    credentials: 'include'
-  });
-
-  if (response.status === 200) {
-    const data = await response.json();
-    user.workplace = data[0];
-    user.clockIn = data[2] === 0 ? data[1] : 0;
-  } else if (response.status === 204) {
-    throw new Error('No se puede fichar en este momento');
-  } else {
-    const text = await response.text();
-    throw new Error(text || `HTTP Error ${response.status}`);
-  }
-}
-
 async function refreshClockingTable() {
   const response = await fetch('/api/timesheet/week', {
     method: 'GET',
@@ -273,7 +255,11 @@ clockingForm.addEventListener('submit', (e) => {
 
     timesheetRequestUpdate(JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason }));
   } else {
-    timesheetUpdate(JSON.stringify({ workplace_id, clock_in, clock_out }));
+    if (timesheet.id.value == 0) { // Do not compare with ===
+      timesheetInsert(JSON.stringify({ workplace_id, clock_in, clock_out }));
+    } else {
+      timesheetUpdate(JSON.stringify({ workplace_id, clock_in, clock_out }));
+    }
   }
 });
 /*
@@ -297,6 +283,48 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
   clockingForm.style.display = "none";
   clockingTable.style.display = "table";
 });
+
+async function timesheetUpsert() {
+  const response = await fetch('/api/timesheet', {
+    method: 'POST',
+    credentials: 'include'
+  });
+
+  if (response.status === 200) {
+    const data = await response.json();
+    user.workplace = data[0];
+    user.clockIn = data[2] === 0 ? data[1] : 0;
+  } else if (response.status === 204) {
+    throw new Error('No se puede fichar en este intervalo de tiempo');
+  } else {
+    const text = await response.text();
+    throw new Error(text || `HTTP Error ${response.status}`);
+  }
+}
+
+async function timesheetInsert(data) {
+  try {
+    const response = await fetch('/api/timesheet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: data
+    });
+
+    if (response.status === 200) {
+      clockingForm.style.display = "none";
+      clockingTable.style.display = "table";
+      await refreshClockingTable();
+    } else if (response.status === 204) {
+      showMessage('No se puede insertar el registro');
+    } else {
+      const text = await response.text();
+      showMessage(text || `HTTP ${response.status}`);
+    }
+  } catch (error) {
+    showMessage(error.message || 'No se puede insertar el registro');
+  }
+}
 
 async function timesheetRequestUpdate(data) {
   try {

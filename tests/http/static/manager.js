@@ -128,7 +128,7 @@ async function profileUpdate(data) {
   }
 }
 
-const schedule = { hash: 0, date: null }
+const schedule = { date: null }
 
 async function refreshScheduleTable() {
   const response = await fetch('/api/users/schedule', {
@@ -158,16 +158,17 @@ function refreshScheduleTableRead(object) {
 
   const parsedObject = JSON.parse(object.schedule);
   const rotateDate = new Date(parsedObject?.date || schedule.date).getTime() !== schedule.date.getTime();
+  const empty = [[object.workplace_id, '00:00', '00:00'], [0, '00:00', '00:00']];
   let data = parsedObject?.data || null;
 
   if (!data || data.length !== 14) {
-    data = Array.from({ length: 14 }, () => [[object.workplace_id, '00:00', '00:00'], [0, '00:00', '00:00']]);
+    data = Array.from({ length: 14 }, () => empty);
   }
   if (rotateDate) {
     showMessage("Ha rotado");
     for (let i = 7; i < 14; i++) {
       data[i - 7] = JSON.parse(JSON.stringify(data[i]));
-      data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
+      data[i] = empty;
     }
   }
 
@@ -283,10 +284,11 @@ function refreshScheduleTableWrite(object) {
 }
 
 function scheduleChange(selected) {
+/*
   confirmMessage("Se clonarán los datos a los registros con fecha posterior en la semana seleccionada").then((confirmed) => {
     if (!confirmed) return;
   });
-
+*/
   const rows = document.querySelectorAll('#schedule-table tr');
   let data = [[], []];
   let index = 0;
@@ -344,9 +346,9 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
     }
   });
 
-  //const object = { date: formatISODate(schedule.date), data: data };
+  const object = { date: formatISODate(schedule.date), data: data };
   //const object = { date: "2025-06-16", data: data };
-  const object = { date: "2025-06-23", data: data };
+  //const object = { date: "2025-06-23", data: data };
   const values = JSON.stringify({ schedule: JSON.stringify(object) });
 
   scheduleUpdate(values);

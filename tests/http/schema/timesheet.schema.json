@@ -3,7 +3,7 @@
   "$id": "/timesheet",
   "type": "object",
   "definitions": {
-    "update": {
+    "upsert": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
@@ -78,10 +78,22 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "POST /timesheet", "role": 1 }
+        "x-notify": { "path": "POST /timesheet content:none", "role": 1 }
       },
       "then": true,
-      "else": false
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "minItems": 1, "maxItems": 1 },
+            "query": { "type": "null" }
+          },
+          "x-notify": { "path": "POST /timesheet", "role": 1 }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/upsert" } }
+        },
+        "else": false
+      }
     },
     "PUT": {
       "if": {
@@ -92,7 +104,7 @@
         "x-notify": { "path": "PUT /timesheet/{id}", "role": 3 }
       },
       "then": {
-        "properties": { "content": { "$ref": "#/definitions/update" } }
+        "properties": { "content": { "$ref": "#/definitions/upsert" } }
       },
       "else": false
     },

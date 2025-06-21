@@ -301,7 +301,7 @@
       }
       userButton.disabled = true;
       try {
-        await logHours();
+        await timesheetUpsert();
         refreshUserData();
         await refreshClockingTable();
       } catch (error) {
