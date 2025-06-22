@@ -122,6 +122,15 @@ function refreshClockingTableUI(data) {
       tbody.appendChild(tr5);
     }
   });
+
+  const tr6 = document.createElement('tr');
+
+  tr6.innerHTML = `
+    <td class="editable" colspan="4" onclick="timesheetMore();">
+    <div><i class="ti ti-search"></i><span>Ver más fichajes</span></div>
+    </td>
+  `;
+  tbody.appendChild(tr6);
 }
 
 const timesheet = {
@@ -398,8 +407,6 @@ async function timesheetRequestDelete(id) {
     });
 
     if (response.status === 200) {
-      clockingForm.style.display = "none";
-      clockingTable.style.display = "table";
       await refreshClockingTable();
     } else if (response.status === 204) {
       showMessage('No hay nada que eliminar');
@@ -423,8 +430,6 @@ async function timesheetDelete(id) {
     });
 
     if (response.status === 200) {
-      clockingForm.style.display = "none";
-      clockingTable.style.display = "table";
       await refreshClockingTable();
     } else if (response.status === 204) {
       showMessage('No hay nada que eliminar');
@@ -435,5 +440,33 @@ async function timesheetDelete(id) {
   } catch (error) {
     showMessage(error.message || 'No se puede eliminar el registro');
   }
+}
+
+async function timesheetSelectMonth(year, month) {
+  console.log('Mes seleccionado (número):', month); // 1-12
+  console.log('Año seleccionado:', year);          // 2020-actual
+
+  try {
+    const response = await fetch(`/api/timesheet/${year}/${month}/month`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (response.status === 200) {
+      const data = await response.json();
+      refreshClockingTableUI(data);
+    } else if (response.status !== 204) {
+      const text = await response.text();
+      showMessage(text || `HTTP Error ${response.status}`);
+    }
+  } catch (error) {
+    showMessage(error.message ||  `HTTP ${response.status}`);
+  }
+}
+
+function timesheetMore() {
+  showForm(createMonthYearForm, 'Seleccione una fecha').then(result => {
+    if (result) { timesheetSelectMonth(result.year, result.month); }
+  });
 }
 

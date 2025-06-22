@@ -71,6 +71,14 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /timesheet/week", "size": 1, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "'20'00"}, {"x-mask": "00"}, { "const": "month" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timesheet/{year}/{month}/month", "size": 3, "role": 1 }
         }
       ]
     },

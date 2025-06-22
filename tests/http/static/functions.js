@@ -423,3 +423,212 @@ function promptMessage(message = "", defaultValue = "") {
   });
 }
 
+function showForm(formGenerator, message = "") {
+  return new Promise((resolve) => {
+    if (message.length > 512) {
+      message = message.substring(0, 509) + '...';
+    }
+
+    // Medir scrollbar y guardar estilos originales
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const originalPadding = document.body.style.paddingRight;
+    const originalOverflow = document.body.style.overflow;
+
+    // Función de limpieza
+    const cleanup = (result) => {
+      document.body.removeChild(overlay);
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPadding;
+      resolve(result);
+    };
+
+    // Overlay
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      zIndex: '1000',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    });
+
+    // Modal
+    const modal = document.createElement('div');
+    Object.assign(modal.style, {
+      borderRadius: '8px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+      backgroundColor: '#2d3748',
+      maxWidth: '400px',
+      width: '80%',
+      textAlign: 'center',
+      padding: '20px'
+    });
+
+    // Texto
+    const text = document.createElement('p');
+    Object.assign(text.style, {
+      color: '#ffffff'
+    });
+    text.textContent = message;
+
+    // Contenedor del formulario generado por el callback
+    const formContent = document.createElement('div');
+    const formElements = formGenerator({
+      container: formContent
+    });
+
+    // Contenedor de botones
+    const buttonsContainer = document.createElement('div');
+    Object.assign(buttonsContainer.style, {
+      display: 'flex',
+      gap: '10px',
+      justifyContent: 'center'
+    });
+
+    // Botón Aceptar
+    const buttonOk = document.createElement('button');
+    Object.assign(buttonOk.style, {
+      backgroundColor: '#4caf50',
+      color: '#ffffff',
+      outline: 'none',
+      padding: '10px 20px'
+    });
+    buttonOk.textContent = 'Aceptar';
+
+    // Botón Cancelar
+    const buttonCancel = document.createElement('button');
+    Object.assign(buttonCancel.style, {
+      backgroundColor: '#4a5568',
+      color: '#ffffff',
+      outline: 'none',
+      padding: '10px 20px'
+    });
+    buttonCancel.textContent = 'Cancelar';
+/*
+    // Eventos
+    input.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') cleanup(input.value.trim());
+      else if (e.key === 'Escape') cleanup(null);
+    });
+*/
+    buttonOk.addEventListener('click', () => {
+      const result = formElements?.getValues ? formElements.getValues() : null;
+      cleanup(result);
+    });
+    buttonCancel.addEventListener('click', () => cleanup(null));
+
+    // Ajuste para el scroll
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+    document.body.style.overflow = 'hidden';
+
+    // Ensamblaje (mismo orden original)
+    buttonsContainer.appendChild(buttonOk);
+    buttonsContainer.appendChild(buttonCancel);
+    modal.appendChild(text);
+    modal.appendChild(formContent);
+    modal.appendChild(buttonsContainer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Auto-enfocar el primer elemento interactivo
+    const firstInput = formContent.querySelector('input, select, textarea, button');
+    if (firstInput) {
+      firstInput.focus();
+      if (firstInput.tagName === 'INPUT' && firstInput.type !== 'checkbox') {
+        firstInput.select();
+      }
+    }
+  });
+}
+
+function createMonthYearForm({ container }) {
+  // Contenedor principal con estilos seguros
+  const formContent = document.createElement('div');
+  Object.assign(formContent.style, {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    width: '100%',
+    marginBottom: '20px' // Espacio adicional inferior
+  });
+
+  // Contenedor para los selects
+  const selectsContainer = document.createElement('div');
+  Object.assign(selectsContainer.style, {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+    width: '100%'
+  });
+
+  // Selector de Meses
+  const monthSelect = document.createElement('select');
+  Object.assign(monthSelect.style, {
+    fontSize: '1rem',
+    border: '1px solid #64758a',
+    borderRadius: '4px',
+    backgroundColor: '#1e2734',
+    color: '#ffffff',
+    outline: 'none',
+    flex: '1',
+    minWidth: '0',
+    padding: '10px'
+  });
+
+  ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    .forEach((month, index) => {
+      const option = document.createElement('option');
+      option.value = (index + 1).toString().padStart(2, '0');
+      option.textContent = month;
+      if (index === new Date().getMonth()) {
+        option.selected = true;
+      }
+      monthSelect.appendChild(option);
+    });
+
+  // Selector de Años
+  const yearSelect = document.createElement('select');
+  Object.assign(yearSelect.style, {
+    fontSize: '1rem',
+    border: '1px solid #64758a',
+    borderRadius: '4px',
+    backgroundColor: '#1e2734',
+    color: '#ffffff',
+    outline: 'none',
+    flex: '1',
+    minWidth: '0',
+    padding: '10px'
+  });
+
+  const currentYear = new Date().getFullYear();
+  for (let year = 2020; year <= currentYear; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    if (year === currentYear) {
+      option.selected = true;
+    }
+    yearSelect.appendChild(option);
+  }
+
+  // Agregar elementos de forma segura
+  selectsContainer.appendChild(monthSelect);
+  selectsContainer.appendChild(yearSelect);
+  formContent.appendChild(selectsContainer);
+  
+  // Agregar al contenedor principal (esto debe ir ANTES de cualquier acceso a parentElement)
+  container.appendChild(formContent);
+
+  return {
+    getValues: () => ({
+      month: monthSelect.value,
+      year: yearSelect.value
+    })
+  };
+}
