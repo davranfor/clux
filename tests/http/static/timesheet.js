@@ -59,18 +59,27 @@ function refreshClockingTableUI(data) {
   `;
   tbody.appendChild(tr0);
 
-  data.reverse();
   data.forEach(record => {
     const dt1 = new Date(record[2].replace(' ', 'T'));
     const dt2 = new Date(record[3].replace(' ', 'T'));
+    const obj = JSON.parse(record[4]);
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
+    
+    if (obj && Object.keys(obj).length === 1) {
+      tr1.innerHTML = `
+        <td class="editable" colspan="4" onclick="timesheetDelete(${record[0]});">
+        <div><i class="ti ti-trash"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
+        </td>
+      `;
 
-    tr1.innerHTML = `
-      <td class="editable" colspan="4" onclick="timesheetEdit(${record[0]});">
-      <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
-      </td>
-    `;
+    } else {
+      tr1.innerHTML = `
+        <td class="editable" colspan="4" onclick="timesheetEdit(${record[0]});">
+        <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
+        </td>
+      `;
+    }
     tr2.innerHTML = `
       <td>${longDate(record[2])}</td>
       <td>${shortTime(record[2])}</td>
@@ -79,13 +88,14 @@ function refreshClockingTableUI(data) {
     `;
     tbody.appendChild(tr1);
     tbody.appendChild(tr2);
-    if (record[4] === null) {
-      return;
+
+    if (obj && Object.keys(obj).length === 1) {
+      const tr3 = document.createElement('tr');
+
+      tr3.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
+      tbody.appendChild(tr3);
     }
-
-    const obj = JSON.parse(record[4]);
-
-    if (Object.keys(obj).length > 1) {
+    else if (obj && Object.keys(obj).length > 1) {
       const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
       const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
       const tr3 = document.createElement('tr');
@@ -93,7 +103,7 @@ function refreshClockingTableUI(data) {
       const tr5 = document.createElement('tr');
 
       tr3.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetRequestClear(${record[0]});">
+        <td class="editable" colspan="4" onclick="timesheetRequestDelete(${record[0]});">
         <div><i class="ti ti-refresh"></i><span>Modificado, ${obj.workplace_name}</span></div>
         </td>
       `;
@@ -107,18 +117,6 @@ function refreshClockingTableUI(data) {
       tbody.appendChild(tr3);
       tbody.appendChild(tr4);
       tbody.appendChild(tr5);
-    } else {
-      const tr3 = document.createElement('tr');
-      const tr4 = document.createElement('tr');
-
-      tr3.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetRequestClear(${record[0]});">
-        <div><i class="ti ti-trash"></i><span>Pendiente de eliminar</span></div>
-        </td>
-      `;
-      tr4.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
-      tbody.appendChild(tr3);
-      tbody.appendChild(tr4);
     }
   });
 }
@@ -250,10 +248,15 @@ clockingForm.addEventListener('submit', (e) => {
     return;
   }
   if (user.role !== role.ADMIN) {
-    const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
     const reason = timesheet.reason.value;
 
-    timesheetRequestUpdate(JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason }));
+    if (timesheet.id.value == 0) { // Do not compare with ===
+      timesheetInsert(JSON.stringify({ workplace_id, clock_in, clock_out, reason }));
+    } else {
+      const workplace_name = timesheet.workplace.options[timesheet.workplace.selectedIndex].text;
+
+      timesheetRequestUpdate(JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason }));
+    }
   } else {
     if (timesheet.id.value == 0) { // Do not compare with ===
       timesheetInsert(JSON.stringify({ workplace_id, clock_in, clock_out }));
@@ -295,7 +298,7 @@ async function timesheetUpsert() {
     user.workplace = data[0];
     user.clockIn = data[2] === 0 ? data[1] : 0;
   } else if (response.status === 204) {
-    throw new Error('No se puede fichar en este intervalo de tiempo');
+    throw new Error('No se puede fichar en este momento');
   } else {
     const text = await response.text();
     throw new Error(text || `HTTP Error ${response.status}`);
@@ -316,7 +319,7 @@ async function timesheetInsert(data) {
       clockingTable.style.display = "table";
       await refreshClockingTable();
     } else if (response.status === 204) {
-      showMessage('No se puede insertar el registro');
+      showMessage('No se puede fichar en las horas indicadas');
     } else {
       const text = await response.text();
       showMessage(text || `HTTP ${response.status}`);
@@ -328,7 +331,7 @@ async function timesheetInsert(data) {
 
 async function timesheetRequestUpdate(data) {
   try {
-    const response = await fetch(`/api/timesheet/${timesheet.id.value}/request/update`, {
+    const response = await fetch(`/api/timesheet/${timesheet.id.value}/request`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -340,7 +343,7 @@ async function timesheetRequestUpdate(data) {
       clockingTable.style.display = "table";
       await refreshClockingTable();
     } else if (response.status === 204) {
-      showMessage('No hay ningún cambio que solicitar');
+      showMessage('No se puede fichar en las horas indicadas');
     } else {
       const text = await response.text();
       showMessage(text || `HTTP ${response.status}`);
@@ -364,7 +367,7 @@ async function timesheetUpdate(data) {
       clockingTable.style.display = "table";
       await refreshClockingTable();
     } else if (response.status === 204) {
-      showMessage('No hay ningún cambio que guardar');
+      showMessage('No se puede fichar en las horas indicadas');
     } else {
       const text = await response.text();
       showMessage(text || `HTTP ${response.status}`);
@@ -374,13 +377,21 @@ async function timesheetUpdate(data) {
   }
 }
 
-async function timesheetRequestDelete(reason) {
+async function timesheetRequestDelete(id) {
+/*
+  const nombre = await promptMessage("Por favor ingrese su nombre:", "John Doe");
+
+  if (nombre === null) {
+    return;
+  }
+*/
+  if (!await confirmMessage("Se eliminará la solicitud pendiente")) {
+    return;
+  }
   try {
-    const response = await fetch(`/api/timesheet/${timesheet.id.value}/request/delete`, {
+    const response = await fetch(`/api/timesheet/${id}/request`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: reason
+      credentials: 'include'
     });
 
     if (response.status === 200) {
@@ -398,12 +409,12 @@ async function timesheetRequestDelete(reason) {
   }
 }
 
-async function timesheetDelete() {
+async function timesheetDelete(id) {
   if (!await confirmMessage("Se eliminará el registro seleccionado")) {
     return;
   }
   try {
-    const response = await fetch(`/api/timesheet/${timesheet.id.value}`, {
+    const response = await fetch(`/api/timesheet/${id}`, {
       method: 'DELETE',
       credentials: 'include'
     });
@@ -419,39 +430,7 @@ async function timesheetDelete() {
       showMessage(text || `HTTP ${response.status}`);
     }
   } catch (error) {
-    showMessage(error.message || 'No se puede actualizar el registro');
-  }
-}
-
-async function timesheetRequestClear(id) {
-/*
-  const nombre = await promptMessage("Por favor ingrese su nombre:", "John Doe");
-
-  if (nombre === null) {
-    return;
-  }
-*/
-  if (!await confirmMessage("Se eliminará la solicitud pendiente")) {
-    return;
-  }
-  try {
-    const response = await fetch(`/api/timesheet/${id}/request/clear`, {
-      method: 'PATCH',
-      credentials: 'include'
-    });
-
-    if (response.status === 200) {
-      clockingForm.style.display = "none";
-      clockingTable.style.display = "table";
-      await refreshClockingTable();
-    } else if (response.status === 204) {
-      showMessage('No hay nada que actualizar');
-    } else {
-      const text = await response.text();
-      showMessage(text || `HTTP ${response.status}`);
-    }
-  } catch (error) {
-    showMessage(error.message || 'No se puede actualizar el registro');
+    showMessage(error.message || 'No se puede eliminar el registro');
   }
 }
 

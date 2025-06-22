@@ -13,6 +13,17 @@
       "additionalProperties": false,
       "required": [ "workplace_id", "clock_in", "clock_out" ]
     },
+    "request.insert": {
+      "type": "object",
+      "properties": {
+        "workplace_id": { "type": "integer" },
+        "clock_in": { "type": "string", "format": "date-time-local" },
+        "clock_out": { "type": "string", "format": "date-time-local" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 100 }
+      },
+      "additionalProperties": false,
+      "required": [ "workplace_id", "clock_in", "clock_out", "reason" ]
+    },
     "request.update": {
       "type": "object",
       "properties": {
@@ -24,14 +35,6 @@
       },
       "additionalProperties": false,
       "required": [ "workplace_id", "workplace_name", "clock_in", "clock_out", "reason" ]
-    },
-    "request.delete": {
-      "type": "object",
-      "properties": {
-        "reason": { "type": "string", "minLength": 1, "maxLength": 100 }
-      },
-      "additionalProperties": false,
-      "required": [ "reason" ]
     }
   },
   "properties": {
@@ -85,14 +88,28 @@
         "if": {
           "properties": {
             "path": { "minItems": 1, "maxItems": 1 },
-            "query": { "type": "null" }
+            "query": { "type": "null" },
+            "cookie": { "properties": { "role": { "enum": [1, 2] } } }
           },
-          "x-notify": { "path": "POST /timesheet", "role": 1 }
+          "x-notify": { "path": "POST /timesheet role:basic,supervisor", "role": 1 }
         },
         "then": {
-          "properties": { "content": { "$ref": "#/definitions/upsert" } }
+          "properties": { "content": { "$ref": "#/definitions/request.insert" } }
         },
-        "else": false
+        "else": { 
+          "if": {
+            "properties": {
+              "path": { "minItems": 1, "maxItems": 1 },
+              "query": { "type": "null" },
+              "cookie": { "properties": { "role": { "const": 3 } } }
+            },
+            "x-notify": { "path": "POST /timesheet role:admin", "role": 1 }
+          },
+          "then": {
+            "properties": { "content": { "$ref": "#/definitions/upsert" } }
+          },
+          "else": false
+        }
       }
     },
     "PUT": {
@@ -111,37 +128,25 @@
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }, { "const": "update" }], "additionalItems": false },
-          "query": { "type": "null" }
+          "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }], "additionalItems": false },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /timesheet/{id}/request/update", "size": 2, "role": 1 }
+        "x-notify": { "path": "PATCH /timesheet/{id}/request content:none", "size": 2, "role": 1 }
       },
-      "then": {
-        "properties": { "content": { "$ref": "#/definitions/request.update" } }
-      },
+      "then": true,
       "else": {
         "if": {
           "properties": {
-            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }, { "const": "delete" }], "additionalItems": false },
+            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /timesheet/{id}/request/delete", "size": 2, "role": 1 }
+          "x-notify": { "path": "PATCH /timesheet/{id}/request", "size": 2, "role": 1 }
         },
         "then": {
-          "properties": { "content": { "$ref": "#/definitions/request.delete" } }
+          "properties": { "content": { "$ref": "#/definitions/request.update" } }
         },
-        "else": {
-          "if": {
-            "properties": {
-              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }, { "const": "clear" }], "additionalItems": false },
-              "query": { "type": "null" },
-              "content": { "type": "null" }
-            },
-            "x-notify": { "path": "PATCH /timesheet/{id}/request/clear", "size": 2, "role": 1 }
-          },
-          "then": true,
-          "else": false
-        }
+        "else": false
       }
     },
     "DELETE": {
@@ -150,7 +155,7 @@
           "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "DELETE /timesheet/{id}", "role": 3 }
+        "x-notify": { "path": "DELETE /timesheet/{id}", "role": 1 }
       },
       "then": true,
       "else": false
