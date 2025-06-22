@@ -509,13 +509,19 @@ function showForm(formGenerator, message = "") {
       padding: '10px 20px'
     });
     buttonCancel.textContent = 'Cancelar';
-/*
-    // Eventos
-    input.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') cleanup(input.value.trim());
-      else if (e.key === 'Escape') cleanup(null);
+
+    formContent.querySelectorAll('input, select, textarea').forEach(element => {
+      element.addEventListener('keydown', function(e) {
+        if (this.list) return;
+        if (e.key === 'Enter') {
+          const result = formElements?.getValues ? formElements.getValues() : null;
+          cleanup(result);
+        } else if (e.key === 'Escape') {
+          cleanup(null);
+        }
+      });
     });
-*/
+
     buttonOk.addEventListener('click', () => {
       const result = formElements?.getValues ? formElements.getValues() : null;
       cleanup(result);
@@ -570,11 +576,11 @@ function createMonthYearForm({ container }) {
   const monthSelect = document.createElement('select');
   Object.assign(monthSelect.style, {
     fontSize: '1rem',
+    /*outline: '2px solid #64758a',*/
     border: '1px solid #64758a',
     borderRadius: '4px',
     backgroundColor: '#1e2734',
     color: '#ffffff',
-    outline: 'none',
     flex: '1',
     minWidth: '0',
     padding: '10px'
@@ -596,11 +602,11 @@ function createMonthYearForm({ container }) {
   const yearSelect = document.createElement('select');
   Object.assign(yearSelect.style, {
     fontSize: '1rem',
+    /*outline: '2px solid #64758a',*/
     border: '1px solid #64758a',
     borderRadius: '4px',
     backgroundColor: '#1e2734',
     color: '#ffffff',
-    outline: 'none',
     flex: '1',
     minWidth: '0',
     padding: '10px'

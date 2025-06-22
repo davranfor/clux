@@ -246,12 +246,12 @@
             lastActiveItem = element;
             break;
           case 'item-schedule':
-            await refreshScheduleTable();
             scheduleFrame.style.display = "flex";
+            await refreshScheduleTable();
             break;
           case 'item-profile':
-            await profileEdit(user.id);
             profileFrame.style.display = "flex";
+            await profileEdit(user.id);
             break;
         }
       } catch (error) {

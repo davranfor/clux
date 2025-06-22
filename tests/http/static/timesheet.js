@@ -217,6 +217,7 @@ function timesheetEditUI(data) {
   timesheet.reason.value = "";
 
   timesheet.hash = formHash(clockingForm);
+  timesheet.clockIn.date.focus();
 }
 
 document.querySelectorAll('#clocking-form input').forEach(element => {
@@ -236,7 +237,9 @@ clockingForm.addEventListener('submit', (e) => {
   const hash = formHash(clockingForm);
 
   if (timesheet.hash === hash) {
-    showMessage("No se ha realizado ningún cambio en el registro");
+    showMessage("No se ha realizado ningún cambio en el registro").then(() => {
+      timesheet.clockIn.date.focus();
+    });
     return;
   }
 
@@ -277,23 +280,7 @@ clockingForm.addEventListener('submit', (e) => {
     }
   }
 });
-/*
-document.getElementById("clocking-delete").addEventListener("click", () => {
-  if (user.role !== role.ADMIN) {
-    const reason = timesheet.reason.value;
 
-    if (reason === "") {
-      showMessage("Especifica el motivo para eliminar el registro").then(() => {
-        timesheet.reason.focus();
-      });
-      return;
-    }
-    timesheetRequestDelete(JSON.stringify({ reason }));
-  } else {
-    timesheetDelete();
-  }
-});
-*/
 document.getElementById("clocking-cancel").addEventListener("click", () => {
   clockingForm.style.display = "none";
   clockingTable.style.display = "table";
@@ -443,9 +430,6 @@ async function timesheetDelete(id) {
 }
 
 async function timesheetSelectMonth(year, month) {
-  console.log('Mes seleccionado (número):', month); // 1-12
-  console.log('Año seleccionado:', year);          // 2020-actual
-
   try {
     const response = await fetch(`/api/timesheet/${year}/${month}/month`, {
       method: 'GET',

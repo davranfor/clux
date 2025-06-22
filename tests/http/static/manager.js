@@ -11,6 +11,15 @@ const profile = {
   email: profileForm.querySelector('input[name="email"]')
 }
 
+function profileFocus() {
+  if (profile.workplace.disabled === false) {
+    profile.workplace.focus();
+  } else {
+    profile.name.focus();
+    profile.name.select();
+  }
+}
+
 async function profileEdit(id) {
   const response = await fetch('/api/users', {
     method: 'GET',
@@ -55,6 +64,7 @@ function profileEditUI(data) {
   profile.phone.value = data.phone;
   profile.email.value = data.email;
   profile.hash = formHash(profileForm);
+  profileFocus();
 }
 
 document.querySelectorAll('#profile-form input').forEach(element => {
@@ -80,7 +90,9 @@ profileForm.addEventListener('submit', (e) => {
   const hash = formHash(profileForm);
 
   if (profile.hash === hash) {
-    showMessage("No se ha realizado ningún cambio en el registro");
+    showMessage("No se ha realizado ningún cambio en el registro").then(() => {
+      profileFocus();
+    });
     return;
   }
 
@@ -231,7 +243,6 @@ function refreshScheduleTableWrite(object) {
       data[i - 7] = JSON.parse(JSON.stringify(data[i]));
       data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
     }
-    //schedule.date = new Date(parsedObject.date);
   }
 
   const workplaces = object.workplaces;
