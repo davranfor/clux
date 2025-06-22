@@ -38,6 +38,7 @@ async function refreshClockingTable() {
 
   if (response.status === 200) {
     const data = await response.json();
+    data.sort((a, b) => a[2] < b[2] ? 1 : -1); // Sort by clock_in DESC
     refreshClockingTableUI(data);
   } else if (response.status !== 204) {
     const text = await response.text();
@@ -66,17 +67,22 @@ function refreshClockingTableUI(data) {
     const tr1 = document.createElement('tr');
     const tr2 = document.createElement('tr');
     
-    if (obj && Object.keys(obj).length === 1) {
+    if (!obj) {
+      tr1.innerHTML = `
+        <td class="editable" colspan="4" onclick="timesheetEdit(${record[0]});">
+        <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
+        </td>
+      `;
+    } else if (Object.keys(obj).length === 1) {
       tr1.innerHTML = `
         <td class="editable" colspan="4" onclick="timesheetDelete(${record[0]});">
         <div><i class="ti ti-trash"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
         </td>
       `;
-
     } else {
       tr1.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetEdit(${record[0]});">
-        <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
+        <td class="editable" colspan="4" onclick="timesheetRequestDelete(${record[0]});">
+        <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
         </td>
       `;
     }
@@ -88,14 +94,13 @@ function refreshClockingTableUI(data) {
     `;
     tbody.appendChild(tr1);
     tbody.appendChild(tr2);
-
-    if (obj && Object.keys(obj).length === 1) {
+    if (!obj) return;
+    if (Object.keys(obj).length === 1) {
       const tr3 = document.createElement('tr');
 
       tr3.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
       tbody.appendChild(tr3);
-    }
-    else if (obj && Object.keys(obj).length > 1) {
+    } else {
       const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
       const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
       const tr3 = document.createElement('tr');
@@ -103,9 +108,7 @@ function refreshClockingTableUI(data) {
       const tr5 = document.createElement('tr');
 
       tr3.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetRequestDelete(${record[0]});">
-        <div><i class="ti ti-refresh"></i><span>Modificado, ${obj.workplace_name}</span></div>
-        </td>
+        <td class="taLeft" colspan="4">Modificado, ${obj.workplace_name}</td>
       `;
       tr4.innerHTML = `
         <td>${longDate(obj.clock_in)}</td>
