@@ -117,12 +117,10 @@ function showMessage(message = "") {
       message = message.substring(0, 509) + '...';
     }
 
-    // Medir scrollbar y guardar estilos originales
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalPadding = document.body.style.paddingRight;
     const originalOverflow = document.body.style.overflow;
 
-    // Función de limpieza
     const cleanup = () => {
       document.body.removeChild(overlay);
       document.body.style.overflow = originalOverflow;
@@ -130,62 +128,25 @@ function showMessage(message = "") {
       resolve();
     };
 
-    // Overlay (con Object.assign)
     const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      zIndex: '1000',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    });
+    overlay.className = 'overlay';
 
-    // Modal (con Object.assign)
     const modal = document.createElement('div');
-    Object.assign(modal.style, {
-      borderRadius: '8px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-      backgroundColor: '#2d3748',
-      maxWidth: '400px',
-      width: '80%',
-      textAlign: 'center',
-      padding: '20px'
-    });
+    modal.setAttribute('data-grid', 'false');
 
-    // Texto (con Object.assign)
     const text = document.createElement('p');
-    Object.assign(text.style, {
-      marginBottom: '20px',
-      color: '#ffffff'
-    });
     text.textContent = message;
 
-    // Botón (con Object.assign + outline: none)
     const button = document.createElement('button');
-    Object.assign(button.style, {
-      backgroundColor: '#4caf50',
-      color: '#ffffff',
-      border: 'none',
-      padding: '10px 20px',
-      cursor: 'pointer',
-      outline: 'none' // Para quitar el resaltado de foco
-    });
+    button.className = 'default-button';
     button.textContent = 'Aceptar';
 
-    // Eventos
     button.addEventListener('click', cleanup);
     overlay.addEventListener('keydown', (e) => e.key === 'Escape' && cleanup());
 
-    // Ajuste para el scroll
     document.body.style.paddingRight = `${scrollbarWidth}px`;
     document.body.style.overflow = 'hidden';
 
-    // Ensamblaje
     modal.appendChild(text);
     modal.appendChild(button);
     overlay.appendChild(modal);
@@ -201,12 +162,10 @@ function confirmMessage(message = "") {
       message = message.substring(0, 509) + '...';
     }
 
-    // Medir scrollbar y guardar estilos originales
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalPadding = document.body.style.paddingRight;
     const originalOverflow = document.body.style.overflow;
 
-    // Función de limpieza
     const cleanup = (result) => {
       document.body.removeChild(overlay);
       document.body.style.overflow = originalOverflow;
@@ -214,83 +173,36 @@ function confirmMessage(message = "") {
       resolve(result);
     };
 
-    // Overlay
     const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      zIndex: '1000',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    });
+    overlay.className = 'overlay';
 
-    // Modal
     const modal = document.createElement('div');
-    Object.assign(modal.style, {
-      borderRadius: '8px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-      backgroundColor: '#2d3748',
-      maxWidth: '400px',
-      width: '80%',
-      textAlign: 'center',
-      padding: '20px'
-    });
 
-    // Texto
     const text = document.createElement('p');
-    Object.assign(text.style, {
-      marginBottom: '20px',
-      color: '#ffffff'
-    });
     text.textContent = message;
 
-    // Contenedor de botones
-    const buttonsContainer = document.createElement('div');
-    Object.assign(buttonsContainer.style, {
-      display: 'flex',
-      gap: '10px',
-      justifyContent: 'center'
-    });
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'form-2columns';
 
-    // Botón Aceptar
     const buttonOk = document.createElement('button');
-    Object.assign(buttonOk.style, {
-      backgroundColor: '#4caf50',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px 20px'
-    });
+    buttonOk.className = 'content-submit';
     buttonOk.textContent = 'Aceptar';
 
-    // Botón Cancelar
     const buttonCancel = document.createElement('button');
-    Object.assign(buttonCancel.style, {
-      backgroundColor: '#4a5568',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px 20px'
-    });
+    buttonCancel.className = 'content-button';
     buttonCancel.textContent = 'Cancelar';
 
-    // Eventos
     buttonOk.addEventListener('click', () => cleanup(true));
     buttonCancel.addEventListener('click', () => cleanup(false));
     overlay.addEventListener('keydown', (e) => e.key === 'Escape' && cleanup(false));
 
-    // Ajuste para el scroll
     document.body.style.paddingRight = `${scrollbarWidth}px`;
     document.body.style.overflow = 'hidden';
 
-    // Ensamblaje (mismo orden original)
-    buttonsContainer.appendChild(buttonOk);
-    buttonsContainer.appendChild(buttonCancel);
+    buttonGroup.appendChild(buttonOk);
+    buttonGroup.appendChild(buttonCancel);
     modal.appendChild(text);
-    modal.appendChild(buttonsContainer);
+    modal.appendChild(buttonGroup);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
@@ -304,12 +216,10 @@ function promptMessage(message = "", defaultValue = "") {
       message = message.substring(0, 509) + '...';
     }
 
-    // Medir scrollbar y guardar estilos originales
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalPadding = document.body.style.paddingRight;
     const originalOverflow = document.body.style.overflow;
 
-    // Función de limpieza
     const cleanup = (result) => {
       document.body.removeChild(overlay);
       document.body.style.overflow = originalOverflow;
@@ -317,86 +227,32 @@ function promptMessage(message = "", defaultValue = "") {
       resolve(result);
     };
 
-    // Overlay
     const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      zIndex: '1000',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    });
+    overlay.className = 'overlay';
 
-    // Modal
     const modal = document.createElement('div');
-    Object.assign(modal.style, {
-      borderRadius: '8px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-      backgroundColor: '#2d3748',
-      maxWidth: '400px',
-      width: '80%',
-      textAlign: 'center',
-      padding: '20px'
-    });
 
-    // Texto
-    const text = document.createElement('p');
-    Object.assign(text.style, {
-      color: '#ffffff'
-    });
-    text.textContent = message;
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
 
-    // Input
+    const label = document.createElement('label');
+    label.textContent = message;
+
     const input = document.createElement('input');
-    Object.assign(input.style, {
-      fontSize: '1rem',
-      boxSizing: 'border-box',
-      width: 'calc(100% - 20px)',
-      borderRadius: '4px',
-      border: '1px solid #64758a',
-      backgroundColor: '#1e2734',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px',
-      marginBottom: '20px'
-    });
     input.type = 'text';
     input.value = defaultValue;
 
-    // Contenedor de botones
-    const buttonsContainer = document.createElement('div');
-    Object.assign(buttonsContainer.style, {
-      display: 'flex',
-      gap: '10px',
-      justifyContent: 'center'
-    });
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'form-2columns';
 
-    // Botón Aceptar
     const buttonOk = document.createElement('button');
-    Object.assign(buttonOk.style, {
-      backgroundColor: '#4caf50',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px 20px'
-    });
+    buttonOk.className = 'content-submit';
     buttonOk.textContent = 'Aceptar';
 
-    // Botón Cancelar
     const buttonCancel = document.createElement('button');
-    Object.assign(buttonCancel.style, {
-      backgroundColor: '#4a5568',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px 20px'
-    });
+    buttonCancel.className = 'content-button';
     buttonCancel.textContent = 'Cancelar';
 
-    // Eventos
     input.addEventListener('keyup', (e) => {
       if (e.key === 'Enter') cleanup(input.value.trim());
       else if (e.key === 'Escape') cleanup(null);
@@ -405,16 +261,15 @@ function promptMessage(message = "", defaultValue = "") {
     buttonOk.addEventListener('click', () => cleanup(input.value.trim()));
     buttonCancel.addEventListener('click', () => cleanup(null));
 
-    // Ajuste para el scroll
     document.body.style.paddingRight = `${scrollbarWidth}px`;
     document.body.style.overflow = 'hidden';
 
-    // Ensamblaje (mismo orden original)
-    buttonsContainer.appendChild(buttonOk);
-    buttonsContainer.appendChild(buttonCancel);
-    modal.appendChild(text);
-    modal.appendChild(input);
-    modal.appendChild(buttonsContainer);
+    formGroup.appendChild(label);
+    formGroup.appendChild(input);
+    buttonGroup.appendChild(buttonOk);
+    buttonGroup.appendChild(buttonCancel);
+    modal.appendChild(formGroup);
+    modal.appendChild(buttonGroup);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
@@ -429,12 +284,10 @@ function showForm(formGenerator, message = "") {
       message = message.substring(0, 509) + '...';
     }
 
-    // Medir scrollbar y guardar estilos originales
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalPadding = document.body.style.paddingRight;
     const originalOverflow = document.body.style.overflow;
 
-    // Función de limpieza
     const cleanup = (result) => {
       document.body.removeChild(overlay);
       document.body.style.overflow = originalOverflow;
@@ -442,72 +295,28 @@ function showForm(formGenerator, message = "") {
       resolve(result);
     };
 
-    // Overlay
     const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      zIndex: '1000',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    });
+    overlay.className = 'overlay';
 
-    // Modal
     const modal = document.createElement('div');
-    Object.assign(modal.style, {
-      borderRadius: '8px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-      backgroundColor: '#2d3748',
-      maxWidth: '400px',
-      width: '80%',
-      textAlign: 'center',
-      padding: '20px'
-    });
 
-    // Texto
     const text = document.createElement('p');
-    Object.assign(text.style, {
-      color: '#ffffff'
-    });
     text.textContent = message;
 
-    // Contenedor del formulario generado por el callback
     const formContent = document.createElement('div');
     const formElements = formGenerator({
       container: formContent
     });
 
-    // Contenedor de botones
-    const buttonsContainer = document.createElement('div');
-    Object.assign(buttonsContainer.style, {
-      display: 'flex',
-      gap: '10px',
-      justifyContent: 'center'
-    });
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'form-2columns';
 
-    // Botón Aceptar
     const buttonOk = document.createElement('button');
-    Object.assign(buttonOk.style, {
-      backgroundColor: '#4caf50',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px 20px'
-    });
+    buttonOk.className = 'content-submit';
     buttonOk.textContent = 'Aceptar';
 
-    // Botón Cancelar
     const buttonCancel = document.createElement('button');
-    Object.assign(buttonCancel.style, {
-      backgroundColor: '#4a5568',
-      color: '#ffffff',
-      outline: 'none',
-      padding: '10px 20px'
-    });
+    buttonCancel.className = 'content-button';
     buttonCancel.textContent = 'Cancelar';
 
     formContent.querySelectorAll('input, select, textarea').forEach(element => {
@@ -528,20 +337,17 @@ function showForm(formGenerator, message = "") {
     });
     buttonCancel.addEventListener('click', () => cleanup(null));
 
-    // Ajuste para el scroll
     document.body.style.paddingRight = `${scrollbarWidth}px`;
     document.body.style.overflow = 'hidden';
 
-    // Ensamblaje (mismo orden original)
-    buttonsContainer.appendChild(buttonOk);
-    buttonsContainer.appendChild(buttonCancel);
+    buttonGroup.appendChild(buttonOk);
+    buttonGroup.appendChild(buttonCancel);
     modal.appendChild(text);
     modal.appendChild(formContent);
-    modal.appendChild(buttonsContainer);
+    modal.appendChild(buttonGroup);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    // Auto-enfocar el primer elemento interactivo
     const firstInput = formContent.querySelector('input, select, textarea, button');
     if (firstInput) {
       firstInput.focus();
@@ -553,39 +359,10 @@ function showForm(formGenerator, message = "") {
 }
 
 function createMonthYearForm({ container }) {
-  // Contenedor principal con estilos seguros
-  const formContent = document.createElement('div');
-  Object.assign(formContent.style, {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-    width: '100%',
-    marginBottom: '20px' // Espacio adicional inferior
-  });
+  const formGroup = document.createElement('div');
+  formGroup.className = 'form-2columns form-group';
 
-  // Contenedor para los selects
-  const selectsContainer = document.createElement('div');
-  Object.assign(selectsContainer.style, {
-    display: 'flex',
-    gap: '10px',
-    alignItems: 'center',
-    width: '100%'
-  });
-
-  // Selector de Meses
   const monthSelect = document.createElement('select');
-  Object.assign(monthSelect.style, {
-    fontSize: '1rem',
-    /*outline: '2px solid #64758a',*/
-    border: '1px solid #64758a',
-    borderRadius: '4px',
-    backgroundColor: '#1e2734',
-    color: '#ffffff',
-    flex: '1',
-    minWidth: '0',
-    padding: '10px'
-  });
-
   ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     .forEach((month, index) => {
@@ -598,20 +375,7 @@ function createMonthYearForm({ container }) {
       monthSelect.appendChild(option);
     });
 
-  // Selector de Años
   const yearSelect = document.createElement('select');
-  Object.assign(yearSelect.style, {
-    fontSize: '1rem',
-    /*outline: '2px solid #64758a',*/
-    border: '1px solid #64758a',
-    borderRadius: '4px',
-    backgroundColor: '#1e2734',
-    color: '#ffffff',
-    flex: '1',
-    minWidth: '0',
-    padding: '10px'
-  });
-
   const currentYear = new Date().getFullYear();
   for (let year = 2020; year <= currentYear; year++) {
     const option = document.createElement('option');
@@ -623,13 +387,9 @@ function createMonthYearForm({ container }) {
     yearSelect.appendChild(option);
   }
 
-  // Agregar elementos de forma segura
-  selectsContainer.appendChild(monthSelect);
-  selectsContainer.appendChild(yearSelect);
-  formContent.appendChild(selectsContainer);
-  
-  // Agregar al contenedor principal (esto debe ir ANTES de cualquier acceso a parentElement)
-  container.appendChild(formContent);
+  formGroup.appendChild(monthSelect);
+  formGroup.appendChild(yearSelect);
+  container.appendChild(formGroup);
 
   return {
     getValues: () => ({

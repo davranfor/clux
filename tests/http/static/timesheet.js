@@ -430,6 +430,11 @@ async function timesheetDelete(id) {
 }
 
 async function timesheetSelectMonth(year, month) {
+  const nombre = await promptMessage("Por favor ingrese su nombre:", "John Doe");
+
+  if (nombre === null) {
+    return;
+  }
   try {
     const response = await fetch(`/api/timesheet/${year}/${month}/month`, {
       method: 'GET',

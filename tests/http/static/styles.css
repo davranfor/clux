@@ -164,9 +164,9 @@ header {
 
 .content-box {
   border: 1px solid #64758a;
-  background-color: #2d3748;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background-color: #2d3748;
   width: 100%;
   max-width: 600px;
   padding: 1.5rem 2rem;
@@ -307,6 +307,44 @@ header {
 #clocking-form {
   display: none; /* flex */
   margin-top: 5px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.overlay > div {
+  border: 1px solid #64758a;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  background-color: #2d3748;
+  max-width: 400px;
+  width: 80%;
+  text-align: center;
+  display: grid;
+  gap: 0.5rem;
+  padding: 20px;
+}
+
+.overlay > div[data-grid="false"] {
+  display: block;
+}
+
+.default-button {
+  background-color: #4caf50;
+  color: #fff;
+  flex-shrink: 0;
+  padding: 10px 20px;
 }
 
 .taLeft {
