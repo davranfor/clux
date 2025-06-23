@@ -58,7 +58,7 @@ async function checkSession() {
     clearTimeout(timeout);
     if (response.status === 200) {
       [
-        [user.role, user.name],
+        [user.id, user.role, user.name],
         [user.workplace, user.clockIn, clocking.elapsed]
       ] = await response.json();
       login.hide();

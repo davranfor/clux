@@ -249,40 +249,40 @@ header {
   outline: none;
 }
 
-#clocking-table, #schedule-table {
+.view-table, #schedule-table {
   border-collapse: collapse;
   width: 100%;
   margin-top: 5px;
   margin-bottom: 10px;
 }
 
-#clocking-table th, #schedule-table th {
+.view-table th, #schedule-table th {
   background-color: #4a5568;
   border: 1px solid #64758a;
   padding: 4px 8px;
 }
 
-#clocking-table td, #schedule-table td {
+.view-table td, #schedule-table td {
   border: 1px solid #64758a;
   padding: 4px 8px;
 }
 
-#clocking-table td.editable {
+.view-table td.editable {
   background-color: #4a5568;
 }
 
-#clocking-table td.editable:hover {
+.view-table td.editable:hover {
   background-color: #1e2734;
   cursor: pointer;
 }
 
-#clocking-table td.editable > div {
+.view-table td.editable > div {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-#clocking-table td.editable > div > .ti {
+.view-table td.editable > div > .ti {
   font-size: 1.5rem;
   color: #fff;
 }

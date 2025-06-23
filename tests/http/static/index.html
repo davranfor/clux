@@ -86,7 +86,7 @@
           <h2>Fichajes</h2>
           <b id="clocking-title"></b>
           <b id="clocking-text"></b>
-          <table id="clocking-table">
+          <table id="clocking-table" class="view-table">
             <tbody></tbody>
           </table>
           <form class="content-form" id="clocking-form" autocomplete="off">
@@ -95,6 +95,7 @@
               <label for="workplace">Centro de trabajo</label>
               <select name="workplace"></select>
             </div>
+            <input type="hidden" name="user" required>
             <div class="form-2columns">
               <div class="form-group">
                 <label for="clock_in_date">Fecha de entrada</label>
@@ -206,9 +207,10 @@
     </div>
   </div>
   <script>
+    const code = { id: { NORMAL: 0, ABSENCE: 1 }, name: [ "Normal", "Ausencia 👻" ] };
     const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
-    const user = { role: 0, name: "", workplace: "", clockIn: 0 };
+    const user = { id: 0, role: 0, name: "", workplace: "", clockIn: 0 };
     const userPanel = document.getElementById("user-panel");
     const userTitle = document.getElementById("user-title");
     const userButton = document.getElementById("user-button");
@@ -219,11 +221,11 @@
     function menuBack() {
       if (lastActiveItem !== null) setActive(lastActiveItem);
     }
-    async function setActive(element) {
+    async function setActive(item, id = null) {
       const activeItem = document.querySelector('#menu .menu-item.active');
 
       if (activeItem) {
-        if (activeItem === element) return;
+        if (activeItem === item) return;
         activeItem.classList.remove('active');
         switch (activeItem.dataset.item) {
           case 'item-clocking':
@@ -237,17 +239,17 @@
             break;
         }
       }
-      element.classList.add('active');
+      item.classList.add('active');
       try {
-        switch (element.dataset.item) {
+        switch (item.dataset.item) {
           case 'item-clocking':
-            await refreshClockingTable();
             clockingFrame.style.display = "flex";
-            lastActiveItem = element;
+            await refreshClockingTable();
+            lastActiveItem = item;
             break;
           case 'item-schedule':
             scheduleFrame.style.display = "flex";
-            await refreshScheduleTable();
+            await refreshScheduleTable(user.id);
             break;
           case 'item-profile':
             profileFrame.style.display = "flex";
@@ -258,10 +260,10 @@
         if (error.message) showMessage(error.message);
       }
     }
-    function setActiveByKey(key) {
-      const element = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
+    function setActiveByKey(key, id = null) {
+      const item = document.querySelector(`#menu .menu-item[data-item="${key}"]`);
 
-      if (element) setActive(element);
+      if (item) setActive(item, id);
     }
 
     const clockingFrame = document.getElementById("clocking-frame");

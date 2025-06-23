@@ -3,7 +3,18 @@
   "$id": "/timesheet",
   "type": "object",
   "definitions": {
-    "upsert": {
+    "insert": {
+      "type": "object",
+      "properties": {
+        "workplace_id": { "type": "integer" },
+        "user_id": { "type": "integer" },
+        "clock_in": { "type": "string", "format": "date-time-local" },
+        "clock_out": { "type": "string", "format": "date-time-local" }
+      },
+      "additionalProperties": false,
+      "required": [ "workplace_id", "user_id", "clock_in", "clock_out" ]
+    },
+    "update": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
@@ -111,10 +122,10 @@
               "query": { "type": "null" },
               "cookie": { "properties": { "role": { "const": 3 } } }
             },
-            "x-notify": { "path": "POST /timesheet role:admin", "role": 1 }
+            "x-notify": { "path": "POST /timesheet role:admin", "role": 3 }
           },
           "then": {
-            "properties": { "content": { "$ref": "#/definitions/upsert" } }
+            "properties": { "content": { "$ref": "#/definitions/insert" } }
           },
           "else": false
         }
@@ -129,7 +140,7 @@
         "x-notify": { "path": "PUT /timesheet/{id}", "role": 3 }
       },
       "then": {
-        "properties": { "content": { "$ref": "#/definitions/upsert" } }
+        "properties": { "content": { "$ref": "#/definitions/update" } }
       },
       "else": false
     },

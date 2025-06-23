@@ -323,6 +323,7 @@ function showForm(formGenerator, message = "") {
       element.addEventListener('keydown', function(e) {
         if (this.list) return;
         if (e.key === 'Enter') {
+          if (formElements?.validate && !formElements.validate()) return;
           const result = formElements?.getValues ? formElements.getValues() : null;
           cleanup(result);
         } else if (e.key === 'Escape') {
@@ -332,6 +333,7 @@ function showForm(formGenerator, message = "") {
     });
 
     buttonOk.addEventListener('click', () => {
+      if (formElements?.validate && !formElements.validate()) return;
       const result = formElements?.getValues ? formElements.getValues() : null;
       cleanup(result);
     });
@@ -358,6 +360,57 @@ function showForm(formGenerator, message = "") {
   });
 }
 
+function createFromToDateForm({ container, fromDateDefault = null, toDateDefault = null }) {
+  const formGroup = document.createElement('div');
+  formGroup.className = 'form-2columns form-group';
+
+  const fromDateInput = document.createElement('input');
+  fromDateInput.type = 'date';
+  if (fromDateDefault !== null) fromDateInput.value = fromDateDefault;
+
+  const toDateInput = document.createElement('input');
+  toDateInput.type = 'date';
+  if (toDateDefault !== null) toDateInput.value = toDateDefault;
+
+  formGroup.appendChild(fromDateInput);
+  formGroup.appendChild(toDateInput);
+  container.appendChild(formGroup);
+
+  function isValidDate(dateInput) {
+    if (!dateInput.value) return false;
+
+    const date = new Date(dateInput.value);
+
+    return !isNaN(date.getTime()) &&
+           dateInput.value === date.toISOString().slice(0, 10);
+  }
+
+  function validate() {
+    // Usamos toggle para manejar automáticamente add/remove
+    const isFromValid = isValidDate(fromDateInput);
+    const isToValid = isValidDate(toDateInput);
+
+    fromDateInput.classList.toggle('invalid', !isFromValid);
+    toDateInput.classList.toggle('invalid', !isToValid);
+
+    if (!isFromValid || !isToValid) {
+      // Enfocar el primer campo inválido
+      (!isFromValid) ? fromDateInput.focus() : toDateInput.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  return {
+    getValues: () => ({
+      fromDate:fromDateInput.value,
+      toDate: toDateInput.value
+    }),
+    validate
+  };
+}
+
 function createMonthYearForm({ container }) {
   const formGroup = document.createElement('div');
   formGroup.className = 'form-2columns form-group';
@@ -377,7 +430,7 @@ function createMonthYearForm({ container }) {
 
   const yearSelect = document.createElement('select');
   const currentYear = new Date().getFullYear();
-  for (let year = 2020; year <= currentYear; year++) {
+  for (let year = 2025; year <= currentYear; year++) {
     const option = document.createElement('option');
     option.value = year;
     option.textContent = year;
@@ -398,3 +451,19 @@ function createMonthYearForm({ container }) {
     })
   };
 }
+
+/* Examples:
+
+  showForm(createFromToDateForm, 'Desde hasta fecha').then(result => {
+    if (result) { console.log(`${result.fromDate} ${result.toDate}`); }
+  });
+
+  showForm(({container}) => createFromToDateForm({
+    container,
+    fromDateDefault: '2025-01-01',
+    toDateDefault: '2025-12-12'
+  }), 'Desde hasta fecha').then(result => {
+    if (result) { console.log(`${result.fromDate} ${result.toDate}`); }
+  });
+*/
+

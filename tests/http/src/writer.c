@@ -69,7 +69,7 @@ static void load_db(void)
     json_sort(queries, NULL);
 }
 
-static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void db_session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     (void)argv;
     if (argc != 0)
@@ -80,7 +80,7 @@ static void session_id(sqlite3_context *context, int argc, sqlite3_value **argv)
     sqlite3_result_int(context, cookie.user);
 }
 
-static void workplace_id(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void db_workplace_id(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     (void)argv;
     if (argc != 0)
@@ -91,7 +91,18 @@ static void workplace_id(sqlite3_context *context, int argc, sqlite3_value **arg
     sqlite3_result_int(context, workplace);
 }
 
-static void new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void db_role(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 0)
+    {
+        sqlite3_result_error(context, "role() doesn't take arguments", -1);
+        return;
+    }
+    sqlite3_result_int(context, cookie.role);
+}
+
+static void db_new_token(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
     if (argc != 3)
     {
@@ -132,21 +143,28 @@ static void load(const char *path_catalog, const char *path_db)
     int status;
 
     status = sqlite3_create_function(
-        db, "session_id", 0, SQLITE_UTF8, NULL, session_id, NULL, NULL);
+        db, "session_id", 0, SQLITE_UTF8, NULL, db_session_id, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         exit(EXIT_FAILURE);
     }
     status = sqlite3_create_function(
-        db, "workplace_id", 0, SQLITE_UTF8, NULL, workplace_id, NULL, NULL);
+        db, "workplace_id", 0, SQLITE_UTF8, NULL, db_workplace_id, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         exit(EXIT_FAILURE);
     }
     status = sqlite3_create_function(
-        db, "new_token", 3, SQLITE_UTF8, NULL, new_token, NULL, NULL);
+        db, "role", 0, SQLITE_UTF8, NULL, db_role, NULL, NULL);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
+    status = sqlite3_create_function(
+        db, "new_token", 3, SQLITE_UTF8, NULL, db_new_token, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
