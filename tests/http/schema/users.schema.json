@@ -15,7 +15,7 @@
       "additionalProperties": false,
       "required": [ "name", "tin", "address", "phone", "email" ]
     },
-    "update.all": {
+    "upsert": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
@@ -53,11 +53,19 @@
       "anyOf": [
         {
           "properties": {
-            "path": { "minItems": 1, "maxItems": 1 },
+            "path": { "items": [{}, { "const": "0" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users", "role": 1 }
+          "x-notify": { "path": "GET /users/0", "size": 1, "role": 3 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users/{id}", "role": 1 }
         },
         {
           "properties": {
@@ -77,14 +85,28 @@
         }
       ]
     },
+    "POST": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
+          "query": { "type": "null" },
+          "cookie": { "properties": { "role": { "const": 3 } } }
+        },
+        "x-notify": { "path": "POST /users/{id}", "role": 3 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/upsert" } }
+      },
+      "else": false
+    },
     "PUT": {
       "if": {
         "properties": {
-          "path": { "minItems": 1, "maxItems": 1 },
+          "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
           "query": { "type": "null" },
           "cookie": { "properties": { "role": { "enum": [1, 2] } } }
         },
-        "x-notify": { "path": "PUT /users", "role": 1 }
+        "x-notify": { "path": "PUT /users/{id}", "role": 1 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/update" } }
@@ -92,14 +114,14 @@
       "else": {
         "if": {
           "properties": {
-            "path": { "minItems": 1, "maxItems": 1 },
+            "path": { "items": [{}, { "x-mask": "09999" }], "additionalItems": false },
             "query": { "type": "null" },
             "cookie": { "properties": { "role": { "const": 3 } } }
           },
-          "x-notify": { "path": "PUT /users role:admin", "role": 3 }
+          "x-notify": { "path": "PUT /users/{id} role:admin", "role": 3 }
         },
         "then": {
-          "properties": { "content": { "$ref": "#/definitions/update.all" } }
+          "properties": { "content": { "$ref": "#/definitions/upsert" } }
         },
         "else": false
       }

@@ -218,6 +218,12 @@ header {
 
 .form-2columnsA {
   display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.2rem;
+}
+
+.form-2columnsB {
+  display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1.2rem;
 }

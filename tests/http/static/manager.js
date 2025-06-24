@@ -107,7 +107,7 @@ function refreshScheduleTableWrite(object) {
 
   const workplaces = object.workplaces;
   const options = [
-    '<option value="0">Seleccione un centro</option>',
+    '<option value="0">Selecciona un centro</option>',
     ...workplaces.map(t => `<option value="${t[0]}">${t[1]}</option>`)
   ].join('');
 
@@ -254,6 +254,7 @@ async function scheduleUpdate(data) {
 
 const profile = {
   hash: 0,
+  inserting: false,
   id: profileForm.querySelector('input[name="id"]'),
   workplace: profileForm.querySelector('select[name="workplace"]'),
   category: profileForm.querySelector('select[name="category"]'),
@@ -265,24 +266,25 @@ const profile = {
   email: profileForm.querySelector('input[name="email"]')
 }
 
-function profileFocus() {
-  if (profile.workplace.disabled === false) {
-    profile.workplace.focus();
-  } else {
-    profile.name.focus();
-    profile.name.select();
-  }
-}
-
 async function profileEdit(id) {
-  const response = await fetch('/api/users', {
+  if (id === 0) {
+    if (user.role !== role.ADMIN) {
+      menuBack();
+      return;
+    }
+    profile.inserting = true;
+  } else {
+    profile.inserting = false;
+  }
+
+  const response = await fetch(`/api/users/${id}`, {
     method: 'GET',
     credentials: 'include'
   });
 
   if (response.status === 200) {
     const data = await response.json();
-    profileEditUI(data);
+    profile.inserting ? profileInsertUI(data) : profileEditUI(data);
   } else if (response.status === 204) {
     throw new Error('El registro ya no existe');
   } else {
@@ -291,9 +293,37 @@ async function profileEdit(id) {
   }
 }
 
-function profileEditUI(data) {
-  profile.id.value = data.id;
+function profileFocus() {
+  if (user.role === role.ADMIN) {
+    if (profile.inserting) {
+      profile.id.disabled = false;
+      profile.id.focus();
+    } else {
+      profile.id.disabled = true;
+      profile.workplace.focus();
+    }
+  } else {
+    profile.name.focus();
+    profile.name.select();
+  }
+}
+
+function profileFillLists(data) {
   profile.workplace.replaceChildren();
+  profile.category.replaceChildren();
+  if (profile.inserting) {
+    const emptyWorkplace = document.createElement('option');
+
+    emptyWorkplace.value = "";
+    emptyWorkplace.textContent = "Selecciona un centro de trabajo";
+    profile.workplace.appendChild(emptyWorkplace);
+
+    const emptyCategory = document.createElement('option');
+
+    emptyCategory.value = "";
+    emptyCategory.textContent = "Selecciona una categoría";
+    profile.category.appendChild(emptyCategory);
+  }
   data.workplaces.forEach(workplace => {
     const option = document.createElement('option');
 
@@ -301,8 +331,6 @@ function profileEditUI(data) {
     option.textContent = workplace[1];
     profile.workplace.appendChild(option);
   });
-  profile.workplace.value = data.workplace_id;
-  profile.category.replaceChildren();
   data.categories.forEach(category => {
     const option = document.createElement('option');
 
@@ -310,6 +338,19 @@ function profileEditUI(data) {
     option.textContent = category[1];
     profile.category.appendChild(option);
   });
+}
+
+function profileInsertUI(data) {
+  profileForm.reset();
+  profileFillLists(data);
+  profile.hash = formHash(profileForm);
+  profileFocus(); 
+}
+
+function profileEditUI(data) {
+  profileFillLists(data);
+  profile.id.value = data.id;
+  profile.workplace.value = data.workplace_id;
   profile.category.value = data.category_id;
   profile.role.value = data.role;
   profile.name.value = data.name;
@@ -361,9 +402,9 @@ profileForm.addEventListener('submit', (e) => {
     const category_id = Number(profile.category.value);
     const role = Number(profile.role.value);
 
-    profileUpdate(JSON.stringify({ workplace_id, category_id, role, name, tin, address, phone, email }));
+    profileUpsert(JSON.stringify({ workplace_id, category_id, role, name, tin, address, phone, email }));
   } else {
-    profileUpdate(JSON.stringify({ name, tin, address, phone, email }));
+    profileUpsert(JSON.stringify({ name, tin, address, phone, email }));
   }
 });
 
@@ -371,10 +412,10 @@ document.getElementById("profile-cancel").addEventListener("click", () => {
   menuBack();
 });
 
-async function profileUpdate(data) {
+async function profileUpsert(data) {
   try {
-    const response = await fetch(`/api/users`, {
-      method: 'PUT',
+    const response = await fetch(`/api/users/${profile.id.value}`, {
+      method: profile.inserting ? 'POST' : 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: data
@@ -417,14 +458,15 @@ function handleUser(id, name) {
   showList(name,
     [
       ['edit', 'Editar perfil de usuario'], 
+      ['clockout', 'Forzar fichaje de salida (si procede)'],
       ['report', 'Informe de fichajes'],
-      ['stats', 'Estadísticas de fichajes'],
+      ['stats', 'Estadística de fichajes'],
       ['schedule', 'Ver horario'],
       ['message', 'Enviar mensaje']
     ]
   ).then(result => {
-    if (result != null) {
-      showMessage(result);
+    switch (result) {
+      case 'edit': setActiveByKey('item-profile', id); break;
     }
   });
 }
@@ -438,7 +480,7 @@ function refreshTeamTableUI(data) {
   const trMyTeam = document.createElement('tr');
 
   trNew.innerHTML = `
-    <td class="clickable" colspan="3" onclick="timesheetNew();">
+    <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0);">
     <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
     </td>
   `;

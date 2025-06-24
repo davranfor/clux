@@ -118,7 +118,7 @@
             </div>
             <div id="clocking-reason" class="form-group">
               <label for="workplace">Motivo del alta o cambio de fichaje</label>
-              <input type="text" list="reason-list" name="reason" maxLength="100" required>
+              <input type="text" list="reason-list" name="reason" maxLength="100" placeholder="Indica brevemente el motivo o selecciona un elemento de la lista" required>
               <datalist id="reason-list">
                 <option value="Cambio de centro de trabajo">
                 <option value="He olvidado fichar la entrada">
@@ -164,12 +164,17 @@
         <div class="content-box">
           <h2>Perfil</h2>
           <form class="content-form" id="profile-form" autocomplete="off">
-            <input type="hidden" name="id" required>
-            <div class="form-group">
-              <label for="workplace">Centro de trabajo habitual</label>
-              <select name="workplace" required></select>
-            </div>
             <div class="form-2columnsA">
+              <div class="form-group">
+                <label for="id">Código</label>
+                <input type="number" name="id" min="1" max="99999" placeholder="1 - 99999" required>
+              </div>
+              <div class="form-group">
+                <label for="workplace">Centro de trabajo habitual</label>
+                <select name="workplace" required></select>
+              </div>
+            </div>
+            <div class="form-2columnsB">
               <div class="form-group">
                 <label for="category">Categoría</label>
                 <select name="category" required></select>
@@ -183,7 +188,7 @@
                 </select>
               </div>
             </div>
-            <div class="form-2columnsA">
+            <div class="form-2columnsB">
               <div class="form-group">
                 <label for="name">Apellidos, Nombre</label>
                 <input name="name" maxLength="100" required>
@@ -265,10 +270,11 @@
           case 'item-team':
             teamFrame.style.display = "flex";
             await refreshTeamTable();
+            lastActiveItem = item;
             break;
           case 'item-profile':
             profileFrame.style.display = "flex";
-            await profileEdit(user.id);
+            await profileEdit(id === null ? user.id : id);
             break;
         }
       } catch (error) {
@@ -333,6 +339,8 @@
 
     function UIConfig() {
       if (user.role !== role.ADMIN) {
+        profile.id.disabled = true;
+        profile.id.classList.add("cursorForbidden");
         profile.workplace.disabled = true;
         profile.workplace.classList.add("cursorForbidden");
         profile.category.disabled = true;
