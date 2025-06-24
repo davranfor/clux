@@ -66,6 +66,14 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /users/schedule", "size": 1, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "team" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users/team", "size": 1, "role": 1 }
         }
       ]
     },

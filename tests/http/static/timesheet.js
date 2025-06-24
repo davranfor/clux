@@ -53,7 +53,7 @@ function refreshClockingTableUI(data) {
   const trNew = document.createElement('tr');
 
   trNew.innerHTML = `
-    <td class="editable" colspan="4" onclick="timesheetNew();">
+    <td class="clickable" colspan="4" onclick="timesheetNew();">
     <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
     </td>
   `;
@@ -73,19 +73,19 @@ function refreshClockingTableUI(data) {
     
     if (!obj) {
       trWorkplace.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetEdit(${record[0]});">
+        <td class="clickable" colspan="4" onclick="timesheetEdit(${record[0]});">
         <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
         </td>
       `;
     } else if (Object.keys(obj).length === 1) {
       trWorkplace.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetDelete(${record[0]});">
+        <td class="clickable" colspan="4" onclick="timesheetDelete(${record[0]});">
         <div><i class="ti ti-trash"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
         </td>
       `;
     } else {
       trWorkplace.innerHTML = `
-        <td class="editable" colspan="4" onclick="timesheetRequestDelete(${record[0]});">
+        <td class="clickable" colspan="4" onclick="timesheetRequestDelete(${record[0]});">
         <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
         </td>
       `;
@@ -140,7 +140,7 @@ function refreshClockingTableUI(data) {
   const trMore = document.createElement('tr');
 
   trMore.innerHTML = `
-    <td class="editable" colspan="4" onclick="timesheetMore();">
+    <td class="clickable" colspan="4" onclick="timesheetMore();">
     <div><i class="ti ti-search"></i><span>Ver más fichajes</span></div>
     </td>
   `;

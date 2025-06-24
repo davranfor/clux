@@ -249,50 +249,45 @@ header {
   outline: none;
 }
 
-.view-table, #schedule-table {
+.view-table, .edit-table {
   border-collapse: collapse;
   width: 100%;
   margin-top: 5px;
   margin-bottom: 10px;
 }
 
-.view-table th, #schedule-table th {
+.view-table th, .edit-table th {
   background-color: #4a5568;
   border: 1px solid #64758a;
   padding: 4px 8px;
 }
 
-.view-table td, #schedule-table td {
+.view-table td, .edit-table td {
   border: 1px solid #64758a;
   padding: 4px 8px;
 }
 
-.view-table td.editable {
+.view-table td.clickable {
   background-color: #4a5568;
 }
 
-.view-table td.editable:hover {
+.view-table td.clickable:hover {
   background-color: #1e2734;
   cursor: pointer;
 }
 
-.view-table td.editable > div {
+.view-table td.clickable > div {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.view-table td.editable > div > .ti {
+.view-table td.clickable > div > .ti {
   font-size: 1.5rem;
   color: #fff;
 }
 
-#schedule-table th.date:hover {
-  background-color: #1e2734;
-  cursor: pointer;
-}
-
-#schedule-table td.entry > input, #schedule-table td.entry > select {
+.edit-table td.entry > input, .edit-table td.entry > select {
   border: none;
   background-color: #2d3748;
   color: #cbd5e0;
@@ -300,8 +295,22 @@ header {
   margin: 0;
 }
 
-#schedule-table td.entry > select {
+.edit-table td.entry > select {
   width: 100%;
+}
+
+#schedule-table th.date:hover {
+  background-color: #1e2734;
+  cursor: pointer;
+}
+
+#team-table tr.user:hover {
+  background-color: #1e2734;
+  cursor: pointer;
+}
+
+#team-table th, #team-table td {
+  text-align: left;
 }
 
 #clocking-form {

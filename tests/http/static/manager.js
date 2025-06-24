@@ -1,5 +1,5 @@
 const schedule = {
-  date: null, isMine: true
+  date: null
 }
 
 async function refreshScheduleTable(id) {
@@ -398,4 +398,71 @@ const team = {
   hash: 0
 }
 
+async function refreshTeamTable() {
+  const response = await fetch('/api/users/team', {
+    method: 'GET',
+    credentials: 'include'
+  });
+
+  if (response.status === 200) {
+    const data = await response.json();
+    refreshTeamTableUI(data);
+  } else if (response.status !== 204) {
+    const text = await response.text();
+    throw new Error(text || `HTTP Error ${response.status}`);
+  }
+}
+
+function handleUser(id, name) {
+  showList(name,
+    [
+      ['edit', 'Editar perfil de usuario'], 
+      ['report', 'Ver informe de fichajes'],
+      ['schedule', 'Ver horario'],
+      ['message', 'Enviar mensaje']
+    ]
+  ).then(result => {
+    if (result != null) {
+      showMessage(result);
+    }
+  });
+}
+
+function refreshTeamTableUI(data) {
+  const tbody = document.querySelector('#team-table tbody');
+
+  tbody.replaceChildren();
+
+  const trNew = document.createElement('tr');
+  const trMyTeam = document.createElement('tr');
+
+  trNew.innerHTML = `
+    <td class="clickable" colspan="3" onclick="timesheetNew();">
+    <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
+    </td>
+  `;
+  trMyTeam.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichaje</th>';
+  tbody.appendChild(trNew);
+  tbody.appendChild(trMyTeam);
+
+  // Sort by category ASC
+  data.sort((a, b) => {
+    if (a[1] > b[1]) return 1;
+    if (a[1] < b[1]) return -1;
+    return a[2] > b[2] ? 1 : a[2] < b[2] ? -1 : 0;
+  });
+  data.forEach(record => {
+    const clockIn = record[3] === null ? '' : longDateTime(record[3]);
+    const trUser = document.createElement('tr');
+    trUser.className = 'user';
+    trUser.addEventListener('click', () => { handleUser(record[0], record[2]); });
+    trUser.innerHTML = `
+      <td>${record[1]}</td>
+      <td>${record[2]}</td>
+      <td>${clockIn}</td>
+    `;
+    tbody.appendChild(trUser);
+  });
+
+}
 
