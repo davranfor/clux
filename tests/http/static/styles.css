@@ -372,6 +372,18 @@ header {
   cursor: not-allowed;
 }
 
+@media (min-width: 769px) {
+  .menu {
+    position: sticky;
+    top: 61px;
+    height: calc(100vh - 61px);
+    overflow-y: auto;
+  }
+  .content {
+    overflow-y: auto;
+  }
+}
+
 /* Hack safari desktop */
 @supports (-webkit-appearance: none) and (-webkit-hyphens: none) and (not (overflow:-webkit-marquee)) {
   select {

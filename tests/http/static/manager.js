@@ -417,7 +417,8 @@ function handleUser(id, name) {
   showList(name,
     [
       ['edit', 'Editar perfil de usuario'], 
-      ['report', 'Ver informe de fichajes'],
+      ['report', 'Informe de fichajes'],
+      ['stats', 'Estadísticas de fichajes'],
       ['schedule', 'Ver horario'],
       ['message', 'Enviar mensaje']
     ]

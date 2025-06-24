@@ -320,7 +320,7 @@ function showList(message = "", list = []) {
       option.textContent = item[1];
       select.appendChild(option);
     });
-    select.addEventListener('click', (event) => {
+    select.addEventListener('dblclick', (event) => {
       const clickedElement = event.target;
 
       if (clickedElement.tagName === 'OPTION') {
