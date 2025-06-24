@@ -1,15 +1,16 @@
 const schedule = {
-  date: null
+  id: 0, date: null
 }
 
 async function refreshScheduleTable(id) {
-  const response = await fetch('/api/users/schedule', {
+  const response = await fetch(`/api/users/${id}/schedule`, {
     method: 'GET',
     credentials: 'include'
   });
 
   if (response.status === 200) {
     const data = await response.json();
+    schedule.id = id;
     user.role === role.BASIC ? refreshScheduleTableRead(data) : refreshScheduleTableWrite(data);
   } else if (response.status === 204) {
     throw new Error('El registro ya no existe');
@@ -19,11 +20,7 @@ async function refreshScheduleTable(id) {
   }
 }
 
-function refreshScheduleTableRead(object) {
-  const tbody = document.querySelector('#schedule-table tbody');
-
-  tbody.replaceChildren();
-
+function refreshScheduleTableCommon(object) {
   const today = new Date(object.today);
 
   schedule.date = sumDays(today, -getISODay(today));
@@ -37,13 +34,17 @@ function refreshScheduleTableRead(object) {
     data = Array.from({ length: 14 }, () => empty);
   }
   if (rotateDate) {
-    showMessage("Ha rotado");
+    //showMessage("Ha rotado");
     for (let i = 7; i < 14; i++) {
       data[i - 7] = JSON.parse(JSON.stringify(data[i]));
       data[i] = empty;
     }
   }
+  return data;
+}
 
+function refreshScheduleTableRead(object) {
+  const data = refreshScheduleTableCommon(object);
   const workplaces = object.workplaces;
   const workplacesMap = {
     0: "Sin centro asignado",
@@ -52,6 +53,15 @@ function refreshScheduleTableRead(object) {
       return map;
     }, {})
   };
+  const tbody = document.querySelector('#schedule-table tbody');
+
+  tbody.replaceChildren();
+  if (schedule.id !== user.id) {
+    const trUser = document.createElement('tr');
+
+    trUser.innerHTML = `<th colspan="5">${object.name}</th>`;
+    tbody.appendChild(trUser);
+  }
   for (let i = 0; i < 14; i++) {
     const date = sumDays(schedule.date, i);
 
@@ -82,29 +92,7 @@ function refreshScheduleTableRead(object) {
 }
 
 function refreshScheduleTableWrite(object) {
-  const tbody = document.querySelector('#schedule-table tbody');
-
-  tbody.replaceChildren();
-
-  const today = new Date(object.today);
-
-  schedule.date = sumDays(today, -getISODay(today));
-
-  const parsedObject = JSON.parse(object.schedule);
-  const rotateDate = new Date(parsedObject?.date || schedule.date).getTime() !== schedule.date.getTime();
-  let data = parsedObject?.data || null;
-
-  if (!data || data.length !== 14) {
-    data = Array.from({ length: 14 }, () => [[object.workplace_id, '00:00', '00:00'], [0, '00:00', '00:00']]);
-  }
-  if (rotateDate) {
-    showMessage("Ha rotado");
-    for (let i = 7; i < 14; i++) {
-      data[i - 7] = JSON.parse(JSON.stringify(data[i]));
-      data[i] = [[0, '00:00', '00:00'], [0, '00:00', '00:00']];
-    }
-  }
-
+  const data = refreshScheduleTableCommon(object);
   const workplaces = object.workplaces;
   const options = [
     '<option value="0">Selecciona un centro</option>',
@@ -119,6 +107,15 @@ function refreshScheduleTableWrite(object) {
     return select;
   }
 
+  const tbody = document.querySelector('#schedule-table tbody');
+
+  tbody.replaceChildren();
+  if (schedule.id !== user.id) {
+    const trUser = document.createElement('tr');
+
+    trUser.innerHTML = `<th colspan="5">${object.name}</th>`;
+    tbody.appendChild(trUser);
+  }
   for (let i = 0; i < 14; i++) {
     const date = sumDays(schedule.date, i);
 
@@ -231,7 +228,7 @@ document.getElementById("schedule-cancel").addEventListener("click", () => {
 
 async function scheduleUpdate(data) {
   try {
-    const response = await fetch('/api/users/schedule', {
+    const response = await fetch(`/api/users/${schedule.id}/schedule`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -467,6 +464,7 @@ function handleUser(id, name) {
   ).then(result => {
     switch (result) {
       case 'edit': setActiveByKey('item-profile', id); break;
+      case 'schedule': setActiveByKey('item-schedule', id); break;
     }
   });
 }
@@ -506,6 +504,5 @@ function refreshTeamTableUI(data) {
     `;
     tbody.appendChild(trUser);
   });
-
 }
 

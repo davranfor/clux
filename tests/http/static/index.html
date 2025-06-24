@@ -259,22 +259,22 @@
       try {
         switch (item.dataset.item) {
           case 'item-clocking':
-            clockingFrame.style.display = "flex";
             await refreshClockingTable();
+            clockingFrame.style.display = "flex";
             lastActiveItem = item;
             break;
           case 'item-schedule':
+            await refreshScheduleTable(id === null ? user.id : id);
             scheduleFrame.style.display = "flex";
-            await refreshScheduleTable(user.id);
             break;
           case 'item-team':
-            teamFrame.style.display = "flex";
             await refreshTeamTable();
+            teamFrame.style.display = "flex";
             lastActiveItem = item;
             break;
           case 'item-profile':
-            profileFrame.style.display = "flex";
             await profileEdit(id === null ? user.id : id);
+            profileFrame.style.display = "flex";
             break;
         }
       } catch (error) {

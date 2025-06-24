@@ -69,11 +69,11 @@
         },
         {
           "properties": {
-            "path": { "items": [{}, { "const": "schedule" }], "additionalItems": false },
+            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/schedule", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /users/{id}/schedule", "size": 2, "role": 1 }
         },
         {
           "properties": {
@@ -129,10 +129,10 @@
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, { "const": "schedule" }], "additionalItems": false },
+          "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /users/schedule", "size": 1, "role": 1 }
+        "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 1 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
