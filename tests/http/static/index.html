@@ -163,6 +163,10 @@
       <div class="content-wrapper" id="profile-frame">
         <div class="content-box">
           <h2>Perfil</h2>
+          <table id="profile-table" class="view-table">
+            <tbody></tbody>
+          </table>
+          <hr>
           <form class="content-form" id="profile-form" autocomplete="off">
             <div class="form-2columnsA">
               <div class="form-group">
@@ -301,6 +305,7 @@
     const teamTable = document.getElementById("team-table");
 
     const profileFrame = document.getElementById("profile-frame");
+    const profileTable = document.getElementById("profile-table");
     const profileForm = document.getElementById("profile-form");
 
     function refreshUserData() {

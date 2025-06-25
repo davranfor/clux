@@ -330,13 +330,50 @@ function profileFillLists(data) {
 }
 
 function profileInsertUI(data) {
+  profileTable.style.display = "none";
   profileForm.reset();
   profileFillLists(data);
   profile.hash = formHash(profileForm);
   profileFocus(); 
 }
 
+function profileShowOptions(data) {
+  const tbody = document.querySelector('#profile-table tbody');
+
+  tbody.replaceChildren();
+
+  const trUser = document.createElement('tr');
+  const trData = document.createElement('tr');
+
+  trUser.innerHTML = `<th colspan="5">${data.name} (${data.workplaces.find(item => item[0] === data.workplace_id)?.[1]})</th>`;
+  trData.innerHTML = `
+    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
+    <div><i class="ti ti-clock"></i><span>Ver fichajes</span></div>
+    </td>
+    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
+    <div><i class="ti ti-calendar-time"></i><span>Ver horario</span></div>
+    </td>
+    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
+    <div><i class="ti ti-checklist"></i><span>Asignar tarea</span></div>
+    </td>
+    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
+    <div><i class="ti ti-report"></i><span>Informe</span></div>
+    </td>
+    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
+    <div><i class="ti ti-trash"></i><span>Eliminar</span></div>
+    </td>
+  `;
+  tbody.appendChild(trUser);
+  tbody.appendChild(trData);
+}
+
 function profileEditUI(data) {
+  if (user.id != data.id) {
+    profileShowOptions(data);
+    profileTable.style.display = "table";
+  } else {
+    profileTable.style.display = "none";
+  }
   profileFillLists(data);
   profile.id.value = data.id;
   profile.workplace.value = data.workplace_id;
@@ -564,7 +601,7 @@ function refreshTeamTableUI(data) {
       const trUser = document.createElement('tr');
 
       trUser.className = 'team-data';
-      trUser.addEventListener('click', () => { handleUser(record[0], record[2]); });
+      trUser.addEventListener('click', () => { setActiveByKey('item-profile', record[0]); });
       trUser.innerHTML = `
         <td>${record[1]}</td>
         <td>${record[2]}</td>
@@ -593,7 +630,7 @@ function refreshTeamTableUI(data) {
     });
   }
 }
-
+/*
 function handleUser(id, name) {
   showList(name,
     user.role == role.BASIC
@@ -617,4 +654,4 @@ function handleUser(id, name) {
     }
   });
 }
-
+*/
