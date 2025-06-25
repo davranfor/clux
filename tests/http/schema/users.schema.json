@@ -77,11 +77,19 @@
         },
         {
           "properties": {
-            "path": { "items": [{}, { "const": "team" }], "additionalItems": false },
+            "path": { "items": [{}, { "const": "workplace" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/team", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /users/workplace", "size": 1, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "workplace" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users/{id}/workplace", "size": 2, "role": 3 }
         }
       ]
     },

@@ -310,7 +310,7 @@ header {
   cursor: pointer;
 }
 
-#team-table tr.user:hover {
+#team-table tr.team-data:hover {
   background-color: #1e2734;
   cursor: pointer;
 }

@@ -273,12 +273,14 @@
             lastActiveItem = item;
             break;
           case 'item-profile':
-            await profileEdit(id === null ? user.id : id);
             profileFrame.style.display = "flex";
+            await profileEdit(id === null ? user.id : id);
             break;
         }
       } catch (error) {
         if (error.message) showMessage(error.message);
+      } finally {
+        window.scrollTo(0, 0);
       }
     }
     function setActiveByKey(key, id = null) {

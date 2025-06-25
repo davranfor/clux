@@ -264,15 +264,7 @@ const profile = {
 }
 
 async function profileEdit(id) {
-  if (id === 0) {
-    if (user.role !== role.ADMIN) {
-      menuBack();
-      return;
-    }
-    profile.inserting = true;
-  } else {
-    profile.inserting = false;
-  }
+  profile.inserting = id === 0;
 
   const response = await fetch(`/api/users/${id}`, {
     method: 'GET',
@@ -433,11 +425,26 @@ async function profileUpsert(data) {
 }
 
 const team = {
-  hash: 0
+  view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfWorkplaces: 2 },
+  viewIndex: 0,
+  selectedWorkplace: { id: 0, name: null }
 }
 
 async function refreshTeamTable() {
-  const response = await fetch('/api/users/team', {
+  let url = null;
+
+  switch (team.viewIndex) {
+    case team.view.MyWorkplace:
+      url = '/api/users/workplace';
+      break;
+    case team.view.OtherWorkplace:
+      url = `/api/users/${team.selectedWorkplace.id}/workplace`;
+      break;
+    case team.view.ListOfWorkplaces:
+      url = '/api/workplaces';
+      break;
+  }
+  const response = await fetch(url, {
     method: 'GET',
     credentials: 'include'
   });
@@ -446,27 +453,39 @@ async function refreshTeamTable() {
     const data = await response.json();
     refreshTeamTableUI(data);
   } else if (response.status !== 204) {
+    team.viewIndex = team.view.MyWorkplace;
     const text = await response.text();
     throw new Error(text || `HTTP Error ${response.status}`);
   }
 }
 
-function handleUser(id, name) {
-  showList(name,
-    [
-      ['edit', 'Editar perfil de usuario'], 
-      ['clockout', 'Forzar fichaje de salida (si procede)'],
-      ['report', 'Informe de fichajes'],
-      ['stats', 'Estadística de fichajes'],
-      ['schedule', 'Ver horario'],
-      ['message', 'Enviar mensaje']
-    ]
-  ).then(result => {
-    switch (result) {
-      case 'edit': setActiveByKey('item-profile', id); break;
-      case 'schedule': setActiveByKey('item-schedule', id); break;
-    }
-  });
+async function refreshTeamMyWorkplace() {
+  team.viewIndex = team.view.MyWorkplace;
+  try {
+    await refreshTeamTable();
+  } catch (error) {
+    if (error.message) showMessage(error.message);
+  }
+}
+
+async function refreshTeamOtherWorkplace(id, name) {
+  team.viewIndex = team.view.OtherWorkplace;
+  team.selectedWorkplace.id = id;
+  team.selectedWorkplace.name = name;
+  try {
+    await refreshTeamTable();
+  } catch (error) {
+    if (error.message) showMessage(error.message);
+  }
+}
+
+async function refreshTeamListOfWorkplaces() {
+  team.viewIndex = team.view.ListOfWorkplaces;
+  try {
+    await refreshTeamTable();
+  } catch (error) {
+    if (error.message) showMessage(error.message);
+  }
 }
 
 function refreshTeamTableUI(data) {
@@ -474,35 +493,128 @@ function refreshTeamTableUI(data) {
 
   tbody.replaceChildren();
 
-  const trNew = document.createElement('tr');
-  const trMyTeam = document.createElement('tr');
+  if (user.role === role.ADMIN) {
+    const trNew = document.createElement('tr');
 
-  trNew.innerHTML = `
-    <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0);">
-    <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
-    </td>
-  `;
-  trMyTeam.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichaje</th>';
-  tbody.appendChild(trNew);
-  tbody.appendChild(trMyTeam);
-
-  // Sort by category ASC
-  data.sort((a, b) => {
-    if (a[1] > b[1]) return 1;
-    if (a[1] < b[1]) return -1;
-    return a[2] > b[2] ? 1 : a[2] < b[2] ? -1 : 0;
-  });
-  data.forEach(record => {
-    const clockIn = record[3] === null ? '' : longDateTime(record[3]);
-    const trUser = document.createElement('tr');
-    trUser.className = 'user';
-    trUser.addEventListener('click', () => { handleUser(record[0], record[2]); });
-    trUser.innerHTML = `
-      <td>${record[1]}</td>
-      <td>${record[2]}</td>
-      <td>${clockIn}</td>
+    trNew.innerHTML = `
+      <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0);">
+      <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
+      </td>
     `;
-    tbody.appendChild(trUser);
+    tbody.appendChild(trNew);
+  }
+  if (team.viewIndex === team.view.MyWorkplace) {
+    if (user.role === role.ADMIN) {
+      const trSelector = document.createElement('tr');
+
+      trSelector.innerHTML = `
+        <td class="clickable" colspan="3" onclick="refreshTeamListOfWorkplaces();">
+        <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
+        </td>
+      `;
+      tbody.appendChild(trSelector);
+    }
+
+    const trTitle = document.createElement('tr');
+
+    trTitle.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichaje</th>';
+    tbody.appendChild(trTitle);
+  } else if (team.viewIndex === team.view.OtherWorkplace) {
+    const trMyTeam = document.createElement('tr');
+    const trSelector = document.createElement('tr');
+    const trTitle = document.createElement('tr');
+
+    trMyTeam.innerHTML = `
+      <td class="clickable" colspan="3" onclick="refreshTeamMyWorkplace();">
+      <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
+      </td>
+    `;
+    trSelector.innerHTML = `
+      <td class="clickable" colspan="3" onclick="refreshTeamListOfWorkplaces();">
+      <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
+      </td>
+    `;
+    trTitle.innerHTML = `<th colspan="2">${team.selectedWorkplace.name}</th><th>Fichaje</th>`;
+    tbody.appendChild(trMyTeam);
+    tbody.appendChild(trSelector);
+    tbody.appendChild(trTitle);
+
+  } else { // team.view.ListOfWorkplaces
+    const trSelector = document.createElement('tr');
+    const trTitle = document.createElement('tr');
+
+    trSelector.innerHTML = `
+      <td class="clickable" colspan="3" onclick="refreshTeamMyWorkplace();">
+      <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
+      </td>
+    `;
+    trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Miembros</th>';
+    tbody.appendChild(trSelector);
+    tbody.appendChild(trTitle);
+  }
+  if (team.viewIndex !== team.view.ListOfWorkplaces) {
+    // Sort by category ASC
+    data.sort((a, b) => {
+      if (a[1] > b[1]) return 1;
+      if (a[1] < b[1]) return -1;
+      return a[2] > b[2] ? 1 : a[2] < b[2] ? -1 : 0;
+    });
+    data.forEach(record => {
+      const clockIn = record[3] === null ? '' : longDateTime(record[3]);
+      const trUser = document.createElement('tr');
+
+      trUser.className = 'team-data';
+      trUser.addEventListener('click', () => { handleUser(record[0], record[2]); });
+      trUser.innerHTML = `
+        <td>${record[1]}</td>
+        <td>${record[2]}</td>
+        <td>${clockIn}</td>
+      `;
+      tbody.appendChild(trUser);
+    });
+  } else {
+    // Sort by name ASC
+    data.sort((a, b) => {
+      if (a[1] > b[1]) return 1;
+      if (a[1] < b[1]) return -1;
+      return 0;
+    });
+    data.forEach(record => {
+      const trWorkplace = document.createElement('tr');
+
+      trWorkplace.className = 'team-data';
+      trWorkplace.addEventListener('click', () => { refreshTeamOtherWorkplace(record[0], record[1]); });
+      trWorkplace.innerHTML = `
+        <td>${record[0]}</td>
+        <td>${record[1]}</td>
+        <td>${record[2]}</td>
+      `;
+      tbody.appendChild(trWorkplace);
+    });
+  }
+}
+
+function handleUser(id, name) {
+  showList(name,
+    user.role == role.BASIC
+    ? [
+        ['schedule', 'Ver horario'],
+        ['message', 'Enviar mensaje']
+      ]
+    : [
+        ['edit', 'Editar perfil de usuario'],
+        ['report', 'Informe de fichajes'],
+        ['stats', 'Estadística de fichajes'],
+        ['schedule', 'Ver horario'],
+        ['message', 'Enviar mensaje'],
+        ['clockin', 'Forzar fichaje de entrada (si procede)'],
+        ['clockout', 'Forzar fichaje de salida (si procede)']
+      ]
+  ).then(result => {
+    switch (result) {
+      case 'edit': setActiveByKey('item-profile', id); break;
+      case 'schedule': setActiveByKey('item-schedule', id); break;
+    }
   });
 }
 
