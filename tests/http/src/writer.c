@@ -396,7 +396,7 @@ static int db_handle(const json_t *request)
     {
         const unsigned char *text = sqlite3_column_text(stmt, 0);
 
-        buffer_write(&buffer, (const char *)text);
+        buffer_write(&buffer, text ? (const char *)text : "null");
     }
     if (step != SQLITE_DONE)
     {

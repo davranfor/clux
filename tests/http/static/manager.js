@@ -113,7 +113,7 @@ function refreshScheduleTableWrite(object) {
   if (schedule.id !== user.id) {
     const trUser = document.createElement('tr');
 
-    trUser.innerHTML = `<th colspan="5">${object.name}</th>`;
+    trUser.innerHTML = `<th colspan="5">${object.name} (${object.workplaces.find(item => item[0] === object.workplace_id)?.[1]})</th>`;
     tbody.appendChild(trUser);
   }
   for (let i = 0; i < 14; i++) {
@@ -334,7 +334,6 @@ function profileInsertUI(data) {
   profileForm.reset();
   profileFillLists(data);
   profile.hash = formHash(profileForm);
-  profileFocus(); 
 }
 
 function profileShowOptions(data) {
@@ -348,16 +347,16 @@ function profileShowOptions(data) {
   trUser.innerHTML = `<th colspan="5">${data.name} (${data.workplaces.find(item => item[0] === data.workplace_id)?.[1]})</th>`;
   trData.innerHTML = `
     <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-clock"></i><span>Ver fichajes</span></div>
+    <div><i class="ti ti-clock"></i><span>Fichajes</span></div>
     </td>
     <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-calendar-time"></i><span>Ver horario</span></div>
+    <div><i class="ti ti-calendar-time"></i><span>Horario</span></div>
     </td>
     <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-checklist"></i><span>Asignar tarea</span></div>
+    <div><i class="ti ti-checklist"></i><span>Tareas</span></div>
     </td>
     <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-report"></i><span>Informe</span></div>
+    <div><i class="ti ti-report"></i><span>Informes</span></div>
     </td>
     <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
     <div><i class="ti ti-trash"></i><span>Eliminar</span></div>
@@ -385,7 +384,6 @@ function profileEditUI(data) {
   profile.phone.value = data.phone;
   profile.email.value = data.email;
   profile.hash = formHash(profileForm);
-  profileFocus();
 }
 
 document.querySelectorAll('#profile-form input').forEach(element => {
@@ -554,7 +552,7 @@ function refreshTeamTableUI(data) {
 
     const trTitle = document.createElement('tr');
 
-    trTitle.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichaje</th>';
+    trTitle.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichajes</th>';
     tbody.appendChild(trTitle);
   } else if (team.viewIndex === team.view.OtherWorkplace) {
     const trMyTeam = document.createElement('tr');
@@ -571,7 +569,7 @@ function refreshTeamTableUI(data) {
       <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
       </td>
     `;
-    trTitle.innerHTML = `<th colspan="2">${team.selectedWorkplace.name}</th><th>Fichaje</th>`;
+    trTitle.innerHTML = `<th colspan="2">${team.selectedWorkplace.name}</th><th>Fichajes</th>`;
     tbody.appendChild(trMyTeam);
     tbody.appendChild(trSelector);
     tbody.appendChild(trTitle);
@@ -585,7 +583,7 @@ function refreshTeamTableUI(data) {
       <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
       </td>
     `;
-    trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Miembros</th>';
+    trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Fichajes</th>';
     tbody.appendChild(trSelector);
     tbody.appendChild(trTitle);
   }
@@ -630,28 +628,4 @@ function refreshTeamTableUI(data) {
     });
   }
 }
-/*
-function handleUser(id, name) {
-  showList(name,
-    user.role == role.BASIC
-    ? [
-        ['schedule', 'Ver horario'],
-        ['message', 'Enviar mensaje']
-      ]
-    : [
-        ['edit', 'Editar perfil de usuario'],
-        ['report', 'Informe de fichajes'],
-        ['stats', 'Estadística de fichajes'],
-        ['schedule', 'Ver horario'],
-        ['message', 'Enviar mensaje'],
-        ['clockin', 'Forzar fichaje de entrada (si procede)'],
-        ['clockout', 'Forzar fichaje de salida (si procede)']
-      ]
-  ).then(result => {
-    switch (result) {
-      case 'edit': setActiveByKey('item-profile', id); break;
-      case 'schedule': setActiveByKey('item-schedule', id); break;
-    }
-  });
-}
-*/
+

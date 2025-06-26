@@ -98,37 +98,26 @@
         "properties": {
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" },
-          "content": { "type": "null" }
+          "cookie": { "properties": { "role": { "enum": [1, 2] } } }
         },
-        "x-notify": { "path": "POST /timesheet content:none", "role": 1 }
+        "x-notify": { "path": "POST /timesheet role:basic,supervisor", "role": 1 }
       },
-      "then": true,
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/request.insert" } }
+      },
       "else": {
         "if": {
           "properties": {
             "path": { "minItems": 1, "maxItems": 1 },
             "query": { "type": "null" },
-            "cookie": { "properties": { "role": { "enum": [1, 2] } } }
+            "cookie": { "properties": { "role": { "const": 3 } } }
           },
-          "x-notify": { "path": "POST /timesheet role:basic,supervisor", "role": 1 }
+          "x-notify": { "path": "POST /timesheet role:admin", "role": 3 }
         },
         "then": {
-          "properties": { "content": { "$ref": "#/definitions/request.insert" } }
+          "properties": { "content": { "$ref": "#/definitions/insert" } }
         },
-        "else": { 
-          "if": {
-            "properties": {
-              "path": { "minItems": 1, "maxItems": 1 },
-              "query": { "type": "null" },
-              "cookie": { "properties": { "role": { "const": 3 } } }
-            },
-            "x-notify": { "path": "POST /timesheet role:admin", "role": 3 }
-          },
-          "then": {
-            "properties": { "content": { "$ref": "#/definitions/insert" } }
-          },
-          "else": false
-        }
+        "else": false
       }
     },
     "PUT": {

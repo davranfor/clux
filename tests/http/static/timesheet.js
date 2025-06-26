@@ -304,15 +304,14 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
 });
 
 async function timesheetUpsert() {
-  const response = await fetch('/api/timesheet', {
-    method: 'POST',
+  const response = await fetch('/api/users/clock_in', {
+    method: 'PATCH',
     credentials: 'include'
   });
 
   if (response.status === 200) {
     const data = await response.json();
-    user.workplace = data[0];
-    user.clockIn = data[2] === 0 ? data[1] : 0;
+    user.clockIn = data[0] || 0;
   } else if (response.status === 204) {
     throw new Error('No se puede fichar en este momento');
   } else {

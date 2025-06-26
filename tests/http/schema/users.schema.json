@@ -137,15 +137,26 @@
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
-          "query": { "type": "null" }
+          "path": { "items": [{}, { "const": "clock_in" }], "additionalItems": false },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 1 }
+        "x-notify": { "path": "PATCH /users/clock_in", "size": 1, "role": 1 }
       },
-      "then": {
-        "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
-      },
-      "else": false
+      "then": true,
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
+            "query": { "type": "null" }
+          },
+          "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 1 }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
+        },
+        "else": false
+      }
     }
   }
 }
