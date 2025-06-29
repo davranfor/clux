@@ -237,7 +237,7 @@
     function menuBack() {
       if (lastActiveItem !== null) setActive(lastActiveItem);
     }
-    function setActive(item, id = null) {
+    async function setActive(item, id = null) {
       const activeItem = document.querySelector('#menu .menu-item.active');
 
       if (activeItem) {
@@ -262,22 +262,22 @@
       try {
         switch (item.dataset.item) {
           case 'item-clocking':
-            clocking.show();
+            await clocking.show();
             lastActiveItem = item;
             break;
           case 'item-schedule':
-            schedule.show(id === null ? user.id : id);
+            await schedule.show(id === null ? user.id : id);
             break;
           case 'item-team':
-            team.show();
+            await team.show();
             lastActiveItem = item;
             break;
           case 'item-profile':
-            profile.show(id === null ? user.id : id);
+            await profile.show(id === null ? user.id : id);
             break;
         }
       } catch (error) {
-        if (error.message) showMessage(error.message);
+        showMessage(error.message);
       } finally {
         window.scrollTo(0, 0);
       }
