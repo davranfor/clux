@@ -20,7 +20,7 @@ const login = {
   }
 };
 
-login.form.addEventListener('submit', async (e) => {
+document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = login.form.querySelector('input[name="email"]').value;
   const password = login.form.querySelector('input[name="password"]').value;

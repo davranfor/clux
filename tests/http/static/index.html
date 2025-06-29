@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
   <script src="functions.js" defer></script>
-  <script src="timesheet.js" defer></script>
   <script src="manager.js" defer></script>
   <script src="auth.js" defer></script>
 </head>
@@ -238,7 +237,7 @@
     function menuBack() {
       if (lastActiveItem !== null) setActive(lastActiveItem);
     }
-    async function setActive(item, id = null) {
+    function setActive(item, id = null) {
       const activeItem = document.querySelector('#menu .menu-item.active');
 
       if (activeItem) {
@@ -246,16 +245,16 @@
         activeItem.classList.remove('active');
         switch (activeItem.dataset.item) {
           case 'item-clocking':
-            clockingFrame.style.display = "none";
+            clocking.hide();
             break;
           case 'item-schedule':
-            scheduleFrame.style.display = "none";
+            schedule.hide();
             break;
           case 'item-team':
-            teamFrame.style.display = "none";
+            team.hide();
             break;
           case 'item-profile':
-            profileFrame.style.display = "none";
+            profile.hide();
             break;
         }
       }
@@ -263,23 +262,18 @@
       try {
         switch (item.dataset.item) {
           case 'item-clocking':
-            await refreshClockingTable();
-            clockingFrame.style.display = "flex";
+            clocking.show();
             lastActiveItem = item;
             break;
           case 'item-schedule':
-            await refreshScheduleTable(id === null ? user.id : id);
-            scheduleFrame.style.display = "flex";
+            schedule.show(id === null ? user.id : id);
             break;
           case 'item-team':
-            await refreshTeamTable();
-            teamFrame.style.display = "flex";
+            team.show();
             lastActiveItem = item;
             break;
           case 'item-profile':
-            await profileEdit(id === null ? user.id : id);
-            profileFrame.style.display = "flex";
-            profileFocus();
+            profile.show(id === null ? user.id : id);
             break;
         }
       } catch (error) {
@@ -294,36 +288,22 @@
       if (item) setActive(item, id);
     }
 
-    const clockingFrame = document.getElementById("clocking-frame");
-    const clockingTitle = document.getElementById("clocking-title");
-    const clockingTable = document.getElementById("clocking-table");
-    const clockingForm = document.getElementById("clocking-form");
-
-    const scheduleFrame = document.getElementById("schedule-frame");
-    const scheduleTable = document.getElementById("schedule-table");
-
-    const teamFrame = document.getElementById("team-frame");
-    const teamTable = document.getElementById("team-table");
-
-    const profileFrame = document.getElementById("profile-frame");
     const profileTable = document.getElementById("profile-table");
-    const profileForm = document.getElementById("profile-form");
 
     function refreshUserData() {
       if (user.clockIn !== 0) {
-console.log(user.clockIn);
         const datetime = new Date(user.clockIn.replace(' ', 'T'));
 
         userButton.classList.remove("clock-in");
         userButton.classList.add("clock-out");
         userButton.textContent = "Salir";
-        clockingTitle.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)} `;
+        clocking.title.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)} `;
         clocking.start();
       } else {
         userButton.classList.remove("clock-out");
         userButton.classList.add("clock-in");
         userButton.textContent = "Entrar";
-        clockingTitle.textContent = "";
+        clocking.title.textContent = "";
         clocking.stop();
       }
     }
@@ -336,9 +316,11 @@ console.log(user.clockIn);
       }
       userButton.disabled = true;
       try {
-        await timesheetUpsert();
+        await clocking.upsert();
         refreshUserData();
-        await refreshClockingTable();
+        if (clocking.table.style.display === "table") {
+          clocking.refresh();
+        }
       } catch (error) {
         showMessage(error.message || 'No se puede fichar en este momento');
       } finally {
@@ -360,7 +342,7 @@ console.log(user.clockIn);
       } else {
         document.getElementById("clocking-submit").textContent = "Guardar";
         document.getElementById("clocking-reason").style.display = "none";
-        timesheet.reason.required = false;
+        clocking.reason.required = false;
       }
     }
 
@@ -374,7 +356,7 @@ console.log(user.clockIn);
       }
       setActiveByKey("item-clocking");
     }
-
+/*
     function refreshClocking() {
       setTimeout(async () => {
         const activeItem = document.querySelector('#menu .menu-item.active');
@@ -386,6 +368,7 @@ console.log(user.clockIn);
       }, 5 * 60 * 1000); // 5 minutes
     }
     refreshClocking();
+*/
   </script>
 </body>
 </html>

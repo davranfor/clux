@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "/timesheet",
+  "$id": "/timelogs",
   "type": "object",
   "definitions": {
     "insert": {
@@ -57,7 +57,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timesheet", "role": 1 }
+          "x-notify": { "path": "GET /timelogs", "role": 1 }
         },
         {
           "properties": {
@@ -65,7 +65,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timesheet/{id}", "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{id}", "role": 1 }
         },
         {
           "properties": {
@@ -73,7 +73,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timesheet/empty", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/empty", "size": 1, "role": 1 }
         },
         {
           "properties": {
@@ -81,7 +81,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timesheet/week", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/week", "size": 1, "role": 1 }
         },
         {
           "properties": {
@@ -89,7 +89,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timesheet/{year}/{month}/month", "size": 3, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{year}/{month}/month", "size": 3, "role": 1 }
         }
       ]
     },
@@ -100,7 +100,7 @@
           "query": { "type": "null" },
           "cookie": { "properties": { "role": { "enum": [1, 2] } } }
         },
-        "x-notify": { "path": "POST /timesheet role:basic,supervisor", "role": 1 }
+        "x-notify": { "path": "POST /timelogs role:basic,supervisor", "role": 1 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/request.insert" } }
@@ -112,7 +112,7 @@
             "query": { "type": "null" },
             "cookie": { "properties": { "role": { "const": 3 } } }
           },
-          "x-notify": { "path": "POST /timesheet role:admin", "role": 3 }
+          "x-notify": { "path": "POST /timelogs role:admin", "role": 3 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/insert" } }
@@ -126,7 +126,7 @@
           "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "PUT /timesheet/{id}", "role": 3 }
+        "x-notify": { "path": "PUT /timelogs/{id}", "role": 3 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/update" } }
@@ -140,7 +140,7 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /timesheet/{id}/request content:none", "size": 2, "role": 1 }
+        "x-notify": { "path": "PATCH /timelogs/{id}/request content:none", "size": 2, "role": 1 }
       },
       "then": true,
       "else": {
@@ -149,7 +149,7 @@
             "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /timesheet/{id}/request", "size": 2, "role": 1 }
+          "x-notify": { "path": "PATCH /timelogs/{id}/request", "size": 2, "role": 1 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/request.update" } }
@@ -163,7 +163,7 @@
           "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "DELETE /timesheet/{id}", "role": 1 }
+        "x-notify": { "path": "DELETE /timelogs/{id}", "role": 1 }
       },
       "then": true,
       "else": false
