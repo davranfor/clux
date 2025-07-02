@@ -1,35 +1,74 @@
+const userbar = {
+  table: document.getElementById("userbar-table"),
+  title: document.getElementById("userbar-title"),
+  tbody: document.querySelector("#userbar-table tbody"),
+  key: 0,
+
+  setKey(key) {
+    this.key = key;
+  },
+  setContainer(container) {
+    container = document.getElementById(container);
+    if (container !== this.table.parentElement)
+      container.appendChild(this.table);
+  },
+  setTitle(title) {
+    this.title.innerText = title;
+  },
+  setButtons(buttons) {
+    if (buttons.length !== 5) {
+      showMessage('userbar.setButtons: Expected 5 buttons');
+      return;
+    }
+    this.tbody.replaceChildren();
+
+    const tr = document.createElement('tr');
+
+    buttons.forEach(([action, icon, text]) => {
+      const td = document.createElement('td');
+
+      td.className = 'clickable';
+      td.innerHTML = `<div><i class="ti ${icon}"></i><span>${text}</span></div>`;
+      td.addEventListener('click', action);
+      tr.appendChild(td);
+    });
+    this.tbody.appendChild(tr);
+  },
+  show() {
+    if (this.table.style.display !== "table")
+     this.table.style.display = "table";
+  },
+  hide() {
+    this.table.style.display = "none";
+  }
+}
+
 const clocking = {
   frame: document.getElementById("clocking-frame"),
 
   // ClockIn
-  time: null, timeout: null, elapsed: 0,
+  time: null, timeout: null, elapsed: 0, active: false,
   text: document.getElementById('clocking-text'),
-  redraw() {
-    const now = Date.now();
-
-    this.text.textContent = formatTime(now - this.time);
-    this.timeout = setTimeout(() => this.redraw(), 1000 - (now % 1000));
-  },
   start() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
     this.time = Date.now() - (this.elapsed * 1000);
-    this.text.textContent = '00:00:00';
     this.elapsed = 0;
+    this.active = true;
     this.redraw();
   },
   stop() {
     if (this.timeout) {
-      clearTimeout(this.timeout);
+      cancelAnimationFrame(this.timeout);
+      this.time = null;
       this.timeout = null;
-    }
-    if (this.time) {
+      this.elapsed = 0;
+      this.active = false;
       this.text.textContent = '';
-      this.time = Date.now();
     }
-    this.elapsed = 0;
+  },
+  redraw() {
+    if (!this.active) return;
+    this.text.textContent = formatTime(Date.now() - this.time);
+    this.timeout = requestAnimationFrame(() => this.redraw());
   },
 
   async upsert() {
@@ -51,12 +90,25 @@ const clocking = {
     }
   },
 
-  // Table
-  table: document.getElementById("clocking-table"),
-  title: document.getElementById("clocking-title"),
+  // Userbar
+  key: 0,
+  setUserbar() {
+    userbar.setContainer('clocking-userbar');
+    userbar.setButtons([
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
+    ]);
+  },
 
-  async refresh() {
-    const response = await fetch('/api/timelogs/week', {
+  // Table
+  title: document.getElementById("clocking-title"),
+  table: document.getElementById("clocking-table"),
+
+  async refresh(user_id) {
+    const response = await fetch(`/api/timelogs/${user_id}/week`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -64,6 +116,7 @@ const clocking = {
     if (response.status === 200) {
       const data = await response.json();
 
+      this.key = user_id;
       this.refreshTable(data);
     } else if (response.status !== 204) {
       const text = await response.text();
@@ -71,16 +124,19 @@ const clocking = {
       throw new Error(text || `HTTP Error ${response.status}`);
     }
   },
-  async show() {
-    await this.refresh();
-    if (this.frame.style.display !== "flex") {
+  async show(user_id) {
+    await this.refresh(user_id);
+    if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
-    }
-    if (this.form.style.display !== "none") {
+    if (this.form.style.display !== "none")
       this.form.style.display = "none";
-    }
-    if (this.table.style.display !== "table") {
+    if (this.table.style.display !== "table")
       this.table.style.display = "table";
+    if (this.key === userbar.key) {
+      this.setUserbar();
+      userbar.show();
+    } else {
+      userbar.hide();
     }
   },
   hide() {
@@ -94,7 +150,7 @@ const clocking = {
     const trNew = document.createElement('tr');
 
     trNew.innerHTML = `
-      <td class="clickable" colspan="4" onclick="clocking.add();">
+      <td class="clickable" colspan="4" onclick="clocking.add(${this.key});">
       <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
       </td>
     `;
@@ -176,16 +232,36 @@ const clocking = {
         tbody.appendChild(trDataModified);
         tbody.appendChild(trReason);
       }
-    });
+      if (user.role !== role.BASIC) {
+        const trActions = document.createElement('tr');
 
+        trActions.innerHTML = `
+          <td class="clickable" colspan="4" onclick="clocking.approve(${record[0]});">
+          <div>🟢 Aprobar solicitud</div>
+          </td>
+        `;
+        tbody.appendChild(trActions);
+      }
+    });
     const trMore = document.createElement('tr');
 
     trMore.innerHTML = `
-      <td class="clickable" colspan="4" onclick="clocking.more();">
+      <td class="clickable" colspan="4" onclick="clocking.more(${this.key});">
       <div><i class="ti ti-search"></i><span>Ver más fichajes</span></div>
       </td>
     `;
     tbody.appendChild(trMore);
+
+    if (onMobile) {
+      const trSchedule = document.createElement('tr');
+
+      trSchedule.innerHTML = `
+        <td class="clickable" colspan="4" onclick="setActiveByKey('item-schedule');">
+        <div><i class="ti ti-calendar-time"></i><span>Mis horarios</span></div>
+        </td>
+      `;
+      tbody.appendChild(trSchedule);
+    }
   },
 
   // Form
@@ -200,13 +276,13 @@ const clocking = {
   clockOut: {
     date: document.getElementById("clocking-form").querySelector('input[name="clock_out_date"]'),
     time: document.getElementById("clocking-form").querySelector('input[name="clock_out_time"]'),
-   },
+  },
   reason: document.getElementById("clocking-form").querySelector('input[name="reason"]'),
   hash: 0,
 
-  async add() {
+  async add(user_id) {
     try {
-      const response = await fetch('/api/timelogs/empty', {
+      const response = await fetch(`/api/timelogs/${user_id}/empty`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -249,6 +325,22 @@ const clocking = {
     }
   },
   showForm(data) {
+    if (data.id === 0 || user.role !== role.ADMIN) {
+      if (this.table.style.display !== "none")
+        this.table.style.display = "none";
+    } else {
+      const tbody = document.querySelector('#clocking-table tbody');
+      const tr = document.createElement('tr');
+
+      tbody.replaceChildren();
+      tr.innerHTML = `
+        <td class="clickable" onclick="clocking.delete(${data.id});">
+        <div><i class="ti ti-trash"></i><span>Eliminar fichaje</span></div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
     this.id.value = data.id;
 
     this.workplace.replaceChildren();
@@ -275,15 +367,10 @@ const clocking = {
 
     this.hash = formHash(this.form);
 
-    if (this.frame.style.display !== "flex") {
+    if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
-    }
-    if (this.table.style.display !== "none") {
-      this.table.style.display = "none";
-    }
-    if (this.form.style.display !== "flex") {
+    if (this.form.style.display !== "flex")
       this.form.style.display = "flex";
-    }
     this.clockIn.date.focus();
   },
   async insert(data) {
@@ -296,7 +383,7 @@ const clocking = {
       });
 
       if (response.status === 200) {
-        this.show();
+        this.show(this.key);
       } else if (response.status === 204) {
         showMessage('No se puede fichar en las horas indicadas');
       } else {
@@ -318,7 +405,7 @@ const clocking = {
       });
 
       if (response.status === 200) {
-        this.show();
+        this.show(this.key);
       } else if (response.status === 204) {
         showMessage("No se ha realizado ningún cambio en el registro");
       } else {
@@ -340,7 +427,7 @@ const clocking = {
       });
 
       if (response.status === 200) {
-        this.show();
+        this.show(this.key);
       } else if (response.status === 204) {
         showMessage('No se puede fichar en las horas indicadas');
       } else {
@@ -363,7 +450,7 @@ const clocking = {
       });
 
       if (response.status === 200) {
-        this.show();
+        this.show(this.key);
       } else if (response.status === 204) {
         showMessage('No hay nada que eliminar');
       } else {
@@ -386,7 +473,7 @@ const clocking = {
       });
 
       if (response.status === 200) {
-        this.show();
+        this.show(this.key);
       } else if (response.status === 204) {
         showMessage('No hay nada que eliminar');
       } else {
@@ -398,16 +485,29 @@ const clocking = {
       showMessage(error.message || 'No se puede eliminar el registro');
     }
   },
-  async selectMonth(year, month) {
-  /*
-    const nombre = await promptMessage("Por favor ingrese un nombre:", "John Doe");
-
-    if (nombre === null) {
-      return;
-    }
-  */
+  async approve(id) {
     try {
-      const response = await fetch(`/api/timelogs/${year}/${month}/month`, {
+      const response = await fetch(`/api/timelogs/${id}/approve`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+
+      if (response.status === 200) {
+        this.show(this.key);
+      } else if (response.status === 204) {
+        showMessage('No hay nada que aprobar');
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se puede actualizar el registro');
+    }
+  },
+  async selectMonth(user_id, year, month) {
+    try {
+      const response = await fetch(`/api/timelogs/${user_id}/${year}/${month}/month`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -425,9 +525,9 @@ const clocking = {
       showMessage(error.message ||  `HTTP ${response.status}`);
     }
   },
-  more() {
+  more(user_id) {
     showForm(createMonthYearForm, 'Filtrar fichajes por mes').then(result => {
-      if (result) { this.selectMonth(result.year, result.month); }
+      if (result) { this.selectMonth(user_id, result.year, result.month); }
     });
   }
 };
@@ -456,6 +556,7 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
   }
 
   const workplace_id = Number(clocking.workplace.value);
+  const user_id = Number(clocking.user.value);
   const clock_in = `${clocking.clockIn.date.value} ${clocking.clockIn.time.value}:00`;
   const clock_out = `${clocking.clockOut.date.value} ${clocking.clockOut.time.value}:00`;
 
@@ -477,16 +578,15 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
   if (user.role !== role.ADMIN) {
     const reason = clocking.reason.value;
 
-    if (clocking.id.value == 0) { // Do not compare with ===
-      clocking.insert(JSON.stringify({ workplace_id, clock_in, clock_out, reason }));
+    if (clocking.id.value == 0) {
+      clocking.insert(JSON.stringify({ workplace_id, user_id, clock_in, clock_out, reason }));
     } else {
       const workplace_name = clocking.workplace.options[clocking.workplace.selectedIndex].text;
+
       clocking.requestUpdate(JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason }));
     }
   } else {
-    if (clocking.id.value == 0) { // Do not compare with ===
-      const user_id = Number(clocking.user.value);
-
+    if (clocking.id.value == 0) {
       clocking.insert(JSON.stringify({ workplace_id, user_id, clock_in, clock_out }));
     } else {
       clocking.update(JSON.stringify({ workplace_id, clock_in, clock_out }));
@@ -495,13 +595,23 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
 });
 
 document.getElementById("clocking-cancel").addEventListener("click", () => {
-  try { clocking.show(); } catch (error) { showMessage(error.message); }
+  try { clocking.show(clocking.key); } catch (error) { showMessage(error.message); }
 });
 
 const schedule = {
   frame: document.getElementById("schedule-frame"),
-  id: 0, date: null,
+  key: 0, date: null,
 
+  setUserbar() {
+    userbar.setContainer('schedule-userbar');
+    userbar.setButtons([
+      [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
+    ]);
+  },
   async refresh(id) {
     const response = await fetch(`/api/users/${id}/schedule`, {
       method: 'GET',
@@ -511,7 +621,7 @@ const schedule = {
     if (response.status === 200) {
       const data = await response.json();
 
-      this.id = id;
+      this.key = id;
       user.role === role.BASIC ? this.refreshTableForRead(data) : this.refreshTableForWrite(data);
     } else if (response.status === 204) {
       throw new Error('El registro ya no existe');
@@ -523,9 +633,8 @@ const schedule = {
   },
   async show(id) {
     await this.refresh(id);
-    if (this.frame.style.display !== "flex") {
+    if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
-    }
   },
   hide() {
     this.frame.style.display = "none";
@@ -553,6 +662,8 @@ const schedule = {
     return data;
   },
   refreshTableForRead(object) {
+    userbar.hide();
+
     const data = this.parse(object);
     const workplaces = object.workplaces;
     const workplacesMap = {
@@ -565,7 +676,7 @@ const schedule = {
     const tbody = document.querySelector('#schedule-table tbody');
 
     tbody.replaceChildren();
-    if (this.id !== user.id) {
+    if (this.key !== user.id) {
       const trUser = document.createElement('tr');
 
       trUser.innerHTML = `<th colspan="5">${object.name}</th>`;
@@ -598,8 +709,20 @@ const schedule = {
       tbody.appendChild(tr1);
       tbody.appendChild(tr2);
     }
+
+    const trBack = document.createElement('tr');
+
+    trBack.innerHTML = '<th colspan="5" class="date" onclick="menuBack();">• • •</th>';
+    tbody.appendChild(trBack); 
   },
   refreshTableForWrite(object) {
+    if (this.key === userbar.key) {
+      this.setUserbar();
+      userbar.show();
+    } else {
+      userbar.hide();
+    }
+
     const data = this.parse(object);
     const workplaces = object.workplaces;
     const options = [
@@ -618,12 +741,6 @@ const schedule = {
     const tbody = document.querySelector('#schedule-table tbody');
 
     tbody.replaceChildren();
-    if (this.id !== user.id) {
-      const trUser = document.createElement('tr');
-
-      trUser.innerHTML = `<th colspan="5">${object.name} (${object.workplaces.find(item => item[0] === object.workplace_id)?.[1]})</th>`;
-      tbody.appendChild(trUser);
-    }
     for (let i = 0; i < 14; i++) {
       const date = sumDays(this.date, i);
 
@@ -700,7 +817,7 @@ const schedule = {
   },
   async update(data) {
     try {
-      const response = await fetch(`/api/users/${this.id}/schedule`, {
+      const response = await fetch(`/api/users/${this.key}/schedule`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -772,6 +889,16 @@ const profile = {
   hash: 0,
   inserting: false,
 
+  setUserbar() {
+    userbar.setContainer('profile-userbar');
+    userbar.setButtons([
+      [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes']
+    ]);
+  },
   async show(id) {
     this.inserting = id === 0;
 
@@ -796,9 +923,8 @@ const profile = {
     this.frame.style.display = "none";
   },
   focus() {
-    if (this.frame.style.display !== "flex") {
+    if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
-    }
     if (user.role === role.ADMIN) {
       if (this.inserting) {
         this.id.disabled = false;
@@ -844,18 +970,18 @@ const profile = {
     });
   },
   add(data) {
-    profileTable.style.display = "none";
+    userbar.hide();
     this.form.reset();
     this.fillLists(data);
     this.hash = formHash(this.form);
     this.focus();
   },
   edit(data) {
-    if (user.id != data.id) {
-      profileShowOptions(data);
-      profileTable.style.display = "table";
+    if (user.id !== data.id) {
+      this.setUserbar();
+      userbar.show();
     } else {
-      profileTable.style.display = "none";
+      userbar.hide();
     }
     this.fillLists(data);
     this.id.value = data.id;
@@ -900,9 +1026,7 @@ document.querySelectorAll('#profile-form input').forEach(element => {
     this.value = this.value.trim();
   });
   element.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      this.value = this.value.trim();
-    }
+    if (e.key === 'Enter') this.value = this.value.trim();
   });
 });
 
@@ -944,36 +1068,6 @@ document.getElementById("profile-form").addEventListener('submit', (e) => {
 document.getElementById("profile-cancel").addEventListener("click", () => {
   menuBack();
 });
-
-function profileShowOptions(data) {
-  const tbody = document.querySelector('#profile-table tbody');
-
-  tbody.replaceChildren();
-
-  const trUser = document.createElement('tr');
-  const trData = document.createElement('tr');
-
-  trUser.innerHTML = `<th colspan="5">${data.name} (${data.workplaces.find(item => item[0] === data.workplace_id)?.[1]})</th>`;
-  trData.innerHTML = `
-    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-clock"></i><span>Fichajes</span></div>
-    </td>
-    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-calendar-time"></i><span>Horario</span></div>
-    </td>
-    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-checklist"></i><span>Tareas</span></div>
-    </td>
-    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-report"></i><span>Informes</span></div>
-    </td>
-    <td class="clickable" onclick="setActiveByKey('item-schedule',${data.id});">
-    <div><i class="ti ti-trash"></i><span>Eliminar</span></div>
-    </td>
-  `;
-  tbody.appendChild(trUser);
-  tbody.appendChild(trData);
-}
 
 const team = {
   frame: document.getElementById("team-frame"),
@@ -1028,6 +1122,14 @@ const team = {
   showListOfWorkplaces() {
     this.viewIndex = this.view.ListOfWorkplaces;
     try { this.show(); } catch (error) { showMessage(error.message); }
+  },
+  handleUser(key, name) {
+    const workplace = this.viewIndex == this.view.OtherWorkplace
+      ? this.selectedWorkplace.name : 'Mi equipo';
+
+    userbar.setKey(key);
+    userbar.setTitle(`${name} (${workplace})`);
+    setActiveByKey('item-clocking', key);
   },
   refreshTable(data) {
     const tbody = document.querySelector('#team-table tbody');
@@ -1085,7 +1187,7 @@ const team = {
       const trTitle = document.createElement('tr');
 
       trSelector.innerHTML = `
-        <td class="clickable" colspan="3" onclick="this.showMyWorkplace();">
+        <td class="clickable" colspan="3" onclick="team.showMyWorkplace();">
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
         </td>
       `;
@@ -1093,22 +1195,31 @@ const team = {
       tbody.appendChild(trSelector);
       tbody.appendChild(trTitle);
     }
+
+    const clockInMark = user.role === role.BASIC ? ['', ''] : ['⚪ ', '🟠 '];
+
     if (this.viewIndex !== this.view.ListOfWorkplaces) {
-      // Sort by category ASC
+
+      // Sort by category ASC then user.name ASC
       data.sort((a, b) => {
-        if (a[1] > b[1]) return 1;
-        if (a[1] < b[1]) return -1;
-        return a[2] > b[2] ? 1 : a[2] < b[2] ? -1 : 0;
+        if (a[2] > b[2]) return 1;
+        if (a[2] < b[2]) return -1;
+        return a[3] > b[3] ? 1 : a[3] < b[3] ? -1 : 0;
       });
       data.forEach(record => {
-        const clockIn = record[3] === null ? '' : longDateTime(record[3]);
+        const clockIn = record[4] === null ? '' : shortDateTime(record[4]);
         const trUser = document.createElement('tr');
 
         trUser.className = 'team-data';
-        trUser.addEventListener('click', () => { setActiveByKey('item-profile', record[0]); });
+        if (user.role === role.BASIC) {
+          trUser.addEventListener('click', () => { setActiveByKey('item-schedule', record[1]); });
+        } else {
+          //trUser.addEventListener('click', () => { setActiveByKey('item-profile', record[1]); });
+          trUser.addEventListener('click', () => { team.handleUser(record[1], record[3]); });
+        }
         trUser.innerHTML = `
-          <td>${record[1]}</td>
-          <td>${record[2]}</td>
+          <td>${clockInMark[record[0]]}${record[2]}</td>
+          <td>${record[3]}</td>
           <td>${clockIn}</td>
         `;
         tbody.appendChild(trUser);
@@ -1116,19 +1227,19 @@ const team = {
     } else {
       // Sort by name ASC
       data.sort((a, b) => {
-        if (a[1] > b[1]) return 1;
-        if (a[1] < b[1]) return -1;
+        if (a[2] > b[2]) return 1;
+        if (a[2] < b[2]) return -1;
         return 0;
       });
       data.forEach(record => {
         const trWorkplace = document.createElement('tr');
 
         trWorkplace.className = 'team-data';
-        trWorkplace.addEventListener('click', () => { this.showOtherWorkplace(record[0], record[1]); });
+        trWorkplace.addEventListener('click', () => { this.showOtherWorkplace(record[1], record[2]); });
         trWorkplace.innerHTML = `
-          <td>${record[0]}</td>
-          <td>${record[1]}</td>
+          <td>${clockInMark[record[0]]}${record[1]}</td>
           <td>${record[2]}</td>
+          <td>${record[3]}</td>
         `;
         tbody.appendChild(trWorkplace);
       });

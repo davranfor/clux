@@ -44,8 +44,8 @@
         <span class="menu-text">Equipo</span>
       </div>
       <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
-        <i class="ti ti-chart-bar"></i>
-        <span class="menu-text">Estadísticas</span>
+        <i class="ti ti-report"></i>
+        <span class="menu-text">Informes</span>
       </div>
       <hr>
       <div class="menu-item" onclick="setActive(this)" data-item="item-profile">
@@ -83,12 +83,16 @@
       <div class="content-wrapper" id="clocking-frame">
         <div class="content-box">
           <h2>Fichajes</h2>
-          <b id="clocking-title"></b>
-          <b id="clocking-text"></b>
+          <div>
+            <b id="clocking-title"></b>
+            <b id="clocking-text"></b>
+          </div>
+          <div id="clocking-userbar"></div>
           <table id="clocking-table" class="view-table">
             <tbody></tbody>
           </table>
           <form class="content-form" id="clocking-form" autocomplete="off">
+            <div class="separator"></div>
             <input type="hidden" name="id" required>
             <div class="form-group">
               <label for="workplace">Centro de trabajo</label>
@@ -117,7 +121,8 @@
             </div>
             <div id="clocking-reason" class="form-group">
               <label for="workplace">Motivo del alta o cambio de fichaje</label>
-              <input type="text" list="reason-list" name="reason" maxLength="100" placeholder="Indica brevemente el motivo o selecciona un elemento de la lista" required>
+              <input type="text" list="reason-list" name="reason" maxLength="100"
+                placeholder="Indica brevemente el motivo. NO incluyas datos confidenciales ni causas de enfermedad" required>
               <datalist id="reason-list">
                 <option value="Cambio de centro de trabajo">
                 <option value="He olvidado fichar la entrada">
@@ -137,6 +142,7 @@
       <div class="content-wrapper" id="schedule-frame">
         <div class="content-box">
           <h2>Horarios</h2>
+          <div id="schedule-userbar"></div>
           <table id="schedule-table" class="edit-table">
             <tbody></tbody>
           </table>
@@ -162,15 +168,18 @@
       <div class="content-wrapper" id="profile-frame">
         <div class="content-box">
           <h2>Perfil</h2>
-          <table id="profile-table" class="view-table">
-            <tbody></tbody>
-          </table>
-          <hr>
+          <div id="profile-userbar">
+            <table id="userbar-table" class="view-table">
+              <thead><tr><th colspan="5" id="userbar-title"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
           <form class="content-form" id="profile-form" autocomplete="off">
+            <div class="separator"></div>
             <div class="form-2columnsA">
               <div class="form-group">
                 <label for="id">Código</label>
-                <input type="number" name="id" min="1" max="99999" placeholder="1 - 99999" required>
+                <input type="number" name="id" min="1" max="99999" placeholder="Nuevo (1-99999)" required>
               </div>
               <div class="form-group">
                 <label for="workplace">Centro de trabajo habitual</label>
@@ -231,6 +240,8 @@
     const userTitle = document.getElementById("user-title");
     const userButton = document.getElementById("user-button");
 
+    let onMobile = false;
+
     const menu = document.getElementById("menu");
     let lastActiveItem = null;
 
@@ -262,7 +273,7 @@
       try {
         switch (item.dataset.item) {
           case 'item-clocking':
-            await clocking.show();
+            await clocking.show(id === null ? user.id : id);
             lastActiveItem = item;
             break;
           case 'item-schedule':
@@ -288,8 +299,6 @@
       if (item) setActive(item, id);
     }
 
-    const profileTable = document.getElementById("profile-table");
-
     function refreshUserData() {
       if (user.clockIn !== 0) {
         const datetime = new Date(user.clockIn.replace(' ', 'T'));
@@ -297,7 +306,7 @@
         userButton.classList.remove("clock-in");
         userButton.classList.add("clock-out");
         userButton.textContent = "Salir";
-        clocking.title.innerHTML = `Entrada: ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)} `;
+        clocking.title.textContent = `🕒 ${dayOfWeek(datetime)} ${longDateTime(user.clockIn)} `;
         clocking.start();
       } else {
         userButton.classList.remove("clock-out");
@@ -308,18 +317,19 @@
       }
     }
     userButton.addEventListener("click", async function() {
+/*
       const now = Date.now();
-
       if (clocking.time !== null && ((now - clocking.time) / 1000 < 60)) {
         showMessage('Debe haber un intervalo mínimo de 1 minuto entre fichajes');
         return;
       }
+*/
       userButton.disabled = true;
       try {
         await clocking.upsert();
         refreshUserData();
         if (clocking.table.style.display === "table") {
-          clocking.refresh();
+          await clocking.refresh(user.id);
         }
       } catch (error) {
         showMessage(error.message || 'No se puede fichar en este momento');
@@ -353,6 +363,8 @@
       refreshUserData();
       if (!isMobileDevice()) {
         menu.style.display = "block";
+      } else {
+        onMobile = true;
       }
       setActiveByKey("item-clocking");
     }

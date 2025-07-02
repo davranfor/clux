@@ -324,6 +324,10 @@ header {
   margin-top: 5px;
 }
 
+.separator {
+  border-top: 1px solid #64758a;
+}
+
 .overlay {
   position: fixed;
   top: 0;
@@ -387,6 +391,20 @@ header {
   }
   .content {
     overflow-y: auto;
+  }
+}
+
+/* Mobile version for schedule */
+@media (max-width: 768px) {
+  #schedule-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  #schedule-table td, #schedule-table th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

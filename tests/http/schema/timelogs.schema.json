@@ -28,12 +28,13 @@
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
+        "user_id": { "type": "integer" },
         "clock_in": { "type": "string", "format": "date-time-local" },
         "clock_out": { "type": "string", "format": "date-time-local" },
         "reason": { "type": "string", "minLength": 1, "maxLength": 100 }
       },
       "additionalProperties": false,
-      "required": [ "workplace_id", "clock_in", "clock_out", "reason" ]
+      "required": [ "workplace_id", "user_id", "clock_in", "clock_out", "reason" ]
     },
     "request.update": {
       "type": "object",
@@ -69,27 +70,27 @@
         },
         {
           "properties": {
-            "path": { "items": [{}, {"const": "empty"}], "additionalItems": false },
+            "path": { "items": [{}, {"x-mask": "09999"}, {"const": "empty"}], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/empty", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id}/empty", "size": 2, "role": 1 }
         },
         {
           "properties": {
-            "path": { "items": [{}, { "const": "week" }], "additionalItems": false },
+            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "week" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/week", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id}/week", "size": 2, "role": 1 }
         },
         {
           "properties": {
-            "path": { "items": [{}, {"x-mask": "'20'00"}, {"x-mask": "00"}, { "const": "month" }], "additionalItems": false },
+            "path": { "items": [{}, {"x-mask": "09999"}, {"x-mask": "'20'00"}, {"x-mask": "00"}, { "const": "month" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{year}/{month}/month", "size": 3, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id}/{year}/{month}/month", "size": 4, "role": 1 }
         }
       ]
     },
@@ -100,7 +101,7 @@
           "query": { "type": "null" },
           "cookie": { "properties": { "role": { "enum": [1, 2] } } }
         },
-        "x-notify": { "path": "POST /timelogs role:basic,supervisor", "role": 1 }
+        "x-notify": { "path": "POST /timelogs role:basic", "role": 1 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/request.insert" } }
@@ -112,7 +113,7 @@
             "query": { "type": "null" },
             "cookie": { "properties": { "role": { "const": 3 } } }
           },
-          "x-notify": { "path": "POST /timelogs role:admin", "role": 3 }
+          "x-notify": { "path": "POST /timelogs role:supervisor,admin", "role": 3 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/insert" } }
@@ -131,7 +132,18 @@
       "then": {
         "properties": { "content": { "$ref": "#/definitions/update" } }
       },
-      "else": false
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "approve" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "PUT /timelogs/{id}/approve", "size": 2, "role": 2 }
+        },
+        "then": true,
+        "else": false
+      }
     },
     "PATCH": {
       "if": {
