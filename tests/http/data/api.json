@@ -13,6 +13,7 @@
     "CREATE INDEX IF NOT EXISTS index_timelogs_code ON timelogs(code);",
     "CREATE INDEX IF NOT EXISTS index_timelogs_clock_in ON timelogs(clock_in);",
     "CREATE INDEX IF NOT EXISTS index_timelogs_clock_out ON timelogs(clock_out);",
+    "CREATE INDEX IF NOT EXISTS index_timelogs_request ON timelogs(request);",
     "CREATE TRIGGER IF NOT EXISTS trigger_users_clock_in AFTER UPDATE OF clock_in ON users FOR EACH ROW WHEN (NEW.clock_in IS NULL AND datetime('now', 'localtime') > datetime(OLD.clock_in, '+59 seconds')) BEGIN INSERT INTO timelogs (workplace_id, user_id, clock_in, clock_out) VALUES (NEW.workplace_id, NEW.id, strftime('%Y-%m-%d %H:%M:00', OLD.clock_in, '+30 seconds'), strftime('%Y-%m-%d %H:%M:00', datetime('now', 'localtime'), '+30 seconds')); END;"
   ],
   "session": {
@@ -35,7 +36,7 @@
     "GET /timelogs": "SELECT json_array(w.name, u.clock_in, strftime('%s', datetime('now', 'localtime')) - strftime('%s', t.clock_in)) FROM users u JOIN workplaces w ON u.workplace_id = w.id WHERE u.id = session_id() AND u.clock_in is NOT NULL;",
     "GET /timelogs/{id}": "SELECT json_object('id', t.id, 'workplace_id', t.workplace_id, 'user_id', t.user_id, 'clock_in', t.clock_in, 'clock_out', t.clock_out, 'workplaces', (SELECT json_group_array(json_array(w.id, w.name)) FROM workplaces w)) FROM timelogs t WHERE t.id = $1;",
     "GET /timelogs/{user_id}/empty": "SELECT json_object('id', 0, 'workplace_id', u.workplace_id, 'user_id', u.id, 'clock_in', date('now', 'localtime') || ' 00:00', 'clock_out', date('now', 'localtime') || ' 00:00', 'workplaces', (SELECT json_group_array(json_array(w.id, w.name)) FROM workplaces w)) FROM users u WHERE u.id = $1;",
-    "GET /timelogs/{user_id}/week": "SELECT json_group_array(json_array(t.id, w.name, t.code, t.clock_in, t.clock_out, t.request)) FROM timelogs t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = $1 AND t.clock_in >= date('now', '-6 days');",
+    "GET /timelogs/{user_id}/week": "SELECT json_group_array(json_array(t.id, w.name, t.code, t.clock_in, t.clock_out, t.request)) FROM timelogs t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = $1 AND (t.request IS NOT NULL OR t.clock_in >= date('now', '-6 days'));",
     "GET /timelogs/{user_id}/{year}/{month}/month": "SELECT json_group_array(json_array(t.id, w.name, t.code, t.clock_in, t.clock_out, t.request)) FROM timelogs t JOIN workplaces w ON t.workplace_id = w.id WHERE t.user_id = $1 AND strftime('%Y', t.clock_in) = $2 AND strftime('%m', t.clock_in) = $3;",
     "POST /timelogs role:basic": "INSERT INTO timelogs (workplace_id, user_id, clock_in, clock_out, request) SELECT :workplace_id, :user_id, :clock_in, :clock_out, json_object('reason', :reason) WHERE datetime(:clock_out) < datetime('now', 'localtime', '+60 seconds') RETURNING id;",
     "POST /timelogs role:supervisor,admin": "INSERT INTO timelogs (workplace_id, user_id, clock_in, clock_out) SELECT :workplace_id, :user_id, :clock_in, :clock_out WHERE datetime(:clock_out) < datetime('now', 'localtime', '+60 seconds') RETURNING id;",

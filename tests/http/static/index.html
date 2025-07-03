@@ -317,20 +317,10 @@
       }
     }
     userButton.addEventListener("click", async function() {
-/*
-      const now = Date.now();
-      if (clocking.time !== null && ((now - clocking.time) / 1000 < 60)) {
-        showMessage('Debe haber un intervalo mínimo de 1 minuto entre fichajes');
-        return;
-      }
-*/
       userButton.disabled = true;
       try {
         await clocking.upsert();
         refreshUserData();
-        if (clocking.table.style.display === "table") {
-          await clocking.refresh(user.id);
-        }
       } catch (error) {
         showMessage(error.message || 'No se puede fichar en este momento');
       } finally {

@@ -234,9 +234,6 @@ header {
   gap: 1.2rem;
 }
 
-.form-group label {
-}
-
 .form-group input, .form-group textarea, .form-group select {
   font-size: 1rem;
   border: 1px solid #64758a;
@@ -324,10 +321,6 @@ header {
   margin-top: 5px;
 }
 
-.separator {
-  border-top: 1px solid #64758a;
-}
-
 .overlay {
   position: fixed;
   top: 0;
@@ -357,6 +350,10 @@ header {
 
 .overlay > div[data-grid="false"] {
   display: block;
+}
+
+.separator {
+  border-top: 1px solid #64758a;
 }
 
 .default-button {

@@ -16,10 +16,6 @@ const userbar = {
     this.title.innerText = title;
   },
   setButtons(buttons) {
-    if (buttons.length !== 5) {
-      showMessage('userbar.setButtons: Expected 5 buttons');
-      return;
-    }
     this.tbody.replaceChildren();
 
     const tr = document.createElement('tr');
@@ -81,6 +77,8 @@ const clocking = {
       const data = await response.json();
 
       user.clockIn = data[0] || 0;
+      if (this.table.style.display === "table" && this.form.style.display !== "flex")
+        await this.refresh(user.id);
     } else if (response.status === 204) {
       throw new Error('No se puede fichar en este momento');
     } else {
@@ -407,7 +405,7 @@ const clocking = {
       if (response.status === 200) {
         this.show(this.key);
       } else if (response.status === 204) {
-        showMessage("No se ha realizado ningún cambio en el registro");
+        showMessage('No se puede fichar en las horas indicadas');
       } else {
         const text = await response.text();
 
@@ -459,7 +457,7 @@ const clocking = {
         showMessage(text || `HTTP ${response.status}`);
       }
     } catch (error) {
-      showMessage(error.message || 'No se puede actualizar el registro');
+      showMessage(error.message || 'No se puede eliminar la solicitud');
     }
   },
   async delete(id) {
@@ -1124,11 +1122,13 @@ const team = {
     try { this.show(); } catch (error) { showMessage(error.message); }
   },
   handleUser(key, name) {
-    const workplace = this.viewIndex == this.view.OtherWorkplace
-      ? this.selectedWorkplace.name : 'Mi equipo';
+    if (key != user.id) {
+      const workplace = this.viewIndex == this.view.OtherWorkplace
+        ? this.selectedWorkplace.name : 'Mi equipo';
 
-    userbar.setKey(key);
-    userbar.setTitle(`${name} (${workplace})`);
+      userbar.setKey(key);
+      userbar.setTitle(`${name} (${workplace})`);
+    }
     setActiveByKey('item-clocking', key);
   },
   refreshTable(data) {
@@ -1214,7 +1214,6 @@ const team = {
         if (user.role === role.BASIC) {
           trUser.addEventListener('click', () => { setActiveByKey('item-schedule', record[1]); });
         } else {
-          //trUser.addEventListener('click', () => { setActiveByKey('item-profile', record[1]); });
           trUser.addEventListener('click', () => { team.handleUser(record[1], record[3]); });
         }
         trUser.innerHTML = `
