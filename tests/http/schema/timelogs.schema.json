@@ -142,7 +142,18 @@
           "x-notify": { "path": "PUT /timelogs/{id}/approve", "size": 2, "role": 2 }
         },
         "then": true,
-        "else": false
+        "else": {
+          "if": {
+            "properties": {
+              "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "approve_all" }], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            },
+            "x-notify": { "path": "PUT /timelogs/{user_id}/approve_all", "size": 2, "role": 2 }
+          },
+          "then": true,
+          "else": false
+        }
       }
     },
     "PATCH": {

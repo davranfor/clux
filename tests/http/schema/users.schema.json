@@ -89,7 +89,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id}/workplace", "size": 2, "role": 3 }
+          "x-notify": { "path": "GET /users/{workplace_id}/workplace", "size": 2, "role": 3 }
         }
       ]
     },

@@ -270,26 +270,6 @@ header {
   padding: 4px 8px;
 }
 
-.view-table td.clickable {
-  background-color: #4a5568;
-}
-
-.view-table td.clickable:hover {
-  background-color: #1e2734;
-  cursor: pointer;
-}
-
-.view-table td.clickable > div {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.view-table td.clickable > div > .ti {
-  font-size: 1.5rem;
-  color: #fff;
-}
-
 .edit-table td.entry > input, .edit-table td.entry > select {
   border: none;
   background-color: #2d3748;
@@ -319,6 +299,26 @@ header {
 #clocking-form {
   display: none; /* flex */
   margin-top: 5px;
+}
+
+.clickable {
+  background-color: #4a5568;
+}
+
+.clickable:hover {
+  background-color: #1e2734;
+  cursor: pointer;
+}
+
+.clickable > div {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clickable > div > .ti {
+  font-size: 1.5rem;
+  color: #fff;
 }
 
 .overlay {

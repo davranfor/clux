@@ -154,6 +154,8 @@ const clocking = {
     `;
     tbody.appendChild(trNew);
 
+    let requests= 0;
+
     // Sort by clock_in DESC
     data.sort((a, b) => {
       if (a[3] < b[3]) return 1;
@@ -164,15 +166,15 @@ const clocking = {
       const trWorkplace = document.createElement('tr');
       const dt1 = new Date(record[3].replace(' ', 'T'));
       const dt2 = new Date(record[4].replace(' ', 'T'));
-      const obj = JSON.parse(record[5]);
+      const request = JSON.parse(record[5]);
       
-      if (!obj) {
+      if (!request) {
         trWorkplace.innerHTML = `
           <td class="clickable" colspan="4" onclick="clocking.edit(${record[0]});">
           <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
           </td>
         `;
-      } else if (Object.keys(obj).length === 1) {
+      } else if (Object.keys(request).length === 1) {
         trWorkplace.innerHTML = `
           <td class="clickable" colspan="4" onclick="clocking.delete(${record[0]});">
           <div><i class="ti ti-trash"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
@@ -204,43 +206,54 @@ const clocking = {
       `;
       tbody.appendChild(trData);
 
-      if (!obj) return;
+      if (!request) return;
 
       const trReason = document.createElement('tr');
 
-      if (Object.keys(obj).length === 1) {
+      if (Object.keys(request).length === 1) {
 
-        trReason.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
+        trReason.innerHTML = `<td class="taLeft" colspan="4">${request.reason}</td>`;
         tbody.appendChild(trReason);
       } else {
-        const dt3 = new Date(obj.clock_in.replace(' ', 'T'));
-        const dt4 = new Date(obj.clock_out.replace(' ', 'T'));
+        const dt3 = new Date(request.clock_in.replace(' ', 'T'));
+        const dt4 = new Date(request.clock_out.replace(' ', 'T'));
         const trModified = document.createElement('tr');
         const trDataModified = document.createElement('tr');
 
-        trModified.innerHTML = `<td class="taLeft" colspan="4">Modificado, ${obj.workplace_name}</td>`;
+        trModified.innerHTML = `<td class="taLeft" colspan="4">Modificado, ${request.workplace_name}</td>`;
         trDataModified.innerHTML = `
-          <td>${longDate(obj.clock_in)}</td>
-          <td>${shortTime(obj.clock_in)}</td>
-          <td>${shortTime(obj.clock_out)}</td>
+          <td>${longDate(request.clock_in)}</td>
+          <td>${shortTime(request.clock_in)}</td>
+          <td>${shortTime(request.clock_out)}</td>
           <td>${timeDiff(dt4, dt3)}</td>
         `;
-        trReason.innerHTML = `<td class="taLeft" colspan="4">${obj.reason}</td>`;
+        trReason.innerHTML = `<td class="taLeft" colspan="4">${request.reason}</td>`;
         tbody.appendChild(trModified);
         tbody.appendChild(trDataModified);
         tbody.appendChild(trReason);
       }
       if (user.role !== role.BASIC) {
-        const trActions = document.createElement('tr');
+        const trApprove = document.createElement('tr');
 
-        trActions.innerHTML = `
+        trApprove.innerHTML = `
           <td class="clickable" colspan="4" onclick="clocking.approve(${record[0]});">
           <div>🟢 Aprobar solicitud</div>
           </td>
         `;
-        tbody.appendChild(trActions);
+        tbody.appendChild(trApprove);
+        requests++;
       }
     });
+    if (requests > 1) {
+        const trApproveAll = document.createElement('tr');
+
+        trApproveAll.innerHTML = `
+          <td class="clickable" colspan="4" onclick="clocking.approveAll(${this.key});">
+          <div><i class="ti ti-check"></i><span>Aprobar todas las solicitudes</span></div>
+          </td>
+        `;
+        tbody.appendChild(trApproveAll);
+    }
     const trMore = document.createElement('tr');
 
     trMore.innerHTML = `
@@ -503,6 +516,26 @@ const clocking = {
       showMessage(error.message || 'No se puede actualizar el registro');
     }
   },
+  async approveAll(user_id) {
+    try {
+      const response = await fetch(`/api/timelogs/${user_id}/approve_all`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+
+      if (response.status === 200) {
+        this.show(this.key);
+      } else if (response.status === 204) {
+        showMessage('No hay nada que aprobar');
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se pueden actualizar los registros');
+    }
+  },
   async selectMonth(user_id, year, month) {
     try {
       const response = await fetch(`/api/timelogs/${user_id}/${year}/${month}/month`, {
@@ -684,33 +717,33 @@ const schedule = {
       const date = sumDays(this.date, i);
 
       if ((i % 7) === 0) {
-        const tr0 = document.createElement('tr');
+        const trHead = document.createElement('tr');
 
-        tr0.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
-        tbody.appendChild(tr0);
+        trHead.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
+        tbody.appendChild(trHead);
       }
 
-      const tr1 = document.createElement('tr');
-      const tr2 = document.createElement('tr');
+      const trData1 = document.createElement('tr');
+      const trData2 = document.createElement('tr');
 
-      tr1.innerHTML = `
+      trData1.innerHTML = `
         <th rowspan="2">${formatDate(date)}<br>${dayOfWeek(date)}</th>
         <td colspan="2" class="taLeft">${workplacesMap[data[i][0][0]]}</td>
         <td colspan="2" class="taLeft">${workplacesMap[data[i][1][0]]}</td>
       `;
-      tr2.innerHTML = `
+      trData2.innerHTML = `
         <td>${data[i][0][1]}</td>
         <td>${data[i][0][2]}</td>
         <td>${data[i][1][1]}</td>
         <td>${data[i][1][2]}</td>
       `;
-      tbody.appendChild(tr1);
-      tbody.appendChild(tr2);
+      tbody.appendChild(trData1);
+      tbody.appendChild(trData2);
     }
 
     const trBack = document.createElement('tr');
 
-    trBack.innerHTML = '<th colspan="5" class="date" onclick="menuBack();">• • •</th>';
+    trBack.innerHTML = '<th colspan="5" class="clickable" onclick="menuBack();">• • •</th>';
     tbody.appendChild(trBack); 
   },
   refreshTableForWrite(object) {
@@ -743,42 +776,37 @@ const schedule = {
       const date = sumDays(this.date, i);
 
       if ((i % 7) === 0) {
-        const tr0 = document.createElement('tr');
+        const trHead = document.createElement('tr');
 
-        tr0.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
-        tbody.appendChild(tr0);
+        trHead.innerHTML = '<th>Fecha</th><th colspan="2">Primer turno</th><th colspan="2">Segundo turno</th>';
+        tbody.appendChild(trHead);
       }
 
-      const tr1 = document.createElement('tr');
-      const tr2 = document.createElement('tr');
+      const trData1 = document.createElement('tr');
+      const trData2 = document.createElement('tr');
 
-      tr1.innerHTML = `
-        <th rowspan="2" class="date" onclick="schedule.change(${i});">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+      trData1.innerHTML = `
+        <th rowspan="2" class="clickable" onclick="schedule.change(${i});">${formatDate(date)}<br>${dayOfWeek(date)}</th>
         <td colspan="2" class="entry"></td>
         <td colspan="2" class="entry"></td>
       `;
 
-      const [select1, select2] = tr1.querySelectorAll('.entry');
+      const [select1, select2] = trData1.querySelectorAll('.entry');
 
       select1.appendChild(createSelect(data[i][0][0]));
       select2.appendChild(createSelect(data[i][1][0]));
 
-      tr2.innerHTML = `
+      trData2.innerHTML = `
         <td class="entry"><input type="time" maxLength="5" value="${data[i][0][1]}"></td>
         <td class="entry"><input type="time" maxLength="5" value="${data[i][0][2]}"></td>
         <td class="entry"><input type="time" maxLength="5" value="${data[i][1][1]}"></td>
         <td class="entry"><input type="time" maxLength="5" value="${data[i][1][2]}"></td>
       `;
-      tbody.appendChild(tr1);
-      tbody.appendChild(tr2);
+      tbody.appendChild(trData1);
+      tbody.appendChild(trData2);
     }
   },
   change(selected) {
-  /*
-    confirmMessage("Se clonarán los datos a los registros con fecha posterior en la semana seleccionada").then((confirmed) => {
-      if (!confirmed) return;
-    });
-  */
     const rows = document.querySelectorAll('#schedule-table tr');
     let data = [[], []];
     let index = 0;
@@ -861,8 +889,6 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
   });
 
   const object = { date: formatISODate(schedule.date), data: data };
-  //const object = { date: "2025-06-16", data: data };
-  //const object = { date: "2025-06-23", data: data };
   const values = JSON.stringify({ schedule: JSON.stringify(object) });
 
   schedule.update(values);
