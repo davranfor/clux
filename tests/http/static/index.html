@@ -35,7 +35,7 @@
         <span class="menu-text">Ausencias</span>
       </div>
       <hr>
-      <div class="menu-item" onclick="setActive(this)" data-item="tareas">
+      <div class="menu-item" onclick="setActive(this)" data-item="item-tasks">
         <i class="ti ti-checklist"></i>
         <span class="menu-text">Tareas</span>
       </div>
@@ -157,6 +157,19 @@
           <h2>Ausencias</h2>
         </div>
       </div>
+      <div class="content-wrapper" id="tasks-frame">
+        <div class="content-box">
+          <h2>Tareas</h2>
+          <div id="tasks-userbar"></div>
+          <table id="tasks-table" class="edit-table">
+            <tbody></tbody>
+          </table>
+          <div id="tasks-buttons" class="form-2columns">
+            <button type="button" id="tasks-submit" class="content-submit">Guardar</button>
+            <button type="button" id="tasks-cancel" class="content-button">Cancelar</button>
+          </div>
+        </div>
+      </div>
       <div class="content-wrapper" id="team-frame">
         <div class="content-box">
           <h2>Equipo</h2>
@@ -261,6 +274,9 @@
           case 'item-schedule':
             schedule.hide();
             break;
+          case 'item-tasks':
+            tasks.hide();
+            break;
           case 'item-team':
             team.hide();
             break;
@@ -278,6 +294,9 @@
             break;
           case 'item-schedule':
             await schedule.show(id === null ? user.id : id);
+            break;
+          case 'item-tasks':
+            await tasks.show(id === null ? user.id : id);
             break;
           case 'item-team':
             await team.show();
@@ -339,6 +358,7 @@
         profile.role.disabled = true;
         profile.role.classList.add("cursorForbidden");
         document.getElementById("schedule-buttons").style.display = "none";
+        document.getElementById("tasks-buttons").style.display = "none";
       } else {
         document.getElementById("clocking-submit").textContent = "Guardar";
         document.getElementById("clocking-reason").style.display = "none";

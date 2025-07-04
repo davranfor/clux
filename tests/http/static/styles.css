@@ -270,7 +270,7 @@ header {
   padding: 4px 8px;
 }
 
-.edit-table td.entry > input, .edit-table td.entry > select {
+.edit-table td.entry > input, .edit-table td.entry > select, .edit-table td.entry > textarea {
   border: none;
   background-color: #2d3748;
   color: #cbd5e0;
@@ -278,13 +278,16 @@ header {
   margin: 0;
 }
 
-.edit-table td.entry > select {
+.edit-table td.entry > select, .edit-table td.entry > textarea {
   width: 100%;
 }
 
-#schedule-table th.date:hover {
-  background-color: #1e2734;
-  cursor: pointer;
+.edit-table td.entry > textarea:focus {
+  outline: none;
+}
+
+#tasks-table th:not(:last-child) {
+  width: 1%;
 }
 
 #team-table tr.team-data:hover {
@@ -397,7 +400,6 @@ header {
     width: 100%;
     table-layout: fixed;
   }
-
   #schedule-table td, #schedule-table th {
     white-space: nowrap;
     overflow: hidden;

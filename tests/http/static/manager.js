@@ -258,7 +258,7 @@ const clocking = {
 
     trMore.innerHTML = `
       <td class="clickable" colspan="4" onclick="clocking.more(${this.key});">
-      <div><i class="ti ti-search"></i><span>Ver más fichajes</span></div>
+      <div><i class="ti ti-filter"></i><span>Filtrar por mes</span></div>
       </td>
     `;
     tbody.appendChild(trMore);
@@ -744,7 +744,7 @@ const schedule = {
     const trBack = document.createElement('tr');
 
     trBack.innerHTML = '<th colspan="5" class="clickable" onclick="menuBack();">• • •</th>';
-    tbody.appendChild(trBack); 
+    tbody.appendChild(trBack);
   },
   refreshTableForWrite(object) {
     if (this.key === userbar.key) {
@@ -895,6 +895,203 @@ document.getElementById("schedule-submit").addEventListener("click", () => {
 });
 
 document.getElementById("schedule-cancel").addEventListener("click", () => {
+  menuBack();
+});
+
+const tasks = {
+  frame: document.getElementById("tasks-frame"),
+  key: 0, date: null,
+
+  setUserbar() {
+    userbar.setContainer('tasks-userbar');
+    userbar.setButtons([
+      [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Horarios'],
+      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
+    ]);
+  },
+  async refresh(id) {
+    const response = await fetch(`/api/users/${id}/tasks`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (response.status === 200) {
+      const data = await response.json();
+
+      this.key = id;
+      user.role === role.BASIC ? this.refreshTableForRead(data) : this.refreshTableForWrite(data);
+    } else if (response.status === 204) {
+      throw new Error('El registro ya no existe');
+    } else {
+      const text = await response.text();
+
+      throw new Error(text || `HTTP Error ${response.status}`);
+    }
+  },
+  async show(id) {
+    await this.refresh(id);
+    if (this.frame.style.display !== "flex")
+      this.frame.style.display = "flex";
+  },
+  hide() {
+    this.frame.style.display = "none";
+  },
+  parse(object) {
+    const today = new Date(object.today);
+
+    this.date = sumDays(today, -getISODay(today));
+
+    const parsedObject = JSON.parse(object.tasks);
+    const rotateDate = new Date(parsedObject?.date || this.date).getTime() !== this.date.getTime();
+    const empty = '';
+    let data = parsedObject?.data || null;
+
+    if (!data || data.length !== 14) {
+      data = Array.from({ length: 14 }, () => empty);
+    }
+    if (rotateDate) {
+      //showMessage("Ha rotado");
+      for (let i = 7; i < 14; i++) {
+        //data[i - 7] = JSON.parse(JSON.stringify(data[i]));
+        data[i - 7] = data[i];
+        data[i] = empty;
+      }
+    }
+    return data;
+  },
+  refreshTableForRead(object) {
+    userbar.hide();
+
+    const data = this.parse(object);
+    const tbody = document.querySelector('#tasks-table tbody');
+
+    tbody.replaceChildren();
+    if (this.key !== user.id) {
+      const trUser = document.createElement('tr');
+
+      trUser.innerHTML = `<th colspan="2">${object.name}</th>`;
+      tbody.appendChild(trUser);
+    }
+    for (let i = 0; i < 14; i++) {
+      const date = sumDays(this.date, i);
+
+      if ((i % 7) === 0) {
+        const trHead = document.createElement('tr');
+        const head = i == 0 ? "Esta semana" : "La próxima semana";
+
+        trHead.innerHTML = `<th colspan="2">${head}</th>`;
+        tbody.appendChild(trHead);
+      }
+
+      const trData = document.createElement('tr');
+
+      trData.innerHTML = `
+        <th>${formatDate(date)}<br>${dayOfWeek(date)}</th>
+        <td class="taLeft">${data[i]}</td>
+      `;
+      tbody.appendChild(trData);
+    }
+
+    const trBack = document.createElement('tr');
+
+    trBack.innerHTML = '<th colspan="2" class="clickable" onclick="menuBack();">• • •</th>';
+    tbody.appendChild(trBack);
+  },
+  refreshTableForWrite(object) {
+    if (this.key === userbar.key) {
+      this.setUserbar();
+      userbar.show();
+    } else {
+      userbar.hide();
+    }
+
+    const data = this.parse(object);
+    const tbody = document.querySelector('#tasks-table tbody');
+
+    tbody.replaceChildren();
+    for (let i = 0; i < 14; i++) {
+      const date = sumDays(this.date, i);
+
+      if ((i % 7) === 0) {
+        const trHead = document.createElement('tr');
+        const head = i == 0 ? "Esta semana" : "La próxima semana";
+ 
+        trHead.innerHTML = `<th colspan="2">${head}</th>`;
+        tbody.appendChild(trHead);
+      }
+
+      const trData = document.createElement('tr');
+
+      trData.innerHTML = `
+        <th class="clickable" onclick="tasks.change(${i});">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+        <td class="entry"><textarea rows="3">${data[i]}</textarea></td>
+      `;
+      tbody.appendChild(trData);
+    }
+  },
+  change(selected) {
+    const rows = document.querySelectorAll('#tasks-table tr');
+    let data = '';
+    let index = 0;
+
+    for (const tr of rows) {
+      const entry = tr.querySelector('td.entry');
+
+      if (entry) {
+        if (index === selected)
+          data = entry.querySelector('textarea')?.value || '';
+        else if (index > selected)
+          entry.querySelector('textarea').value = data;
+        if (++index >= selected - (selected % 7) + 7) return;
+      }
+    }
+  },
+  async update(data) {
+    try {
+      const response = await fetch(`/api/users/${this.key}/tasks`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: data
+      });
+
+      if (response.status === 200) {
+        await response.text();
+        menuBack();
+      } else if (response.status === 204) {
+        showMessage('No hay ningún cambio que guardar');
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se puede actualizar el registro');
+    }
+  }
+}
+
+document.getElementById("tasks-submit").addEventListener("click", () => {
+  const rows = document.querySelectorAll('#tasks-table tr');
+  const data = Array.from({ length: 14 }, () => '');
+  let index = 0;
+
+  rows.forEach(tr => {
+    const entry = tr.querySelector('td.entry');
+
+    if (entry) data[index++] = entry.querySelector('textarea')?.value.trim() || '';
+  });
+
+  const object = { date: formatISODate(tasks.date), data: data };
+  const values = JSON.stringify({ tasks: JSON.stringify(object) });
+
+  tasks.update(values);
+});
+
+document.getElementById("tasks-cancel").addEventListener("click", () => {
   menuBack();
 });
 

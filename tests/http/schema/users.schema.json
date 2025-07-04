@@ -38,6 +38,14 @@
       "additionalProperties": false,
       "required": [ "schedule" ]
     },
+    "update.tasks": {
+      "type": "object",
+      "properties": {
+        "tasks": { "type": "string", "minLength": 2 }
+      },
+      "additionalProperties": false,
+      "required": [ "tasks" ]
+    },
     "update.token": {
       "type": "object",
       "properties": {
@@ -74,6 +82,14 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /users/{id}/schedule", "size": 2, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users/{id}/tasks", "size": 2, "role": 1 }
         },
         {
           "properties": {
@@ -150,12 +166,24 @@
             "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 1 }
+          "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 2 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
         },
-        "else": false
+        "else": {
+          "if": {
+            "properties": {
+              "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
+              "query": { "type": "null" }
+            },
+            "x-notify": { "path": "PATCH /users/{id}/tasks", "size": 2, "role": 2 }
+          },
+          "then": {
+            "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
+          },
+          "else": false
+        }
       }
     }
   }
