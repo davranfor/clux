@@ -183,7 +183,7 @@ const clocking = {
     data.forEach(record => {
       const trWorkplace = document.createElement('tr');
       const dt1 = new Date(record[2].replace(' ', 'T'));
-      const dt2 = new Date(record[2].replace(' ', 'T'));
+      const dt2 = new Date(record[3].replace(' ', 'T'));
       const request = JSON.parse(record[4]);
       
       if (!request) {
