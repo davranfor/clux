@@ -1192,7 +1192,8 @@ const profile = {
   },
   add(data) {
     userbar.hide();
-    this.deleteButton.style.display = "none";
+    if (user.role === role.ADMIN)
+      this.deleteButton.style.display = "none";
     this.form.reset();
     this.fillLists(data);
     this.hash = formHash(this.form);
@@ -1205,7 +1206,8 @@ const profile = {
     } else {
       userbar.hide();
     }
-    this.deleteButton.style.display = "table";
+    if (user.role === role.ADMIN)
+      this.deleteButton.style.display = "table";
     this.fillLists(data);
     this.id.value = data.id;
     this.workplace.value = data.workplace_id;
