@@ -185,6 +185,17 @@
           "else": false
         }
       }
+    },
+    "DELETE": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, {"x-mask": "09999"}], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "DELETE /users/{id}", "role": 3 }
+      },
+      "then": true,
+      "else": false
     }
   }
 }

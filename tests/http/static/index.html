@@ -26,19 +26,20 @@
         <i class="ti ti-clock"></i>
         <span class="menu-text">Fichajes</span>
       </div>
-      <div class="menu-item" onclick="setActive(this)" data-item="item-schedule">
-        <i class="ti ti-calendar-time"></i>
-        <span class="menu-text">Horarios</span>
-      </div>
       <div class="menu-item" onclick="setActive(this)" data-item="item-absences">
         <i class="ti ti-ghost"></i>
         <span class="menu-text">Ausencias</span>
       </div>
       <hr>
+      <div class="menu-item" onclick="setActive(this)" data-item="item-schedule">
+        <i class="ti ti-calendar-time"></i>
+        <span class="menu-text">Horarios</span>
+      </div>
       <div class="menu-item" onclick="setActive(this)" data-item="item-tasks">
         <i class="ti ti-checklist"></i>
         <span class="menu-text">Tareas</span>
       </div>
+      <hr>
       <div class="menu-item" onclick="setActive(this)" data-item="item-team">
         <i class="ti ti-world-longitude"></i>
         <span class="menu-text">Equipo</span>
@@ -55,11 +56,6 @@
       <div class="menu-item" onclick="setActive(this)" data-item="configuracion">
         <i class="ti ti-settings"></i>
         <span class="menu-text">Configuración</span>
-      </div>
-      <hr>
-      <div class="menu-item" onclick="setActive(this)" data-item="ayuda">
-        <i class="ti ti-help"></i>
-        <span class="menu-text">Ayuda</span>
       </div>
     </div>
     <div class="content">
@@ -139,10 +135,20 @@
           </form>
         </div>
       </div>
+      <div class="content-wrapper" id="absences-frame">
+        <div class="content-box">
+          <h2>Ausencias</h2>
+        </div>
+      </div>
       <div class="content-wrapper" id="schedule-frame">
         <div class="content-box">
           <h2>Horarios</h2>
-          <div id="schedule-userbar"></div>
+          <div id="schedule-userbar">
+            <table id="userbar-table" class="view-table">
+              <thead><tr><th colspan="5" id="userbar-title"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
           <table id="schedule-table" class="edit-table">
             <tbody></tbody>
           </table>
@@ -150,11 +156,6 @@
             <button type="button" id="schedule-submit" class="content-submit">Guardar</button>
             <button type="button" id="schedule-cancel" class="content-button">Cancelar</button>
           </div>
-        </div>
-      </div>
-      <div class="content-wrapper" id="absences-frame">
-        <div class="content-box">
-          <h2>Ausencias</h2>
         </div>
       </div>
       <div class="content-wrapper" id="tasks-frame">
@@ -181,12 +182,12 @@
       <div class="content-wrapper" id="profile-frame">
         <div class="content-box">
           <h2>Perfil</h2>
-          <div id="profile-userbar">
-            <table id="userbar-table" class="view-table">
-              <thead><tr><th colspan="5" id="userbar-title"></th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <div id="profile-userbar"> </div>
+          <table id="profile-delete" class="view-table">
+            <td class="clickable">
+              <div><i class="ti ti-trash"></i><span>Eliminar perfil</span></div>
+            </td>
+          </table>
           <form class="content-form" id="profile-form" autocomplete="off">
             <div class="separator"></div>
             <div class="form-2columnsA">
@@ -290,7 +291,7 @@
         switch (item.dataset.item) {
           case 'item-clocking':
             await clocking.show(id === null ? user.id : id);
-            lastActiveItem = item;
+            if (id === null) lastActiveItem = item;
             break;
           case 'item-schedule':
             await schedule.show(id === null ? user.id : id);
@@ -359,6 +360,7 @@
         profile.role.classList.add("cursorForbidden");
         document.getElementById("schedule-buttons").style.display = "none";
         document.getElementById("tasks-buttons").style.display = "none";
+        document.getElementById("profile-delete").style.display = "none";
       } else {
         document.getElementById("clocking-submit").textContent = "Guardar";
         document.getElementById("clocking-reason").style.display = "none";

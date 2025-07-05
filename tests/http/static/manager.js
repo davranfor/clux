@@ -93,9 +93,9 @@ const clocking = {
   setUserbar() {
     userbar.setContainer('clocking-userbar');
     userbar.setButtons([
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
@@ -145,6 +145,24 @@ const clocking = {
 
     tbody.replaceChildren();
 
+    if (onMobile) {
+      const trSchedule = document.createElement('tr');
+      const trTasks = document.createElement('tr');
+
+      trSchedule.innerHTML = `
+        <td class="clickable" colspan="4" onclick="setActiveByKey('item-schedule');">
+        <div><i class="ti ti-calendar-time"></i><span>Mis horarios</span></div>
+        </td>
+      `;
+      trTasks.innerHTML = `
+        <td class="clickable" colspan="4" onclick="setActiveByKey('item-tasks');">
+        <div><i class="ti ti-checklist"></i><span>Mis tareas</span></div>
+        </td>
+      `;
+      tbody.appendChild(trSchedule);
+      tbody.appendChild(trTasks);
+    }
+
     const trNew = document.createElement('tr');
 
     trNew.innerHTML = `
@@ -158,15 +176,15 @@ const clocking = {
 
     // Sort by clock_in DESC
     data.sort((a, b) => {
-      if (a[3] < b[3]) return 1;
-      if (a[3] > b[3]) return -1;
+      if (a[2] < b[2]) return 1;
+      if (a[2] > b[2]) return -1;
       return 0;
     });
     data.forEach(record => {
       const trWorkplace = document.createElement('tr');
-      const dt1 = new Date(record[3].replace(' ', 'T'));
-      const dt2 = new Date(record[4].replace(' ', 'T'));
-      const request = JSON.parse(record[5]);
+      const dt1 = new Date(record[2].replace(' ', 'T'));
+      const dt2 = new Date(record[2].replace(' ', 'T'));
+      const request = JSON.parse(record[4]);
       
       if (!request) {
         trWorkplace.innerHTML = `
@@ -189,19 +207,12 @@ const clocking = {
       }
       tbody.appendChild(trWorkplace);
 
-      if (record[2] !== code.id.NORMAL) {
-        const trCode = document.createElement('tr');
-
-        trCode.innerHTML = `<td class="taRight" colspan="4">Clasificación: ${code.name[record[2]]}</td>`;
-        tbody.appendChild(trCode);
-      }
-
       const trData = document.createElement('tr');
 
       trData.innerHTML = `
-        <td>${longDate(record[3])}</td>
+        <td>${longDate(record[2])}</td>
+        <td>${shortTime(record[2])}</td>
         <td>${shortTime(record[3])}</td>
-        <td>${shortTime(record[4])}</td>
         <td>${timeDiff(dt2, dt1)}</td>
       `;
       tbody.appendChild(trData);
@@ -262,17 +273,6 @@ const clocking = {
       </td>
     `;
     tbody.appendChild(trMore);
-
-    if (onMobile) {
-      const trSchedule = document.createElement('tr');
-
-      trSchedule.innerHTML = `
-        <td class="clickable" colspan="4" onclick="setActiveByKey('item-schedule');">
-        <div><i class="ti ti-calendar-time"></i><span>Mis horarios</span></div>
-        </td>
-      `;
-      tbody.appendChild(trSchedule);
-    }
   },
 
   // Form
@@ -638,7 +638,7 @@ const schedule = {
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
@@ -727,7 +727,7 @@ const schedule = {
       const trData2 = document.createElement('tr');
 
       trData1.innerHTML = `
-        <th rowspan="2">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+        <th rowspan="2">${dayOfWeek(date)}<br>${formatDate(date)}</th>
         <td colspan="2" class="taLeft">${workplacesMap[data[i][0][0]]}</td>
         <td colspan="2" class="taLeft">${workplacesMap[data[i][1][0]]}</td>
       `;
@@ -786,7 +786,7 @@ const schedule = {
       const trData2 = document.createElement('tr');
 
       trData1.innerHTML = `
-        <th rowspan="2" class="clickable" onclick="schedule.change(${i});">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+        <th rowspan="2" class="clickable" onclick="schedule.change(${i});">${dayOfWeek(date)}<br>${formatDate(date)}</th>
         <td colspan="2" class="entry"></td>
         <td colspan="2" class="entry"></td>
       `;
@@ -907,8 +907,8 @@ const tasks = {
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Horarios'],
-      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -989,7 +989,7 @@ const tasks = {
       const trData = document.createElement('tr');
 
       trData.innerHTML = `
-        <th>${formatDate(date)}<br>${dayOfWeek(date)}</th>
+        <th>${dayOfWeek(date)} ${formatDate(date)}</th>
         <td class="taLeft">${data[i]}</td>
       `;
       tbody.appendChild(trData);
@@ -1026,7 +1026,7 @@ const tasks = {
       const trData = document.createElement('tr');
 
       trData.innerHTML = `
-        <th class="clickable" onclick="tasks.change(${i});">${formatDate(date)}<br>${dayOfWeek(date)}</th>
+        <th class="clickable" onclick="tasks.change(${i});">${dayOfWeek(date)} ${formatDate(date)}</th>
         <td class="entry"><textarea rows="3">${data[i]}</textarea></td>
       `;
       tbody.appendChild(trData);
@@ -1097,6 +1097,7 @@ document.getElementById("tasks-cancel").addEventListener("click", () => {
 
 const profile = {
   frame: document.getElementById("profile-frame"),
+  deleteButton: document.getElementById("profile-delete"),
   form: document.getElementById("profile-form"),
   id: document.getElementById("profile-form").querySelector('input[name="id"]'),
   workplace: document.getElementById("profile-form").querySelector('select[name="workplace"]'),
@@ -1114,9 +1115,9 @@ const profile = {
     userbar.setContainer('profile-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes']
     ]);
   },
@@ -1148,7 +1149,6 @@ const profile = {
       this.frame.style.display = "flex";
     if (user.role === role.ADMIN) {
       if (this.inserting) {
-        this.id.disabled = false;
         this.id.focus();
       } else {
         this.id.disabled = true;
@@ -1192,6 +1192,7 @@ const profile = {
   },
   add(data) {
     userbar.hide();
+    this.deleteButton.style.display = "none";
     this.form.reset();
     this.fillLists(data);
     this.hash = formHash(this.form);
@@ -1204,6 +1205,7 @@ const profile = {
     } else {
       userbar.hide();
     }
+    this.deleteButton.style.display = "table";
     this.fillLists(data);
     this.id.value = data.id;
     this.workplace.value = data.workplace_id;
@@ -1239,8 +1241,36 @@ const profile = {
     } catch (error) {
       showMessage(error.message || 'No se puede actualizar el registro');
     }
+  },
+  async delete() {
+    if (!await confirmMessage("Se eliminará el perfil seleccionado y sus fichajes")) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/users/${this.id.value}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.status === 200) {
+        await response.text();
+        menuBack();
+      } else if (response.status === 204) {
+        showMessage('No hay nada que eliminar');
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se puede eleminar el registro');
+    }
   }
 }
+
+document.getElementById("profile-delete").addEventListener("click", () => {
+  profile.delete();
+});
 
 document.querySelectorAll('#profile-form input').forEach(element => {
   element.addEventListener('blur', function() {

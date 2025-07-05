@@ -286,10 +286,6 @@ header {
   outline: none;
 }
 
-#tasks-table th:not(:last-child) {
-  width: 1%;
-}
-
 #team-table tr.team-data:hover {
   background-color: #1e2734;
   cursor: pointer;
@@ -392,18 +388,30 @@ header {
   .content {
     overflow-y: auto;
   }
+  #tasks-table th:not(:last-child) {
+    white-space: wrap;
+    width: 1%;
+  }
 }
 
 /* Mobile version for schedule */
 @media (max-width: 768px) {
-  #schedule-table {
+  #schedule-table, #tasks-table {
     width: 100%;
     table-layout: fixed;
   }
-  #schedule-table td, #schedule-table th {
+  #schedule-table th, #schedule-table td {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  #tasks-table th, #tasks-table td {
+    display: block;
+    clear: both;
+  }
+  #tasks-table th:not(:last-child) {
+    white-space: nowrap;
+    text-align: left;
   }
 }
 
