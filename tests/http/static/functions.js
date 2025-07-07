@@ -84,9 +84,9 @@ function longDateTime(datetime) {
 
 function pairDateTime(datetime) {
   const [date, time] = datetime.split(' ');
-  const [h, M, s] = time.split(':');
+  const [h, m, s] = time.split(':');
 
-  return [date, `${h}:${M}`];
+  return [date, `${h}:${m}`];
 }
 
 function formHash(form) {

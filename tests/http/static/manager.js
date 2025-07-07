@@ -93,7 +93,7 @@ const clocking = {
   setUserbar() {
     userbar.setContainer('clocking-userbar');
     userbar.setButtons([
-      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
@@ -285,7 +285,6 @@ const clocking = {
     time: document.getElementById("clocking-form").querySelector('input[name="clock_in_time"]'),
   },
   clockOut: {
-    date: document.getElementById("clocking-form").querySelector('input[name="clock_out_date"]'),
     time: document.getElementById("clocking-form").querySelector('input[name="clock_out_time"]'),
   },
   reason: document.getElementById("clocking-form").querySelector('input[name="reason"]'),
@@ -370,9 +369,8 @@ const clocking = {
     [date, time] = pairDateTime(data.clock_in);
     this.clockIn.date.value = date;
     this.clockIn.time.value = time;
-    [date, time] = pairDateTime(data.clock_out);
-    this.clockOut.date.value = date;
-    this.clockOut.time.value = time;
+
+    this.clockOut.time.value = shortTime(data.clock_out);
 
     this.reason.value = "";
 
@@ -382,7 +380,7 @@ const clocking = {
       this.frame.style.display = "flex";
     if (this.form.style.display !== "flex")
       this.form.style.display = "flex";
-    this.clockIn.date.focus();
+    this.clockIn.time.focus();
   },
   async insert(data) {
     try {
@@ -588,21 +586,26 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
 
   const workplace_id = Number(clocking.workplace.value);
   const user_id = Number(clocking.user.value);
-  const clock_in = `${clocking.clockIn.date.value} ${clocking.clockIn.time.value}:00`;
-  const clock_out = `${clocking.clockOut.date.value} ${clocking.clockOut.time.value}:00`;
+  const nextDay = new Date(clocking.clockIn.date.value);
 
+  nextDay.setDate(nextDay.getDate() + 1);
+
+  const clock_in = `${clocking.clockIn.date.value} ${clocking.clockIn.time.value}:00`;
+  const clock_out = clocking.clockIn.time.value > clocking.clockOut.time.value
+    ? `${formatISODate(nextDay)} ${clocking.clockOut.time.value}:00`
+    : `${clocking.clockIn.date.value} ${clocking.clockOut.time.value}:00`;
   const dt1 = new Date(clock_in.replace(' ', 'T'));
   const dt2 = new Date(clock_out.replace(' ', 'T'));
 
   if (dt1 >= dt2) {
     showMessage("La hora de entrada no puede ser igual o superior a la de salida").then(() => {
-      clocking.clockIn.date.focus();
+      clocking.clockOut.time.focus();
     });
     return;
   }
   if (dt2 - dt1 > 9 * 60 * 60 * 1000) {
     showMessage("No pueden transcurrir más de 9 horas entre la hora de entrada y la de salida").then(() => {
-      clocking.clockIn.date.focus();
+      clocking.clockOut.time.focus();
     });
     return;
   }
@@ -637,7 +640,7 @@ const schedule = {
     userbar.setContainer('schedule-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
@@ -684,7 +687,6 @@ const schedule = {
       data = Array.from({ length: 14 }, () => empty);
     }
     if (rotateDate) {
-      //showMessage("Ha rotado");
       for (let i = 7; i < 14; i++) {
         data[i - 7] = JSON.parse(JSON.stringify(data[i]));
         data[i] = empty;
@@ -906,7 +908,7 @@ const tasks = {
     userbar.setContainer('tasks-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
@@ -953,9 +955,7 @@ const tasks = {
       data = Array.from({ length: 14 }, () => empty);
     }
     if (rotateDate) {
-      //showMessage("Ha rotado");
       for (let i = 7; i < 14; i++) {
-        //data[i - 7] = JSON.parse(JSON.stringify(data[i]));
         data[i - 7] = data[i];
         data[i] = empty;
       }
@@ -1103,6 +1103,8 @@ const profile = {
   workplace: document.getElementById("profile-form").querySelector('select[name="workplace"]'),
   category: document.getElementById("profile-form").querySelector('select[name="category"]'),
   role: document.getElementById("profile-form").querySelector('select[name="role"]'),
+  hire_start: document.getElementById("profile-form").querySelector('input[name="hire_start"]'),
+  hire_end: document.getElementById("profile-form").querySelector('input[name="hire_end"]'),
   name: document.getElementById("profile-form").querySelector('input[name="name"]'),
   tin: document.getElementById("profile-form").querySelector('input[name="tin"]'),
   address: document.getElementById("profile-form").querySelector('textarea[name="address"]'),
@@ -1115,7 +1117,7 @@ const profile = {
     userbar.setContainer('profile-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
+      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes']
@@ -1149,6 +1151,7 @@ const profile = {
       this.frame.style.display = "flex";
     if (user.role === role.ADMIN) {
       if (this.inserting) {
+        this.id.disabled = false;
         this.id.focus();
       } else {
         this.id.disabled = true;
@@ -1213,6 +1216,8 @@ const profile = {
     this.workplace.value = data.workplace_id;
     this.category.value = data.category_id;
     this.role.value = data.role;
+    this.hire_start.value = data.hire_start;
+    this.hire_end.value = data.hire_end;
     this.name.value = data.name;
     this.tin.value = data.tin;
     this.address.value = data.address;
@@ -1311,8 +1316,10 @@ document.getElementById("profile-form").addEventListener('submit', (e) => {
     const workplace_id = Number(profile.workplace.value);
     const category_id = Number(profile.category.value);
     const role = Number(profile.role.value);
+    const hire_start = profile.hire_start.value;
+    const hire_end = profile.hire_end.value || null;
 
-    profile.upsert(JSON.stringify({ workplace_id, category_id, role, name, tin, address, phone, email }));
+    profile.upsert(JSON.stringify({ workplace_id, category_id, role, hire_start, hire_end, name, tin, address, phone, email }));
   } else {
     profile.upsert(JSON.stringify({ name, tin, address, phone, email }));
   }
@@ -1479,10 +1486,10 @@ const team = {
         tbody.appendChild(trUser);
       });
     } else {
-      // Sort by name ASC
+      // Sort by id ASC
       data.sort((a, b) => {
-        if (a[2] > b[2]) return 1;
-        if (a[2] < b[2]) return -1;
+        if (a[1] > b[1]) return 1;
+        if (a[1] < b[1]) return -1;
         return 0;
       });
       data.forEach(record => {

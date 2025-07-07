@@ -21,6 +21,8 @@
         "workplace_id": { "type": "integer" },
         "category_id": { "type": "integer" },
         "role": { "type": "integer" },
+        "hire_start": { "type": "string", "format": "date" },
+        "hire_end": { "type": ["null", "string"], "format": "date" },
         "name": { "type": "string", "minLength": 1, "maxLength": 100 },
         "tin": { "type": "string", "minLength": 1, "maxLength": 100 },
         "address": { "type": "string", "maxLength": 500 },
@@ -28,7 +30,7 @@
         "email": { "type": "string", "format": "email" }
       },
       "additionalProperties": false,
-      "required": [ "workplace_id", "category_id", "role", "name", "tin", "address", "phone", "email" ]
+      "required": [ "workplace_id", "category_id", "role", "hire_start", "hire_end", "name", "tin", "address", "phone", "email" ]
     },
     "update.schedule": {
       "type": "object",

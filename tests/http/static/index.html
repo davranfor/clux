@@ -26,9 +26,9 @@
         <i class="ti ti-clock"></i>
         <span class="menu-text">Fichajes</span>
       </div>
-      <div class="menu-item" onclick="setActive(this)" data-item="item-absences">
-        <i class="ti ti-ghost"></i>
-        <span class="menu-text">Ausencias</span>
+      <div class="menu-item" onclick="setActive(this)" data-item="item-holidays">
+        <i class="ti ti-sun"></i>
+        <span class="menu-text">Vacaciones</span>
       </div>
       <hr>
       <div class="menu-item" onclick="setActive(this)" data-item="item-schedule">
@@ -95,23 +95,17 @@
               <select name="workplace"></select>
             </div>
             <input type="hidden" name="user" required>
-            <div class="form-2columns">
+            <div class="form-3columns">
               <div class="form-group">
-                <label for="clock_in_date">Fecha de entrada</label>
+                <label for="clock_in_date">Fecha</label>
                 <input type="date" name="clock_in_date" required>
               </div>
               <div class="form-group">
-                <label for="clock_in_time">Hora de entrada</label>
+                <label for="clock_in_time">Entrada</label>
                 <input type="time" name="clock_in_time" required>
               </div>
-            </div>
-            <div class="form-2columns">
               <div class="form-group">
-                <label for="clock_out_date">Fecha de salida</label>
-                <input type="date" name="clock_out_date" required>
-              </div>
-              <div class="form-group">
-                <label for="clock_out_time">Hora de salida</label>
+                <label for="clock_out_time">Salida</label>
                 <input type="time" name="clock_out_time" required>
               </div>
             </div>
@@ -123,7 +117,6 @@
                 <option value="Cambio de centro de trabajo">
                 <option value="He olvidado fichar la entrada">
                 <option value="He olvidado fichar la salida">
-                <option value="No tenía acceso a internet">
                 <option value="No tenía un punto de acceso para fichar">
                 <option value="No he podido fichar debido a problemas técnicos">
               </datalist>
@@ -214,6 +207,17 @@
                 </select>
               </div>
             </div>
+            <div class="form-2columns">
+              <div class="form-group">
+                <label for="hire_start">Fecha de alta</label>
+                <input type="date" name="hire_start" required>
+              </div>
+              <div class="form-group">
+                <label for="hire_end">Fecha de baja</label>
+                <input type="date" name="hire_end" placeholder="00/00/0000">
+              </div>
+            </div>
+            <div class="separator"></div>
             <div class="form-2columnsB">
               <div class="form-group">
                 <label for="name">Apellidos, Nombre</label>
