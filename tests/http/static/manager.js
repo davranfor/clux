@@ -1319,6 +1319,12 @@ document.getElementById("profile-form").addEventListener('submit', (e) => {
     const hire_start = profile.hire_start.value;
     const hire_end = profile.hire_end.value || null;
 
+    if (hire_end && new Date(hire_start) > new Date(hire_end)) {
+      showMessage("La fecha de alta no puede ser superior a la fecha de baja").then(() => {
+        profile.hire_start.focus();
+      });
+      return;
+    }
     profile.upsert(JSON.stringify({ workplace_id, category_id, role, hire_start, hire_end, name, tin, address, phone, email }));
   } else {
     profile.upsert(JSON.stringify({ name, tin, address, phone, email }));
