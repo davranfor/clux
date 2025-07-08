@@ -31,24 +31,26 @@
       "properties": {
         "workplace_id": { "type": "integer" },
         "user_id": { "type": "integer" },
+        "code": { "type": "integer" },
         "clock_in": { "type": "string", "format": "date-time-local" },
         "clock_out": { "type": "string", "format": "date-time-local" },
         "reason": { "type": "string", "minLength": 1, "maxLength": 100 }
       },
       "additionalProperties": false,
-      "required": [ "workplace_id", "user_id", "clock_in", "clock_out", "reason" ]
+      "required": [ "workplace_id", "user_id", "code", "clock_in", "clock_out", "reason" ]
     },
     "request.update": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
         "workplace_name": { "type": "string" },
+        "code": { "type": "integer" },
         "clock_in": { "type": "string", "format": "date-time-local" },
         "clock_out": { "type": "string", "format": "date-time-local" },
         "reason": { "type": "string", "minLength": 1, "maxLength": 100 }
       },
       "additionalProperties": false,
-      "required": [ "workplace_id", "workplace_name", "clock_in", "clock_out", "reason" ]
+      "required": [ "workplace_id", "workplace_name", "code", "clock_in", "clock_out", "reason" ]
     }
   },
   "properties": {
@@ -93,6 +95,14 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /timelogs/{user_id}/{year}/{month}/month", "size": 4, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "holidays" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timelogs/{user_id}/holidays", "size": 2, "role": 1 }
         }
       ]
     },

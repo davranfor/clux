@@ -22,6 +22,12 @@ function formatTime(ms) {
   ].join(':');
 }
 
+function daysDiff(a, b) {
+  const diffMs = a - b;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)); // 1 day = 86400000 ms
+  return diffDays;
+}
+
 function timeDiff(a, b) {
   const diffMs = a - b;
   const diffMin = Math.abs(Math.floor(diffMs / 60000)); // 1 min = 60000 ms

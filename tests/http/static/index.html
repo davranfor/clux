@@ -83,7 +83,12 @@
             <b id="clocking-title"></b>
             <b id="clocking-text"></b>
           </div>
-          <div id="clocking-userbar"></div>
+          <div id="clocking-userbar">
+            <table id="userbar-table" class="view-table">
+              <thead><tr><th colspan="5" id="userbar-title"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
           <table id="clocking-table" class="view-table">
             <tbody></tbody>
           </table>
@@ -94,6 +99,7 @@
               <label for="workplace">Centro de trabajo</label>
               <select name="workplace"></select>
             </div>
+            <input type="hidden" name="user" required>
             <div id="clocking-code" class="form-group">
               <label for="code">Tipo de fichaje</label>
               <select name="code" required>
@@ -102,7 +108,6 @@
                 <option value="2">Ausencia no justificada</option>
               </select>
             </div>
-            <input type="hidden" name="user" required>
             <div class="form-3columns">
               <div class="form-group">
                 <label for="clock_in_date">Fecha</label>
@@ -139,17 +144,43 @@
       <div class="content-wrapper" id="holidays-frame">
         <div class="content-box">
           <h2>Vacaciones</h2>
+          <div id="holidays-userbar"></div>
+          <table id="holidays-table" class="view-table">
+            <tbody></tbody>
+          </table>
+          <form class="content-form" id="holidays-form" autocomplete="off">
+            <div class="separator"></div>
+            <input type="hidden" name="id" required>
+            <div class="form-group">
+              <label for="workplace">Centro de trabajo</label>
+              <select name="workplace"></select>
+            </div>
+            <input type="hidden" name="user" required>
+            <div class="form-2columns">
+              <div class="form-group">
+                <label for="clock_in">Fecha inicio</label>
+                <input type="date" name="clock_in" required>
+              </div>
+              <div class="form-group">
+                <label for="clock_out">Fecha fin</label>
+                <input type="date" name="clock_out" required>
+              </div>
+            </div>
+            <div id="holidays-reason" class="form-group">
+              <label for="reason">Comentario</label>
+              <input name="reason" maxLength="100" required>
+            </div>
+            <div class="form-2columns">
+              <button type="submit" id="holidays-submit" class="content-submit">Solicitar</button>
+              <button type="button" id="holidays-cancel" class="content-button">Cancelar</button>
+            </div>
+          </form>
         </div>
       </div>
       <div class="content-wrapper" id="schedule-frame">
         <div class="content-box">
           <h2>Horarios</h2>
-          <div id="schedule-userbar">
-            <table id="userbar-table" class="view-table">
-              <thead><tr><th colspan="5" id="userbar-title"></th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <div id="schedule-userbar"></div>
           <table id="schedule-table" class="edit-table">
             <tbody></tbody>
           </table>
@@ -258,16 +289,17 @@
     </div>
   </div>
   <script>
-    const code = {
-      id: { NORMAL: 0, ABSENCE_JUSTIFIED: 1, ABSENCE_NOT_JUSTIFIED: 2 },
-      name: [ "Fichaje normal", "Ausencia justificada", "Ausencia no justificada" ]
-    };
     const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
     const user = { id: 0, role: 0, name: "", clockIn: 0 };
     const userPanel = document.getElementById("user-panel");
     const userTitle = document.getElementById("user-title");
     const userButton = document.getElementById("user-button");
+
+    const trackingCode = {
+      id: { NORMAL: 0, ABSENCE_JUSTIFIED: 1, ABSENCE_NOT_JUSTIFIED: 2, HOLIDAYS: 3 },
+      name: [ "Fichaje normal", "Ausencia justificada", "Ausencia no justificada", "Vacaciones" ]
+    };
 
     let onMobile = false;
 
@@ -389,9 +421,12 @@
         document.getElementById("tasks-buttons").style.display = "none";
         document.getElementById("profile-delete").style.display = "none";
       } else {
+        clocking.reason.required = false;
+        holidays.reason.required = false;
         document.getElementById("clocking-submit").textContent = "Guardar";
         document.getElementById("clocking-reason").style.display = "none";
-        clocking.reason.required = false;
+        document.getElementById("holidays-submit").textContent = "Guardar";
+        document.getElementById("holidays-reason").style.display = "none";
       }
     }
 
