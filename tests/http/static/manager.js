@@ -176,15 +176,15 @@ const clocking = {
 
     // Sort by clock_in DESC
     data.sort((a, b) => {
-      if (a[2] < b[2]) return 1;
-      if (a[2] > b[2]) return -1;
+      if (a[3] < b[3]) return 1;
+      if (a[3] > b[3]) return -1;
       return 0;
     });
     data.forEach(record => {
       const trWorkplace = document.createElement('tr');
-      const dt1 = new Date(record[2].replace(' ', 'T'));
-      const dt2 = new Date(record[3].replace(' ', 'T'));
-      const request = JSON.parse(record[4]);
+      const dt1 = new Date(record[3].replace(' ', 'T'));
+      const dt2 = new Date(record[4].replace(' ', 'T'));
+      const request = JSON.parse(record[5]);
       
       if (!request) {
         trWorkplace.innerHTML = `
@@ -207,12 +207,19 @@ const clocking = {
       }
       tbody.appendChild(trWorkplace);
 
+      if (record[2] !== code.id.NORMAL) {
+        const trCode = document.createElement('tr');
+
+        trCode.innerHTML = `<td class="taRight" colspan="4">Clasificación: ${code.name[record[2]]}</td>`;
+        tbody.appendChild(trCode);
+      }
+
       const trData = document.createElement('tr');
 
       trData.innerHTML = `
-        <td>${longDate(record[2])}</td>
-        <td>${shortTime(record[2])}</td>
+        <td>${longDate(record[3])}</td>
         <td>${shortTime(record[3])}</td>
+        <td>${shortTime(record[4])}</td>
         <td>${timeDiff(dt2, dt1)}</td>
       `;
       tbody.appendChild(trData);
@@ -280,6 +287,7 @@ const clocking = {
   id: document.getElementById("clocking-form").querySelector('input[name="id"]'),
   workplace: document.getElementById("clocking-form").querySelector('select[name="workplace"]'),
   user: document.getElementById("clocking-form").querySelector('input[name="user"]'),
+  code: document.getElementById("clocking-form").querySelector('select[name="code"]'),
   clockIn: {
     date: document.getElementById("clocking-form").querySelector('input[name="clock_in_date"]'),
     time: document.getElementById("clocking-form").querySelector('input[name="clock_in_time"]'),
@@ -364,6 +372,8 @@ const clocking = {
     this.workplace.value = data.workplace_id;
 
     this.user.value = data.user_id;
+
+    this.code.value = data.code;
 
     let date, time;
     [date, time] = pairDateTime(data.clock_in);
@@ -597,8 +607,8 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
   const dt1 = new Date(clock_in.replace(' ', 'T'));
   const dt2 = new Date(clock_out.replace(' ', 'T'));
 
-  if (dt1 >= dt2) {
-    showMessage("La hora de entrada no puede ser igual o superior a la de salida").then(() => {
+  if (dt1 == dt2) {
+    showMessage("La hora de entrada no puede ser igual a la de salida").then(() => {
       clocking.clockOut.time.focus();
     });
     return;
@@ -620,10 +630,12 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
       clocking.requestUpdate(JSON.stringify({ workplace_id, workplace_name, clock_in, clock_out, reason }));
     }
   } else {
+    const code = Number(clocking.code.value);
+
     if (clocking.id.value == 0) {
-      clocking.insert(JSON.stringify({ workplace_id, user_id, clock_in, clock_out }));
+      clocking.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out }));
     } else {
-      clocking.update(JSON.stringify({ workplace_id, clock_in, clock_out }));
+      clocking.update(JSON.stringify({ workplace_id, code, clock_in, clock_out }));
     }
   }
 });

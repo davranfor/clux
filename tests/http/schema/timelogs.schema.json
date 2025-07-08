@@ -8,21 +8,23 @@
       "properties": {
         "workplace_id": { "type": "integer" },
         "user_id": { "type": "integer" },
+        "code": { "type": "integer" },
         "clock_in": { "type": "string", "format": "date-time-local" },
         "clock_out": { "type": "string", "format": "date-time-local" }
       },
       "additionalProperties": false,
-      "required": [ "workplace_id", "user_id", "clock_in", "clock_out" ]
+      "required": [ "workplace_id", "user_id", "code", "clock_in", "clock_out" ]
     },
     "update": {
       "type": "object",
       "properties": {
         "workplace_id": { "type": "integer" },
+        "code": { "type": "integer" },
         "clock_in": { "type": "string", "format": "date-time-local" },
         "clock_out": { "type": "string", "format": "date-time-local" }
       },
       "additionalProperties": false,
-      "required": [ "workplace_id", "clock_in", "clock_out" ]
+      "required": [ "workplace_id", "code", "clock_in", "clock_out" ]
     },
     "request.insert": {
       "type": "object",

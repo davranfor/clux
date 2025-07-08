@@ -7,15 +7,13 @@ const login = {
     this.frame.style.display = "flex";
   },
   hide() {
-    if (this.text.style.display === "block") {
+    if (this.text.style.display === "block")
       this.text.style.display = "none";
-    }
     this.frame.style.display = "none";
   },
   showError(message) {
-    if (this.text.style.display === "none") {
+    if (this.text.style.display === "none")
       this.text.style.display = "block";
-    }
     this.text.textContent = message;
   }
 };
@@ -69,6 +67,7 @@ async function checkSession() {
       login.show();
     } else {
       const data = await response.text();
+
       login.showError(data || 'Sesión inválida');
     }
   } catch (error) {

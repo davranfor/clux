@@ -94,6 +94,14 @@
               <label for="workplace">Centro de trabajo</label>
               <select name="workplace"></select>
             </div>
+            <div id="clocking-code" class="form-group">
+              <label for="code">Tipo de fichaje</label>
+              <select name="code" required>
+                <option value="0">Fichaje normal</option>
+                <option value="1">Ausencia justificada</option>
+                <option value="2">Ausencia no justificada</option>
+              </select>
+            </div>
             <input type="hidden" name="user" required>
             <div class="form-3columns">
               <div class="form-group">
@@ -128,9 +136,9 @@
           </form>
         </div>
       </div>
-      <div class="content-wrapper" id="absences-frame">
+      <div class="content-wrapper" id="holidays-frame">
         <div class="content-box">
-          <h2>Ausencias</h2>
+          <h2>Vacaciones</h2>
         </div>
       </div>
       <div class="content-wrapper" id="schedule-frame">
@@ -250,7 +258,10 @@
     </div>
   </div>
   <script>
-    const code = { id: { NORMAL: 0, ABSENCE: 1 }, name: [ "Normal", "Ausencia 👻" ] };
+    const code = {
+      id: { NORMAL: 0, ABSENCE_JUSTIFIED: 1, ABSENCE_NOT_JUSTIFIED: 2 },
+      name: [ "Fichaje normal", "Ausencia justificada", "Ausencia no justificada" ]
+    };
     const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
     const user = { id: 0, role: 0, name: "", clockIn: 0 };
@@ -276,6 +287,9 @@
           case 'item-clocking':
             clocking.hide();
             break;
+          case 'item-holidays':
+            holidays.hide();
+            break;
           case 'item-schedule':
             schedule.hide();
             break;
@@ -295,6 +309,10 @@
         switch (item.dataset.item) {
           case 'item-clocking':
             await clocking.show(id === null ? user.id : id);
+            if (id === null) lastActiveItem = item;
+            break;
+          case 'item-holidays':
+            await holidays.show(id === null ? user.id : id);
             if (id === null) lastActiveItem = item;
             break;
           case 'item-schedule':
@@ -362,6 +380,11 @@
         profile.category.classList.add("cursorForbidden");
         profile.role.disabled = true;
         profile.role.classList.add("cursorForbidden");
+        profile.hire_start.disabled = true;
+        profile.hire_start.classList.add("cursorForbidden");
+        profile.hire_end.disabled = true;
+        profile.hire_end.classList.add("cursorForbidden");
+        document.getElementById("clocking-code").style.display = "none";
         document.getElementById("schedule-buttons").style.display = "none";
         document.getElementById("tasks-buttons").style.display = "none";
         document.getElementById("profile-delete").style.display = "none";
