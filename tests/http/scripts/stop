@@ -1,0 +1,4 @@
+#!/bin/bash
+
+curl http://localhost:8080/api/actions/stop -H "Cookie: auth=99999:3:ee6de67d571974e3cc16ac75a0572021f5a01dcec7c986393eee5f4a19f0c7f9"
+

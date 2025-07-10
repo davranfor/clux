@@ -13,6 +13,7 @@
 #include <clux/json_private.h>
 #include <sqlite3.h>
 #include "header.h"
+#include "loader.h"
 #include "schema.h"
 #include "cookie.h"
 #include "writer.h"
@@ -122,6 +123,44 @@ static void db_new_token(sqlite3_context *context, int argc, sqlite3_value **arg
     sqlite3_result_text(context, strrchr(cookie_str, ':') + 1, -1, SQLITE_STATIC);
 }
 
+static void db_reload(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 0)
+    {
+        sqlite3_result_error(context, "reload() doesn't take arguments", -1);
+        return;
+    }
+    sqlite3_result_null(context);
+
+    int rc = sqlite3_close_v2(db);
+
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Error closing database: %s\n", sqlite3_errstr(rc));
+    }
+    loader_reload();
+}
+
+static void db_stop(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+    (void)argv;
+    if (argc != 0)
+    {
+        sqlite3_result_error(context, "stop() doesn't take arguments", -1);
+        return;
+    }
+    sqlite3_result_null(context);
+
+    int rc = sqlite3_close_v2(db);
+
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Error closing database: %s\n", sqlite3_errstr(rc));
+    }
+    exit(EXIT_SUCCESS);
+}
+
 static void load(const char *path_catalog, const char *path_db)
 {
     json_error_t error = {0};
@@ -165,6 +204,20 @@ static void load(const char *path_catalog, const char *path_db)
     }
     status = sqlite3_create_function(
         db, "new_token", 3, SQLITE_UTF8, NULL, db_new_token, NULL, NULL);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
+    status = sqlite3_create_function(
+        db, "reload", 0, SQLITE_UTF8, NULL, db_reload, NULL, NULL);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+        exit(EXIT_FAILURE);
+    }
+    status = sqlite3_create_function(
+        db, "stop", 0, SQLITE_UTF8, NULL, db_stop, NULL, NULL);
     if (status != SQLITE_OK)
     {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));

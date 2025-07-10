@@ -8,7 +8,6 @@
 #include <string.h>
 #include <clux/clib_unicode.h>
 #include <clux/json_private.h>
-#include "loader.h"
 #include "static.h"
 #include "cookie.h"
 #include "writer.h"
@@ -81,11 +80,6 @@ static const buffer_t *parse_headers(request_t *request, char *str)
         }
         *end++ = '\0';
         return static_get(path, end);
-    }
-    if (!strncmp(str, "POST /reload ", 13))
-    {
-        loader_reload();
-        return static_no_content();
     }
     return static_bad_request();
 }

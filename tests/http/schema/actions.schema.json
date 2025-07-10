@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "/actions",
+  "type": "object",
+  "properties": {
+    "GET": {
+      "anyOf": [
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "reload" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /actions/reload", "size": 1, "role": 3 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "stop" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /actions/stop", "size": 1, "role": 3 }
+        }
+      ]
+    }
+  }
+}
+
