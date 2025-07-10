@@ -1400,6 +1400,24 @@ const team = {
     this.viewIndex = this.view.ListOfWorkplaces;
     try { this.show(); } catch (error) { showMessage(error.message); }
   },
+  async clockOutWorkplace(workplace_id) {
+    try {
+      const response = await fetch(`/api/users/${workplace_id}/clock_in`, {
+        method: 'PATCH',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        await this.show();
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se pudo forzar la salida por equipo');
+    }
+  },
   handleUser(key, name) {
     if (key != user.id) {
       const workplace = this.viewIndex == this.view.OtherWorkplace
@@ -1460,7 +1478,6 @@ const team = {
       tbody.appendChild(trMyTeam);
       tbody.appendChild(trSelector);
       tbody.appendChild(trTitle);
-
     } else { // this.view.ListOfWorkplaces
       const trSelector = document.createElement('tr');
       const trTitle = document.createElement('tr');
@@ -1478,7 +1495,10 @@ const team = {
     const clockInMark = user.role === role.BASIC ? ['', ''] : ['⚪ ', '🟠 '];
 
     if (this.viewIndex !== this.view.ListOfWorkplaces) {
+      const selectedWorkplace = data[0];
+      let canClockOut = false;
 
+      data = data[1];
       // Sort by category ASC then user.name ASC
       data.sort((a, b) => {
         if (a[2] > b[2]) return 1;
@@ -1486,6 +1506,8 @@ const team = {
         return a[3] > b[3] ? 1 : a[3] < b[3] ? -1 : 0;
       });
       data.forEach(record => {
+        if (record[4] !== null) canClockOut = true;
+
         const clockIn = record[4] === null ? '' : shortDateTime(record[4]);
         const trUser = document.createElement('tr');
 
@@ -1502,6 +1524,14 @@ const team = {
         `;
         tbody.appendChild(trUser);
       });
+      if (canClockOut && user.role === role.ADMIN) {
+        const trClockOut = document.createElement('tr');
+
+        trClockOut.innerHTML = `
+          <td class="clickable" colspan="3"
+          onclick="team.clockOutWorkplace(${selectedWorkplace});">🟥 Forzar el fichaje de salida a los miembros de este equipo</td>`;
+        tbody.appendChild(trClockOut);
+      }
     } else {
       // Sort by id ASC
       data.sort((a, b) => {

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-curl -vX POST http://localhost:1234/reload
+curl -vX POST http://localhost:8080/reload
 

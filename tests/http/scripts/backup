@@ -1,0 +1,5 @@
+#!/bin/bash
+
+BACKUP_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../data" && pwd)
+sqlite3 ${BACKUP_DIR}/api.db ".output ${BACKUP_DIR}/backup.sql" ".dump" ".exit"
+

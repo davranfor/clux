@@ -378,7 +378,19 @@ header {
   cursor: not-allowed;
 }
 
-@media (min-width: 769px) {
+@media (orientation: portrait) {
+  .menu {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px, orientation: landscape) {
+  .menu {
+    display: block !important;
+  }
+}
+
+@media (min-width: 1025px) {
   .menu {
     position: sticky;
     top: 61px;
@@ -395,7 +407,7 @@ header {
 }
 
 /* Mobile version for schedule */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   #schedule-table, #tasks-table {
     width: 100%;
     table-layout: fixed;

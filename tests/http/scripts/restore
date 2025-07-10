@@ -1,0 +1,6 @@
+#!/bin/bash
+
+RESTORE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../data" && pwd)
+sqlite3 ${RESTORE_DIR}/backup.db < ${RESTORE_DIR}/backup.sql
+mv ${RESTORE_DIR}/backup.db ${RESTORE_DIR}/api.db
+

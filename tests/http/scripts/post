@@ -2,5 +2,5 @@
 
 curl -v POST -H "Content-Type: application/json" \
      -d '{"name": "David Ranieri", "email": "davranfor@gmail.com"}' \
-     http://localhost:1234/api/users -w "\n"
+     http://localhost:8080/api/users -w "\n"
 

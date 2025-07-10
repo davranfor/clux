@@ -1,5 +1,5 @@
 #!/bin/bash
 
-curl -v http://localhost:1234 --next http://localhost:1234/styles.css -w "\n"
-curl -v http://localhost:1234/api/users/1 -w "\n"
+curl -v http://localhost:8080 --next http://localhost:1234/styles.css -w "\n"
+curl -v http://localhost:8080/api/users/1 -w "\n"
 

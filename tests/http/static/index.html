@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IGASA - Panel de Control</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
   <link rel="stylesheet" href="styles.css">
@@ -441,20 +442,18 @@
         onMobile = true;
       }
       setActiveByKey("item-clocking");
+      if (user.role === role.ADMIN) refreshTeam();
     }
-/*
-    function refreshClocking() {
+    function refreshTeam() {
       setTimeout(async () => {
         const activeItem = document.querySelector('#menu .menu-item.active');
 
-        if (activeItem?.dataset.item === 'item-clocking') {
-          await refreshClockingTable().catch(() => {});
+        if (activeItem?.dataset.item === 'item-team') {
+          await team.show(user.id).catch(() => {});
         }
-        refreshClocking();
-      }, 5 * 60 * 1000); // 5 minutes
+        refreshTeam();
+      }, 60 * 1000); // every minute
     }
-    refreshClocking();
-*/
   </script>
 </body>
 </html>
