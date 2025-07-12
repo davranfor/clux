@@ -24,8 +24,8 @@ const userbar = {
       const td = document.createElement('td');
 
       td.className = 'clickable';
-      td.innerHTML = `<div><i class="ti ${icon}"></i><span>${text}</span></div>`;
       td.addEventListener('click', action);
+      td.innerHTML = `<div><i class="ti ${icon}"></i><span>${text}</span></div>`;
       tr.appendChild(td);
     });
     this.tbody.appendChild(tr);
@@ -254,9 +254,7 @@ const clocking = {
         const trApprove = document.createElement('tr');
 
         trApprove.innerHTML = `
-          <td class="clickable" colspan="4" onclick="clocking.approve(${record[0]});">
-          <div>🟢 Aprobar solicitud</div>
-          </td>
+          <td class="clickable" colspan="4" onclick="clocking.approve(${record[0]});">🟢 Aprobar solicitud</td>
         `;
         tbody.appendChild(trApprove);
         requests++;
@@ -1157,7 +1155,7 @@ const profile = {
   hide() {
     this.frame.style.display = "none";
   },
-  focus() {
+  setFocus() {
     if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
     if (user.role === role.ADMIN) {
@@ -1211,7 +1209,7 @@ const profile = {
     this.form.reset();
     this.fillLists(data);
     this.hash = formHash(this.form);
-    this.focus();
+    this.setFocus();
   },
   edit(data) {
     if (user.id !== data.id) {
@@ -1235,7 +1233,7 @@ const profile = {
     this.phone.value = data.phone;
     this.email.value = data.email;
     this.hash = formHash(this.form);
-    this.focus();
+    this.setFocus();
   },
   async upsert(data) {
     try {
@@ -1366,6 +1364,7 @@ const team = {
         url = '/api/workplaces';
         break;
     }
+
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'include'
@@ -1420,8 +1419,7 @@ const team = {
   },
   handleUser(key, name) {
     if (key != user.id) {
-      const workplace = this.viewIndex == this.view.OtherWorkplace
-        ? this.selectedWorkplace.name : 'Mi equipo';
+      const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
 
       userbar.setKey(key);
       userbar.setTitle(`${name} (${workplace})`);
