@@ -79,7 +79,7 @@
       </div>
       <div class="content-wrapper" id="clocking-frame">
         <div class="content-box">
-          <h2>Fichajes</h2>
+          <h2 id="clocking-header">Fichajes</h2>
           <div>
             <b id="clocking-title"></b>
             <b id="clocking-text"></b>
@@ -140,15 +140,6 @@
               <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
             </div>
           </form>
-        </div>
-      </div>
-      <div class="content-wrapper" id="holidays-frame">
-        <div class="content-box">
-          <h2>Vacaciones</h2>
-          <div id="holidays-userbar"></div>
-          <table id="holidays-table" class="view-table">
-            <tbody></tbody>
-          </table>
           <form class="content-form" id="holidays-form" autocomplete="off">
             <div class="separator"></div>
             <input type="hidden" name="id" required>
@@ -321,7 +312,7 @@
             clocking.hide();
             break;
           case 'item-holidays':
-            holidays.hide();
+            clocking.hide();
             break;
           case 'item-schedule':
             schedule.hide();
@@ -341,11 +332,13 @@
       try {
         switch (item.dataset.item) {
           case 'item-clocking':
+            clocking.trackingCode = trackingCode.id.NORMAL;
             await clocking.show(id === null ? user.id : id);
             if (id === null) lastActiveItem = item;
             break;
           case 'item-holidays':
-            await holidays.show(id === null ? user.id : id);
+            clocking.trackingCode = trackingCode.id.HOLIDAYS;
+            await clocking.show(id === null ? user.id : id);
             if (id === null) lastActiveItem = item;
             break;
           case 'item-schedule':

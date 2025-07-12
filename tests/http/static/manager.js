@@ -101,12 +101,18 @@ const clocking = {
     ]);
   },
 
+  trackingCode: trackingCode.id.NORMAL,
+
   // Table
+  header: document.getElementById("clocking-header"),
   title: document.getElementById("clocking-title"),
   table: document.getElementById("clocking-table"),
 
   async refresh(user_id) {
-    const response = await fetch(`/api/timelogs/${user_id}/week`, {
+    const url = this.trackingCode === trackingCode.id.NORMAL
+      ? `/api/timelogs/${user_id}/week`
+      : `/api/timelogs/${user_id}/holidays`;
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include'
     });
@@ -124,14 +130,22 @@ const clocking = {
   },
   async show(user_id) {
     await this.refresh(user_id);
+    this.header.textContent = this.trackingCode === trackingCode.id.NORMAL
+      ? "Fichajes"
+      : "Vacaciones";
     if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
     if (this.form.style.display !== "none")
       this.form.style.display = "none";
+    if (holidays.form.style.display !== "none")
+      holidays.form.style.display = "none";
     if (this.table.style.display !== "table")
       this.table.style.display = "table";
     if (this.key === userbar.key) {
-      this.setUserbar();
+      if (this.trackingCode === trackingCode.id.NORMAL)
+        this.setUserbar();
+      else
+        holidays.setUserbar();
       userbar.show();
     } else {
       userbar.hide();
@@ -165,11 +179,18 @@ const clocking = {
 
     const trNew = document.createElement('tr');
 
-    trNew.innerHTML = `
-      <td class="clickable" colspan="4" onclick="clocking.add(${this.key});">
-      <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
-      </td>
-    `;
+    if (this.trackingCode === trackingCode.id.NORMAL)
+      trNew.innerHTML = `
+        <td class="clickable" colspan="4" onclick="clocking.add(${this.key});">
+        <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
+        </td>
+      `;
+    else
+      trNew.innerHTML = `
+        <td class="clickable" colspan="4" onclick="clocking.add(${this.key});">
+        <div><i class="ti ti-sun"></i><span>Nuevo registro</span></div>
+        </td>
+      `;
     tbody.appendChild(trNew);
 
     let requests= 0;
@@ -207,7 +228,7 @@ const clocking = {
       }
       tbody.appendChild(trWorkplace);
 
-      if (record[2] !== trackingCode.id.NORMAL) {
+      if (this.trackingCode === trackingCode.id.NORMAL && record[2] !== trackingCode.id.NORMAL) {
         const trCode = document.createElement('tr');
 
         trCode.innerHTML = `<td class="taRight" colspan="4">Clasificación: ${trackingCode.name[record[2]]}</td>`;
@@ -216,12 +237,20 @@ const clocking = {
 
       const trData = document.createElement('tr');
 
-      trData.innerHTML = `
-        <td>${longDate(record[3])}</td>
-        <td>${shortTime(record[3])}</td>
-        <td>${shortTime(record[4])}</td>
-        <td>${timeDiff(dt2, dt1)}</td>
-      `;
+      if (record[2] !== trackingCode.id.HOLIDAYS)
+        trData.innerHTML = `
+          <td>${longDate(record[3])}</td>
+          <td>${shortTime(record[3])}</td>
+          <td>${shortTime(record[4])}</td>
+          <td>${timeDiff(dt2, dt1)}</td>
+        `;
+      else
+        trData.innerHTML = `
+          <td>${longDate(record[3])}</td>
+          <td colspan="2">${longDate(record[4])}</td>
+          <td>${daysDiff(dt2, dt1) + 1}d</td>
+        `;
+
       tbody.appendChild(trData);
 
       if (!request) return;
@@ -239,12 +268,19 @@ const clocking = {
         const trDataModified = document.createElement('tr');
 
         trModified.innerHTML = `<td class="taLeft" colspan="4">Modificado, ${request.workplace_name}</td>`;
-        trDataModified.innerHTML = `
-          <td>${longDate(request.clock_in)}</td>
-          <td>${shortTime(request.clock_in)}</td>
-          <td>${shortTime(request.clock_out)}</td>
-          <td>${timeDiff(dt4, dt3)}</td>
-        `;
+        if (record[2] !== trackingCode.id.HOLIDAYS)
+          trDataModified.innerHTML = `
+            <td>${longDate(request.clock_in)}</td>
+            <td>${shortTime(request.clock_in)}</td>
+            <td>${shortTime(request.clock_out)}</td>
+            <td>${timeDiff(dt4, dt3)}</td>
+          `;
+        else
+          trDataModified.innerHTML = `
+            <td>${longDate(request.clock_in)}</td>
+            <td colspan="2">${longDate(request.clock_out)}</td>
+            <td>${daysDiff(dt4, dt3) + 1}d</td>
+          `;
         trReason.innerHTML = `<td class="taLeft" colspan="4">${request.reason}</td>`;
         tbody.appendChild(trModified);
         tbody.appendChild(trDataModified);
@@ -254,13 +290,13 @@ const clocking = {
         const trApprove = document.createElement('tr');
 
         trApprove.innerHTML = `
-          <td class="clickable" colspan="4" onclick="clocking.approve(${record[0]});">🟢 Aprobar solicitud</td>
+          <td class="clickable taLeft" colspan="4" onclick="clocking.approve(${record[0]});">🟢 Aprobar solicitud</td>
         `;
         tbody.appendChild(trApprove);
         requests++;
       }
     });
-    if (requests > 1) {
+    if (requests > 1 && this.trackingCode === trackingCode.id.NORMAL) {
         const trApproveAll = document.createElement('tr');
 
         trApproveAll.innerHTML = `
@@ -270,14 +306,16 @@ const clocking = {
         `;
         tbody.appendChild(trApproveAll);
     }
-    const trMore = document.createElement('tr');
+    if (this.trackingCode === trackingCode.id.NORMAL) {
+      const trMore = document.createElement('tr');
 
-    trMore.innerHTML = `
-      <td class="clickable" colspan="4" onclick="clocking.more(${this.key});">
-      <div><i class="ti ti-filter"></i><span>Filtrar por mes</span></div>
-      </td>
-    `;
-    tbody.appendChild(trMore);
+      trMore.innerHTML = `
+        <td class="clickable" colspan="4" onclick="clocking.more(${this.key});">
+        <div><i class="ti ti-filter"></i><span>Filtrar por mes</span></div>
+        </td>
+      `;
+      tbody.appendChild(trMore);
+    }
   },
 
   // Form
@@ -306,7 +344,7 @@ const clocking = {
       if (response.status === 200) {
         const data = await response.json();
 
-        this.showForm(data);
+        this.trackingCode === trackingCode.id.NORMAL ? this.showForm(data) : holidays.showForm(data);
       } else if (response.status === 204) {
         showMessage('No se puede crear el registro');
       } else {
@@ -328,7 +366,7 @@ const clocking = {
       if (response.status === 200) {
         const data = await response.json();
 
-        this.showForm(data);
+        data.code === trackingCode.id.NORMAL ? this.showForm(data) : holidays.showForm(data);
       } else if (response.status === 204) {
         showMessage('El registro ya no existe');
       } else {
@@ -341,6 +379,7 @@ const clocking = {
     }
   },
   showForm(data) {
+    this.header.textContent = "Fichajes"; 
     if (data.id === 0 || user.role !== role.ADMIN) {
       if (this.table.style.display !== "none")
         this.table.style.display = "none";
@@ -384,8 +423,6 @@ const clocking = {
 
     this.hash = formHash(this.form);
 
-    if (this.frame.style.display !== "flex")
-      this.frame.style.display = "flex";
     if (this.form.style.display !== "flex")
       this.form.style.display = "flex";
     this.clockIn.time.focus();
@@ -412,9 +449,9 @@ const clocking = {
       showMessage(error.message || 'No se puede insertar el registro');
     }
   },
-  async requestUpdate(data) {
+  async requestUpdate(id, data) {
     try {
-      const response = await fetch(`/api/timelogs/${clocking.id.value}/request`, {
+      const response = await fetch(`/api/timelogs/${id}/request`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -434,9 +471,9 @@ const clocking = {
       showMessage(error.message || 'No se puede actualizar el registro');
     }
   },
-  async update(data) {
+  async update(id, data) {
     try {
-      const response = await fetch(`/api/timelogs/${clocking.id.value}`, {
+      const response = await fetch(`/api/timelogs/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -626,18 +663,153 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
     } else {
       const workplace_name = clocking.workplace.options[clocking.workplace.selectedIndex].text;
 
-      clocking.requestUpdate(JSON.stringify({ workplace_id, workplace_name, code, clock_in, clock_out, reason }));
+      clocking.requestUpdate(
+        clocking.id.value,
+        JSON.stringify({ workplace_id, workplace_name, code, clock_in, clock_out, reason })
+      );
     }
   } else {
     if (clocking.id.value == 0) {
       clocking.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out }));
     } else {
-      clocking.update(JSON.stringify({ workplace_id, code, clock_in, clock_out }));
+      clocking.update(clocking.id.value, JSON.stringify({ workplace_id, code, clock_in, clock_out }));
     }
   }
 });
 
 document.getElementById("clocking-cancel").addEventListener("click", () => {
+  try { clocking.show(clocking.key); } catch (error) { showMessage(error.message); }
+});
+
+const holidays = {
+  // Userbar
+  setUserbar() {
+    userbar.setContainer('clocking-userbar');
+    userbar.setButtons([
+      [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
+    ]);
+  },
+  form: document.getElementById("holidays-form"),
+  id: document.getElementById("holidays-form").querySelector('input[name="id"]'),
+  workplace: document.getElementById("holidays-form").querySelector('select[name="workplace"]'),
+  user: document.getElementById("holidays-form").querySelector('input[name="user"]'),
+  clockIn: document.getElementById("holidays-form").querySelector('input[name="clock_in"]'),
+  clockOut: document.getElementById("holidays-form").querySelector('input[name="clock_out"]'),
+  reason: document.getElementById("holidays-form").querySelector('input[name="reason"]'),
+  hash: 0,
+
+  showForm(data) {
+    clocking.header.textContent = "Vacaciones"; 
+    if (data.id === 0 || user.role !== role.ADMIN) {
+      if (clocking.table.style.display !== "none")
+        clocking.table.style.display = "none";
+    } else {
+      const tbody = document.querySelector('#clocking-table tbody');
+      const tr = document.createElement('tr');
+
+      tbody.replaceChildren();
+      tr.innerHTML = `
+        <td class="clickable" onclick="clocking.delete(${data.id});">
+        <div><i class="ti ti-trash"></i><span>Eliminar registro</span></div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    this.id.value = data.id;
+
+    this.workplace.replaceChildren();
+    data.workplaces.forEach(workplace => {
+      const option = document.createElement('option');
+
+      option.value = workplace[0];
+      option.textContent = workplace[1];
+      this.workplace.appendChild(option);
+    });
+    this.workplace.value = data.workplace_id;
+
+    this.user.value = data.user_id;
+
+    this.clockIn.value = data.clock_in.split(" ")[0];
+
+    this.clockOut.value = data.clock_out.split(" ")[0];
+
+    this.reason.value = "Solicitud de vacaciones";
+
+    if (data.id !== 0) this.hash = formHash(this.form);
+
+    if (this.form.style.display !== "flex")
+      this.form.style.display = "flex";
+    this.clockIn.focus();
+  }
+}
+
+document.querySelectorAll('#holidays-form input').forEach(element => {
+  element.addEventListener('blur', function() {
+    this.value = this.value.trim();
+  });
+  element.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !this.list) {
+      this.value = this.value.trim();
+    }
+  });
+});
+
+document.getElementById("holidays-form").addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  if (holidays.id.value != 0) {
+    const hash = formHash(holidays.form);
+
+    if (holidays.hash === hash) {
+      showMessage("No se ha realizado ningún cambio en el registro").then(() => {
+        holidays.clockIn.focus();
+      });
+      return;
+    }
+  }
+
+  const workplace_id = Number(holidays.workplace.value);
+  const user_id = Number(holidays.user.value);
+  const code = trackingCode.id.HOLIDAYS;
+  const clock_in = `${holidays.clockIn.value} 00:00:00`;
+  const clock_out = `${holidays.clockOut.value} 23:59:00`;
+  const dt1 = new Date(clock_in.replace(' ', 'T'));
+  const dt2 = new Date(clock_out.replace(' ', 'T'));
+
+  if (dt1 > dt2) {
+    showMessage("La fecha de inicio no puede ser superior a la fecha final").then(() => {
+      holidays.clockIn.focus();
+    });
+    return;
+  }
+  if (user.role !== role.ADMIN) {
+    const reason = holidays.reason.value;
+
+    if (holidays.id.value == 0) {
+      clocking.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out, reason }));
+    } else {
+      const workplace_name = holidays.workplace.options[holidays.workplace.selectedIndex].text;
+
+      clocking.requestUpdate(
+        holidays.id.value,
+        JSON.stringify({ workplace_id, workplace_name, code, clock_in, clock_out, reason })
+      );
+    }
+  } else {
+    if (holidays.id.value == 0) {
+      clocking.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out }));
+    } else {
+      clocking.update(holidays.id.value, JSON.stringify({ workplace_id, code, clock_in, clock_out }));
+    }
+  }
+});
+
+document.getElementById("holidays-cancel").addEventListener("click", () => {
   try { clocking.show(clocking.key); } catch (error) { showMessage(error.message); }
 });
 
@@ -1555,419 +1727,4 @@ const team = {
     }
   }
 }
-
-const holidays = {
-  frame: document.getElementById("holidays-frame"),
-
-  // Userbar
-  key: 0,
-  setUserbar() {
-    userbar.setContainer('holidays-userbar');
-    userbar.setButtons([
-      [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
-      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
-      [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
-    ]);
-  },
-
-  // Table
-  table: document.getElementById("holidays-table"),
-
-  async refresh(user_id) {
-    const response = await fetch(`/api/timelogs/${user_id}/holidays`, {
-      method: 'GET',
-      credentials: 'include'
-    });
-
-    if (response.status === 200) {
-      const data = await response.json();
-
-      this.key = user_id;
-      this.refreshTable(data);
-    } else if (response.status !== 204) {
-      const text = await response.text();
-
-      throw new Error(text || `HTTP Error ${response.status}`);
-    }
-  },
-  async show(user_id) {
-    await this.refresh(user_id);
-    if (this.frame.style.display !== "flex")
-      this.frame.style.display = "flex";
-    if (this.form.style.display !== "none")
-      this.form.style.display = "none";
-    if (this.table.style.display !== "table")
-      this.table.style.display = "table";
-    if (this.key === userbar.key) {
-      this.setUserbar();
-      userbar.show();
-    } else {
-      userbar.hide();
-    }
-  },
-  hide() {
-    this.frame.style.display = "none";
-  },
-  refreshTable(data) {
-    const tbody = document.querySelector('#holidays-table tbody');
-
-    tbody.replaceChildren();
-
-    const trNew = document.createElement('tr');
-
-    trNew.innerHTML = `
-      <td class="clickable" colspan="3" onclick="holidays.add(${this.key});">
-      <div><i class="ti ti-sun"></i><span>Nuevo registro</span></div>
-      </td>
-    `;
-    tbody.appendChild(trNew);
-
-    let requests= 0;
-
-    // Sort by clock_in DESC
-    data.sort((a, b) => {
-      if (a[2] < b[2]) return 1;
-      if (a[2] > b[2]) return -1;
-      return 0;
-    });
-    data.forEach(record => {
-      const trWorkplace = document.createElement('tr');
-      const dt1 = new Date(record[2].split(" ")[0]);
-      const dt2 = new Date(record[3].split(" ")[0]);
-      const request = JSON.parse(record[4]);
-      
-      if (!request) {
-        trWorkplace.innerHTML = `
-          <td class="clickable" colspan="3" onclick="holidays.edit(${record[0]});">
-          <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
-          </td>
-        `;
-      } else if (Object.keys(request).length === 1) {
-        trWorkplace.innerHTML = `
-          <td class="clickable" colspan="3" onclick="holidays.delete(${record[0]});">
-          <div><i class="ti ti-trash"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
-          </td>
-        `;
-      } else {
-        trWorkplace.innerHTML = `
-          <td class="clickable" colspan="3" onclick="holidays.requestDelete(${record[0]});">
-          <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
-          </td>
-        `;
-      }
-      tbody.appendChild(trWorkplace);
-
-      const trData = document.createElement('tr');
-
-      trData.innerHTML = `
-        <td>${longDate(record[2])}</td>
-        <td>${longDate(record[3])}</td>
-        <td>${daysDiff(dt2, dt1) + 1} días</td>
-      `;
-      tbody.appendChild(trData);
-
-      if (!request) return;
-
-      const trReason = document.createElement('tr');
-
-      if (Object.keys(request).length === 1) {
-
-        trReason.innerHTML = `<td class="taLeft" colspan="3">${request.reason}</td>`;
-        tbody.appendChild(trReason);
-      } else {
-        const dt3 = new Date(request.clock_in.replace(' ', 'T'));
-        const dt4 = new Date(request.clock_out.replace(' ', 'T'));
-        const trModified = document.createElement('tr');
-        const trDataModified = document.createElement('tr');
-
-        trModified.innerHTML = `<td class="taLeft" colspan="3">Modificado, ${request.workplace_name}</td>`;
-        trDataModified.innerHTML = `
-          <td>${longDate(request.clock_in)}</td>
-          <td>${longDate(request.clock_out)}</td>
-          <td>${timeDiff(dt4, dt3)}</td>
-        `;
-        trReason.innerHTML = `<td class="taLeft" colspan="3">${request.reason}</td>`;
-        tbody.appendChild(trModified);
-        tbody.appendChild(trDataModified);
-        tbody.appendChild(trReason);
-      }
-    });
-  },
-
-  // Form
-  form: document.getElementById("holidays-form"),
-  id: document.getElementById("holidays-form").querySelector('input[name="id"]'),
-  workplace: document.getElementById("holidays-form").querySelector('select[name="workplace"]'),
-  user: document.getElementById("holidays-form").querySelector('input[name="user"]'),
-  clockIn: document.getElementById("holidays-form").querySelector('input[name="clock_in"]'),
-  clockOut: document.getElementById("holidays-form").querySelector('input[name="clock_out"]'),
-  reason: document.getElementById("holidays-form").querySelector('input[name="reason"]'),
-  hash: 0,
-
-  async add(user_id) {
-    try {
-      const response = await fetch(`/api/timelogs/${user_id}/empty`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (response.status === 200) {
-        const data = await response.json();
-
-        this.showForm(data);
-      } else if (response.status === 204) {
-        showMessage('No se puede crear el registro');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP Error ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede crear el registro');
-    }
-  },
-  async edit(id) {
-    try {
-      const response = await fetch(`/api/timelogs/${id}`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (response.status === 200) {
-        const data = await response.json();
-
-        this.showForm(data);
-      } else if (response.status === 204) {
-        showMessage('El registro ya no existe');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP Error ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede editar el registro');
-    }
-  },
-  showForm(data) {
-    if (data.id === 0 || user.role !== role.ADMIN) {
-      if (this.table.style.display !== "none")
-        this.table.style.display = "none";
-    } else {
-      const tbody = document.querySelector('#holidays-table tbody');
-      const tr = document.createElement('tr');
-
-      tbody.replaceChildren();
-      tr.innerHTML = `
-        <td class="clickable" onclick="holidays.delete(${data.id});">
-        <div><i class="ti ti-trash"></i><span>Eliminar registro</span></div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    this.id.value = data.id;
-
-    this.workplace.replaceChildren();
-    data.workplaces.forEach(workplace => {
-      const option = document.createElement('option');
-
-      option.value = workplace[0];
-      option.textContent = workplace[1];
-      this.workplace.appendChild(option);
-    });
-    this.workplace.value = data.workplace_id;
-
-    this.user.value = data.user_id;
-
-    this.clockIn.value = data.clock_in.split(" ")[0];
-
-    this.clockOut.value = data.clock_out.split(" ")[0];
-
-    this.reason.value = "Solicitud de vacaciones";
-
-    if (data.id !== 0) this.hash = formHash(this.form);
-
-    if (this.frame.style.display !== "flex")
-      this.frame.style.display = "flex";
-    if (this.form.style.display !== "flex")
-      this.form.style.display = "flex";
-    this.clockIn.focus();
-  },
-  async insert(data) {
-    try {
-      const response = await fetch('/api/timelogs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: data
-      });
-
-      if (response.status === 200) {
-        this.show(this.key);
-      } else if (response.status === 204) {
-        showMessage('No se puede fichar en las horas indicadas');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede insertar el registro');
-    }
-  },
-  async requestUpdate(data) {
-    try {
-      const response = await fetch(`/api/timelogs/${holidays.id.value}/request`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: data
-      });
-
-      if (response.status === 200) {
-        this.show(this.key);
-      } else if (response.status === 204) {
-        showMessage('No se puede fichar en las horas indicadas');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede actualizar el registro');
-    }
-  },
-  async update(data) {
-    try {
-      const response = await fetch(`/api/timelogs/${holidays.id.value}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: data
-      });
-
-      if (response.status === 200) {
-        this.show(this.key);
-      } else if (response.status === 204) {
-        showMessage('No se puede fichar en las horas indicadas');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede actualizar el registro');
-    }
-  },
-  async requestDelete(id) {
-    if (!await confirmMessage("Se eliminará la solicitud pendiente")) {
-      return;
-    }
-    try {
-      const response = await fetch(`/api/timelogs/${id}/request`, {
-        method: 'PATCH',
-        credentials: 'include'
-      });
-
-      if (response.status === 200) {
-        this.show(this.key);
-      } else if (response.status === 204) {
-        showMessage('No hay nada que eliminar');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede eliminar la solicitud');
-    }
-  },
-  async delete(id) {
-    if (!await confirmMessage("Se eliminará el registro seleccionado")) {
-      return;
-    }
-    try {
-      const response = await fetch(`/api/timelogs/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.status === 200) {
-        this.show(this.key);
-      } else if (response.status === 204) {
-        showMessage('No hay nada que eliminar');
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede eliminar el registro');
-    }
-  }
-};
-
-document.querySelectorAll('#holidays-form input').forEach(element => {
-  element.addEventListener('blur', function() {
-    this.value = this.value.trim();
-  });
-  element.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !this.list) {
-      this.value = this.value.trim();
-    }
-  });
-});
-
-document.getElementById("holidays-form").addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  if (holidays.id.value != 0) {
-    const hash = formHash(holidays.form);
-
-    if (holidays.hash === hash) {
-      showMessage("No se ha realizado ningún cambio en el registro").then(() => {
-        holidays.clockIn.focus();
-      });
-      return;
-    }
-  }
-
-  const workplace_id = Number(holidays.workplace.value);
-  const user_id = Number(holidays.user.value);
-  const code = trackingCode.id.HOLIDAYS;
-  const clock_in = `${holidays.clockIn.value} 00:00:00`;
-  const clock_out = `${holidays.clockOut.value} 23:59:00`;
-  const dt1 = new Date(clock_in.replace(' ', 'T'));
-  const dt2 = new Date(clock_out.replace(' ', 'T'));
-
-  if (dt1 > dt2) {
-    showMessage("La fecha de inicio no puede ser superior a la fecha final").then(() => {
-      holidays.clockIn.focus();
-    });
-    return;
-  }
-  if (user.role !== role.ADMIN) {
-    const reason = holidays.reason.value;
-
-    if (holidays.id.value == 0) {
-      holidays.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out, reason }));
-    } else {
-      const workplace_name = holidays.workplace.options[holidays.workplace.selectedIndex].text;
-
-      holidays.requestUpdate(JSON.stringify({ workplace_id, workplace_name, code, clock_in, clock_out, reason }));
-    }
-  } else {
-    if (holidays.id.value == 0) {
-      holidays.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out }));
-    } else {
-      holidays.update(JSON.stringify({ workplace_id, code, clock_in, clock_out }));
-    }
-  }
-});
-
-document.getElementById("holidays-cancel").addEventListener("click", () => {
-  try { holidays.show(holidays.key); } catch (error) { showMessage(error.message); }
-});
 
