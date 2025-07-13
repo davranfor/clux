@@ -246,8 +246,7 @@ const clocking = {
         `;
       else
         trData.innerHTML = `
-          <td>${longDate(record[3])}</td>
-          <td colspan="2">${longDate(record[4])}</td>
+          <td colspan="3" class="taLeft">Desde ${longDate(record[3])} hasta ${longDate(record[4])}</td>
           <td>${daysDiff(dt2, dt1) + 1}d</td>
         `;
 
@@ -277,8 +276,7 @@ const clocking = {
           `;
         else
           trDataModified.innerHTML = `
-            <td>${longDate(request.clock_in)}</td>
-            <td colspan="2">${longDate(request.clock_out)}</td>
+            <td colspan="3" class="taLeft">Desde ${longDate(request.clock_in)} hasta ${longDate(request.clock_out)}</td>
             <td>${daysDiff(dt4, dt3) + 1}d</td>
           `;
         trReason.innerHTML = `<td class="taLeft" colspan="4">${request.reason}</td>`;
