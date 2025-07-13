@@ -1519,6 +1519,7 @@ const team = {
   view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfWorkplaces: 2 },
   viewIndex: 0,
   selectedWorkplace: { id: 0, name: null },
+  clockOnClick: false,
 
   async show() {
     let url = null;
@@ -1588,13 +1589,23 @@ const team = {
     }
   },
   handleUser(key, name) {
-    if (key != user.id) {
-      const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
+    if (this.clockOnClick) {
+      alert("Clock");
+    } else {
+       if (key != user.id) {
+        const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
 
-      userbar.setKey(key);
-      userbar.setTitle(`${name} (${workplace})`);
+        userbar.setKey(key);
+        userbar.setTitle(`${name} (${workplace})`);
+      }
+      setActiveByKey('item-clocking', key);
     }
-    setActiveByKey('item-clocking', key);
+  },
+  toggleClockOnClick(td) {
+    this.clockOnClick = !this.clockOnClick;
+    td.textContent = this.clockOnClick
+      ? "🔘 Ver opciones de usuario al hacer click"
+      : "🔘 Fichar entrada o salida al hacer click";
   },
   refreshTable(data) {
     const tbody = document.querySelector('#team-table tbody');
@@ -1663,10 +1674,6 @@ const team = {
     const clockInMark = user.role === role.BASIC ? ['', ''] : ['⚪ ', '🟠 '];
 
     if (this.viewIndex !== this.view.ListOfWorkplaces) {
-      const selectedWorkplace = data[0];
-      let canClockOut = false;
-
-      data = data[1];
       // Sort by category ASC then user.name ASC
       data.sort((a, b) => {
         if (a[2] > b[2]) return 1;
@@ -1674,8 +1681,6 @@ const team = {
         return a[3] > b[3] ? 1 : a[3] < b[3] ? -1 : 0;
       });
       data.forEach(record => {
-        if (record[4] !== null) canClockOut = true;
-
         const clockIn = record[4] === null ? '' : shortDateTime(record[4]);
         const trUser = document.createElement('tr');
 
@@ -1692,14 +1697,15 @@ const team = {
         `;
         tbody.appendChild(trUser);
       });
-      if (canClockOut && user.role === role.ADMIN) {
-        const trClockOut = document.createElement('tr');
+      if (user.role === role.ADMIN) {
+        const trClockOnClick = document.createElement('tr');
+        let txtClockOnClick = this.clockOnClick
+          ? "🔘 Ver opciones de usuario al hacer click"
+          : "🔘 Fichar entrada o salida al hacer click";
 
-        trClockOut.innerHTML = `
-          <td class="clickable" colspan="3"
-          onclick="team.clockOutWorkplace(${selectedWorkplace});">🟥 Forzar el fichaje de salida a los miembros de este equipo</td>`;
-        tbody.appendChild(trClockOut);
-      }
+        trClockOnClick.innerHTML = `<td class="clickable" colspan="3" onclick="team.toggleClockOnClick(this)">${txtClockOnClick}</td>`;
+        tbody.appendChild(trClockOnClick);
+      } 
     } else {
       // Sort by id ASC
       data.sort((a, b) => {
