@@ -68,7 +68,7 @@ const clocking = {
   },
 
   async upsert() {
-    const response = await fetch('/api/users/clock_in', {
+    const response = await fetch(`/api/users/${user.id}/clock_in`, {
       method: 'PATCH',
       credentials: 'include'
     });
@@ -1570,9 +1570,9 @@ const team = {
     this.viewIndex = this.view.ListOfWorkplaces;
     try { this.show(); } catch (error) { showMessage(error.message); }
   },
-  async clockOutWorkplace(workplace_id) {
+  async clockIn(user_id) {
     try {
-      const response = await fetch(`/api/users/${workplace_id}/clock_in`, {
+      const response = await fetch(`/api/users/${user_id}/clock_in`, {
         method: 'PATCH',
         credentials: 'include'
       });
@@ -1585,12 +1585,14 @@ const team = {
         showMessage(text || `HTTP ${response.status}`);
       }
     } catch (error) {
-      showMessage(error.message || 'No se pudo forzar la salida por equipo');
+      showMessage(error.message || 'No se puede fichar en este momento');
     }
   },
   handleUser(key, name) {
     if (this.clockOnClick) {
-      alert("Clock");
+      confirmMessage(`Fichaje: ${name}`).then((confirmed) => {
+        if (confirmed) this.clockIn(key);
+      });
     } else {
        if (key != user.id) {
         const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
@@ -1608,11 +1610,13 @@ const team = {
       : "🔘 Fichar entrada o salida al hacer click";
   },
   refreshTable(data) {
+    this.clockOnClick = user.config.onTablet === true;
+
     const tbody = document.querySelector('#team-table tbody');
 
     tbody.replaceChildren();
 
-    if (user.role === role.ADMIN) {
+    if (user.role === role.ADMIN && !user.config.onTablet) {
       const trNew = document.createElement('tr');
 
       trNew.innerHTML = `
@@ -1623,7 +1627,7 @@ const team = {
       tbody.appendChild(trNew);
     }
     if (this.viewIndex === this.view.MyWorkplace) {
-      if (user.role === role.ADMIN) {
+      if (user.role === role.ADMIN && !user.config.onTablet) {
         const trSelector = document.createElement('tr');
 
         trSelector.innerHTML = `
@@ -1697,7 +1701,7 @@ const team = {
         `;
         tbody.appendChild(trUser);
       });
-      if (user.role === role.ADMIN) {
+      if (user.role === role.ADMIN && !user.config.onTablet) {
         const trClockOnClick = document.createElement('tr');
         let txtClockOnClick = this.clockOnClick
           ? "🔘 Ver opciones de usuario al hacer click"

@@ -283,7 +283,7 @@
   <script>
     const role = { BASIC: 1, SUPERVISOR: 2, ADMIN: 3 };
 
-    const user = { id: 0, role: 0, name: "", clockIn: 0 };
+    const user = { id: 0, role: 0, name: "", config: null, clockIn: 0 };
     const userPanel = document.getElementById("user-panel");
     const userTitle = document.getElementById("user-title");
     const userButton = document.getElementById("user-button");
@@ -434,7 +434,12 @@
       } else {
         onMobile = true;
       }
-      setActiveByKey("item-clocking");
+      if (user.config.onTablet) {
+        document.getElementById("user-button").style.display = "none";
+        setActiveByKey("item-team");
+      } else {
+        setActiveByKey("item-clocking");
+      }
       if (user.role === role.ADMIN) refreshTeam();
     }
     function refreshTeam() {

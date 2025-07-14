@@ -155,47 +155,36 @@
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, { "const": "clock_in" }], "additionalItems": false },
+          "path": { "items": [{}, { "x-mask": "09999" }, { "const": "clock_in" }], "additionalItems": false },
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /users/clock_in", "size": 1, "role": 1 }
+        "x-notify": { "path": "PATCH /users/{id}/clock_in", "size": 2, "role": 1 }
       },
       "then": true,
-      "else":{
+      "else": {
         "if": {
           "properties": {
-            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "clock_in" }], "additionalItems": false },
-            "query": { "type": "null" },
-            "content": { "type": "null" }
+            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
+            "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /users/{workplace_id}/clock_in", "size": 2, "role": 2 }
+          "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 2 }
         },
-        "then": true,
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
+        },
         "else": {
           "if": {
             "properties": {
-              "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
+              "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
               "query": { "type": "null" }
             },
-            "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 2 }
+            "x-notify": { "path": "PATCH /users/{id}/tasks", "size": 2, "role": 2 }
           },
           "then": {
-            "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
+            "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
           },
-          "else": {
-            "if": {
-              "properties": {
-                "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
-                "query": { "type": "null" }
-              },
-              "x-notify": { "path": "PATCH /users/{id}/tasks", "size": 2, "role": 2 }
-            },
-            "then": {
-              "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
-            },
-            "else": false
-          }
+          "else": false
         }
       }
     },

@@ -14,6 +14,18 @@
       },
       "then": true,
       "else": false
+    },
+    "PATCH": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "x-mask": "09999" }, { "const": "clock_in" }], "additionalItems": false },
+          "query": { "type": "null" },
+          "content": { "type": "null" }
+        },
+        "x-notify": { "path": "PATCH /workplaces/{id}/clock_in", "size": 2, "role": 3 }
+      },
+      "then": true,
+      "else": false
     }
   },
   "additionalProperties": false

@@ -390,6 +390,7 @@ header {
   }
 }
 
+/* PC */
 @media (min-width: 1025px) {
   .menu {
     position: sticky;
@@ -406,7 +407,14 @@ header {
   }
 }
 
-/* Mobile version for schedule */
+/* Mobile and tablet vertical */
+@media (max-width: 768px) {
+  .content-box {
+    padding: 1rem;
+  }
+}
+
+/* Mobile and tablet */
 @media (max-width: 1024px) {
   #schedule-table, #tasks-table {
     width: 100%;
@@ -424,6 +432,10 @@ header {
   #tasks-table th:not(:last-child) {
     white-space: nowrap;
     text-align: left;
+  }
+  #team-table th, #team-table td {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
   }
 }
 
