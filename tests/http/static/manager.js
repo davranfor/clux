@@ -1519,7 +1519,7 @@ const team = {
   view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfWorkplaces: 2 },
   viewIndex: 0,
   selectedWorkplace: { id: 0, name: null },
-  clockOnClick: false,
+  clockOnClick: null,
 
   async show() {
     let url = null;
@@ -1603,14 +1603,10 @@ const team = {
       setActiveByKey('item-clocking', key);
     }
   },
-  toggleClockOnClick(td) {
-    this.clockOnClick = !this.clockOnClick;
-    td.textContent = this.clockOnClick
-      ? "🔘 Ver opciones de usuario al hacer click"
-      : "🔘 Fichar entrada o salida al hacer click";
-  },
   refreshTable(data) {
-    this.clockOnClick = user.config.onTablet === true;
+    if (this.clockOnClick === null) {
+      this.clockOnClick = user.config.onTablet === true;
+    }
 
     const tbody = document.querySelector('#team-table tbody');
 
@@ -1702,13 +1698,32 @@ const team = {
         tbody.appendChild(trUser);
       });
       if (user.role === role.ADMIN && !user.config.onTablet) {
-        const trClockOnClick = document.createElement('tr');
-        let txtClockOnClick = this.clockOnClick
-          ? "🔘 Ver opciones de usuario al hacer click"
-          : "🔘 Fichar entrada o salida al hacer click";
+        const updateRadioIcons = () => { 
+          trOption1.innerHTML = `
+            <td class="clickable" colspan="3" onclick="team.setClockOnClick(false);">
+            <div><i class="ti ${this.clockOnClick ? 'ti-circle' : 'ti-circle-dot'}"></i><span>Modo selección</span></div>
+            </td>
+          `;
+          trOption2.innerHTML = `
+            <td class="clickable" colspan="3" onclick="team.setClockOnClick(true);">
+            <div><i class="ti ${this.clockOnClick ? 'ti-circle-dot' : 'ti-circle'}"></i><span>Modo fichaje</span></div>
+            </td>
+          `;
+        };
 
-        trClockOnClick.innerHTML = `<td class="clickable" colspan="3" onclick="team.toggleClockOnClick(this)">${txtClockOnClick}</td>`;
-        tbody.appendChild(trClockOnClick);
+        team.setClockOnClick = function(value) {
+          if (this.clockOnClick !== value) {
+            this.clockOnClick = value;
+            updateRadioIcons();
+          }
+        };
+
+        const trOption1 = document.createElement('tr');
+        const trOption2 = document.createElement('tr');
+
+        updateRadioIcons();
+        tbody.appendChild(trOption1);
+        tbody.appendChild(trOption2);
       } 
     } else {
       // Sort by id ASC
