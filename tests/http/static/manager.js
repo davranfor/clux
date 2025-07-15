@@ -1701,7 +1701,7 @@ const team = {
         const updateRadioIcons = () => { 
           trOption1.innerHTML = `
             <td class="clickable" colspan="3" onclick="team.setClockOnClick(false);">
-            <div><i class="ti ${this.clockOnClick ? 'ti-circle' : 'ti-circle-dot'}"></i><span>Modo selección</span></div>
+            <div><i class="ti ${this.clockOnClick ? 'ti-circle' : 'ti-circle-dot'}"></i><span>Modo normal</span></div>
             </td>
           `;
           trOption2.innerHTML = `

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-curl -X PATCH "http://localhost:8080/api/workplaces/8001/clock_in" -H "Cookie: auth=99999:3:ee6de67d571974e3cc16ac75a0572021f5a01dcec7c986393eee5f4a19f0c7f9"
+curl -X PATCH "http://localhost:8080/api/workplaces/clock_in" -d '{"workplaces":"[8001,8002]"}' -H "Content-Type: application/json" -H "Cookie: auth=99999:3:ee6de67d571974e3cc16ac75a0572021f5a01dcec7c986393eee5f4a19f0c7f9"
 

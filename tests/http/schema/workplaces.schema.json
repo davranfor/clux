@@ -2,6 +2,14 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "/workplaces",
   "type": "object",
+  "definitions": {
+    "clock_in": {
+      "type": "object",
+      "properties": { "workplaces": { "type": "string" } },
+      "additionalProperties": false,
+      "required": [ "workplaces" ]
+    }
+  },
   "properties": {
     "GET": {
       "if": {
@@ -18,13 +26,14 @@
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, { "x-mask": "09999" }, { "const": "clock_in" }], "additionalItems": false },
-          "query": { "type": "null" },
-          "content": { "type": "null" }
+          "path": { "items": [{}, { "const": "clock_in" }], "additionalItems": false },
+          "query": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /workplaces/{id}/clock_in", "size": 2, "role": 3 }
+        "x-notify": { "path": "PATCH /workplaces/clock_in", "size": 1, "role": 3 }
       },
-      "then": true,
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/clock_in" } }
+      },
       "else": false
     }
   },
