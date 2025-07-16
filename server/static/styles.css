@@ -378,6 +378,11 @@ header {
   cursor: not-allowed;
 }
 
+.thickRow th, .thickRow td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 @media (orientation: portrait) {
   .menu {
     display: none !important;
@@ -432,10 +437,6 @@ header {
   #tasks-table th:not(:last-child) {
     white-space: nowrap;
     text-align: left;
-  }
-  #team-table th, #team-table td {
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
   }
 }
 

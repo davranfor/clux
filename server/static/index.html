@@ -438,6 +438,7 @@
       }
       if (user.config.onTablet) {
         document.getElementById("user-button").style.display = "none";
+        document.getElementById("team-table").classList.add('thickRow');
         setActiveByKey("item-team");
       } else {
         setActiveByKey("item-clocking");

@@ -523,18 +523,30 @@ static const buffer_t *process(int header)
             type = "text/plain\r\n";
             break;
     }
-#ifdef ALLOW_INSECURE_TOKEN
-puts("ALLOW_INSECURE_TOKEN is set");
-#else
-puts("ALLOW_INSECURE_TOKEN is NOT set");
-#endif
     if (cookie_str[0] != '\0')
     {
-        // Max-Age = 1 year
-        // https requires 'Secure;'
+#ifdef ALLOW_INSECURE_TOKEN
+        /**
+         * For testing purposes where you can not provide an SSL connection:
+         * Some browsers (i.e. Safari) doesn't send a Secure token on non-https connections even
+         * for testing with localhost (https requires 'Secure;')
+         * You can set an environment variable on .zshrc or .bashrc:
+         * export CLUX_ALLOW_INSECURE_TOKEN=1
+         * Then, inside the Makefile, there is a rule to add a preprocessor flag:
+         * ifdef CLUX_ALLOW_INSECURE_TOKEN
+         * CFLAGS += -DALLOW_INSECURE_TOKEN
+         * endif
+         * Depending on this flag, the 'Secure;' flag is sent or not to the client.
+         * Max-Age = 1 year
+         */
+        snprintf(strings, sizeof strings,
+            "%sSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000",
+            type, cookie_str);
+#else
         snprintf(strings, sizeof strings,
             "%sSet-Cookie: auth=%s; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000",
             type, cookie_str);
+#endif
     }
     else
     {
@@ -549,7 +561,11 @@ puts("ALLOW_INSECURE_TOKEN is NOT set");
         snprintf(headers, sizeof headers, code, strings);
     }
     buffer_insert(&buffer, 0, headers, strlen(headers));
-if (buffer.length) puts(buffer.text);
+    // Debug
+    if (buffer.length)
+    {
+        puts(buffer.text);
+    }
     return buffer.length ? &buffer : NULL;
 }
 

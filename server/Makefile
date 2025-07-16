@@ -2,6 +2,10 @@ CC := gcc
 CFLAGS := -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs
 LDFLAGS = -lclux -lsqlite3 -lcrypto
 
+ifdef CLUX_ALLOW_INSECURE_TOKEN
+CFLAGS += -DALLOW_INSECURE_TOKEN
+endif
+
 ifeq ($(shell uname -s),Darwin)
 OPENSSL_PREFIX = $(shell brew --prefix openssl@3)
 CFLAGS += -I$(OPENSSL_PREFIX)/include
