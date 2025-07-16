@@ -523,13 +523,17 @@ static const buffer_t *process(int header)
             type = "text/plain\r\n";
             break;
     }
+#ifdef ALLOW_INSECURE_TOKEN
+puts("ALLOW_INSECURE_TOKEN is set");
+#else
+puts("ALLOW_INSECURE_TOKEN is NOT set");
+#endif
     if (cookie_str[0] != '\0')
     {
-        // Set-Cookie: auth=token; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000
-        // Max-Age de un año
-        // Con https recordar secure
+        // Max-Age = 1 year
+        // https requires 'Secure;'
         snprintf(strings, sizeof strings,
-            "%sSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000",
+            "%sSet-Cookie: auth=%s; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000",
             type, cookie_str);
     }
     else
