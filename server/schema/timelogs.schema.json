@@ -111,7 +111,7 @@
         "properties": {
           "path": { "minItems": 1, "maxItems": 1 },
           "query": { "type": "null" },
-          "cookie": { "properties": { "role": { "enum": [1, 2] } } }
+          "cookie": { "properties": { "role": { "const": 1 } } }
         },
         "x-notify": { "path": "POST /timelogs role:basic", "role": 1 }
       },
@@ -123,9 +123,9 @@
           "properties": {
             "path": { "minItems": 1, "maxItems": 1 },
             "query": { "type": "null" },
-            "cookie": { "properties": { "role": { "const": 3 } } }
+            "cookie": { "properties": { "role": { "enum": [2, 3] } } }
           },
-          "x-notify": { "path": "POST /timelogs role:supervisor,admin", "role": 3 }
+          "x-notify": { "path": "POST /timelogs role:supervisor,admin", "role": 2 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/insert" } }
@@ -139,7 +139,7 @@
           "path": { "items": [{}, {"x-mask": "0999999"}], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "PUT /timelogs/{id}", "role": 3 }
+        "x-notify": { "path": "PUT /timelogs/{id}", "role": 2 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/update" } }

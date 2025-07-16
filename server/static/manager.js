@@ -162,6 +162,7 @@ const clocking = {
     if (onMobile) {
       const trSchedule = document.createElement('tr');
       const trTasks = document.createElement('tr');
+      const trClocking = document.createElement('tr');
 
       trSchedule.innerHTML = `
         <td class="clickable" colspan="4" onclick="setActiveByKey('item-schedule');">
@@ -173,8 +174,22 @@ const clocking = {
         <div><i class="ti ti-checklist"></i><span>Mis tareas</span></div>
         </td>
       `;
+      if (this.trackingCode !== trackingCode.id.NORMAL) {
+        trClocking.innerHTML = `
+          <td class="clickable" colspan="4" onclick="setActiveByKey('item-clocking');">
+          <div><i class="ti ti-clock"></i><span>Mis fichajes</span></div>
+          </td>
+        `;
+      } else {
+        trClocking.innerHTML = `
+          <td class="clickable" colspan="4" onclick="setActiveByKey('item-holidays');">
+          <div><i class="ti ti-sun"></i><span>Mis vacaciones</span></div>
+          </td>
+        `;
+      }
       tbody.appendChild(trSchedule);
       tbody.appendChild(trTasks);
+      tbody.appendChild(trClocking);
     }
 
     const trNew = document.createElement('tr');
@@ -378,7 +393,7 @@ const clocking = {
   },
   showForm(data) {
     this.header.textContent = "Fichajes"; 
-    if (data.id === 0 || user.role !== role.ADMIN) {
+    if (data.id === 0 || user.role === role.BASIC) {
       if (this.table.style.display !== "none")
         this.table.style.display = "none";
     } else {
@@ -653,7 +668,7 @@ document.getElementById("clocking-form").addEventListener('submit', (e) => {
     });
     return;
   }
-  if (user.role !== role.ADMIN) {
+  if (user.role === role.BASIC) {
     const reason = clocking.reason.value;
 
     if (clocking.id.value == 0) {
@@ -702,7 +717,7 @@ const holidays = {
 
   showForm(data) {
     clocking.header.textContent = "Vacaciones"; 
-    if (data.id === 0 || user.role !== role.ADMIN) {
+    if (data.id === 0 || user.role === role.BASIC) {
       if (clocking.table.style.display !== "none")
         clocking.table.style.display = "none";
     } else {
@@ -785,7 +800,7 @@ document.getElementById("holidays-form").addEventListener('submit', (e) => {
     });
     return;
   }
-  if (user.role !== role.ADMIN) {
+  if (user.role === role.BASIC) {
     const reason = holidays.reason.value;
 
     if (holidays.id.value == 0) {
@@ -1697,7 +1712,7 @@ const team = {
         `;
         tbody.appendChild(trUser);
       });
-      if (user.role === role.ADMIN && !user.config.onTablet) {
+      if (user.role !== role.BASIC && !user.config.onTablet) {
         const updateRadioIcons = () => { 
           trOption1.innerHTML = `
             <td class="clickable" colspan="3" onclick="team.setClockOnClick(false);">

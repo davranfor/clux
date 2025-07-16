@@ -410,10 +410,12 @@
         profile.hire_start.classList.add("cursorForbidden");
         profile.hire_end.disabled = true;
         profile.hire_end.classList.add("cursorForbidden");
+        document.getElementById("profile-delete").style.display = "none";
+      }
+      if (user.role === role.BASIC) {
         document.getElementById("clocking-code").style.display = "none";
         document.getElementById("schedule-buttons").style.display = "none";
         document.getElementById("tasks-buttons").style.display = "none";
-        document.getElementById("profile-delete").style.display = "none";
       } else {
         clocking.reason.required = false;
         holidays.reason.required = false;
