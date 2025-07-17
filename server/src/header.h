@@ -41,7 +41,11 @@ static const char *http_bad_request =
     "Content-Length: %zu\r\n\r\n";
 static const char *http_unauthorized =
     "HTTP/1.1 401 Unauthorized\r\n"
+#ifdef ALLOW_INSECURE_TOKEN
     "Set-Cookie: auth=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict\r\n"
+#else
+    "Set-Cookie: auth=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; HttpOnly; SameSite=Strict\r\n"
+#endif
     "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n\r\n";
 static const char *http_forbidden =
