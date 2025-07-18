@@ -11,7 +11,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /actions/reload", "size": 1, "role": 3 }
+          "x-notify": { "path": "reload", "size": 1, "role": 3 }
         },
         {
           "properties": {
@@ -19,7 +19,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /actions/stop", "size": 1, "role": 3 }
+          "x-notify": { "path": "stop", "size": 1, "role": 3 }
         }
       ]
     }
