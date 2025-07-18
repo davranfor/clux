@@ -343,12 +343,66 @@ static int set_path(sqlite3_stmt *stmt, const json_t *path)
     return 1;
 }
 
+static int db_backup(void)
+{
+    sqlite3_backup *backup;
+    sqlite3 *target;
+    int rc;
+
+    rc = sqlite3_open("backup.db", &target);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot open destination database: %s\n", sqlite3_errmsg(target));
+        return rc;
+    }
+    backup = sqlite3_backup_init(target, "main", db, "main");
+    if (!backup)
+    {
+        fprintf(stderr, "Backup initialization failed: %s\n", sqlite3_errmsg(target));
+        sqlite3_close(target);
+        return sqlite3_errcode(target);
+    }
+    // Perform the backup in steps (allows progress reporting and keeps source db responsive)
+    do
+    {
+        rc = sqlite3_backup_step(backup, 5);  // Copy 5 pages at a time
+        if (rc == SQLITE_OK || rc == SQLITE_BUSY || rc == SQLITE_LOCKED)
+        {
+            int remaining = sqlite3_backup_remaining(backup);
+            int total = sqlite3_backup_pagecount(backup);
+
+            printf("Progress: %d of %d pages remaining\n", remaining, total);
+        }
+        // If we get a lock, wait a bit before retrying
+        if (rc == SQLITE_BUSY || rc == SQLITE_LOCKED)
+        {
+            sqlite3_sleep(250);  // Wait 250ms
+        }
+    } while (rc == SQLITE_OK || rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
+    sqlite3_backup_finish(backup);
+    if (rc == SQLITE_DONE)
+    {
+        printf("Backup completed successfully\n");
+    }
+    else
+    {
+        fprintf(stderr, "Backup failed: %s\n", sqlite3_errmsg(target));
+    }
+    sqlite3_close(target);
+    return rc;
+}
+
 static int action_handle(const json_t *path)
 {
     const char *action = json_string(json_head(path));
 
     if (action != NULL)
     {
+        if (!strcmp(action, "backup"))
+        {
+            db_backup();
+            return 1;
+        }
         if (!strcmp(action, "reload"))
         {
             loader_reload();
@@ -468,31 +522,31 @@ static const buffer_t *process(int header)
     {
         case HTTP_OK:
             code = http_ok;
-            type = "application/json\r\n";
+            type = "application/json";
             break;
         case HTTP_NO_CONTENT:
             code = http_no_content;
-            type = "\r\n";
+            type = "";
             break;
         case HTTP_UNAUTHORIZED:
             code = http_unauthorized;
-            type = "text/plain\r\n";
+            type = "text/plain";
             break;
         case HTTP_FORBIDDEN:
             code = http_forbidden;
-            type = "text/plain\r\n";
+            type = "text/plain";
             break;
         case HTTP_NOT_FOUND:
             code = http_not_found;
-            type = "text/plain\r\n";
+            type = "text/plain";
             break;
         case HTTP_SERVER_ERROR:
             code = http_server_error;
-            type = "text/plain\r\n";
+            type = "text/plain";
             break;
         default:
             code = http_bad_request;
-            type = "text/plain\r\n";
+            type = "text/plain";
             break;
     }
     if (cookie_str[0] != '\0')
@@ -512,17 +566,17 @@ static const buffer_t *process(int header)
          * Max-Age = 1 year
          */
         snprintf(strings, sizeof strings,
-            "%sSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000",
+            "%s\r\nSet-Cookie: auth=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000",
             type, cookie_str);
 #else
         snprintf(strings, sizeof strings,
-            "%sSet-Cookie: auth=%s; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000",
+            "%s\r\nSet-Cookie: auth=%s; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000",
             type, cookie_str);
 #endif
     }
     else
     {
-        snprintf(strings, sizeof strings, "%sServer: Unix", type);
+        snprintf(strings, sizeof strings, "");
     }
     if (header != HTTP_NO_CONTENT)
     {
@@ -533,7 +587,6 @@ static const buffer_t *process(int header)
         snprintf(headers, sizeof headers, code, strings);
     }
     buffer_insert(&buffer, 0, headers, strlen(headers));
-    // Debug
     if (buffer.length)
     {
         printf("---- RESPONSE ----\n%s\n", buffer.text);

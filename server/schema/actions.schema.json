@@ -3,15 +3,23 @@
   "$id": "/actions",
   "type": "object",
   "properties": {
-    "GET": {
+    "POST": {
       "anyOf": [
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "backup" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "backup", "role": 3 }
+        },
         {
           "properties": {
             "path": { "items": [{}, { "const": "reload" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "reload", "size": 1, "role": 3 }
+          "x-notify": { "path": "reload", "role": 3 }
         },
         {
           "properties": {
@@ -19,7 +27,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "stop", "size": 1, "role": 3 }
+          "x-notify": { "path": "stop", "role": 3 }
         }
       ]
     }
