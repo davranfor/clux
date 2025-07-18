@@ -564,7 +564,7 @@ static const buffer_t *process(int header)
     // Debug
     if (buffer.length)
     {
-        puts(buffer.text);
+        printf("---- RESPONSE ----\n%s\n", buffer.text);
     }
     return buffer.length ? &buffer : NULL;
 }

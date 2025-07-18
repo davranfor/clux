@@ -228,7 +228,6 @@ static int on_validate(const json_event_t *event, void *context)
 
 int schema_validate(json_t *request, buffer_t *buffer)
 {
-    json_write_line(request, stdout);
     buffer_reset(buffer);
 
     const char *path = json_string(json_pointer(request, "/path/0"));
