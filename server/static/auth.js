@@ -79,5 +79,31 @@ async function checkSession() {
   }
 }
 
+async function logout() {
+    if (!await confirmMessage("Confirma que deseas cerrar sesión")) {
+      return;
+    }
+  try {
+    const response = await fetch(`/api/logout`, {
+      method: 'PATCH',
+      credentials: 'include'
+    });
+
+    if (response.status === 200) {
+      const text = await response.text();
+
+      location.reload(true);
+    } else if (response.status === 204) {
+      showMessage('No se puede cerrar sesión');
+    } else {
+      const text = await response.text();
+
+      showMessage(text || `HTTP Error ${response.status}`);
+    }
+  } catch (error) {
+    showMessage(text || `HTTP Error ${response.status}`);
+  }
+}
+
 checkSession();
 

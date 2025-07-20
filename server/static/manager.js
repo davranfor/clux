@@ -165,24 +165,24 @@ const clocking = {
       const trClocking = document.createElement('tr');
 
       trSchedule.innerHTML = `
-        <td class="clickable" colspan="4" onclick="setActiveByKey('item-schedule');">
+        <td class="clickable" colspan="4" onclick="setActiveByKey('item-schedule')">
         <div><i class="ti ti-calendar-time"></i><span>Mis horarios</span></div>
         </td>
       `;
       trTasks.innerHTML = `
-        <td class="clickable" colspan="4" onclick="setActiveByKey('item-tasks');">
+        <td class="clickable" colspan="4" onclick="setActiveByKey('item-tasks')">
         <div><i class="ti ti-checklist"></i><span>Mis tareas</span></div>
         </td>
       `;
       if (this.trackingCode !== trackingCode.id.NORMAL) {
         trClocking.innerHTML = `
-          <td class="clickable" colspan="4" onclick="setActiveByKey('item-clocking');">
+          <td class="clickable" colspan="4" onclick="setActiveByKey('item-clocking')">
           <div><i class="ti ti-clock"></i><span>Mis fichajes</span></div>
           </td>
         `;
       } else {
         trClocking.innerHTML = `
-          <td class="clickable" colspan="4" onclick="setActiveByKey('item-holidays');">
+          <td class="clickable" colspan="4" onclick="setActiveByKey('item-holidays')">
           <div><i class="ti ti-sun"></i><span>Mis vacaciones</span></div>
           </td>
         `;
@@ -196,13 +196,13 @@ const clocking = {
 
     if (this.trackingCode === trackingCode.id.NORMAL)
       trNew.innerHTML = `
-        <td class="clickable" colspan="4" onclick="clocking.add(${this.key});">
+        <td class="clickable" colspan="4" onclick="clocking.add(${this.key})">
         <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
         </td>
       `;
     else
       trNew.innerHTML = `
-        <td class="clickable" colspan="4" onclick="clocking.add(${this.key});">
+        <td class="clickable" colspan="4" onclick="clocking.add(${this.key})">
         <div><i class="ti ti-sun"></i><span>Nuevo registro</span></div>
         </td>
       `;
@@ -224,19 +224,19 @@ const clocking = {
       
       if (!request) {
         trWorkplace.innerHTML = `
-          <td class="clickable" colspan="4" onclick="clocking.edit(${record[0]});">
+          <td class="clickable" colspan="4" onclick="clocking.edit(${record[0]})">
           <div><i class="ti ti-edit"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
           </td>
         `;
       } else if (Object.keys(request).length === 1) {
         trWorkplace.innerHTML = `
-          <td class="clickable" colspan="4" onclick="clocking.delete(${record[0]});">
+          <td class="clickable" colspan="4" onclick="clocking.delete(${record[0]})">
           <div><i class="ti ti-trash"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
           </td>
         `;
       } else {
         trWorkplace.innerHTML = `
-          <td class="clickable" colspan="4" onclick="clocking.requestDelete(${record[0]});">
+          <td class="clickable" colspan="4" onclick="clocking.requestDelete(${record[0]})">
           <div><i class="ti ti-refresh"></i><span>${dayOfWeek(dt1)}, ${record[1]}</span></div>
           </td>
         `;
@@ -303,7 +303,7 @@ const clocking = {
         const trApprove = document.createElement('tr');
 
         trApprove.innerHTML = `
-          <td class="clickable taLeft" colspan="4" onclick="clocking.approve(${record[0]});">🟢 Aprobar solicitud</td>
+          <td class="clickable taLeft" colspan="4" onclick="clocking.approve(${record[0]})">🟢 Aprobar solicitud</td>
         `;
         tbody.appendChild(trApprove);
         requests++;
@@ -313,7 +313,7 @@ const clocking = {
         const trApproveAll = document.createElement('tr');
 
         trApproveAll.innerHTML = `
-          <td class="clickable" colspan="4" onclick="clocking.approveAll(${this.key});">
+          <td class="clickable" colspan="4" onclick="clocking.approveAll(${this.key})">
           <div><i class="ti ti-check"></i><span>Aprobar todas las solicitudes</span></div>
           </td>
         `;
@@ -323,7 +323,7 @@ const clocking = {
       const trMore = document.createElement('tr');
 
       trMore.innerHTML = `
-        <td class="clickable" colspan="4" onclick="clocking.more(${this.key});">
+        <td class="clickable" colspan="4" onclick="clocking.more(${this.key})">
         <div><i class="ti ti-filter"></i><span>Filtrar por mes</span></div>
         </td>
       `;
@@ -402,7 +402,7 @@ const clocking = {
 
       tbody.replaceChildren();
       tr.innerHTML = `
-        <td class="clickable" onclick="clocking.delete(${data.id});">
+        <td class="clickable" onclick="clocking.delete(${data.id})">
         <div><i class="ti ti-trash"></i><span>Eliminar fichaje</span></div>
         </td>
       `;
@@ -726,7 +726,7 @@ const holidays = {
 
       tbody.replaceChildren();
       tr.innerHTML = `
-        <td class="clickable" onclick="clocking.delete(${data.id});">
+        <td class="clickable" onclick="clocking.delete(${data.id})">
         <div><i class="ti ti-trash"></i><span>Eliminar registro</span></div>
         </td>
       `;
@@ -939,7 +939,7 @@ const schedule = {
 
     const trBack = document.createElement('tr');
 
-    trBack.innerHTML = '<th colspan="5" class="clickable" onclick="menuBack();">• • •</th>';
+    trBack.innerHTML = '<th colspan="5" class="clickable" onclick="menuBack()">• • •</th>';
     tbody.appendChild(trBack);
   },
   refreshTableForWrite(object) {
@@ -982,7 +982,7 @@ const schedule = {
       const trData2 = document.createElement('tr');
 
       trData1.innerHTML = `
-        <th rowspan="2" class="clickable" onclick="schedule.change(${i});">${dayOfWeek(date)}<br>${formatDate(date)}</th>
+        <th rowspan="2" class="clickable" onclick="schedule.change(${i})">${dayOfWeek(date)}<br>${formatDate(date)}</th>
         <td colspan="2" class="entry"></td>
         <td colspan="2" class="entry"></td>
       `;
@@ -1191,7 +1191,7 @@ const tasks = {
 
     const trBack = document.createElement('tr');
 
-    trBack.innerHTML = '<th colspan="2" class="clickable" onclick="menuBack();">• • •</th>';
+    trBack.innerHTML = '<th colspan="2" class="clickable" onclick="menuBack()">• • •</th>';
     tbody.appendChild(trBack);
   },
   refreshTableForWrite(object) {
@@ -1220,7 +1220,7 @@ const tasks = {
       const trData = document.createElement('tr');
 
       trData.innerHTML = `
-        <th class="clickable" onclick="tasks.change(${i});">${dayOfWeek(date)} ${formatDate(date)}</th>
+        <th class="clickable" onclick="tasks.change(${i})">${dayOfWeek(date)} ${formatDate(date)}</th>
         <td class="entry"><textarea rows="3">${data[i]}</textarea></td>
       `;
       tbody.appendChild(trData);
@@ -1631,7 +1631,7 @@ const team = {
       const trNew = document.createElement('tr');
 
       trNew.innerHTML = `
-        <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0);">
+        <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0)">
         <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
         </td>
       `;
@@ -1642,7 +1642,7 @@ const team = {
         const trSelector = document.createElement('tr');
 
         trSelector.innerHTML = `
-          <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces();">
+          <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
           <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
           </td>
         `;
@@ -1659,12 +1659,12 @@ const team = {
       const trTitle = document.createElement('tr');
 
       trMyTeam.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showMyWorkplace();">
+        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
         </td>
       `;
       trSelector.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces();">
+        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
         <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
         </td>
       `;
@@ -1677,7 +1677,7 @@ const team = {
       const trTitle = document.createElement('tr');
 
       trSelector.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showMyWorkplace();">
+        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
         </td>
       `;
@@ -1715,12 +1715,12 @@ const team = {
       if (user.role !== role.BASIC && !user.config.onTablet) {
         const updateRadioIcons = () => { 
           trOption1.innerHTML = `
-            <td class="clickable" colspan="3" onclick="team.setClockOnClick(false);">
+            <td class="clickable" colspan="3" onclick="team.setClockOnClick(false)">
             <div><i class="ti ${this.clockOnClick ? 'ti-circle' : 'ti-circle-dot'}"></i><span>Modo normal</span></div>
             </td>
           `;
           trOption2.innerHTML = `
-            <td class="clickable" colspan="3" onclick="team.setClockOnClick(true);">
+            <td class="clickable" colspan="3" onclick="team.setClockOnClick(true)">
             <div><i class="ti ${this.clockOnClick ? 'ti-circle-dot' : 'ti-circle'}"></i><span>Modo fichaje</span></div>
             </td>
           `;
