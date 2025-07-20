@@ -96,7 +96,7 @@ const clocking = {
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -702,7 +702,7 @@ const holidays = {
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -836,7 +836,7 @@ const schedule = {
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -1104,7 +1104,7 @@ const tasks = {
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -1289,6 +1289,243 @@ document.getElementById("tasks-cancel").addEventListener("click", () => {
   menuBack();
 });
 
+const team = {
+  frame: document.getElementById("team-frame"),
+  view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfWorkplaces: 2 },
+  viewIndex: 0,
+  selectedWorkplace: { id: 0, name: null },
+  clockOnClick: null,
+
+  async show() {
+    let url = null;
+
+    switch (this.viewIndex) {
+      case this.view.MyWorkplace:
+        url = '/api/users/workplace';
+        break;
+      case this.view.OtherWorkplace:
+        url = `/api/users/${this.selectedWorkplace.id}/workplace`;
+        break;
+      case this.view.ListOfWorkplaces:
+        url = '/api/workplaces/team';
+        break;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (response.status === 200) {
+      const data = await response.json();
+
+      this.refreshTable(data);
+    } else if (response.status !== 204) {
+      this.viewIndex = this.view.MyWorkplace;
+
+      const text = await response.text();
+
+      throw new Error(text || `HTTP Error ${response.status}`);
+    }
+  },
+  hide() {
+    this.frame.style.display = "none";
+  },
+  showMyWorkplace() {
+    this.viewIndex = this.view.MyWorkplace;
+    try { this.show(); } catch (error) { showMessage(error.message); }
+   },
+  showOtherWorkplace(id, name) {
+    this.viewIndex = this.view.OtherWorkplace;
+    this.selectedWorkplace.id = id;
+    this.selectedWorkplace.name = name;
+    try { this.show(); } catch (error) { showMessage(error.message); }
+  },
+  showListOfWorkplaces() {
+    this.viewIndex = this.view.ListOfWorkplaces;
+    try { this.show(); } catch (error) { showMessage(error.message); }
+  },
+  async clockIn(user_id) {
+    try {
+      const response = await fetch(`/api/users/${user_id}/clock_in`, {
+        method: 'PATCH',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        await this.show();
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se puede fichar en este momento');
+    }
+  },
+  handleUser(key, name) {
+    if (this.clockOnClick) {
+      confirmMessage(`Fichaje: ${name}`).then((confirmed) => {
+        if (confirmed) this.clockIn(key);
+      });
+    } else {
+       if (key != user.id) {
+        const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
+
+        userbar.setKey(key);
+        userbar.setTitle(`${name} (${workplace})`);
+      }
+      setActiveByKey('item-clocking', key);
+    }
+  },
+  refreshTable(data) {
+    if (this.clockOnClick === null) {
+      this.clockOnClick = user.config.onTablet === true;
+    }
+
+    const tbody = document.querySelector('#team-table tbody');
+
+    tbody.replaceChildren();
+
+    if (user.role === role.ADMIN && !user.config.onTablet) {
+      const trNew = document.createElement('tr');
+
+      trNew.innerHTML = `
+        <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0)">
+        <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
+        </td>
+      `;
+      tbody.appendChild(trNew);
+    }
+    if (this.viewIndex === this.view.MyWorkplace) {
+      if (user.role === role.ADMIN && !user.config.onTablet) {
+        const trSelector = document.createElement('tr');
+
+        trSelector.innerHTML = `
+          <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
+          <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
+          </td>
+        `;
+        tbody.appendChild(trSelector);
+      }
+
+      const trTitle = document.createElement('tr');
+
+      trTitle.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichajes</th>';
+      tbody.appendChild(trTitle);
+    } else if (this.viewIndex === this.view.OtherWorkplace) {
+      const trMyTeam = document.createElement('tr');
+      const trSelector = document.createElement('tr');
+      const trTitle = document.createElement('tr');
+
+      trMyTeam.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
+        <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
+        </td>
+      `;
+      trSelector.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
+        <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
+        </td>
+      `;
+      trTitle.innerHTML = `<th colspan="2">${this.selectedWorkplace.name}</th><th>Fichajes</th>`;
+      tbody.appendChild(trMyTeam);
+      tbody.appendChild(trSelector);
+      tbody.appendChild(trTitle);
+    } else { // this.view.ListOfWorkplaces
+      const trSelector = document.createElement('tr');
+      const trTitle = document.createElement('tr');
+
+      trSelector.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
+        <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
+        </td>
+      `;
+      trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Fichajes</th>';
+      tbody.appendChild(trSelector);
+      tbody.appendChild(trTitle);
+    }
+
+    const clockInMark = user.role === role.BASIC ? ['', ''] : ['⚪ ', '🟠 '];
+
+    if (this.viewIndex !== this.view.ListOfWorkplaces) {
+      // Sort by category ASC then user.name ASC
+      data.sort((a, b) => {
+        if (a[2] > b[2]) return 1;
+        if (a[2] < b[2]) return -1;
+        return a[3] > b[3] ? 1 : a[3] < b[3] ? -1 : 0;
+      });
+      data.forEach(record => {
+        const clockIn = record[4] === null ? '' : shortDateTime(record[4]);
+        const trUser = document.createElement('tr');
+
+        trUser.className = 'team-data';
+        if (user.role === role.BASIC) {
+          trUser.addEventListener('click', () => { setActiveByKey('item-schedule', record[1]); });
+        } else {
+          trUser.addEventListener('click', () => { team.handleUser(record[1], record[3]); });
+        }
+        trUser.innerHTML = `
+          <td>${clockInMark[record[0]]}${record[2]}</td>
+          <td>${record[3]}</td>
+          <td>${clockIn}</td>
+        `;
+        tbody.appendChild(trUser);
+      });
+      if (user.role !== role.BASIC && !user.config.onTablet) {
+        const updateRadioIcons = () => {
+          trOption1.innerHTML = `
+            <td class="clickable" colspan="3" onclick="team.setClockOnClick(false)">
+            <div><i class="ti ${this.clockOnClick ? 'ti-circle' : 'ti-circle-dot'}"></i><span>Modo normal</span></div>
+            </td>
+          `;
+          trOption2.innerHTML = `
+            <td class="clickable" colspan="3" onclick="team.setClockOnClick(true)">
+            <div><i class="ti ${this.clockOnClick ? 'ti-circle-dot' : 'ti-circle'}"></i><span>Modo fichaje</span></div>
+            </td>
+          `;
+        };
+
+        team.setClockOnClick = function(value) {
+          if (this.clockOnClick !== value) {
+            this.clockOnClick = value;
+            updateRadioIcons();
+          }
+        };
+
+        const trOption1 = document.createElement('tr');
+        const trOption2 = document.createElement('tr');
+
+        updateRadioIcons();
+        tbody.appendChild(trOption1);
+        tbody.appendChild(trOption2);
+      }
+    } else {
+      // Sort by id ASC
+      data.sort((a, b) => {
+        if (a[1] > b[1]) return 1;
+        if (a[1] < b[1]) return -1;
+        return 0;
+      });
+      data.forEach(record => {
+        const trWorkplace = document.createElement('tr');
+
+        trWorkplace.className = 'team-data';
+        trWorkplace.addEventListener('click', () => { this.showOtherWorkplace(record[1], record[2]); });
+        trWorkplace.innerHTML = `
+          <td>${clockInMark[record[0]]}${record[1]}</td>
+          <td>${record[2]}</td>
+          <td>${record[3]}</td>
+        `;
+        tbody.appendChild(trWorkplace);
+      });
+    }
+    if (this.frame.style.display !== "flex") {
+      this.frame.style.display = "flex";
+    }
+  }
+}
+
 const profile = {
   frame: document.getElementById("profile-frame"),
   deleteButton: document.getElementById("profile-delete"),
@@ -1314,7 +1551,7 @@ const profile = {
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-report', 'Informes']
+      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes']
     ]);
   },
   async show(id) {
@@ -1529,40 +1766,33 @@ document.getElementById("profile-cancel").addEventListener("click", () => {
   menuBack();
 });
 
-const team = {
-  frame: document.getElementById("team-frame"),
-  view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfWorkplaces: 2 },
-  viewIndex: 0,
-  selectedWorkplace: { id: 0, name: null },
-  clockOnClick: null,
+const reports = {
+  frame: document.getElementById("reports-frame"),
+  table: document.getElementById("reports-table"),
+  form: document.getElementById("reports-form"),
 
-  async show() {
-    let url = null;
-
-    switch (this.viewIndex) {
-      case this.view.MyWorkplace:
-        url = '/api/users/workplace';
-        break;
-      case this.view.OtherWorkplace:
-        url = `/api/users/${this.selectedWorkplace.id}/workplace`;
-        break;
-      case this.view.ListOfWorkplaces:
-        url = '/api/workplaces';
-        break;
-    }
-
-    const response = await fetch(url, {
+  setUserbar() {
+    userbar.setContainer('reports-userbar');
+    userbar.setButtons([
+      [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
+      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
+      [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
+      [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
+      [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
+    ]);
+  },
+  async show(id) {
+    const response = await fetch('/api/workplaces', {
       method: 'GET',
       credentials: 'include'
     });
 
-    if (response.status === 200) {
+    if (response.ok) {
       const data = await response.json();
 
-      this.refreshTable(data);
-    } else if (response.status !== 204) {
-      this.viewIndex = this.view.MyWorkplace;
-
+      //this.inserting ? this.add(data) : this.edit(data);
+      this.frame.style.display = "flex";
+    } else {
       const text = await response.text();
 
       throw new Error(text || `HTTP Error ${response.status}`);
@@ -1570,199 +1800,6 @@ const team = {
   },
   hide() {
     this.frame.style.display = "none";
-  },
-  showMyWorkplace() {
-    this.viewIndex = this.view.MyWorkplace;
-    try { this.show(); } catch (error) { showMessage(error.message); }
-   },
-  showOtherWorkplace(id, name) {
-    this.viewIndex = this.view.OtherWorkplace;
-    this.selectedWorkplace.id = id;
-    this.selectedWorkplace.name = name;
-    try { this.show(); } catch (error) { showMessage(error.message); }
-  },
-  showListOfWorkplaces() {
-    this.viewIndex = this.view.ListOfWorkplaces;
-    try { this.show(); } catch (error) { showMessage(error.message); }
-  },
-  async clockIn(user_id) {
-    try {
-      const response = await fetch(`/api/users/${user_id}/clock_in`, {
-        method: 'PATCH',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        await this.show();
-      } else {
-        const text = await response.text();
-
-        showMessage(text || `HTTP ${response.status}`);
-      }
-    } catch (error) {
-      showMessage(error.message || 'No se puede fichar en este momento');
-    }
-  },
-  handleUser(key, name) {
-    if (this.clockOnClick) {
-      confirmMessage(`Fichaje: ${name}`).then((confirmed) => {
-        if (confirmed) this.clockIn(key);
-      });
-    } else {
-       if (key != user.id) {
-        const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
-
-        userbar.setKey(key);
-        userbar.setTitle(`${name} (${workplace})`);
-      }
-      setActiveByKey('item-clocking', key);
-    }
-  },
-  refreshTable(data) {
-    if (this.clockOnClick === null) {
-      this.clockOnClick = user.config.onTablet === true;
-    }
-
-    const tbody = document.querySelector('#team-table tbody');
-
-    tbody.replaceChildren();
-
-    if (user.role === role.ADMIN && !user.config.onTablet) {
-      const trNew = document.createElement('tr');
-
-      trNew.innerHTML = `
-        <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0)">
-        <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
-        </td>
-      `;
-      tbody.appendChild(trNew);
-    }
-    if (this.viewIndex === this.view.MyWorkplace) {
-      if (user.role === role.ADMIN && !user.config.onTablet) {
-        const trSelector = document.createElement('tr');
-
-        trSelector.innerHTML = `
-          <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
-          <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
-          </td>
-        `;
-        tbody.appendChild(trSelector);
-      }
-
-      const trTitle = document.createElement('tr');
-
-      trTitle.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichajes</th>';
-      tbody.appendChild(trTitle);
-    } else if (this.viewIndex === this.view.OtherWorkplace) {
-      const trMyTeam = document.createElement('tr');
-      const trSelector = document.createElement('tr');
-      const trTitle = document.createElement('tr');
-
-      trMyTeam.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
-        <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
-        </td>
-      `;
-      trSelector.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
-        <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
-        </td>
-      `;
-      trTitle.innerHTML = `<th colspan="2">${this.selectedWorkplace.name}</th><th>Fichajes</th>`;
-      tbody.appendChild(trMyTeam);
-      tbody.appendChild(trSelector);
-      tbody.appendChild(trTitle);
-    } else { // this.view.ListOfWorkplaces
-      const trSelector = document.createElement('tr');
-      const trTitle = document.createElement('tr');
-
-      trSelector.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
-        <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
-        </td>
-      `;
-      trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Fichajes</th>';
-      tbody.appendChild(trSelector);
-      tbody.appendChild(trTitle);
-    }
-
-    const clockInMark = user.role === role.BASIC ? ['', ''] : ['⚪ ', '🟠 '];
-
-    if (this.viewIndex !== this.view.ListOfWorkplaces) {
-      // Sort by category ASC then user.name ASC
-      data.sort((a, b) => {
-        if (a[2] > b[2]) return 1;
-        if (a[2] < b[2]) return -1;
-        return a[3] > b[3] ? 1 : a[3] < b[3] ? -1 : 0;
-      });
-      data.forEach(record => {
-        const clockIn = record[4] === null ? '' : shortDateTime(record[4]);
-        const trUser = document.createElement('tr');
-
-        trUser.className = 'team-data';
-        if (user.role === role.BASIC) {
-          trUser.addEventListener('click', () => { setActiveByKey('item-schedule', record[1]); });
-        } else {
-          trUser.addEventListener('click', () => { team.handleUser(record[1], record[3]); });
-        }
-        trUser.innerHTML = `
-          <td>${clockInMark[record[0]]}${record[2]}</td>
-          <td>${record[3]}</td>
-          <td>${clockIn}</td>
-        `;
-        tbody.appendChild(trUser);
-      });
-      if (user.role !== role.BASIC && !user.config.onTablet) {
-        const updateRadioIcons = () => { 
-          trOption1.innerHTML = `
-            <td class="clickable" colspan="3" onclick="team.setClockOnClick(false)">
-            <div><i class="ti ${this.clockOnClick ? 'ti-circle' : 'ti-circle-dot'}"></i><span>Modo normal</span></div>
-            </td>
-          `;
-          trOption2.innerHTML = `
-            <td class="clickable" colspan="3" onclick="team.setClockOnClick(true)">
-            <div><i class="ti ${this.clockOnClick ? 'ti-circle-dot' : 'ti-circle'}"></i><span>Modo fichaje</span></div>
-            </td>
-          `;
-        };
-
-        team.setClockOnClick = function(value) {
-          if (this.clockOnClick !== value) {
-            this.clockOnClick = value;
-            updateRadioIcons();
-          }
-        };
-
-        const trOption1 = document.createElement('tr');
-        const trOption2 = document.createElement('tr');
-
-        updateRadioIcons();
-        tbody.appendChild(trOption1);
-        tbody.appendChild(trOption2);
-      } 
-    } else {
-      // Sort by id ASC
-      data.sort((a, b) => {
-        if (a[1] > b[1]) return 1;
-        if (a[1] < b[1]) return -1;
-        return 0;
-      });
-      data.forEach(record => {
-        const trWorkplace = document.createElement('tr');
-
-        trWorkplace.className = 'team-data';
-        trWorkplace.addEventListener('click', () => { this.showOtherWorkplace(record[1], record[2]); });
-        trWorkplace.innerHTML = `
-          <td>${clockInMark[record[0]]}${record[1]}</td>
-          <td>${record[2]}</td>
-          <td>${record[3]}</td>
-        `;
-        tbody.appendChild(trWorkplace);
-      });
-    }
-    if (this.frame.style.display !== "flex") {
-      this.frame.style.display = "flex";
-    }
   }
 }
 

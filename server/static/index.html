@@ -45,7 +45,7 @@
         <i class="ti ti-world-longitude"></i>
         <span class="menu-text">Equipo</span>
       </div>
-      <div class="menu-item" onclick="setActive(this)" data-item="estadisticas">
+      <div class="menu-item" onclick="setActive(this)" data-item="item-reports">
         <i class="ti ti-report"></i>
         <span class="menu-text">Informes</span>
       </div>
@@ -208,6 +208,37 @@
           </table>
         </div>
       </div>
+      <div class="content-wrapper" id="reports-frame">
+        <div class="content-box">
+          <h2>Informes</h2>
+          <div id="reports-userbar"></div>
+          <form class="content-form" id="reports-form">
+            <div class="separator"></div>
+            <div class="form-2columns">
+              <div class="form-group">
+                <label for="clock_in">Desde fecha</label>
+                <input type="date" name="from_date" required>
+              </div>
+              <div class="form-group">
+                <label for="clock_out">Hasta fecha</label>
+                <input type="date" name="to_date" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="workplace">Centro de trabajo</label>
+              <select name="workplace"></select>
+            </div>
+            <div class="form-3columns">
+              <button type="submit" id="reports-select" class="content-submit">Filtrar</button>
+              <button type="submit" id="reports-export" class="content-button">Exportar</button>
+              <button type="button" id="reports-cancel" class="content-button">Cancelar</button>
+            </div>
+          </form>
+          <table id="reports-table" class="view-table">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
       <div class="content-wrapper" id="profile-frame">
         <div class="content-box">
           <h2>Perfil</h2>
@@ -328,6 +359,9 @@
           case 'item-team':
             team.hide();
             break;
+          case 'item-reports':
+            reports.hide();
+            break;
           case 'item-profile':
             profile.hide();
             break;
@@ -355,6 +389,9 @@
           case 'item-team':
             await team.show();
             lastActiveItem = item;
+            break;
+          case 'item-reports':
+            await reports.show(id === null ? user.id : id);
             break;
           case 'item-profile':
             await profile.show(id === null ? user.id : id);
