@@ -422,13 +422,14 @@ function createMonthYearForm({ container }) {
   formGroup.className = 'form-2columns form-group';
 
   const monthSelect = document.createElement('select');
+  const currentMonth = new Date().getMonth();
   ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     .forEach((month, index) => {
       const option = document.createElement('option');
       option.value = (index + 1).toString().padStart(2, '0');
       option.textContent = month;
-      if (index === new Date().getMonth()) {
+      if (index === currentMonth) {
         option.selected = true;
       }
       monthSelect.appendChild(option);

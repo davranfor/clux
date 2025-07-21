@@ -45,9 +45,9 @@
         <i class="ti ti-world-longitude"></i>
         <span class="menu-text">Equipo</span>
       </div>
-      <div class="menu-item" onclick="setActive(this)" data-item="item-reports">
+      <div class="menu-item" onclick="setActive(this)" data-item="item-report">
         <i class="ti ti-report"></i>
-        <span class="menu-text">Informes</span>
+        <span class="menu-text">Informe</span>
       </div>
       <hr>
       <div class="menu-item" onclick="setActive(this)" data-item="item-profile">
@@ -208,12 +208,16 @@
           </table>
         </div>
       </div>
-      <div class="content-wrapper" id="reports-frame">
+      <div class="content-wrapper" id="report-frame">
         <div class="content-box">
-          <h2>Informes</h2>
-          <div id="reports-userbar"></div>
-          <form class="content-form" id="reports-form">
+          <h2>Informe</h2>
+          <div id="report-userbar"></div>
+          <form class="content-form" id="report-form">
             <div class="separator"></div>
+            <div class="form-group">
+              <label for="workplace">Centro de trabajo</label>
+              <select name="workplace"></select>
+            </div>
             <div class="form-2columns">
               <div class="form-group">
                 <label for="clock_in">Desde fecha</label>
@@ -224,17 +228,12 @@
                 <input type="date" name="to_date" required>
               </div>
             </div>
-            <div class="form-group">
-              <label for="workplace">Centro de trabajo</label>
-              <select name="workplace"></select>
-            </div>
-            <div class="form-3columns">
-              <button type="submit" id="reports-select" class="content-submit">Filtrar</button>
-              <button type="submit" id="reports-export" class="content-button">Exportar</button>
-              <button type="button" id="reports-cancel" class="content-button">Cancelar</button>
+            <div class="form-2columns">
+              <button type="submit" id="report-filter" class="content-submit">Filtrar</button>
+              <button type="submit" id="report-export" class="content-button">Exportar</button>
             </div>
           </form>
-          <table id="reports-table" class="view-table">
+          <table id="report-table" class="view-table">
             <tbody></tbody>
           </table>
         </div>
@@ -359,8 +358,8 @@
           case 'item-team':
             team.hide();
             break;
-          case 'item-reports':
-            reports.hide();
+          case 'item-report':
+            report.hide();
             break;
           case 'item-profile':
             profile.hide();
@@ -390,8 +389,8 @@
             await team.show();
             lastActiveItem = item;
             break;
-          case 'item-reports':
-            await reports.show(id === null ? user.id : id);
+          case 'item-report':
+            await report.show(id === null ? user.id : id);
             break;
           case 'item-profile':
             await profile.show(id === null ? user.id : id);

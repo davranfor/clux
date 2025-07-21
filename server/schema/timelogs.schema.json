@@ -51,6 +51,17 @@
       },
       "additionalProperties": false,
       "required": [ "workplace_id", "workplace_name", "code", "clock_in", "clock_out", "reason" ]
+    },
+    "report": {
+      "type": "object",
+      "properties": {
+        "from_workplace": { "x-mask": "09999" },
+        "to_workplace": { "x-mask": "09999" },
+        "from_date": { "format": "date" },
+        "to_date": { "format": "date" }
+      },
+      "additionalProperties": false,
+      "required": [ "from_workplace", "to_workplace", "from_date", "to_date" ]
     }
   },
   "properties": {
@@ -103,6 +114,14 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /timelogs/{user_id}/holidays", "size": 2, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "report" }], "additionalItems": false },
+            "query": { "$ref": "#/definitions/report" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timelogs/{user_id}/report", "size": 2, "role": 1 }
         }
       ]
     },

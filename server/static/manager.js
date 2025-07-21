@@ -96,7 +96,7 @@ const clocking = {
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -702,7 +702,7 @@ const holidays = {
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -836,7 +836,7 @@ const schedule = {
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -1104,7 +1104,7 @@ const tasks = {
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
-      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes'],
+      [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
@@ -1551,7 +1551,7 @@ const profile = {
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
-      [ () => { setActiveByKey('item-reports', userbar.key); }, 'ti-report', 'Informes']
+      [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe']
     ]);
   },
   async show(id) {
@@ -1766,13 +1766,17 @@ document.getElementById("profile-cancel").addEventListener("click", () => {
   menuBack();
 });
 
-const reports = {
-  frame: document.getElementById("reports-frame"),
-  table: document.getElementById("reports-table"),
-  form: document.getElementById("reports-form"),
+const report = {
+  frame: document.getElementById("report-frame"),
+  table: document.getElementById("report-table"),
+  form: document.getElementById("report-form"),
+  fromDate: document.getElementById("report-form").querySelector('input[name="from_date"]'),
+  toDate: document.getElementById("report-form").querySelector('input[name="to_date"]'),
+  workplace: document.getElementById("report-form").querySelector('select[name="workplace"]'),
+  key: 0,
 
   setUserbar() {
-    userbar.setContainer('reports-userbar');
+    userbar.setContainer('report-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
       [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
@@ -1781,7 +1785,7 @@ const reports = {
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
-  async show(id) {
+  async prepare(user_id) {
     const response = await fetch('/api/workplaces', {
       method: 'GET',
       credentials: 'include'
@@ -1790,16 +1794,109 @@ const reports = {
     if (response.ok) {
       const data = await response.json();
 
-      //this.inserting ? this.add(data) : this.edit(data);
-      this.frame.style.display = "flex";
+      this.key = user_id;
+      this.fillForm(data);
     } else {
       const text = await response.text();
 
       throw new Error(text || `HTTP Error ${response.status}`);
     }
   },
+  async show(user_id) {
+    await this.prepare(user_id);
+    if (this.frame.style.display !== "flex")
+      this.frame.style.display = "flex";
+    if (this.form.style.display !== "flex")
+      this.form.style.display = "flex";
+    if (this.table.style.display !== "none")
+      this.table.style.display = "none";
+    if (user.id !== user_id) {
+      this.setUserbar();
+      userbar.show();
+    } else {
+      userbar.hide();
+    }
+    this.fromDate.focus();
+  },
   hide() {
     this.frame.style.display = "none";
+  },
+  fillForm(data) {
+    this.form.reset();
+
+    const allOption = document.createElement('option');
+
+    allOption.value = 0;
+    allOption.textContent = "Todos los centros";
+    this.workplace.appendChild(allOption);
+    data.forEach(workplace => {
+      const option = document.createElement('option');
+
+      option.value = workplace[0];
+      option.textContent = workplace[1];
+      this.workplace.appendChild(option);
+    });
+
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    firstDay.setHours(12); // Ensure it doesn’t roll back to the previous day in negative time zones
+    this.fromDate.value = firstDay.toISOString().slice(0, 10);
+    this.toDate.value = today.toISOString().slice(0, 10);
+  },
+  async run(exportable, query) {
+    try {
+      const response = await fetch(`/api/timelogs/${this.key}/report?${query}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        exportable ? this.reportExport(data) : this.reportFilter(data);
+      } else {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error.message || 'No se puede mostrar el informe');
+    }
+  },
+  reportFilter(data) {
+    showMessage("Filter");
+  },
+  reportExport(data) {
+    showMessage("Export");
   }
 }
+
+document.getElementById("report-form").addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const from_workplace = Number(report.workplace.value);
+  const to_workplace = from_workplace !== 0 ? from_workplace : 99999;
+  const from_date = report.fromDate.value;
+  const to_date = report.toDate.value;
+  const dt1 = new Date(from_date.replace(' ', 'T'));
+  const dt2 = new Date(to_date.replace(' ', 'T'));
+
+  if (dt1 > dt2) {
+    showMessage("La fecha inicial no puede ser superior a la fecha final").then(() => {
+      report.fromDate.focus();
+    });
+    return;
+  }
+
+  const exportable = e.submitter.id === "report-export";
+  const query = [
+    `from_workplace=${from_workplace}`,
+    `to_workplace=${to_workplace}`,
+    `from_date=${encodeURIComponent(from_date)}`,
+    `to_date=${encodeURIComponent(to_date)}`
+  ].join('&');
+
+  report.run(exportable, query);
+});
 
