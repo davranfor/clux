@@ -295,9 +295,14 @@ header {
   text-align: left;
 }
 
-#clocking-form, #holidays-form {
+#clocking-form, #holidays-form, #report-table {
   display: none; /* flex */
   margin-top: 5px;
+}
+
+#report-table {
+  margin-top: 15px;
+  margin-bottom: 0;
 }
 
 .clickable {

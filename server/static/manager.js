@@ -1770,9 +1770,9 @@ const report = {
   frame: document.getElementById("report-frame"),
   table: document.getElementById("report-table"),
   form: document.getElementById("report-form"),
+  workplace: document.getElementById("report-form").querySelector('select[name="workplace"]'),
   fromDate: document.getElementById("report-form").querySelector('input[name="from_date"]'),
   toDate: document.getElementById("report-form").querySelector('input[name="to_date"]'),
-  workplace: document.getElementById("report-form").querySelector('select[name="workplace"]'),
   key: 0,
 
   setUserbar() {
@@ -1865,7 +1865,41 @@ const report = {
     }
   },
   reportFilter(data) {
-    showMessage("Filter");
+    const tbody = document.querySelector('#report-table tbody');
+
+    tbody.replaceChildren();
+    data.sort((a, b) => {
+      if (a[0] > b[0]) return 1;
+      if (a[0] < b[0]) return -1;
+      return a[2] > b[2] ? 1 : a[2] < b[2] ? -1 : 0;
+    });
+
+    let workplace = 0;
+
+    data.forEach(record => {
+      if (record[0] !== workplace) {
+        const trHead = document.createElement('tr');
+        const option = this.workplace.querySelector(`option[value="${record[0]}"]`);
+
+        trHead.innerHTML = `<th colspan="4">${option.textContent}</th>`;
+        tbody.appendChild(trHead);
+        workplace = record[0];
+      }
+
+      const dt1 = new Date(record[2].replace(' ', 'T'));
+      const dt2 = new Date(record[3].replace(' ', 'T'));
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${longDate(record[2])}</td>
+        <td>${shortTime(record[2])}</td>
+        <td>${shortTime(record[3])}</td>
+        <td>${timeDiff(dt2, dt1)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    if (this.table.style.display !== "table")
+      this.table.style.display = "table";
   },
   reportExport(data) {
     showMessage("Export");
@@ -1893,8 +1927,8 @@ document.getElementById("report-form").addEventListener('submit', (e) => {
   const query = [
     `from_workplace=${from_workplace}`,
     `to_workplace=${to_workplace}`,
-    `from_date=${encodeURIComponent(from_date)}`,
-    `to_date=${encodeURIComponent(to_date)}`
+    `from_date=${from_date}`,
+    `to_date=${to_date}`
   ].join('&');
 
   report.run(exportable, query);
