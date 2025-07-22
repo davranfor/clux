@@ -576,7 +576,7 @@ static const buffer_t *process(int header)
     }
     else
     {
-        strings[0] = '\0';
+        snprintf(strings, sizeof strings, "%s", type);
     }
     if (header != HTTP_NO_CONTENT)
     {
