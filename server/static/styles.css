@@ -295,7 +295,7 @@ header {
   text-align: left;
 }
 
-#clocking-form, #holidays-form, #report-table {
+#clocking-form, #absences-form, #report-table {
   display: none; /* flex */
   margin-top: 5px;
 }

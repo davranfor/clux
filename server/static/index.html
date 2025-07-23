@@ -30,9 +30,9 @@
         <i class="ti ti-clock"></i>
         <span class="menu-text">Fichajes</span>
       </div>
-      <div class="menu-item" onclick="setActive(this)" data-item="item-holidays">
-        <i class="ti ti-sun"></i>
-        <span class="menu-text">Vacaciones</span>
+      <div class="menu-item" onclick="setActive(this)" data-item="item-absences">
+        <i class="ti ti-ghost"></i>
+        <span class="menu-text">Ausencias</span>
       </div>
       <hr>
       <div class="menu-item" onclick="setActive(this)" data-item="item-schedule">
@@ -113,8 +113,10 @@
               <label for="code">Tipo de fichaje</label>
               <select name="code" required>
                 <option value="0">Fichaje normal</option>
-                <option value="1">Ausencia justificada</option>
-                <option value="2">Ausencia no justificada</option>
+                <option value="1">Permiso</option>
+                <option value="2">Ausente</option>
+                <option value="3">Indisposición</option>
+                <option value="4">Horas extra</option>
               </select>
             </div>
             <div class="form-3columns">
@@ -148,7 +150,7 @@
               <button type="button" id="clocking-cancel" class="content-button">Cancelar</button>
             </div>
           </form>
-          <form class="content-form" id="holidays-form" autocomplete="off">
+          <form class="content-form" id="absences-form" autocomplete="off">
             <div class="separator"></div>
             <input type="hidden" name="id" required>
             <div class="form-group">
@@ -156,6 +158,14 @@
               <select name="workplace"></select>
             </div>
             <input type="hidden" name="user" required>
+            <div class="form-group">
+              <label for="code">Tipo de ausencia</label>
+              <select name="code" required>
+                <option value="">Selecciona una opción</option>
+                <option value="5">Vacaciones</option>
+                <option value="6">Baja laboral</option>
+              </select>
+            </div>
             <div class="form-2columns">
               <div class="form-group">
                 <label for="clock_in">Fecha inicio</label>
@@ -166,13 +176,13 @@
                 <input type="date" name="clock_out" required>
               </div>
             </div>
-            <div id="holidays-reason" class="form-group">
+            <div id="absences-reason" class="form-group">
               <label for="reason">Comentario</label>
               <input name="reason" maxLength="100" required>
             </div>
             <div class="form-2columns">
-              <button type="submit" id="holidays-submit" class="content-submit">Solicitar</button>
-              <button type="button" id="holidays-cancel" class="content-button">Cancelar</button>
+              <button type="submit" id="absences-submit" class="content-submit">Solicitar</button>
+              <button type="button" id="absences-cancel" class="content-button">Cancelar</button>
             </div>
           </form>
         </div>
@@ -326,9 +336,11 @@
     const userTitle = document.getElementById("user-title");
     const userButton = document.getElementById("user-button");
 
+    const trackingType = { BY_HOUR: 0, BY_DAY: 1 };
     const trackingCode = {
-      id: { NORMAL: 0, ABSENCE_JUSTIFIED: 1, ABSENCE_NOT_JUSTIFIED: 2, HOLIDAYS: 3 },
-      name: [ "Fichaje normal", "Ausencia justificada", "Ausencia no justificada", "Vacaciones" ]
+      id: { NORMAL: 0, JUSTIFIED: 1, NOT_JUSTIFIED: 2, UNWELL: 3, OVERTIME: 4, ABSENCES: 5, HOLIDAYS: 5, SICK_LEAVE: 6 },
+      name: [ "Fichaje normal", "Permiso", "Ausente", "Indisposición", "Horas extra",
+              "Vacaciones", "Baja laboral" ]
     };
 
     let onMobile = false;
@@ -349,7 +361,7 @@
           case 'item-clocking':
             clocking.hide();
             break;
-          case 'item-holidays':
+          case 'item-absences':
             clocking.hide();
             break;
           case 'item-schedule':
@@ -373,12 +385,12 @@
       try {
         switch (item.dataset.item) {
           case 'item-clocking':
-            clocking.trackingCode = trackingCode.id.NORMAL;
+            clocking.trackingType = trackingType.BY_HOUR;
             await clocking.show(id === null ? user.id : id);
             if (id === null) lastActiveItem = item;
             break;
-          case 'item-holidays':
-            clocking.trackingCode = trackingCode.id.HOLIDAYS;
+          case 'item-absences':
+            clocking.trackingType = trackingType.BY_DAY;
             await clocking.show(id === null ? user.id : id);
             if (id === null) lastActiveItem = item;
             break;
@@ -462,11 +474,11 @@
         document.getElementById("tasks-buttons").style.display = "none";
       } else {
         clocking.reason.required = false;
-        holidays.reason.required = false;
+        absences.reason.required = false;
         document.getElementById("clocking-submit").textContent = "Guardar";
         document.getElementById("clocking-reason").style.display = "none";
-        document.getElementById("holidays-submit").textContent = "Guardar";
-        document.getElementById("holidays-reason").style.display = "none";
+        document.getElementById("absences-submit").textContent = "Guardar";
+        document.getElementById("absences-reason").style.display = "none";
       }
     }
 

@@ -93,7 +93,7 @@ const clocking = {
   setUserbar() {
     userbar.setContainer('clocking-userbar');
     userbar.setButtons([
-      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
@@ -101,7 +101,7 @@ const clocking = {
     ]);
   },
 
-  trackingCode: trackingCode.id.NORMAL,
+  trackingType: trackingType.BY_HOUR,
 
   // Table
   header: document.getElementById("clocking-header"),
@@ -109,9 +109,9 @@ const clocking = {
   table: document.getElementById("clocking-table"),
 
   async refresh(user_id) {
-    const url = this.trackingCode === trackingCode.id.NORMAL
-      ? `/api/timelogs/${user_id}/week`
-      : `/api/timelogs/${user_id}/holidays`;
+    const url = this.trackingType === trackingType.BY_HOUR
+      ? `/api/timelogs/${user_id}/clocking`
+      : `/api/timelogs/${user_id}/absences`;
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'include'
@@ -130,22 +130,22 @@ const clocking = {
   },
   async show(user_id) {
     await this.refresh(user_id);
-    this.header.textContent = this.trackingCode === trackingCode.id.NORMAL
+    this.header.textContent = this.trackingType === trackingType.BY_HOUR
       ? "Fichajes"
-      : "Vacaciones";
+      : "Ausencias";
     if (this.frame.style.display !== "flex")
       this.frame.style.display = "flex";
     if (this.form.style.display !== "none")
       this.form.style.display = "none";
-    if (holidays.form.style.display !== "none")
-      holidays.form.style.display = "none";
+    if (absences.form.style.display !== "none")
+      absences.form.style.display = "none";
     if (this.table.style.display !== "table")
       this.table.style.display = "table";
     if (this.key === userbar.key) {
-      if (this.trackingCode === trackingCode.id.NORMAL)
+      if (this.trackingType === trackingType.BY_HOUR)
         this.setUserbar();
       else
-        holidays.setUserbar();
+        absences.setUserbar();
       userbar.show();
     } else {
       userbar.hide();
@@ -174,7 +174,7 @@ const clocking = {
         <div><i class="ti ti-checklist"></i><span>Mis tareas</span></div>
         </td>
       `;
-      if (this.trackingCode !== trackingCode.id.NORMAL) {
+      if (this.trackingType !== trackingType.BY_HOUR) {
         trClocking.innerHTML = `
           <td class="clickable" colspan="4" onclick="setActiveByKey('item-clocking')">
           <div><i class="ti ti-clock"></i><span>Mis fichajes</span></div>
@@ -182,8 +182,8 @@ const clocking = {
         `;
       } else {
         trClocking.innerHTML = `
-          <td class="clickable" colspan="4" onclick="setActiveByKey('item-holidays')">
-          <div><i class="ti ti-sun"></i><span>Mis vacaciones</span></div>
+          <td class="clickable" colspan="4" onclick="setActiveByKey('item-absences')">
+          <div><i class="ti ti-ghost"></i><span>Mis Ausencias</span></div>
           </td>
         `;
       }
@@ -194,7 +194,7 @@ const clocking = {
 
     const trNew = document.createElement('tr');
 
-    if (this.trackingCode === trackingCode.id.NORMAL)
+    if (this.trackingType === trackingType.BY_HOUR)
       trNew.innerHTML = `
         <td class="clickable" colspan="4" onclick="clocking.add(${this.key})">
         <div><i class="ti ti-clock"></i><span>Nuevo fichaje</span></div>
@@ -203,7 +203,7 @@ const clocking = {
     else
       trNew.innerHTML = `
         <td class="clickable" colspan="4" onclick="clocking.add(${this.key})">
-        <div><i class="ti ti-sun"></i><span>Nuevo registro</span></div>
+        <div><i class="ti ti-ghost"></i><span>Nuevo registro</span></div>
         </td>
       `;
     tbody.appendChild(trNew);
@@ -243,7 +243,9 @@ const clocking = {
       }
       tbody.appendChild(trWorkplace);
 
-      if (this.trackingCode === trackingCode.id.NORMAL && record[2] !== trackingCode.id.NORMAL) {
+      if (this.trackingType === trackingType.BY_HOUR &&
+          record[2] !== trackingCode.id.NORMAL &&
+          record[2] < trackingCode.id.ABSENCES) {
         const trCode = document.createElement('tr');
 
         trCode.innerHTML = `<td class="taRight" colspan="4">Clasificación: ${trackingCode.name[record[2]]}</td>`;
@@ -252,7 +254,7 @@ const clocking = {
 
       const trData = document.createElement('tr');
 
-      if (record[2] !== trackingCode.id.HOLIDAYS)
+      if (record[2] < trackingCode.id.ABSENCES)
         trData.innerHTML = `
           <td>${longDate(record[3])}</td>
           <td>${shortTime(record[3])}</td>
@@ -261,7 +263,8 @@ const clocking = {
         `;
       else
         trData.innerHTML = `
-          <td colspan="3" class="taLeft">Desde ${longDate(record[3])} hasta ${longDate(record[4])}</td>
+          <td>${trackingCode.name[record[2]]}</td>
+          <td colspan="2" class="taLeft">Desde ${longDate(record[3])} hasta ${longDate(record[4])}</td>
           <td>${daysDiff(dt2, dt1) + 1}d</td>
         `;
 
@@ -282,7 +285,7 @@ const clocking = {
         const trDataModified = document.createElement('tr');
 
         trModified.innerHTML = `<td class="taLeft" colspan="4">Modificado, ${request.workplace_name}</td>`;
-        if (record[2] !== trackingCode.id.HOLIDAYS)
+        if (record[2] < trackingCode.id.ABSENCES)
           trDataModified.innerHTML = `
             <td>${longDate(request.clock_in)}</td>
             <td>${shortTime(request.clock_in)}</td>
@@ -309,7 +312,7 @@ const clocking = {
         requests++;
       }
     });
-    if (requests > 1 && this.trackingCode === trackingCode.id.NORMAL) {
+    if (requests > 1 && this.trackingType === trackingType.BY_HOUR) {
         const trApproveAll = document.createElement('tr');
 
         trApproveAll.innerHTML = `
@@ -319,7 +322,7 @@ const clocking = {
         `;
         tbody.appendChild(trApproveAll);
     }
-    if (this.trackingCode === trackingCode.id.NORMAL) {
+    if (this.trackingType === trackingType.BY_HOUR) {
       const trMore = document.createElement('tr');
 
       trMore.innerHTML = `
@@ -357,7 +360,7 @@ const clocking = {
       if (response.status === 200) {
         const data = await response.json();
 
-        this.trackingCode === trackingCode.id.NORMAL ? this.showForm(data) : holidays.showForm(data);
+        this.trackingType === trackingType.BY_HOUR ? this.showForm(data) : absences.showForm(data);
       } else if (response.status === 204) {
         showMessage('No se puede crear el registro');
       } else {
@@ -379,7 +382,7 @@ const clocking = {
       if (response.status === 200) {
         const data = await response.json();
 
-        data.code === trackingCode.id.NORMAL ? this.showForm(data) : holidays.showForm(data);
+        data.code < trackingCode.id.ABSENCES ? this.showForm(data) : absences.showForm(data);
       } else if (response.status === 204) {
         showMessage('El registro ya no existe');
       } else {
@@ -420,18 +423,14 @@ const clocking = {
       this.workplace.appendChild(option);
     });
     this.workplace.value = data.workplace_id;
-
     this.user.value = data.user_id;
-
     this.code.value = data.code;
 
     let date, time;
     [date, time] = pairDateTime(data.clock_in);
     this.clockIn.date.value = date;
     this.clockIn.time.value = time;
-
     this.clockOut.time.value = shortTime(data.clock_out);
-
     this.reason.value = "";
 
     this.hash = formHash(this.form);
@@ -694,7 +693,7 @@ document.getElementById("clocking-cancel").addEventListener("click", () => {
   try { clocking.show(clocking.key); } catch (error) { showMessage(error.message); }
 });
 
-const holidays = {
+const absences = {
   // Userbar
   setUserbar() {
     userbar.setContainer('clocking-userbar');
@@ -706,17 +705,18 @@ const holidays = {
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
     ]);
   },
-  form: document.getElementById("holidays-form"),
-  id: document.getElementById("holidays-form").querySelector('input[name="id"]'),
-  workplace: document.getElementById("holidays-form").querySelector('select[name="workplace"]'),
-  user: document.getElementById("holidays-form").querySelector('input[name="user"]'),
-  clockIn: document.getElementById("holidays-form").querySelector('input[name="clock_in"]'),
-  clockOut: document.getElementById("holidays-form").querySelector('input[name="clock_out"]'),
-  reason: document.getElementById("holidays-form").querySelector('input[name="reason"]'),
+  form: document.getElementById("absences-form"),
+  id: document.getElementById("absences-form").querySelector('input[name="id"]'),
+  workplace: document.getElementById("absences-form").querySelector('select[name="workplace"]'),
+  user: document.getElementById("absences-form").querySelector('input[name="user"]'),
+  code: document.getElementById("absences-form").querySelector('select[name="code"]'),
+  clockIn: document.getElementById("absences-form").querySelector('input[name="clock_in"]'),
+  clockOut: document.getElementById("absences-form").querySelector('input[name="clock_out"]'),
+  reason: document.getElementById("absences-form").querySelector('input[name="reason"]'),
   hash: 0,
 
   showForm(data) {
-    clocking.header.textContent = "Vacaciones"; 
+    clocking.header.textContent = "Ausencias";
     if (data.id === 0 || user.role === role.BASIC) {
       if (clocking.table.style.display !== "none")
         clocking.table.style.display = "none";
@@ -734,7 +734,6 @@ const holidays = {
     }
 
     this.id.value = data.id;
-
     this.workplace.replaceChildren();
     data.workplaces.forEach(workplace => {
       const option = document.createElement('option');
@@ -744,24 +743,27 @@ const holidays = {
       this.workplace.appendChild(option);
     });
     this.workplace.value = data.workplace_id;
-
     this.user.value = data.user_id;
-
+    this.code.value = data.code > 0 ? data.code : "";
     this.clockIn.value = data.clock_in.split(" ")[0];
-
     this.clockOut.value = data.clock_out.split(" ")[0];
-
-    this.reason.value = "Solicitud de vacaciones";
+    this.reason.value = "Solicito confirmación";
 
     if (data.id !== 0) this.hash = formHash(this.form);
 
     if (this.form.style.display !== "flex")
       this.form.style.display = "flex";
-    this.clockIn.focus();
+    if (data.id !== 0 && user.role === role.BASIC) {
+      this.code.disabled = true;
+      this.clockIn.focus();
+    } else {
+      this.code.disabled = false;
+      this.code.focus();
+    }
   }
 }
 
-document.querySelectorAll('#holidays-form input').forEach(element => {
+document.querySelectorAll('#absences-form input').forEach(element => {
   element.addEventListener('blur', function() {
     this.value = this.value.trim();
   });
@@ -772,57 +774,57 @@ document.querySelectorAll('#holidays-form input').forEach(element => {
   });
 });
 
-document.getElementById("holidays-form").addEventListener('submit', (e) => {
+document.getElementById("absences-form").addEventListener('submit', (e) => {
   e.preventDefault();
 
-  if (holidays.id.value != 0) {
-    const hash = formHash(holidays.form);
+  if (absences.id.value != 0) {
+    const hash = formHash(absences.form);
 
-    if (holidays.hash === hash) {
+    if (absences.hash === hash) {
       showMessage("No se ha realizado ningún cambio en el registro").then(() => {
-        holidays.clockIn.focus();
+        absences.clockIn.focus();
       });
       return;
     }
   }
 
-  const workplace_id = Number(holidays.workplace.value);
-  const user_id = Number(holidays.user.value);
-  const code = trackingCode.id.HOLIDAYS;
-  const clock_in = `${holidays.clockIn.value} 00:00:00`;
-  const clock_out = `${holidays.clockOut.value} 23:59:00`;
+  const workplace_id = Number(absences.workplace.value);
+  const user_id = Number(absences.user.value);
+  const code = Number(absences.code.value);
+  const clock_in = `${absences.clockIn.value} 00:00:00`;
+  const clock_out = `${absences.clockOut.value} 23:59:00`;
   const dt1 = new Date(clock_in.replace(' ', 'T'));
   const dt2 = new Date(clock_out.replace(' ', 'T'));
 
   if (dt1 > dt2) {
     showMessage("La fecha de inicio no puede ser superior a la fecha final").then(() => {
-      holidays.clockIn.focus();
+      absences.clockIn.focus();
     });
     return;
   }
   if (user.role === role.BASIC) {
-    const reason = holidays.reason.value;
+    const reason = absences.reason.value;
 
-    if (holidays.id.value == 0) {
+    if (absences.id.value == 0) {
       clocking.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out, reason }));
     } else {
-      const workplace_name = holidays.workplace.options[holidays.workplace.selectedIndex].text;
+      const workplace_name = absences.workplace.options[absences.workplace.selectedIndex].text;
 
       clocking.requestUpdate(
-        holidays.id.value,
+        absences.id.value,
         JSON.stringify({ workplace_id, workplace_name, code, clock_in, clock_out, reason })
       );
     }
   } else {
-    if (holidays.id.value == 0) {
+    if (absences.id.value == 0) {
       clocking.insert(JSON.stringify({ workplace_id, user_id, code, clock_in, clock_out }));
     } else {
-      clocking.update(holidays.id.value, JSON.stringify({ workplace_id, code, clock_in, clock_out }));
+      clocking.update(absences.id.value, JSON.stringify({ workplace_id, code, clock_in, clock_out }));
     }
   }
 });
 
-document.getElementById("holidays-cancel").addEventListener("click", () => {
+document.getElementById("absences-cancel").addEventListener("click", () => {
   try { clocking.show(clocking.key); } catch (error) { showMessage(error.message); }
 });
 
@@ -834,7 +836,7 @@ const schedule = {
     userbar.setContainer('schedule-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
@@ -1102,7 +1104,7 @@ const tasks = {
     userbar.setContainer('tasks-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
@@ -1548,7 +1550,7 @@ const profile = {
     userbar.setContainer('profile-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-report', userbar.key); }, 'ti-report', 'Informe']
@@ -1779,7 +1781,7 @@ const report = {
     userbar.setContainer('report-userbar');
     userbar.setButtons([
       [ () => { setActiveByKey('item-clocking', userbar.key); }, 'ti-clock', 'Fichajes'],
-      [ () => { setActiveByKey('item-holidays', userbar.key); }, 'ti-sun', 'Vacaciones'],
+      [ () => { setActiveByKey('item-absences', userbar.key); }, 'ti-ghost', 'Ausencias'],
       [ () => { setActiveByKey('item-schedule', userbar.key); }, 'ti-calendar-time', 'Horarios'],
       [ () => { setActiveByKey('item-tasks', userbar.key); }, 'ti-checklist', 'Tareas'],
       [ () => { setActiveByKey('item-profile', userbar.key); }, 'ti-user', 'Perfil']
@@ -1840,9 +1842,8 @@ const report = {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    firstDay.setHours(12); // Ensure it doesn’t roll back to the previous day in negative time zones
-    this.fromDate.value = firstDay.toISOString().slice(0, 10);
-    this.toDate.value = today.toISOString().slice(0, 10);
+    this.fromDate.value = formatISODate(firstDay);
+    this.toDate.value = formatISODate(today);
   },
   async run(exportable, query) {
     try {
@@ -1881,7 +1882,7 @@ const report = {
         const trHead = document.createElement('tr');
         const option = this.workplace.querySelector(`option[value="${record[0]}"]`);
 
-        trHead.innerHTML = `<th colspan="4">${option.textContent}</th>`;
+        trHead.innerHTML = `<th colspan="5">${option.textContent}</th>`;
         tbody.appendChild(trHead);
         workplace = record[0];
       }
@@ -1890,12 +1891,20 @@ const report = {
       const dt2 = new Date(record[3].replace(' ', 'T'));
       const tr = document.createElement('tr');
 
-      tr.innerHTML = `
-        <td>${longDate(record[2])}</td>
-        <td>${shortTime(record[2])}</td>
-        <td>${shortTime(record[3])}</td>
-        <td>${timeDiff(dt2, dt1)}</td>
-      `;
+      if (record[1] < trackingCode.id.ABSENCES)
+        tr.innerHTML = `
+          <td>${trackingCode.name[record[1]]}</td>
+          <td>${longDate(record[2])}</td>
+          <td>${shortTime(record[2])}</td>
+          <td>${shortTime(record[3])}</td>
+          <td>${timeDiff(dt2, dt1)}</td>
+        `;
+      else
+        tr.innerHTML = `
+          <td>${trackingCode.name[record[1]]}</td>
+          <td colspan="3">Desde ${longDate(record[2])} hasta ${longDate(record[3])}</td>
+          <td>${daysDiff(dt2, dt1) + 1}d</td>
+        `;
       tbody.appendChild(tr);
     });
     if (this.table.style.display !== "table")

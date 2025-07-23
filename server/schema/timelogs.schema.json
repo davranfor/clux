@@ -93,11 +93,19 @@
         },
         {
           "properties": {
-            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "week" }], "additionalItems": false },
+            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "clocking" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{user_id}/week", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id}/clocking", "size": 2, "role": 1 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "absences" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /timelogs/{user_id}/absences", "size": 2, "role": 1 }
         },
         {
           "properties": {
@@ -106,14 +114,6 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /timelogs/{user_id}/{year}/{month}/month", "size": 4, "role": 1 }
-        },
-        {
-          "properties": {
-            "path": { "items": [{}, {"x-mask": "09999"}, { "const": "holidays" }], "additionalItems": false },
-            "query": { "type": "null" },
-            "content": { "type": "null" }
-          },
-          "x-notify": { "path": "GET /timelogs/{user_id}/holidays", "size": 2, "role": 1 }
         },
         {
           "properties": {
