@@ -54,7 +54,7 @@ void loader_load(void)
     {
         exit(EXIT_FAILURE);
     }
-    writer_load("data/api.json", "data/api.db");
+    writer_load("data/api.json", "data/clux.db");
 }
 
 void loader_reload(void)
@@ -65,6 +65,6 @@ void loader_reload(void)
     {
         exit(EXIT_FAILURE);
     }
-    writer_reload("data/api.json", "data/api.db");
+    writer_reload("data/api.json", "data/clux.db");
 }
 
