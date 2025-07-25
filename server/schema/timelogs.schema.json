@@ -89,7 +89,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{user_id}/empty", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id} #empty", "role": 1 }
         },
         {
           "properties": {
@@ -97,7 +97,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{user_id}/clocking", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id} #clocking", "role": 1 }
         },
         {
           "properties": {
@@ -105,7 +105,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{user_id}/absences", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id} #absences", "role": 1 }
         },
         {
           "properties": {
@@ -113,7 +113,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{user_id}/{year}/{month}/month", "size": 4, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id}/{year}/{month} #month", "role": 1 }
         },
         {
           "properties": {
@@ -121,7 +121,7 @@
             "query": { "$ref": "#/definitions/report" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /timelogs/{user_id}/report", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /timelogs/{user_id} #report", "role": 1 }
         }
       ]
     },
@@ -170,7 +170,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "PUT /timelogs/{id}/approve", "size": 2, "role": 2 }
+          "x-notify": { "path": "PUT /timelogs/{id} #approve", "role": 2 }
         },
         "then": true,
         "else": {
@@ -180,7 +180,7 @@
               "query": { "type": "null" },
               "content": { "type": "null" }
             },
-            "x-notify": { "path": "PUT /timelogs/{user_id}/approve_all", "size": 2, "role": 2 }
+            "x-notify": { "path": "PUT /timelogs/{user_id} #approve_all", "role": 2 }
           },
           "then": true,
           "else": false
@@ -194,7 +194,7 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /timelogs/{id}/request content:none", "size": 2, "role": 1 }
+        "x-notify": { "path": "PATCH /timelogs/{id} #request content:none", "role": 1 }
       },
       "then": true,
       "else": {
@@ -203,7 +203,7 @@
             "path": { "items": [{}, {"x-mask": "0999999"}, { "const": "request" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /timelogs/{id}/request", "size": 2, "role": 1 }
+          "x-notify": { "path": "PATCH /timelogs/{id} #request", "role": 1 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/request.update" } }

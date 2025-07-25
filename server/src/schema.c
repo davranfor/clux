@@ -114,21 +114,26 @@ static int set_path(const json_event_t *event, context_t *context)
 
     node->child[0]->string = path->string;
 
-    const json_t *size = json_find(event->rule, "size");
+    // Size of path is the number of slashes '/' present in the string
+    const char *ptr = path->string;
+    unsigned size = 0;
 
-    if (size == NULL)
+    while (*ptr != '\0')
     {
-        return 1;
+        if (*ptr == '/')
+        {
+            size++;
+        }
+        ptr++;
     }
-    if ((size->type != JSON_INTEGER) ||
-        (size->number < 1) || (size->number > node->size))
+    if ((size < 1) || (size > node->size))
     {
-        fprintf(stderr, "x-notify: 'size' wants an integer >0 <=%u\n", node->size);
+        fprintf(stderr, "x-notify: 'size' must be an integer > 0 and <= %u\n", node->size);
         buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
         context->result = HTTP_SERVER_ERROR;
         return 0;
     }
-    node->size = (unsigned)size->number;
+    node->size = size;
     return 1;
 }
 

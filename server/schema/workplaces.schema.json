@@ -27,7 +27,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /workplaces/team", "size": 1, "role": 3 }
+          "x-notify": { "path": "GET /workplaces #team", "role": 3 }
         }
       ]
     },
@@ -37,7 +37,7 @@
           "path": { "items": [{}, { "const": "clock_in" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /workplaces/clock_in", "size": 1, "role": 3 }
+        "x-notify": { "path": "PATCH /workplaces #clock_in", "role": 3 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/clock_in" } }

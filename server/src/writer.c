@@ -398,17 +398,17 @@ static int action_handle(const json_t *path)
 
     if (action != NULL)
     {
-        if (!strcmp(action, "backup"))
+        if (!strcmp(action, "/backup"))
         {
             db_backup();
             return 1;
         }
-        if (!strcmp(action, "reload"))
+        if (!strcmp(action, "/reload"))
         {
             loader_reload();
             return 1;
         }
-        if (!strcmp(action, "stop"))
+        if (!strcmp(action, "/stop"))
         {
             exit(EXIT_SUCCESS);
         }

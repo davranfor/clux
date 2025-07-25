@@ -67,7 +67,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/0", "size": 1, "role": 3 }
+          "x-notify": { "path": "GET /users #0", "role": 3 }
         },
         {
           "properties": {
@@ -83,7 +83,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id}/schedule", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /users/{id} #schedule", "role": 1 }
         },
         {
           "properties": {
@@ -91,7 +91,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id}/tasks", "size": 2, "role": 1 }
+          "x-notify": { "path": "GET /users/{id} #tasks", "role": 1 }
         },
         {
           "properties": {
@@ -99,7 +99,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/workplace", "size": 1, "role": 1 }
+          "x-notify": { "path": "GET /users #workplace", "role": 1 }
         },
         {
           "properties": {
@@ -107,7 +107,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{workplace_id}/workplace", "size": 2, "role": 3 }
+          "x-notify": { "path": "GET /users/{workplace_id} #workplace", "role": 3 }
         }
       ]
     },
@@ -159,7 +159,7 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /users/{id}/clock_in", "size": 2, "role": 1 }
+        "x-notify": { "path": "PATCH /users/{id} #clock_in", "role": 1 }
       },
       "then": true,
       "else": {
@@ -168,7 +168,7 @@
             "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /users/{id}/schedule", "size": 2, "role": 2 }
+          "x-notify": { "path": "PATCH /users/{id} #schedule", "role": 2 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
@@ -179,7 +179,7 @@
               "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
               "query": { "type": "null" }
             },
-            "x-notify": { "path": "PATCH /users/{id}/tasks", "size": 2, "role": 2 }
+            "x-notify": { "path": "PATCH /users/{id} #tasks", "role": 2 }
           },
           "then": {
             "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
