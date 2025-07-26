@@ -15,6 +15,7 @@ char *string_format(const char *, ...) __attribute__ ((format (printf, 1, 2)));
 char *string_vprint(const char *, va_list);
 char *string_search(const char *, size_t, const char *, size_t);
 size_t string_length(const char *);
+size_t string_count(const char *, char);
 
 #endif
 

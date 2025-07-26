@@ -104,3 +104,18 @@ size_t string_length(const char *str)
     return length;
 }
 
+/* Returns the number of characters matching 'chr' in a string */
+size_t string_count(const char *str, char chr)
+{
+    size_t count = 0;
+
+    for (; *str != '\0'; str++)
+    {
+        if (*str == chr)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
