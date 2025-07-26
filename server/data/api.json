@@ -17,7 +17,7 @@
     "CREATE TRIGGER IF NOT EXISTS trigger_users_clock_in AFTER UPDATE OF clock_in ON users FOR EACH ROW WHEN (NEW.clock_in IS NULL AND datetime('now', 'localtime') > datetime(OLD.clock_in, '+59 seconds')) BEGIN INSERT INTO timelogs (workplace_id, user_id, clock_in, clock_out) VALUES (NEW.workplace_id, NEW.id, strftime('%Y-%m-%d %H:%M:00', OLD.clock_in, '+30 seconds'), strftime('%Y-%m-%d %H:%M:00', datetime('now', 'localtime'), '+30 seconds')); END;"
   ],
   "session": {
-    "verify": "SELECT workplace_id FROM users WHERE id = ? AND role = ? AND token = ?;"
+    "verify": "SELECT 1 FROM users WHERE id = ? AND role = ? AND token = ?;"
   },
   "queries": {
     "GET /auth": "SELECT json_array(id, role, name, config, clock_in, strftime('%s', datetime('now', 'localtime')) - strftime('%s', clock_in)) FROM users WHERE id = session_id();",
@@ -30,7 +30,7 @@
     "GET /users/{id}": "SELECT json_object('id', u.id, 'workplace_id', u.workplace_id, 'category_id', u.category_id, 'role', u.role, 'hire_start', hire_start, 'hire_end', hire_end, 'name', u.name, 'tin', u.tin, 'address', u.address, 'phone', u.phone, 'email', u.email, 'workplaces', (SELECT json_group_array(json_array(w.id, w.name)) FROM workplaces w), 'categories', (SELECT json_group_array(json_array(c.id, c.name)) FROM categories c)) FROM users u WHERE u.id = $1;",
     "GET /users/{id} #schedule": "SELECT json_object('today', date('now', 'localtime'), 'name', u.name, 'schedule', u.schedule, 'workplace_id', u.workplace_id, 'workplaces', (SELECT json_group_array(json_array(w.id, w.name)) FROM workplaces w)) FROM users u WHERE u.id = $1;",
     "GET /users/{id} #tasks": "SELECT json_object('today', date('now', 'localtime'), 'name', name, 'tasks', tasks) FROM users WHERE id = $1;",
-    "GET /users #workplace": "SELECT json_group_array(json_array(EXISTS(SELECT 1 FROM timelogs WHERE user_id = u.id AND request IS NOT NULL), u.id, c.name,  u.name, u.clock_in)) FROM users u JOIN categories c ON u.category_id = c.id WHERE u.workplace_id = workplace_id();",
+    "GET /users #workplace": "WITH session_workplace AS (SELECT workplace_id FROM users WHERE id = session_id()) SELECT json_group_array(json_array(EXISTS(SELECT 1 FROM timelogs WHERE user_id = u.id AND request IS NOT NULL), u.id, c.name,  u.name, u.clock_in)) FROM users u JOIN categories c ON u.category_id = c.id WHERE u.workplace_id = (SELECT workplace_id FROM session_workplace);",
     "GET /users/{workplace_id} #workplace": "SELECT json_group_array(json_array(EXISTS(SELECT 1 FROM timelogs WHERE user_id = u.id AND request IS NOT NULL), u.id, c.name, u.name, u.clock_in)) FROM users u JOIN categories c ON u.category_id = c.id WHERE u.workplace_id = $1;",
     "POST /users/{id}": "INSERT INTO users (id, workplace_id, category_id, role, hire_start, hire_end, name, tin, address, phone, email) VALUES ($1, :workplace_id, :category_id, :role, :hire_start, :hire_end, :name, :tin, :address, :phone, :email) RETURNING 1;",
     "PUT /users/{id}": "UPDATE users SET name = :name, tin = :tin, address = :address, phone = :phone, email = :email WHERE id = $1 RETURNING 1;",
