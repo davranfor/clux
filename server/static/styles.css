@@ -295,7 +295,7 @@ header {
   text-align: left;
 }
 
-#clocking-form, #absences-form, #report-table {
+#clocking-form, #absences-form {
   display: none; /* flex */
   margin-top: 5px;
 }
@@ -384,8 +384,8 @@ header {
 }
 
 .thickRow th, .thickRow td {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 @media (orientation: portrait) {
