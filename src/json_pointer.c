@@ -164,7 +164,6 @@ json_t *json_extract(const json_pointer_t *pointer)
  * with the JSON Pointer specification.
  * The key is prefixed with a forward slash ('/').
  */
-
 static char *write_key(buffer_t *buffer, const char *key)
 {
     CHECK(buffer_put(buffer, '/'));
