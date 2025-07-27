@@ -77,62 +77,69 @@ int week_of_year(int year, int month, int day)
 void date_now(int *year, int *month, int *day)
 {
     time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
+    struct tm tm;
 
-    *day = tm.tm_mday;
-    *month = tm.tm_mon + 1;
+    localtime_r(&t, &tm);
+
     *year = tm.tm_year + 1900;
+    *month = tm.tm_mon + 1;
+    *day = tm.tm_mday;
 }
 
 void date_add(int *year, int *month, int *day, int days)
 {
     struct tm tm = {0};
 
-    tm.tm_mday = *day + days;
-    tm.tm_mon = *month - 1;
     tm.tm_year = *year - 1900;
+    tm.tm_mon = *month - 1;
+    tm.tm_mday = *day + days;
+    tm.tm_isdst = -1;
 
     mktime(&tm);
 
-    *day = tm.tm_mday;
-    *month = tm.tm_mon + 1;
     *year = tm.tm_year + 1900;
+    *month = tm.tm_mon + 1;
+    *day = tm.tm_mday;
 }
 
 int date_diff(int year1, int month1, int day1, int year2, int month2, int day2)
 {
     static const int days[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
-    long int days1 = (year1 * 365) + day1;
-    long int days2 = (year2 * 365) + day2;
+    long days1 = (year1 * 365) + day1;
+    long days2 = (year2 * 365) + day2;
 
     days1 += days[month1 - 1] + leap_count(year1, month1);
     days2 += days[month2 - 1] + leap_count(year2, month2);
     return (int)(days2 - days1);
 }
 
-void time_now(int *hour, int *minutes, int *seconds)
+void time_now(int *hour, int *minute, int *second)
 {
     time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
+    struct tm tm;
+
+    localtime_r(&t, &tm);
 
     *hour = tm.tm_hour;
-    *minutes = tm.tm_min;
-    *seconds = tm.tm_sec;
+    *minute = tm.tm_min;
+    *second = tm.tm_sec;
 }
 
 void date_time_now(
     int *year, int *month, int *day,
-    int *hour, int *minutes, int *seconds)
+    int *hour, int *minute, int *second)
 {
     time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
+    struct tm tm;
 
-    *day = tm.tm_mday;
-    *month = tm.tm_mon + 1;
+    localtime_r(&t, &tm);
+
     *year = tm.tm_year + 1900;
+    *month = tm.tm_mon + 1;
+    *day = tm.tm_mday;
     *hour = tm.tm_hour;
-    *minutes = tm.tm_min;
-    *seconds = tm.tm_sec;
+    *minute = tm.tm_min;
+    *second = tm.tm_sec;
 }
 
 int is_date(int year, int month, int day)
@@ -148,18 +155,18 @@ int is_date(int year, int month, int day)
     return 1;
 }
 
-int is_time(int hour, int minutes, int seconds)
+int is_time(int hour, int minute, int second)
 {
     return (hour >= 0) && (hour < 24)
-        && (minutes >= 0) && (minutes < 60)
-        && (seconds >= 0) && (seconds < 60);
+        && (minute >= 0) && (minute < 60)
+        && (second >= 0) && (second < 60);
 }
 
 int is_date_time(
     int year, int month, int day,
-    int hour, int minutes, int seconds)
+    int hour, int minute, int second)
 {
-    return is_date(year, month, day) && is_time(hour, minutes, seconds);
+    return is_date(year, month, day) && is_time(hour, minute, second);
 }
 
 int is_leap(int year)
