@@ -295,6 +295,10 @@ header {
   text-align: left;
 }
 
+#team-table td:first-child, #team-table td:last-child {
+  white-space: nowrap !important;
+}
+
 #clocking-form, #absences-form {
   display: none; /* flex */
   margin-top: 5px;
@@ -384,8 +388,9 @@ header {
 }
 
 .thickRow th, .thickRow td {
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  font-weight: bold;
 }
 
 @media (orientation: portrait) {
