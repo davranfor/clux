@@ -1631,6 +1631,7 @@ const profile = {
     if (user.role === role.ADMIN)
       this.deleteButton.style.display = "none";
     this.form.reset();
+    this.id.placeholder = data.next_id;
     this.fillLists(data);
     this.hash = formHash(this.form);
     this.setFocus();
