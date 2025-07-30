@@ -1705,11 +1705,38 @@ const profile = {
     } catch (error) {
       showMessage(error.message || 'No se puede eleminar el registro');
     }
+  },
+  async search() {
+    try {
+      const response = await fetch(`/api/users/${this.id.value}/name`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'text/plain' },
+        credentials: 'include'
+      });
+
+      if (response.status === 200) {
+        const data = await response.text();
+
+        await showMessage(`Ya existe un perfil con este código: ${data}`);
+        this.id.value = "";
+        this.id.focus();
+      } else if (response.status !== 204) {
+        const text = await response.text();
+
+        showMessage(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      showMessage(error || `HTTP Error ${response.status}`);
+    }
   }
 }
 
 document.getElementById("profile-delete").addEventListener("click", () => {
   profile.delete();
+});
+
+document.getElementById("profile-id").addEventListener("change", () => {
+  profile.search();
 });
 
 document.querySelectorAll('#profile-form input').forEach(element => {

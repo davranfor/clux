@@ -79,6 +79,14 @@
         },
         {
           "properties": {
+            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "name" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users/{id} #name", "role": 1 }
+        },
+        {
+          "properties": {
             "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
             "query": { "type": "null" },
             "content": { "type": "null" }
