@@ -3,7 +3,7 @@
   "$id": "/workplaces",
   "type": "object",
   "definitions": {
-    "clock_in": {
+    "clock": {
       "type": "object",
       "properties": { "workplaces": { "type": "string" } },
       "additionalProperties": false,
@@ -34,15 +34,39 @@
     "PATCH": {
       "if": {
         "properties": {
-          "path": { "items": [{}, { "const": "clock_in" }], "additionalItems": false },
+          "path": { "items": [{}, {"x-mask": "00"}, { "const": "clock_in" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /workplaces #clock_in", "role": 3 }
+        "x-notify": { "path": "PATCH /workplaces/{hour} #clock_in", "role": 3 }
       },
       "then": {
-        "properties": { "content": { "$ref": "#/definitions/clock_in" } }
+        "properties": { "content": { "$ref": "#/definitions/clock" } }
       },
-      "else": false
+      "else": {
+        "if": {
+          "properties": {
+            "path": { "items": [{}, { "const": "forced_clock_out" }], "additionalItems": false },
+            "query": { "type": "null" }
+          },
+          "x-notify": { "path": "PATCH /workplaces #forced_clock_out", "role": 3 }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/clock" } }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "path": { "items": [{}, {"x-mask": "00"}, { "const": "clock_out" }], "additionalItems": false },
+              "query": { "type": "null" }
+            },
+            "x-notify": { "path": "PATCH /workplaces/{hour} #clock_out", "role": 3 }
+          },
+          "then": {
+            "properties": { "content": { "$ref": "#/definitions/clock" } }
+          },
+          "else": false
+        }
+      }
     }
   },
   "additionalProperties": false
