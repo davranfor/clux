@@ -1711,12 +1711,12 @@ const profile = {
     try {
       const response = await fetch(`/api/users/${this.id.value}/name`, {
         method: 'GET',
-        headers: { 'Content-Type': 'text/plain' },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
       });
 
       if (response.status === 200) {
-        const data = await response.text();
+        const data = await response.json();
 
         await showMessage(`Ya existe un perfil con este código: ${data}`);
         this.id.value = "";
