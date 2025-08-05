@@ -1935,6 +1935,12 @@ const report = {
         `;
       tbody.appendChild(tr);
     });
+    if (data.length === 0) {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = "<th>No hay nada que mostrar en las fechas seleccionadas</th>";
+        tbody.appendChild(tr);
+    }
     if (this.table.style.display !== "table")
       this.table.style.display = "table";
   },
