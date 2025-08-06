@@ -173,26 +173,37 @@
       "else": {
         "if": {
           "properties": {
-            "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
-            "query": { "type": "null" }
+            "path": { "items": [{}, { "x-mask": "09999" }, { "x-mask": "09999" }, { "const": "clock_in" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /users/{id} #schedule", "role": 2 }
+          "x-notify": { "path": "PATCH /users/{workplace_id}/{id} #clock_in", "role": 1 }
         },
-        "then": {
-          "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
-        },
+        "then": true,
         "else": {
           "if": {
             "properties": {
-              "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
+              "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
               "query": { "type": "null" }
             },
-            "x-notify": { "path": "PATCH /users/{id} #tasks", "role": 2 }
+            "x-notify": { "path": "PATCH /users/{id} #schedule", "role": 2 }
           },
           "then": {
-            "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
+            "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
           },
-          "else": false
+          "else": {
+            "if": {
+              "properties": {
+                "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
+                "query": { "type": "null" }
+              },
+              "x-notify": { "path": "PATCH /users/{id} #tasks", "role": 2 }
+            },
+            "then": {
+              "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
+            },
+            "else": false
+          }
         }
       }
     },

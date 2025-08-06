@@ -1347,9 +1347,9 @@ const team = {
     this.viewIndex = this.view.ListOfWorkplaces;
     try { this.show(); } catch (error) { showMessage(error.message); }
   },
-  async clockIn(user_id) {
+  async clockIn(workplace_id, user_id) {
     try {
-      const response = await fetch(`/api/users/${user_id}/clock_in`, {
+      const response = await fetch(`/api/users/${workplace_id}/${user_id}/clock_in`, {
         method: 'PATCH',
         credentials: 'include'
       });
@@ -1368,7 +1368,7 @@ const team = {
   handleUser(key, name) {
     if (this.clockOnClick) {
       confirmMessage(`Fichaje: ${name}`).then((confirmed) => {
-        if (confirmed) this.clockIn(key);
+        if (confirmed) this.clockIn(this.selectedWorkplace.id, key);
       });
     } else {
        if (key != user.id) {
@@ -1400,6 +1400,8 @@ const team = {
       tbody.appendChild(trNew);
     }
     if (this.viewIndex === this.view.MyWorkplace) {
+      this.selectedWorkplace.id = data[0];
+      data = data[1] || null; 
       if (user.role === role.ADMIN && !user.config.onTablet) {
         const trSelector = document.createElement('tr');
 
