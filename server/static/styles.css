@@ -372,15 +372,15 @@ header {
 }
 
 .taLeft {
-  text-align: left;
+  text-align: left !important;
 }
 
 .taCenter {
-  text-align: center;
+  text-align: center !important;
 }
 
 .taRight {
-  text-align: right;
+  text-align: right !important;
 }
 
 .cursorForbidden:disabled {

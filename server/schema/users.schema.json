@@ -116,6 +116,14 @@
             "content": { "type": "null" }
           },
           "x-notify": { "path": "GET /users/{workplace_id} #workplace", "role": 3 }
+        },
+        {
+          "properties": {
+            "path": { "items": [{}, { "const": "team" }], "additionalItems": false },
+            "query": { "type": "null" },
+            "content": { "type": "null" }
+          },
+          "x-notify": { "path": "GET /users #team", "role": 3 }
         }
       ]
     },

@@ -1293,7 +1293,7 @@ document.getElementById("tasks-cancel").addEventListener("click", () => {
 
 const team = {
   frame: document.getElementById("team-frame"),
-  view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfWorkplaces: 2 },
+  view: { MyWorkplace: 0, OtherWorkplace: 1, ListOfUsers: 2, ListOfWorkplaces: 3 },
   viewIndex: 0,
   selectedWorkplace: { id: 0, name: null },
   clockOnClick: null,
@@ -1307,6 +1307,9 @@ const team = {
         break;
       case this.view.OtherWorkplace:
         url = `/api/users/${this.selectedWorkplace.id}/workplace`;
+        break;
+      case this.view.ListOfUsers:
+        url = '/api/users/team';
         break;
       case this.view.ListOfWorkplaces:
         url = '/api/workplaces/team';
@@ -1343,6 +1346,10 @@ const team = {
     this.selectedWorkplace.name = name;
     try { this.show(); } catch (error) { showMessage(error.message); }
   },
+  showListOfUsers() {
+    this.viewIndex = this.view.ListOfUsers;
+    try { this.show(); } catch (error) { showMessage(error.message); }
+  },
   showListOfWorkplaces() {
     this.viewIndex = this.view.ListOfWorkplaces;
     try { this.show(); } catch (error) { showMessage(error.message); }
@@ -1372,13 +1379,18 @@ const team = {
       });
     } else {
        if (key != user.id) {
-        const workplace = this.viewIndex == this.view.OtherWorkplace ? this.selectedWorkplace.name : 'Mi equipo';
-
         userbar.setKey(key);
-        userbar.setTitle(`${name} (${workplace})`);
+        userbar.setTitle(`${name} (${this.selectedWorkplace.name})`);
       }
       setActiveByKey('item-clocking', key);
     }
+  },
+  editUser(key, name) {
+     if (key != user.id) {
+      userbar.setKey(key);
+      userbar.setTitle(name);
+    }
+    setActiveByKey('item-profile', key);
   },
   refreshTable(data) {
     if (this.clockOnClick === null) {
@@ -1401,15 +1413,23 @@ const team = {
     }
     if (this.viewIndex === this.view.MyWorkplace) {
       this.selectedWorkplace.id = data[0];
+      this.selectedWorkplace.name = "Mi equipo";
       data = data[1] || null; 
       if (user.role === role.ADMIN && !user.config.onTablet) {
+        const trUsers = document.createElement('tr');
         const trSelector = document.createElement('tr');
 
+        trUsers.innerHTML = `
+          <td class="clickable" colspan="3" onclick="team.showListOfUsers()">
+          <div><i class="ti ti-world-longitude"></i><span>Todos los usuarios</span></div>
+          </td>
+        `;
         trSelector.innerHTML = `
           <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
           <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
           </td>
         `;
+        tbody.appendChild(trUsers);
         tbody.appendChild(trSelector);
       }
 
@@ -1418,6 +1438,32 @@ const team = {
       trTitle.innerHTML = '<th colspan="2">Mi equipo</th><th>Fichajes</th>';
       tbody.appendChild(trTitle);
     } else if (this.viewIndex === this.view.OtherWorkplace) {
+      const trMyTeam = document.createElement('tr');
+      const trSelector = document.createElement('tr');
+      const trUsers = document.createElement('tr');
+      const trTitle = document.createElement('tr');
+
+      trMyTeam.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
+        <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
+        </td>
+      `;
+      trUsers.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showListOfUsers()">
+        <div><i class="ti ti-world-longitude"></i><span>Todos los usuarios</span></div>
+        </td>
+      `;
+      trSelector.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
+        <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
+        </td>
+      `;
+      trTitle.innerHTML = `<th colspan="2">${this.selectedWorkplace.name}</th><th>Fichajes</th>`;
+      tbody.appendChild(trMyTeam);
+      tbody.appendChild(trUsers);
+      tbody.appendChild(trSelector);
+      tbody.appendChild(trTitle);
+    } else if (this.viewIndex === this.view.ListOfUsers) {
       const trMyTeam = document.createElement('tr');
       const trSelector = document.createElement('tr');
       const trTitle = document.createElement('tr');
@@ -1432,12 +1478,13 @@ const team = {
         <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
         </td>
       `;
-      trTitle.innerHTML = `<th colspan="2">${this.selectedWorkplace.name}</th><th>Fichajes</th>`;
+      trTitle.innerHTML = '<th colspan="2">Todos los usuarios</th><th>Categoría</th>';
       tbody.appendChild(trMyTeam);
       tbody.appendChild(trSelector);
       tbody.appendChild(trTitle);
     } else { // this.view.ListOfWorkplaces
       const trSelector = document.createElement('tr');
+      const trUsers = document.createElement('tr');
       const trTitle = document.createElement('tr');
 
       trSelector.innerHTML = `
@@ -1445,14 +1492,20 @@ const team = {
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
         </td>
       `;
+      trUsers.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showListOfUsers()">
+        <div><i class="ti ti-world-longitude"></i><span>Todos los usuarios</span></div>
+        </td>
+      `;
       trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Fichajes</th>';
       tbody.appendChild(trSelector);
+      tbody.appendChild(trUsers);
       tbody.appendChild(trTitle);
     }
 
     const clockInMark = user.role === role.BASIC ? ['', ''] : ['⚪ ', '🟠 '];
 
-    if (this.viewIndex !== this.view.ListOfWorkplaces) {
+    if (this.viewIndex === this.view.MyWorkplace || this.viewIndex === this.view.OtherWorkplace) {
       // Sort by category ASC then user.name ASC
       data.sort((a, b) => {
         if (a[2] > b[2]) return 1;
@@ -1467,7 +1520,7 @@ const team = {
         if (user.role === role.BASIC) {
           trUser.addEventListener('click', () => { setActiveByKey('item-schedule', record[1]); });
         } else {
-          trUser.addEventListener('click', () => { team.handleUser(record[1], record[3]); });
+          trUser.addEventListener('click', () => { this.handleUser(record[1], record[3]); });
         }
         trUser.innerHTML = `
           <td>${clockInMark[record[0]]}${record[2]}</td>
@@ -1504,7 +1557,26 @@ const team = {
         tbody.appendChild(trOption1);
         tbody.appendChild(trOption2);
       }
-    } else {
+    } else if (this.viewIndex === this.view.ListOfUsers) {
+      // Sort by name ASC
+      data.sort((a, b) => {
+        if (a[1] > b[1]) return 1;
+        if (a[1] < b[1]) return -1;
+        return 0;
+      });
+      data.forEach(record => {
+        const trUser = document.createElement('tr');
+
+        trUser.className = 'team-data';
+        trUser.addEventListener('click', () => { this.editUser(record[0], record[1]); });
+        trUser.innerHTML = `
+          <td class="taCenter">${record[0]}</td>
+          <td>${record[1]}</td>
+          <td>${record[2]}</td>
+        `;
+        tbody.appendChild(trUser);
+      });
+    } else { // this.view.ListOfWorkplaces
       // Sort by id ASC
       data.sort((a, b) => {
         if (a[1] > b[1]) return 1;
