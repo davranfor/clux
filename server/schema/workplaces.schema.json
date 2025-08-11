@@ -45,10 +45,10 @@
       "else": {
         "if": {
           "properties": {
-            "path": { "items": [{}, { "const": "forced_clock_out" }], "additionalItems": false },
+            "path": { "items": [{}, { "const": "force_clock_out" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /workplaces #forced_clock_out", "role": 3 }
+          "x-notify": { "path": "PATCH /workplaces #force_clock_out", "role": 3 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/clock" } }
@@ -56,15 +56,27 @@
         "else": {
           "if": {
             "properties": {
-              "path": { "items": [{}, {"x-mask": "00"}, { "const": "clock_out" }], "additionalItems": false },
+              "path": { "items": [{}, {"x-mask": "00"}, { "const": "clock_out_at" }], "additionalItems": false },
               "query": { "type": "null" }
             },
-            "x-notify": { "path": "PATCH /workplaces/{hour} #clock_out", "role": 3 }
+            "x-notify": { "path": "PATCH /workplaces/{hour} #clock_out_at", "role": 3 }
           },
           "then": {
             "properties": { "content": { "$ref": "#/definitions/clock" } }
           },
-          "else": false
+          "else": {
+            "if": {
+              "properties": {
+                "path": { "items": [{}, {"x-mask": "09"}, { "const": "crop_hours_to" }], "additionalItems": false },
+                "query": { "type": "null" }
+              },
+              "x-notify": { "path": "PATCH /workplaces/{hours} #crop_hours_to", "role": 3 }
+            },
+            "then": {
+              "properties": { "content": { "$ref": "#/definitions/clock" } }
+            },
+            "else": false
+          }
         }
       }
     }
