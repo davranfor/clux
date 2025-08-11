@@ -27,7 +27,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /workplaces #team", "role": 3 }
+          "x-notify": { "path": "GET /workplaces/team", "role": 3 }
         }
       ]
     },
@@ -37,7 +37,7 @@
           "path": { "items": [{}, {"x-mask": "00"}, { "const": "clock_in" }], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /workplaces/{hour} #clock_in", "role": 3 }
+        "x-notify": { "path": "PATCH /workplaces/:hour/clock_in", "role": 3 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/clock" } }
@@ -48,7 +48,7 @@
             "path": { "items": [{}, { "const": "force_clock_out" }], "additionalItems": false },
             "query": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /workplaces #force_clock_out", "role": 3 }
+          "x-notify": { "path": "PATCH /workplaces/force_clock_out", "role": 3 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/clock" } }
@@ -59,7 +59,7 @@
               "path": { "items": [{}, {"x-mask": "00"}, { "const": "clock_out_at" }], "additionalItems": false },
               "query": { "type": "null" }
             },
-            "x-notify": { "path": "PATCH /workplaces/{hour} #clock_out_at", "role": 3 }
+            "x-notify": { "path": "PATCH /workplaces/:hour/clock_out_at", "role": 3 }
           },
           "then": {
             "properties": { "content": { "$ref": "#/definitions/clock" } }
@@ -70,7 +70,7 @@
                 "path": { "items": [{}, {"x-mask": "09"}, { "const": "crop_hours_to" }], "additionalItems": false },
                 "query": { "type": "null" }
               },
-              "x-notify": { "path": "PATCH /workplaces/{hours} #crop_hours_to", "role": 3 }
+              "x-notify": { "path": "PATCH /workplaces/:hours/crop_hours_to", "role": 3 }
             },
             "then": {
               "properties": { "content": { "$ref": "#/definitions/clock" } }

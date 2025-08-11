@@ -230,6 +230,11 @@ const buffer_t *parser_handle(char *message)
             .key = "content",
             .string = request.content,
             .type = request.content ? JSON_STRING : JSON_NULL
+        },
+        {
+            .key = "target",
+            .string = "",
+            .type = JSON_STRING
         }
     };
 
@@ -241,7 +246,7 @@ const buffer_t *parser_handle(char *message)
     return writer_handle(&(json_t)
     {
         .key = request.method,
-        .child = (json_t *[]) {&node[0], &node[1], &node[2], &node[3]},
+        .child = (json_t *[]) {&node[0], &node[1], &node[2], &node[3], &node[4]},
         .size = sizeof node / sizeof *node,
         .type = JSON_OBJECT
     });

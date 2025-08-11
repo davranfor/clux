@@ -67,7 +67,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users #0", "role": 3 }
+          "x-notify": { "path": "GET /users/0", "role": 3 }
         },
         {
           "properties": {
@@ -75,7 +75,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id}", "role": 1 }
+          "x-notify": { "path": "GET /users/:id", "role": 1 }
         },
         {
           "properties": {
@@ -83,7 +83,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id} #name", "role": 1 }
+          "x-notify": { "path": "GET /users/:id/name", "role": 1 }
         },
         {
           "properties": {
@@ -91,7 +91,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id} #schedule", "role": 1 }
+          "x-notify": { "path": "GET /users/:id/schedule", "role": 1 }
         },
         {
           "properties": {
@@ -99,7 +99,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{id} #tasks", "role": 1 }
+          "x-notify": { "path": "GET /users/:id/tasks", "role": 1 }
         },
         {
           "properties": {
@@ -107,7 +107,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users #workplace", "role": 1 }
+          "x-notify": { "path": "GET /users/workplace", "role": 1 }
         },
         {
           "properties": {
@@ -115,7 +115,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users/{workplace_id} #workplace", "role": 3 }
+          "x-notify": { "path": "GET /users/:workplace_id/workplace", "role": 3 }
         },
         {
           "properties": {
@@ -123,7 +123,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "GET /users #team", "role": 3 }
+          "x-notify": { "path": "GET /users/team", "role": 3 }
         }
       ]
     },
@@ -134,7 +134,7 @@
           "query": { "type": "null" },
           "cookie": { "properties": { "role": { "const": 3 } } }
         },
-        "x-notify": { "path": "POST /users/{id}", "role": 3 }
+        "x-notify": { "path": "POST /users/:id", "role": 3 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/upsert" } }
@@ -148,7 +148,7 @@
           "query": { "type": "null" },
           "cookie": { "properties": { "role": { "enum": [1, 2] } } }
         },
-        "x-notify": { "path": "PUT /users/{id}", "role": 1 }
+        "x-notify": { "path": "PUT /users/:id", "role": 1 }
       },
       "then": {
         "properties": { "content": { "$ref": "#/definitions/update" } }
@@ -160,7 +160,7 @@
             "query": { "type": "null" },
             "cookie": { "properties": { "role": { "const": 3 } } }
           },
-          "x-notify": { "path": "PUT /users/{id} role:admin", "role": 3 }
+          "x-notify": { "path": "PUT /users/:id role:admin", "role": 3 }
         },
         "then": {
           "properties": { "content": { "$ref": "#/definitions/upsert" } }
@@ -175,7 +175,7 @@
           "query": { "type": "null" },
           "content": { "type": "null" }
         },
-        "x-notify": { "path": "PATCH /users/{id} #clock_in", "role": 1 }
+        "x-notify": { "path": "PATCH /users/:id/clock_in", "role": 1 }
       },
       "then": true,
       "else": {
@@ -185,7 +185,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "PATCH /users/{workplace_id}/{id} #clock_in", "role": 1 }
+          "x-notify": { "path": "PATCH /users/:workplace_id/:id/clock_in", "role": 1 }
         },
         "then": true,
         "else": {
@@ -194,7 +194,7 @@
               "path": { "items": [{}, { "x-mask": "09999" }, { "const": "schedule" }], "additionalItems": false },
               "query": { "type": "null" }
             },
-            "x-notify": { "path": "PATCH /users/{id} #schedule", "role": 2 }
+            "x-notify": { "path": "PATCH /users/:id/schedule", "role": 2 }
           },
           "then": {
             "properties": { "content": { "$ref": "#/definitions/update.schedule" } }
@@ -205,7 +205,7 @@
                 "path": { "items": [{}, { "x-mask": "09999" }, { "const": "tasks" }], "additionalItems": false },
                 "query": { "type": "null" }
               },
-              "x-notify": { "path": "PATCH /users/{id} #tasks", "role": 2 }
+              "x-notify": { "path": "PATCH /users/:id/tasks", "role": 2 }
             },
             "then": {
               "properties": { "content": { "$ref": "#/definitions/update.tasks" } }
@@ -221,7 +221,7 @@
           "path": { "items": [{}, {"x-mask": "09999"}], "additionalItems": false },
           "query": { "type": "null" }
         },
-        "x-notify": { "path": "DELETE /users/{id}", "role": 3 }
+        "x-notify": { "path": "DELETE /users/:id", "role": 3 }
       },
       "then": true,
       "else": false

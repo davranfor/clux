@@ -100,31 +100,53 @@ static const char *get_path(const context_t *context)
 
 static int set_path(const json_event_t *event, context_t *context)
 {
-    const json_t *path = json_find(event->rule, "path");
+    json_t *path = json_find(event->rule, "path");
 
     if ((path == NULL) || (path->type != JSON_STRING))
     {
-        fprintf(stderr, "x-notify: 'path' was expected (%s)\n", get_path(context));
-        buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
-        context->result = HTTP_SERVER_ERROR;
-        return 0;
+        fprintf(stderr, "x-notify: 'path' was expected\n");
+        goto error;
     }
 
-    json_t *node = json_find(context->request, "path");
+    json_t *target = json_find(context->request, "target");
 
-    node->child[0]->string = path->string;
+    target->string = path->string;
 
-    size_t size = string_count(path->string, '/');
+    const char *str = strchr(path->string, '/');
 
-    if ((size < 1) || (size > node->size))
+    if ((str == NULL) || (str == path->string) || (str[-1] != ' ')) 
     {
-        fprintf(stderr, "x-notify: size of path must be > 0 and <= %u\n", node->size);
-        buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
-        context->result = HTTP_SERVER_ERROR;
-        return 0;
+        fprintf(stderr, "x-notify: 'path' format is 'METHOD /some/valid/path'\n");
+        goto error;
     }
-    node->size = (unsigned)size;
+    path = json_find(context->request, "path");
+
+    unsigned segment = -1u;
+    unsigned size = 0;
+
+    while (*str != '\0')
+    {
+        if (*str == '/')
+        {
+            segment++;
+        }
+        else if ((str[0] == ':') && (str[-1] == '/'))
+        {
+            if (segment >= path->size)
+            {
+                fprintf(stderr, "x-notify: 'path' haves too many segments\n");
+                goto error;
+            }
+            path->child[size++]->string = path->child[segment]->string;
+        }
+        str++;
+    }
+    path->size = size;
     return 1;
+error:
+    buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
+    context->result = HTTP_SERVER_ERROR;
+    return 0;
 }
 
 static int test_role(const json_event_t *event, context_t *context)
@@ -133,7 +155,7 @@ static int test_role(const json_event_t *event, context_t *context)
 
     if ((role == NULL) || (role->type != JSON_INTEGER) || (role->number < 0))
     {
-        fprintf(stderr, "x-notify: A 'role' was expected (%s)\n", get_path(context));
+        fprintf(stderr, "x-notify: A 'role' was expected\n");
         buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
         context->result = HTTP_SERVER_ERROR;
         return 0;
@@ -154,7 +176,7 @@ static int on_notify(const json_event_t *event, context_t *context)
 {
     if (context->result != 0)
     {
-        fprintf(stderr, "A result was already set at schema (%s)\n", get_path(context));
+        fprintf(stderr, "A result was already set\n");
         buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
         context->result = HTTP_SERVER_ERROR;
         return STOP;
@@ -169,8 +191,7 @@ static int on_notify(const json_event_t *event, context_t *context)
 
 static int on_warning(const json_event_t *event, const context_t *context)
 {
-    fprintf(stderr, "Warning: Unknow rule '%s' at schema '%s'\n",
-        json_name(event->rule), get_path(context));
+    fprintf(stderr, "Warning: Unknow rule '%s'\n", json_name(event->rule));
     return CONTINUE;
 }
 
@@ -180,8 +201,7 @@ static int on_failure(const json_event_t *event, context_t *context)
     if ((event->pointer->size < 2) ||
         (event->pointer->path[1] != json_index(context->request, "content")))
     {
-    fprintf(stderr, "'%s' at schema '%s'\n",
-        json_name(event->rule), get_path(context));
+        fprintf(stderr, "Failure: '%s'\n", json_name(event->rule));
         return STOP;
     }
     if (context->buffer->length > BUFFER_LIMIT)
@@ -198,7 +218,7 @@ static int on_failure(const json_event_t *event, context_t *context)
 
 static int on_error(const json_event_t *event, context_t *context)
 {
-    fprintf(stderr, "Aborted: Malformed schema '%s'\n", get_path(context));
+    fprintf(stderr, "Aborted: Malformed schema\n");
     json_write_line(event->rule, stderr);
     buffer_format(context->buffer, "Malformed schema '%s'", get_path(context));
     context->result = HTTP_SERVER_ERROR;
@@ -264,7 +284,7 @@ int schema_validate(json_t *request, buffer_t *buffer)
 
     if (context.result == 0)
     {
-        fprintf(stderr, "A result was expected at schema '%s'\n", path);
+        fprintf(stderr, "A result was expected\n");
         buffer_format(buffer, "Malformed schema '%s'", path);
         json_free(node);
         return HTTP_SERVER_ERROR;

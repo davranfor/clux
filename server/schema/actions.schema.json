@@ -11,7 +11,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "/backup", "role": 3 }
+          "x-notify": { "path": "api /backup", "role": 3 }
         },
         {
           "properties": {
@@ -19,7 +19,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "/reload", "role": 3 }
+          "x-notify": { "path": "api /reload", "role": 3 }
         },
         {
           "properties": {
@@ -27,7 +27,7 @@
             "query": { "type": "null" },
             "content": { "type": "null" }
           },
-          "x-notify": { "path": "/stop", "role": 3 }
+          "x-notify": { "path": "api /stop", "role": 3 }
         }
       ]
     }

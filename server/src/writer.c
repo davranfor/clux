@@ -223,10 +223,8 @@ error:
     return 0;
 }
 
-static const char *get_sql(const json_t *path)
+static const char *get_sql(char *key)
 {
-    char *key = json_string(json_head(path));
-
     return json_string(json_search(queries, &(json_t){.key = key}, NULL));
 }
 
@@ -301,13 +299,13 @@ static int set_query(sqlite3_stmt *stmt, const json_t *query)
 
 static int set_path(sqlite3_stmt *stmt, const json_t *path)
 {
-    for (unsigned i = 1; i < path->size; i++)
+    for (unsigned i = 0; i < path->size; i++)
     {
         const json_t *child = path->child[i];
         char key[3];
         int index;
 
-        snprintf(key, sizeof key, "$%u", i % 10);
+        snprintf(key, sizeof key, "$%u", (i + 1)  % 10);
         if ((index = sqlite3_bind_parameter_index(stmt, key)) == 0)
         {
             return 0;
@@ -372,23 +370,21 @@ static int db_backup(void)
     return rc;
 }
 
-static int action_handle(const json_t *path)
+static int action_handle(const char *action)
 {
-    const char *action = json_string(json_head(path));
-
     if (action != NULL)
     {
-        if (!strcmp(action, "/backup"))
+        if (!strcmp(action, "api /backup"))
         {
             db_backup();
             return 1;
         }
-        if (!strcmp(action, "/reload"))
+        if (!strcmp(action, "api /reload"))
         {
             loader_reload();
             return 1;
         }
-        if (!strcmp(action, "/stop"))
+        if (!strcmp(action, "api /stop"))
         {
             exit(EXIT_SUCCESS);
         }
@@ -407,14 +403,12 @@ static int db_handle(const json_t *request)
         return HTTP_UNAUTHORIZED;
     }
 
-    const json_t *path = json_find(request, "path");
-    const json_t *query = json_find(request, "query");
-    const json_t *content = json_find(request, "content");
-    const char *sql = get_sql(path);
+    char *target = json_string(json_find(request, "target"));
+    const char *sql = get_sql(target);
 
-    if (!path || !query || !content || !sql)
+    if (sql == NULL)
     {
-        if (action_handle(path))
+        if (action_handle(target))
         {
             return HTTP_NO_CONTENT;
         }
@@ -444,6 +438,11 @@ static int db_handle(const json_t *request)
     {
         goto bad_request;
     }
+
+    const json_t *path = json_find(request, "path");
+    const json_t *query = json_find(request, "query");
+    const json_t *content = json_find(request, "content");
+
     if (!set_content(stmt, content) || !set_path(stmt, path) || !set_query(stmt, query))
     {
         goto bad_request;
