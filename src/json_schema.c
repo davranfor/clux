@@ -1075,9 +1075,9 @@ static int test_ref(const schema_t *schema, const json_t *rule, const json_t *no
             rule = schema->rule;
         }
     }
-    else if ((ref[0] == '/') && (schema->map != NULL))
+    else if (schema->map != NULL)
     {
-        size_t length = strcspn(ref + 1, "/") + 1;
+        size_t length = strcspn(ref, "/");
 
         rule = json_pointer(map_prefix(schema->map, ref, length), ref + length);
     }

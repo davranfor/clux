@@ -191,6 +191,7 @@ static int on_notify(const json_event_t *event, context_t *context)
 
 static int on_warning(const json_event_t *event, const context_t *context)
 {
+    (void)context;
     fprintf(stderr, "Warning: Unknow rule '%s'\n", json_name(event->rule));
     return CONTINUE;
 }

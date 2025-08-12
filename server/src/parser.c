@@ -90,15 +90,8 @@ static int parse_path(json_t *parent, json_t *child, char *str)
 
     while ((size < CHILD_SIZE) && (*str == '/'))
     {
-        if (size == 0)
-        {
-            child[size].string = str++;
-        }
-        else
-        {
-            child[size].string = ++str;
-            str[-1] = '\0';
-        }
+        *str++ = '\0';
+        child[size].string = str;
         child[size].type = JSON_STRING;
         parent->child[size] = &child[size];
         parent->size = ++size;
