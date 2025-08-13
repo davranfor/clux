@@ -1406,7 +1406,7 @@ const team = {
 
       trNew.innerHTML = `
         <td class="clickable" colspan="3" onclick="setActiveByKey('item-profile',0)">
-        <div><i class="ti ti-user"></i><span>Nuevo usuario</span></div>
+        <div><i class="ti ti-user"></i><span>Nuevo perfil</span></div>
         </td>
       `;
       tbody.appendChild(trNew);
@@ -1416,21 +1416,21 @@ const team = {
       this.selectedWorkplace.name = "Mi equipo";
       data = data[1] || null; 
       if (user.role === role.ADMIN && !user.config.onTablet) {
+        const trWorkplaces = document.createElement('tr');
         const trUsers = document.createElement('tr');
-        const trSelector = document.createElement('tr');
 
+        trWorkplaces.innerHTML = `
+          <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
+          <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
+          </td>
+        `;
         trUsers.innerHTML = `
           <td class="clickable" colspan="3" onclick="team.showListOfUsers()">
           <div><i class="ti ti-world-longitude"></i><span>Todos los usuarios</span></div>
           </td>
         `;
-        trSelector.innerHTML = `
-          <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
-          <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
-          </td>
-        `;
+        tbody.appendChild(trWorkplaces);
         tbody.appendChild(trUsers);
-        tbody.appendChild(trSelector);
       }
 
       const trTitle = document.createElement('tr');
@@ -1439,13 +1439,18 @@ const team = {
       tbody.appendChild(trTitle);
     } else if (this.viewIndex === this.view.OtherWorkplace) {
       const trMyTeam = document.createElement('tr');
-      const trSelector = document.createElement('tr');
+      const trWorkplaces = document.createElement('tr');
       const trUsers = document.createElement('tr');
       const trTitle = document.createElement('tr');
 
       trMyTeam.innerHTML = `
         <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
+        </td>
+      `;
+      trWorkplaces.innerHTML = `
+        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
+        <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
         </td>
       `;
       trUsers.innerHTML = `
@@ -1453,19 +1458,14 @@ const team = {
         <div><i class="ti ti-world-longitude"></i><span>Todos los usuarios</span></div>
         </td>
       `;
-      trSelector.innerHTML = `
-        <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
-        <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
-        </td>
-      `;
       trTitle.innerHTML = `<th colspan="2">${this.selectedWorkplace.name}</th><th>Fichajes</th>`;
       tbody.appendChild(trMyTeam);
+      tbody.appendChild(trWorkplaces);
       tbody.appendChild(trUsers);
-      tbody.appendChild(trSelector);
       tbody.appendChild(trTitle);
     } else if (this.viewIndex === this.view.ListOfUsers) {
       const trMyTeam = document.createElement('tr');
-      const trSelector = document.createElement('tr');
+      const trWorkplaces = document.createElement('tr');
       const trTitle = document.createElement('tr');
 
       trMyTeam.innerHTML = `
@@ -1473,21 +1473,21 @@ const team = {
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
         </td>
       `;
-      trSelector.innerHTML = `
+      trWorkplaces.innerHTML = `
         <td class="clickable" colspan="3" onclick="team.showListOfWorkplaces()">
         <div><i class="ti ti-world-longitude"></i><span>Todos los equipos</span></div>
         </td>
       `;
       trTitle.innerHTML = '<th colspan="2">Todos los usuarios</th><th>Categoría</th>';
       tbody.appendChild(trMyTeam);
-      tbody.appendChild(trSelector);
+      tbody.appendChild(trWorkplaces);
       tbody.appendChild(trTitle);
     } else { // this.view.ListOfWorkplaces
-      const trSelector = document.createElement('tr');
+      const trWorkplaces = document.createElement('tr');
       const trUsers = document.createElement('tr');
       const trTitle = document.createElement('tr');
 
-      trSelector.innerHTML = `
+      trWorkplaces.innerHTML = `
         <td class="clickable" colspan="3" onclick="team.showMyWorkplace()">
         <div><i class="ti ti-world-longitude"></i><span>Mi equipo</span></div>
         </td>
@@ -1498,7 +1498,7 @@ const team = {
         </td>
       `;
       trTitle.innerHTML = '<th colspan="2">Todos los equipos</th><th>Fichajes</th>';
-      tbody.appendChild(trSelector);
+      tbody.appendChild(trWorkplaces);
       tbody.appendChild(trUsers);
       tbody.appendChild(trTitle);
     }
@@ -1778,7 +1778,7 @@ const profile = {
         showMessage(text || `HTTP ${response.status}`);
       }
     } catch (error) {
-      showMessage(error.message || 'No se puede eleminar el registro');
+      showMessage(error.message || 'No se puede eliminar el registro');
     }
   },
   async search() {
@@ -1792,7 +1792,7 @@ const profile = {
       if (response.status === 200) {
         const data = await response.json();
 
-        await showMessage(`Ya existe un perfil con este código: ${data}`);
+        await showMessage(`Ya existe un perfil con este código: ${data.name}`);
         this.id.value = "";
         this.id.focus();
       } else if (response.status !== 204) {

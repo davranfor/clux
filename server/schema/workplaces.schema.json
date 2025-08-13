@@ -31,6 +31,19 @@
         }
       ]
     },
+    "POST": {
+      "if": {
+        "properties": {
+          "path": { "items": [{}, { "const": "export_daily" } ], "additionalItems": false },
+          "query": { "type": "null" }
+        },
+        "x-notify": { "path": "POST /workplaces/export_daily", "role": 3 }
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/definitions/clock" } }
+      },
+      "else": false
+    },
     "PATCH": {
       "if": {
         "properties": {

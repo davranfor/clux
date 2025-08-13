@@ -149,7 +149,19 @@
         "then": {
           "properties": { "content": { "$ref": "#/definitions/insert" } }
         },
-        "else": false
+        "else": {
+          "if": {
+            "properties": {
+              "path": { "items": [{}, { "const": "export_daily" } ], "additionalItems": false },
+              "query": { "type": "null" },
+              "content": { "type": "null" }
+            }
+          },
+          "then": {
+            "x-notify": { "path": "POST /timelogs/export_daily", "role": 3 }
+          },
+          "else": false
+        }
       }
     },
     "PUT": {
