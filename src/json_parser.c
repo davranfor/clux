@@ -438,6 +438,15 @@ json_t *json_parse_file(const char *path, json_error_t *error)
     return node;
 }
 
+json_t *json_parse_lines(const char *path, json_error_t *error)
+{
+    char *str = path ? file_quote(path, "[", "]") : NULL;
+    json_t *node = json_parse(str, error);
+
+    free(str);
+    return node;
+}
+
 void json_print_error(const json_error_t *error)
 {
     if ((error == NULL) || (error->line == 0))
