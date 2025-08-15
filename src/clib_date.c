@@ -115,35 +115,6 @@ int date_diff(int year1, int month1, int day1, int year2, int month2, int day2)
     return (int)(days2 - days1);
 }
 
-void time_now(int *hour, int *minute, int *second)
-{
-    time_t t = time(NULL);
-    struct tm tm;
-
-    localtime_r(&t, &tm);
-
-    *hour = tm.tm_hour;
-    *minute = tm.tm_min;
-    *second = tm.tm_sec;
-}
-
-void date_time_now(
-    int *year, int *month, int *day,
-    int *hour, int *minute, int *second)
-{
-    time_t t = time(NULL);
-    struct tm tm;
-
-    localtime_r(&t, &tm);
-
-    *year = tm.tm_year + 1900;
-    *month = tm.tm_mon + 1;
-    *day = tm.tm_mday;
-    *hour = tm.tm_hour;
-    *minute = tm.tm_min;
-    *second = tm.tm_sec;
-}
-
 int is_date(int year, int month, int day)
 {
     if ((month < 1) || (month > 12))
@@ -155,20 +126,6 @@ int is_date(int year, int month, int day)
         return 0;
     }
     return 1;
-}
-
-int is_time(int hour, int minute, int second)
-{
-    return (hour >= 0) && (hour < 24)
-        && (minute >= 0) && (minute < 60)
-        && (second >= 0) && (second < 60);
-}
-
-int is_date_time(
-    int year, int month, int day,
-    int hour, int minute, int second)
-{
-    return is_date(year, month, day) && is_time(hour, minute, second);
 }
 
 int is_leap(int year)
