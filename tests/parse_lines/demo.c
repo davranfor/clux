@@ -21,18 +21,22 @@ static void parse_lines(const char *path)
         return;
     }
 
+    // getline() buffer
     char *str = NULL;
+
+    // Lines are packed into array
     json_t *array = json_new_array();
 
     if (array == NULL)
     {
         perror("json_new_array");
-        goto done;
+        goto clean;
     }
 
     json_error_t error; // Error handle is optional
     json_t *node;
 
+    // getline() stuff
     ssize_t length = 0;
     size_t size = 0;
     int line = 0;
@@ -44,22 +48,21 @@ static void parse_lines(const char *path)
         {
             continue;
         }
-        node = json_parse(str, &error);
-        if (node == NULL)
+        if ((node = json_parse(str, &error)) == NULL)
         {
             error.line = line;
             fprintf(stderr, "%s\n", path);
             json_print_error(&error);
-            goto done;
+            goto clean;
         }
         if (json_array_push_back(array, node) == NULL)
         {
             perror("json_array_push_back");
-            goto done;
+            goto clean;
         }
     }
     json_print(array);
-done:
+clean:
     fclose(file);
     json_delete(array);
     free(str);
