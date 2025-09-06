@@ -17,7 +17,11 @@
     (!(((number) < -9007199254740991.0) || ((number) > 9007199254740991.0)))
 
 size_t next_pow2(size_t);
-unsigned next_size(unsigned);
+
+#define next_size(size) _Generic((size), size_t: next_ulong, default: next_uint)(size)
+
+unsigned next_uint(unsigned);
+size_t next_ulong(size_t);
 
 #endif
 
