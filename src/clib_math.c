@@ -30,6 +30,22 @@ int rand_bytes(unsigned char *buffer, size_t size)
     return rc;
 }
 
+/**
+ * Generates a 64-bit ETag by computing the FNV-1a hash of the input and
+ * formatting it as a 16-character hexadecimal string
+ */
+uint64_t fnv1a_64(const char *input, size_t length)
+{
+    uint64_t hash = 1469598103934665603ULL;
+
+    for (size_t i = 0; i < length; i++)
+    {
+        hash ^= (uint8_t)input[i];
+        hash *= 1099511628211ULL;
+    }
+    return hash;
+}
+
 /* Returns the smallest power of 2 that is greater than or equal to size */
 size_t next_pow2(size_t number)
 {

@@ -7,7 +7,7 @@
 #ifndef CLIB_MATH_H
 #define CLIB_MATH_H
 
-#include <stddef.h>
+#include <stdint.h>
 
 /**
  * Check whether 'number' can be exactly represented as an
@@ -20,6 +20,7 @@
 
 int rrand(int);
 int rand_bytes(unsigned char *, size_t);
+uint64_t fnv1a_64(const char *, size_t);
 size_t next_pow2(size_t);
 unsigned next_uint(unsigned);
 size_t next_ulong(size_t);
