@@ -16,7 +16,7 @@
 #define IS_SAFE_INTEGER(number) \
     (!(((number) < -9007199254740991.0) || ((number) > 9007199254740991.0)))
 
-#define next_size(size) _Generic((size), size_t: next_ulong, default: next_uint)(size)
+#define next_size(size) _Generic((size), unsigned: next_uint, size_t: next_ulong)(size)
 
 int rrand(int);
 int rand_bytes(unsigned char *, size_t);
