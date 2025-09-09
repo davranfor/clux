@@ -30,10 +30,7 @@ int rand_bytes(unsigned char *buffer, size_t size)
     return rc;
 }
 
-/**
- * Generates a 64-bit ETag by computing the FNV-1a hash of the input and
- * formatting it as a 16-character hexadecimal string
- */
+/* Generates a 64-bit number by computing the FNV-1a hash of 'input' */
 uint64_t fnv1a_64(const char *input, size_t length)
 {
     uint64_t hash = 1469598103934665603ULL;
