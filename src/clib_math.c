@@ -14,7 +14,7 @@ int rrand(int range)
     return (int)((double)range * (rand() / (RAND_MAX + 1.0)));
 }
 
-// Reads 'size' cryptographically secure random bytes from /dev/urandom into 'buffer'
+/* Reads 'size' cryptographically secure random bytes from /dev/urandom into 'buffer' */
 int rand_bytes(unsigned char *buffer, size_t size)
 {
     FILE *file = fopen("/dev/urandom", "rb");
