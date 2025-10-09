@@ -136,7 +136,7 @@ json_t *json_pointer(const json_t *node, const char *path)
     }
 }
 
-/* Locates a node by path */
+/* Returns the last node of a json_pointer_t */
 json_t *json_extract(const json_pointer_t *pointer)
 {
     if ((pointer == NULL) || (pointer->root == NULL))
