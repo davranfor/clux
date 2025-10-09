@@ -498,7 +498,7 @@ json_t *json_pop_at(json_t *parent, size_t index)
     return pop(parent, (unsigned)index);
 }
 
-/* Move node from 'target' to 'source' on distinct iterables */
+/* Move node from 'source' to 'target' on distinct iterables */
 static json_t *move(json_t *source, unsigned source_index, json_t *target, unsigned index)
 {
     if (index > target->size)
@@ -538,7 +538,7 @@ static json_t *move(json_t *source, unsigned source_index, json_t *target, unsig
     return child;
 }
 
-/* Move node from 'target' to 'source' on the same iterable */
+/* Move nodes on the same iterable */
 static json_t *move_from_to(json_t *parent, unsigned a, unsigned b)
 {
     if (a >= parent->size)
