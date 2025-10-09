@@ -587,7 +587,7 @@ json_t *json_move(json_t *source, size_t a, json_t *target, size_t b)
             }
             else
             {
-                return move_from_to(target, (unsigned)a, (unsigned)b);
+                return move_from_to(source, (unsigned)a, (unsigned)b);
             }
         }
     }
