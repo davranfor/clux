@@ -16,7 +16,7 @@ void *map_insert(map_t *, const char *, void *);
 void *map_upsert(map_t *, const char *, void *);
 void *map_delete(map_t *, const char *);
 void *map_search(const map_t *, const char *);
-void *map_prefix(const map_t *, const char *, size_t);
+void *map_search_max(const map_t *, const char *, size_t);
 void *map_walk(const map_t *, map_callback, void *);
 size_t map_size(const map_t *);
 void map_destroy(map_t *, void (*)(void *));

@@ -1079,7 +1079,7 @@ static int test_ref(const schema_t *schema, const json_t *rule, const json_t *no
     {
         size_t length = strcspn(ref, "/");
 
-        rule = json_pointer(map_prefix(schema->map, ref, length), ref + length);
+        rule = json_pointer(map_search_max(schema->map, ref, length), ref + length);
     }
     else
     {

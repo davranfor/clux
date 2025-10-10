@@ -296,7 +296,7 @@ void *map_search(const map_t *map, const char *key)
     return NULL;
 }
 
-void *map_prefix(const map_t *map, const char *key, size_t length)
+void *map_search_max(const map_t *map, const char *key, size_t length)
 {
     if ((map == NULL) || (key == NULL))
     {
