@@ -8,7 +8,7 @@
 #define CLIB_HASHMAP_H
 
 typedef struct map map_t;
-typedef int (*map_callback)(void *, size_t, void *);
+typedef int (*map_callback)(const char *, void *, void *);
 
 map_t *map_create(size_t);
 void *map_update(map_t *, const char *, void *);

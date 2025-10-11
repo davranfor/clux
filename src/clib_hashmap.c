@@ -324,8 +324,6 @@ void *map_search_max(const map_t *map, const char *key, size_t length)
 
 void *map_walk(const map_t *map, map_callback callback, void *data)
 {
-    size_t iter = 0;
-
     while (map != NULL)
     {
         for (size_t index = 0, size = map->size; size > 0; index++)
@@ -334,7 +332,7 @@ void *map_walk(const map_t *map, map_callback callback, void *data)
 
             while (node != NULL)
             {
-                if (!callback(node->data, iter++, data))
+                if (!callback(node->key, node->data, data))
                 {
                     return node->data;
                 }

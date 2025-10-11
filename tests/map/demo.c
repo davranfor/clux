@@ -11,9 +11,9 @@
 
 static map_t *map;
 
-static int print(void *node, size_t iter, void *data)
+static int print(const char *key, void *node, void *data)
 {
-    (void)iter;
+    (void)key;
     (void)data;
     json_write_line(node, stdout);
     return 1;
