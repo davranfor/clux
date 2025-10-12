@@ -7,9 +7,6 @@
 #ifndef JSON_HEADER_H
 #define JSON_HEADER_H
 
-#include <stddef.h>
-#include <stdint.h>
-
 #define JSON_HEAD 0
 #define JSON_TAIL ((unsigned)-1)
 

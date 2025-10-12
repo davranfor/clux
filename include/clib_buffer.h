@@ -7,6 +7,8 @@
 #ifndef CLIB_BUFFER_H
 #define CLIB_BUFFER_H
 
+#include <stddef.h>
+
 typedef struct buffer { char *text; size_t length, size; int error; } buffer_t;
 enum { BUFFER_ERROR_RESIZE = 1, BUFFER_ERROR_FORMAT };
 

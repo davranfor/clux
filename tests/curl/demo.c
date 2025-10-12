@@ -25,7 +25,6 @@ curl -v -G "http://127.0.0.1:1234/api/users" --data-urlencode "name=John" --data
 
 */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>

@@ -324,6 +324,10 @@ void *map_search_max(const map_t *map, const char *key, size_t length)
 
 void *map_walk(const map_t *map, map_callback callback, void *data)
 {
+    if (callback == NULL)
+    {
+        return NULL;
+    }
     while (map != NULL)
     {
         for (size_t index = 0, size = map->size; size > 0; index++)

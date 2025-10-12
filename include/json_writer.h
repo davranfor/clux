@@ -7,6 +7,7 @@
 #ifndef JSON_WRITER_H
 #define JSON_WRITER_H
 
+#include <stddef.h>
 #include "json_header.h"
 
 /* Macros deducing the type of 'number' */
