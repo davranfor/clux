@@ -7,6 +7,7 @@
 #ifndef CLIB_MATH_H
 #define CLIB_MATH_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**
