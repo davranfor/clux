@@ -19,6 +19,7 @@ typedef struct
 
 json_t *json_pointer(const json_t *, const char *);
 json_t *json_extract(const json_pointer_t *);
+json_t *json_extract_at(const json_pointer_t *, unsigned);
 char *json_write_pointer(buffer_t *, const json_pointer_t *);
 char *json_write_pointer_max(buffer_t *, const json_pointer_t *, size_t);
 

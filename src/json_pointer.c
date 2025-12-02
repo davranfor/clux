@@ -136,7 +136,7 @@ json_t *json_pointer(const json_t *node, const char *path)
     }
 }
 
-/* Returns the last node of a json_pointer_t */
+/* Returns the last node of a json_pointer */
 json_t *json_extract(const json_pointer_t *pointer)
 {
     if ((pointer == NULL) || (pointer->root == NULL))
@@ -147,6 +147,29 @@ json_t *json_extract(const json_pointer_t *pointer)
     json_t *node = json_cast(pointer->root);
 
     for (unsigned i = 0; i < pointer->size; i++)
+    {
+        unsigned index = pointer->path[i];
+
+        if (node->size <= index)
+        {
+            return NULL;
+        }
+        node = node->child[index];
+    }
+    return node;
+}
+
+/* Returns the node at 'offset' position from a json_pointer */
+json_t *json_extract_at(const json_pointer_t *pointer, unsigned offset)
+{
+    if ((pointer == NULL) || (pointer->root == NULL))
+    {
+        return NULL;
+    }
+
+    json_t *node = json_cast(pointer->root);
+
+    for (unsigned i = 0; (i <= offset) && (i < pointer->size); i++)
     {
         unsigned index = pointer->path[i];
 
