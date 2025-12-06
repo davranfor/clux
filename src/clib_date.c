@@ -133,17 +133,11 @@ int is_leap(int year)
     return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
 
-long unix_time(void)
-{
-    return (long)time(NULL);
-}
-
-long milliseconds_now(void)
+long timestamp_ms(void)
 {
     struct timespec ts;
 
     clock_gettime(CLOCK_REALTIME, &ts);
-    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000; 
+    return (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
 }
-
 
