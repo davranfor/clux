@@ -9,14 +9,6 @@
 #include <time.h>
 #include "clib_date.h"
 
-long unix_time(void)
-{
-    struct timespec ts;
-
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000; 
-}
-
 static int leap_count(int year, int month)
 {
     int years = year;
@@ -140,4 +132,18 @@ int is_leap(int year)
 {
     return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
+
+long unix_time(void)
+{
+    return (long)time(NULL);
+}
+
+long milliseconds_now(void)
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000; 
+}
+
 
