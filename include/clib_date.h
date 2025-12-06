@@ -7,6 +7,7 @@
 #ifndef CLIB_DATE_H
 #define CLIB_DATE_H
 
+long unix_time(void);
 int days_in_month(int, int);
 int day_of_week(int, int, int);
 int ISO_day_of_week(int, int, int);
