@@ -19,10 +19,12 @@ const char *test_mask(const char *text, const char *mask)
      *  ?  next character is a literal (not a function) (optional)
      *  0  is_digit (required)
      *  9  is_digit (optional)
-     *  A  is_alpha (required)
-     *  a  is_alpha (optional)
-     *  W  is_alnum (required)
-     *  w  is_alnum (optional)
+     *  L  is_alpha (required)
+     *  l  is_alpha (optional)
+     *  A  is_alnum (required)
+     *  a  is_alnum (optional)
+     *  C  is_print (required)
+     *  c  is_print (optional)
      *  X  is_xdigit (required)
      *  x  is_xdigit (optional)
      *  *  return the string at this position
@@ -70,19 +72,26 @@ const char *test_mask(const char *text, const char *mask)
             case '9':
                 function = is_digit;
                 break;
-            case 'A':
+            case 'L':
                 function = is_alpha;
+                required = 1;
+                break;
+            case 'l':
+                function = is_alpha;
+                break;
+            case 'A':
+                function = is_alnum;
                 required = 1;
                 break;
             case 'a':
-                function = is_alpha;
-                break;
-            case 'W':
                 function = is_alnum;
+                break;
+            case 'C':
+                function = is_print;
                 required = 1;
                 break;
-            case 'w':
-                function = is_alnum;
+            case 'c':
+                function = is_print;
                 break;
             case 'X':
                 function = is_xdigit;

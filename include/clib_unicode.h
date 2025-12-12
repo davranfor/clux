@@ -46,6 +46,11 @@ static inline int is_alnum(int c)
         || ((c >= 'a') && (c <= 'z'));
 }
 
+static inline int is_print(int c)
+{
+    return (c >= 0x20) && (c <= 0x7e);
+}
+
 static inline int is_space(int c)
 {
     return (c == ' ') || (c == '\n') || (c == '\r') || (c == '\t');
