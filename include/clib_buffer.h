@@ -12,6 +12,7 @@
 typedef struct buffer { char *text; size_t length, size; int error; } buffer_t;
 enum { BUFFER_ERROR_RESIZE = 1, BUFFER_ERROR_FORMAT };
 
+buffer_t *buffer_new(void);
 char *buffer_resize(buffer_t *, size_t);
 char *buffer_repeat(buffer_t *, char, size_t);
 char *buffer_insert(buffer_t *, size_t, const char *, size_t);
@@ -25,6 +26,7 @@ char *buffer_set_length(buffer_t *, size_t);
 void buffer_set_error(buffer_t *, int);
 void buffer_reset(buffer_t *);
 void buffer_clean(buffer_t *);
+void buffer_free(void *);
 
 #endif
 

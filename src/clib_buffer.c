@@ -12,6 +12,11 @@
 #include "clib_unicode.h"
 #include "clib_buffer.h"
 
+buffer_t *buffer_new(void)
+{
+    return calloc(1, sizeof(buffer_t));
+}
+
 static char *resize(buffer_t *buffer, size_t size)
 {
     if (buffer->error)
@@ -187,5 +192,14 @@ void buffer_clean(buffer_t *buffer)
     buffer->length = 0;
     buffer->size = 0;
     buffer->error = 0;
+}
+
+void buffer_free(void *buffer)
+{
+    if (buffer != NULL)
+    {
+        free(((buffer_t *)buffer)->text);
+        free(buffer);
+    }
 }
 
