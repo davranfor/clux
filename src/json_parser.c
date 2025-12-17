@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
 #include "clib_math.h"
@@ -77,6 +78,7 @@ static json_t *append(json_t *parent, json_t *child)
         }
         parent->child = temp;
     }
+    assert(parent->child != NULL);
     parent->child[parent->size++] = child;
     child->packed = 1;
     return child;

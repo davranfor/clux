@@ -12,7 +12,7 @@
 #include "clib_unicode.h"
 #include "clib_buffer.h"
 
-buffer_t *buffer_new(void)
+buffer_t *buffer_create(void)
 {
     return calloc(1, sizeof(buffer_t));
 }
@@ -194,12 +194,17 @@ void buffer_clean(buffer_t *buffer)
     buffer->error = 0;
 }
 
-void buffer_free(void *buffer)
+void buffer_destroy(buffer_t *buffer)
 {
     if (buffer != NULL)
     {
-        free(((buffer_t *)buffer)->text);
+        free(buffer->text);
         free(buffer);
     }
+}
+
+void buffer_free(void *buffer)
+{
+    buffer_destroy(buffer);
 }
 
