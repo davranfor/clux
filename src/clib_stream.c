@@ -37,10 +37,6 @@ static char *read_fd(int fd, size_t length)
             free(str);
             return NULL;
         }
-        if (bytes == 0)
-        {
-            break;
-        }
         count += (size_t)bytes;
     }
     str[length] = '\0';
