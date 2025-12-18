@@ -28,12 +28,12 @@ static char *read_fd(int fd, size_t length)
     {
         ssize_t bytes = read(fd, str + count, length - count);
 
-        if (bytes == -1)
+        if ((bytes == -1) && (errno == EINTR))
         {
-            if (errno == EINTR)
-            {
-                continue;
-            }
+            continue;
+        }
+        if (bytes <= 0)
+        {
             free(str);
             return NULL;
         }
@@ -78,12 +78,12 @@ int file_write(const char *path, const char *str)
     {
         ssize_t bytes = write(fd, str + count, length - count);
 
-        if (bytes == -1)
+        if ((bytes == -1) && (errno == EINTR))
         {
-            if (errno == EINTR)
-            {
-                continue;
-            }
+            continue;
+        }
+        if (bytes == 0)
+        {
             close(fd);
             return 0;
         }
