@@ -7,107 +7,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include "clib_stream.h"
 
-static char *read(FILE *file, size_t length)
+static char *read_fd(int fd, size_t length)
 {
     char *str = malloc(length + 1);
 
-    if (str != NULL)
+    if (str == NULL)
     {
-        if (fread(str, 1, length, file) == length)
+        return NULL;
+    }
+
+    size_t count = 0;
+
+    while (count < length)
+    {
+        ssize_t bytes = read(fd, str + count, length - count);
+
+        if (bytes == -1)
         {
-            str[length] = '\0';
-        }
-        else
-        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
             free(str);
             return NULL;
         }
+        if (bytes == 0)
+        {
+            break;
+        }
+        count += (size_t)bytes;
     }
+    str[length] = '\0';
     return str;
 }
 
 char *file_read(const char *path)
 {
-    FILE *file = fopen(path, "rb");
+    int fd = open(path, O_RDONLY);
 
-    if (file == NULL)
+    if (fd < 0)
     {
         return NULL;
     }
 
     char *str = NULL;
+    struct stat st;
 
-    if (fseek(file, 0L, SEEK_END) == 0)
+    if (fstat(fd, &st) != -1)
     {
-        long length = ftell(file);
-
-        if ((length != -1L) && (fseek(file, 0L, SEEK_SET) == 0))
-        {
-            str = read(file, (size_t)length);
-        }
+        str = read_fd(fd, (size_t)st.st_size);
     }
-    fclose(file);
-    return str;
-}
-
-static char *quote(FILE *file, size_t length, const char *prefix, const char *suffix)
-{
-    size_t prefix_length = strlen(prefix);
-    size_t suffix_length = strlen(suffix);
-    char *str = malloc(prefix_length + length + suffix_length + 1);
-
-    if (str != NULL)
-    {
-        memcpy(str, prefix, prefix_length);
-        if (fread(str + prefix_length, 1, length, file) != length)
-        {
-            free(str);
-            return NULL;
-        }
-        memcpy(str + prefix_length + length, suffix, suffix_length + 1);
-    }
-    return str;
-}
-
-char *file_quote(const char *path, const char *prefix, const char *suffix)
-{
-    FILE *file = fopen(path, "rb");
-
-    if (file == NULL)
-    {
-        return NULL;
-    }
-
-    char *str = NULL;
-
-    if (fseek(file, 0L, SEEK_END) == 0)
-    {
-        long length = ftell(file);
-
-        if ((length != -1L) && (fseek(file, 0L, SEEK_SET) == 0))
-        {
-            str = quote(file, (size_t)length, prefix, suffix);
-        }
-    }
-    fclose(file);
+    close(fd);
     return str;
 }
 
 int file_write(const char *path, const char *str)
 {
-    FILE *file = fopen(path, "w");
-
-    if (file == NULL)
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    
+    if (fd == -1)
     {
         return 0;
     }
 
-    size_t length = strlen(str);
-    int rc = fwrite(str, 1, length, file) == length;
+    size_t length = strlen(str), count = 0;
 
-    fclose(file);
-    return rc;
+    while (count < length)
+    {
+        ssize_t bytes = write(fd, str + count, length - count);
+
+        if (bytes == -1)
+        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
+            close(fd);
+            return 0;
+        }
+        count += (size_t)bytes;
+    }
+    close(fd);
+    return 1;
 }
 
