@@ -4,6 +4,8 @@
  *  \copyright GNU Public License.
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,10 +15,13 @@
 #include <sys/stat.h>
 #include "clib_stream.h"
 
-static char *read_fd(int fd, size_t length)
+int file_exists(const char *path)
 {
-    char *str = malloc(length + 1);
+    return access(path, F_OK) == 0;
+}
 
+static char *read_fd(int fd, char *str, size_t length)
+{
     if (str == NULL)
     {
         return NULL;
@@ -28,18 +33,19 @@ static char *read_fd(int fd, size_t length)
     {
         ssize_t bytes = read(fd, str + count, length - count);
 
-        if ((bytes == -1) && (errno == EINTR))
+        switch (bytes)
         {
-            continue;
-        }
-        if (bytes <= 0)
-        {
-            free(str);
-            return NULL;
+            case -1:
+                if (errno == EINTR)
+                {
+                    continue;
+                }
+                __attribute__((fallthrough));
+            case 0:
+                return NULL;
         }
         count += (size_t)bytes;
     }
-    str[length] = '\0';
     return str;
 }
 
@@ -57,7 +63,41 @@ char *file_read(const char *path)
 
     if (fstat(fd, &st) != -1)
     {
-        str = read_fd(fd, (size_t)st.st_size);
+        size_t length = (size_t)st.st_size;
+        
+        str = malloc(length + 1);
+        if (read_fd(fd, str, length))
+        {
+            str[length] = '\0';
+        }
+        else
+        {
+            free(str);
+            str = NULL;
+        }
+    }
+    close(fd);
+    return str;
+}
+
+char *file_read_callback(const char *path, char *(*callback)(void *, size_t),
+    void *data)
+{
+    int fd = open(path, O_RDONLY);
+
+    if (fd < 0)
+    {
+        return NULL;
+    }
+
+    char *str = NULL;
+    struct stat st;
+
+    if (fstat(fd, &st) != -1)
+    {
+        size_t length = (size_t)st.st_size;
+
+        str = read_fd(fd, callback(data, length), length);
     }
     close(fd);
     return str;
@@ -78,18 +118,22 @@ int file_write(const char *path, const char *str)
     {
         ssize_t bytes = write(fd, str + count, length - count);
 
-        if ((bytes == -1) && (errno == EINTR))
+        switch (bytes)
         {
-            continue;
-        }
-        if (bytes == 0)
-        {
-            close(fd);
-            return 0;
+            case -1:
+                if (errno == EINTR)
+                {
+                    continue;
+                }
+                __attribute__((fallthrough));
+            case 0:
+                close(fd);
+                return 0;
         }
         count += (size_t)bytes;
     }
     close(fd);
     return 1;
 }
+
 
