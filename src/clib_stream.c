@@ -105,6 +105,11 @@ char *file_read_callback(const char *path, char *(*callback)(void *, size_t),
 
 int file_write(const char *path, const char *str)
 {
+    return file_write_bytes(path, str, strlen(str));
+}
+
+int file_write_bytes(const char *path, const char *str, size_t length)
+{
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     
     if (fd == -1)
@@ -112,7 +117,7 @@ int file_write(const char *path, const char *str)
         return 0;
     }
 
-    size_t length = strlen(str), count = 0;
+    size_t count = 0;
 
     while (count < length)
     {
@@ -136,4 +141,8 @@ int file_write(const char *path, const char *str)
     return 1;
 }
 
+int file_delete(const char *path)
+{
+    return unlink(path) == 0;
+}
 

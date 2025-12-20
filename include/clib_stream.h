@@ -11,6 +11,8 @@ int file_exists(const char *);
 char *file_read(const char *);
 char *file_read_callback(const char *, char *(*)(void *, size_t), void *);
 int file_write(const char *, const char *);
+int file_write_bytes(const char *, const char *, size_t);
+int file_delete(const char *);
 
 #endif
 
