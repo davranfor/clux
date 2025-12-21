@@ -80,8 +80,8 @@ char *file_read(const char *path)
     return str;
 }
 
-char *file_read_callback(const char *path, char *(*callback)(void *, size_t),
-    void *data)
+char *file_read_callback(const char *path, char *(*callback)(const void *, size_t),
+    const void *data)
 {
     int fd = open(path, O_RDONLY);
 
