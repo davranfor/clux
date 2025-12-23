@@ -15,7 +15,7 @@
 
 int file_exists(const char *path)
 {
-    return access(path, 0) == 0;
+    return access(path, F_OK) == 0;
 }
 
 static char *read_fd(int fd, char *str, size_t length)
