@@ -4,8 +4,6 @@
  *  \copyright GNU Public License.
  */
 
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +15,7 @@
 
 int file_exists(const char *path)
 {
-    return access(path, F_OK) == 0;
+    return access(path, 0) == 0;
 }
 
 static char *read_fd(int fd, char *str, size_t length)
