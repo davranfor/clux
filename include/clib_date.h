@@ -18,7 +18,6 @@ void date_add(int *, int *, int *, int);
 int date_diff(int, int, int, int, int, int);
 int is_date(int, int, int);
 int is_leap(int);
-long timestamp_ms(void);
 
 #endif
 
