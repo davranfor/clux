@@ -30,15 +30,16 @@ int rand_bytes(unsigned char *buffer, size_t size)
     return rc;
 }
 
+/**
+ * Generates a cryptographically secure random password.
+ * 'password' is a buffer where the generated password will be stored.
+ * 'size' is the total size of the buffer, including space for the null terminator.
+ */
 int rand_password(char *password, size_t size)
 {
     unsigned char *buffer = (unsigned char *)password;
 
-    if (size > 0)
-    {
-        size--;
-    }
-    if (!rand_bytes(buffer, size))
+    if ((size-- == 0) || !rand_bytes(buffer, size))
     {
         return 0;
     }
