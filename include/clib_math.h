@@ -21,6 +21,7 @@
 
 int rrand(int);
 int rand_bytes(unsigned char *, size_t);
+int rand_password(char *, size_t);
 uint64_t fnv1a_64(const char *, size_t);
 size_t next_pow2(size_t);
 unsigned next_uint(unsigned);

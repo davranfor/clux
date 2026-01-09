@@ -30,6 +30,32 @@ int rand_bytes(unsigned char *buffer, size_t size)
     return rc;
 }
 
+int rand_password(char *password, size_t size)
+{
+    unsigned char *buffer = (unsigned char *)password;
+
+    if (size > 0)
+    {
+        size--;
+    }
+    if (!rand_bytes(buffer, size))
+    {
+        return 0;
+    }
+
+    const char charset[] = "abcdefghijklmnopqrstuvwxyz"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "0123456789"
+                           "!@#$%^&*()-_=+[]{}|;:,.<>?";
+
+    for (size_t i = 0; i < size; i++)
+    {
+        password[i] = charset[buffer[i] % (sizeof(charset) - 1)];
+    }
+    password[size] = '\0';
+    return 1;
+}
+
 /* Generates a 64-bit number by computing the FNV-1a hash of 'input' */
 uint64_t fnv1a_64(const char *input, size_t length)
 {
