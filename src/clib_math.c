@@ -9,7 +9,7 @@
 #include "clib_math.h"
 
 /* Random value between 0 and range - 1 */
-int rrand(int range)
+int rand_range(int range)
 {
     return (int)((double)range * (rand() / (RAND_MAX + 1.0)));
 }
