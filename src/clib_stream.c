@@ -101,14 +101,9 @@ char *file_read_callback(const char *path, char *(*callback)(void *, size_t),
     return str;
 }
 
-int file_write(const char *path, const char *str)
+static int write_bytes(const char *path, const char *str, size_t length, int mode)
 {
-    return file_write_bytes(path, str, strlen(str));
-}
-
-int file_write_bytes(const char *path, const char *str, size_t length)
-{
-    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int fd = open(path, O_WRONLY | O_CREAT | mode, 0644);
     
     if (fd == -1)
     {
@@ -137,6 +132,26 @@ int file_write_bytes(const char *path, const char *str, size_t length)
     }
     close(fd);
     return 1;
+}
+
+int file_write(const char *path, const char *str)
+{
+    return write_bytes(path, str, strlen(str), O_TRUNC);
+}
+
+int file_write_bytes(const char *path, const char *str, size_t length)
+{
+    return write_bytes(path, str, length, O_TRUNC);
+}
+
+int file_append(const char *path, const char *str)
+{
+    return write_bytes(path, str, strlen(str), O_APPEND);
+}
+
+int file_append_bytes(const char *path, const char *str, size_t length)
+{
+    return write_bytes(path, str, length, O_APPEND);
 }
 
 int file_delete(const char *path)
