@@ -25,7 +25,7 @@ char *buffer_put(buffer_t *, char);
 char *buffer_set_length(buffer_t *, size_t);
 void buffer_set_error(buffer_t *, int);
 void buffer_reset(buffer_t *);
-void buffer_clean(buffer_t *);
+void buffer_clear(buffer_t *);
 void buffer_destroy(buffer_t *);
 void buffer_free(void *);
 

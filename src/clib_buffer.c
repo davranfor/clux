@@ -185,7 +185,7 @@ void buffer_reset(buffer_t *buffer)
     buffer->error = 0;
 }
 
-void buffer_clean(buffer_t *buffer)
+void buffer_clear(buffer_t *buffer)
 {
     free(buffer->text);
     buffer->text = NULL;

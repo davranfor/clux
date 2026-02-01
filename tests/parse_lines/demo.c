@@ -61,11 +61,11 @@ static json_t *parse_lines(const char *path)
             goto error;
         }
     }
-    goto clean;
+    goto cleanup;
 error:
     json_delete(array);
     array = NULL;
-clean:
+cleanup:
     fclose(file);
     free(str);
     return array;
