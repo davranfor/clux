@@ -7,6 +7,8 @@
 #ifndef CLIB_STREAM_H
 #define CLIB_STREAM_H
 
+enum { FILE_WRITE, FILE_APPEND };
+
 int file_exists(const char *);
 char *file_read(const char *);
 char *file_read_callback(const char *, char *(*)(void *, size_t), void *);

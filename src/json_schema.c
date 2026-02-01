@@ -20,7 +20,7 @@
 #define MAX_PATHS 32
 #define MAX_REFS 128
 
-enum {NOT_ABORTABLE, ABORTABLE};
+enum { NOT_ABORTABLE, ABORTABLE };
 
 struct tracker
 {
@@ -216,7 +216,7 @@ enum
 #define TEST_KEY(a, b) {.key = b},
 static test_t tests[] = {TEST(TEST_KEY)};
 
-enum {TABLE_SIZE = NTESTS - TESTS - 1};
+enum { TABLE_SIZE = NTESTS - TESTS - 1 };
 static test_t *table[TABLE_SIZE];
 
 __attribute__((constructor))

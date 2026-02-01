@@ -39,22 +39,21 @@ struct map
     size_t size;
 };
 
-enum {UPDATE, INSERT, UPSERT};
-
-static const size_t primes[] =
-{
-    53,        97,         193,        389,
-    769,       1543,       3079,       6151,
-    12289,     24593,      49157,      98317,
-    196613,    393241,     786433,     1572869,
-    3145739,   6291469,    12582917,   25165843,
-    50331653,  100663319,  201326611,  402653189,
-    805306457, 1610612741, 3221225473, 4294967291
-};
+enum { UPDATE, INSERT, UPSERT };
 
 map_t *map_create(size_t size)
 {
-    enum {NPRIMES = sizeof primes / sizeof *primes};
+    static const size_t primes[] =
+    {
+        53,        97,         193,        389,
+        769,       1543,       3079,       6151,
+        12289,     24593,      49157,      98317,
+        196613,    393241,     786433,     1572869,
+        3145739,   6291469,    12582917,   25165843,
+        50331653,  100663319,  201326611,  402653189,
+        805306457, 1610612741, 3221225473, 4294967291
+    };
+    enum { NPRIMES = sizeof primes / sizeof *primes };
 
     for (size_t i = 0; i < NPRIMES; i++)
     {

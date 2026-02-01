@@ -11,7 +11,7 @@
 #define BUFFER_LIMIT 4096   // Don't write to buffer after this limit
 #define ENCODE_MAX 128      // Max length of an event line
 
-enum {CONTINUE, STOP};
+enum { CONTINUE, STOP };
 
 static int on_notify(const json_t *rule)
 {

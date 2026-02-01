@@ -45,7 +45,7 @@ int main(void)
     }
     atexit(destroy);
 
-    enum {size = 100};
+    enum { size = 100 };
     json_t *node;
 
     for (size_t iter = 0; iter < size; iter++)

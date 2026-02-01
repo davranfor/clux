@@ -11,7 +11,7 @@
 #include "clib_buffer.h"
 #include "json_header.h"
 
-enum json_encoding {JSON_UTF8, JSON_ASCII};
+enum json_encoding { JSON_UTF8, JSON_ASCII };
 
 enum json_encoding json_get_encoding(void);
 void json_set_encoding(enum json_encoding);
