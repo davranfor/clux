@@ -14,7 +14,7 @@ char *base64_encode(const unsigned char *data,
     static const char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                 "abcdefghijklmnopqrstuvwxyz"
                                 "0123456789+/";
-    static const size_t mod[] = {0, 2, 1};
+    static const size_t mod[] = { 0, 2, 1 };
 
     *output_length = 4 * ((input_length + 2) / 3);
 

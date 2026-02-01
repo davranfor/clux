@@ -65,7 +65,7 @@ static int on_validate(const json_event_t *event, void *buffer)
 
 static int validate(const json_t *rules, const json_t *entry)
 {
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
     int rc = EXIT_SUCCESS;
 
     if (!json_validate(rules, entry, NULL, on_validate, &buffer))

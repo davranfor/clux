@@ -96,7 +96,7 @@ static char *write_string(buffer_t *buffer, const char *str)
 
         if (esc != '\0')
         {
-            const char seq[] = {'\\', esc, '\0'};
+            const char seq[] = { '\\', esc, '\0' };
 
             CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
             CHECK(buffer_append(buffer, seq, 2));
@@ -104,7 +104,7 @@ static char *write_string(buffer_t *buffer, const char *str)
         }
         else if (is_cntrl(*str) || ((encoding == JSON_ASCII) && !is_ascii(*str)))
         {
-            char seq[sizeof("\\u0123")] = {'\0'};
+            char seq[sizeof("\\u0123")] = { '\0' };
             size_t length = encode_hex(str, seq);
 
             CHECK(buffer_append(buffer, ptr, (size_t)(str - ptr)));
@@ -286,7 +286,7 @@ static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent,
 /* Serializes a JSON structure or a single node into a compact string */
 char *json_encode(const json_t *node, size_t indent)
 {
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
 
     return buffer_encode(&buffer, node, indent, 0);
 }
@@ -294,7 +294,7 @@ char *json_encode(const json_t *node, size_t indent)
 /* Serializes and limits length */
 char *json_encode_max(const json_t *node, size_t indent, size_t max_length)
 {
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
 
     return buffer_encode(&buffer, node, indent, max_length);
 }
@@ -323,7 +323,7 @@ char *json_buffer_encode_max(buffer_t *buffer, const json_t *node, size_t indent
 /* Serializes without indentation */
 char *json_stringify(const json_t *node)
 {
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
 
     return buffer_encode(&buffer, node, 0, 0);
 }
@@ -338,7 +338,7 @@ int json_write(const json_t *node, FILE *file, size_t indent)
 
     if (file != NULL)
     {
-        buffer_t buffer = {0};
+        buffer_t buffer = { 0 };
 
         if (buffer_encode(&buffer, node, indent, 0))
         {
@@ -356,7 +356,7 @@ int json_write_line(const json_t *node, FILE *file)
 
     if (file != NULL)
     {
-        buffer_t buffer = {0};
+        buffer_t buffer = { 0 };
 
         if (buffer_encode(&buffer, node, 0, 0) && buffer_put(&buffer, '\n'))
         {
@@ -375,7 +375,7 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
 
     if ((node != NULL) && (path != NULL) && (file = fopen(path, "w")))
     {
-        buffer_t buffer = {0};
+        buffer_t buffer = { 0 };
 
         if (buffer_encode(&buffer, node, indent, 0))
         {
@@ -401,7 +401,7 @@ char *json_quote(const char *str)
         return NULL;
     }
 
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
 
     return write_string(&buffer, str);
 }
@@ -414,7 +414,7 @@ char *json_quote_max(const char *str, size_t max_length)
         return NULL;
     }
 
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
 
     if (write_string(&buffer, str))
     {
@@ -466,7 +466,7 @@ char *json_buffer_quote_max(buffer_t *buffer, const char *str, size_t max_length
 /* Returns an encoded json string from a number */
 char *json_convert(double number, enum json_type type)
 {
-    buffer_t buffer = {0};
+    buffer_t buffer = { 0 };
 
     if ((type == JSON_INTEGER) && IS_SAFE_INTEGER(number))
     {

@@ -24,8 +24,8 @@ int days_in_month(int year, int month)
 {
     static const int days[2][12] =
     {
-        {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-        {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+        { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
+        { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
     };
 
     return days[is_leap(year)][month - 1];
@@ -37,7 +37,7 @@ int days_in_month(int year, int month)
  */
 int day_of_week(int year, int month, int day)
 {
-    static const int offset[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    static const int offset[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
 
     year -= month < 3;
     return (year + year / 4 - year / 100 + year / 400 + offset[month - 1] + day) % 7;
@@ -49,7 +49,7 @@ int day_of_week(int year, int month, int day)
  */
 int ISO_day_of_week(int year, int month, int day)
 {
-    static const int offset[] = {6, 2, 1, 4, 6, 2, 4, 0, 3, 5, 1, 3};
+    static const int offset[] = { 6, 2, 1, 4, 6, 2, 4, 0, 3, 5, 1, 3 };
 
     year -= month < 3;
     return (year + year / 4 - year / 100 + year / 400 + offset[month - 1] + day) % 7 + 1;
@@ -59,8 +59,8 @@ int day_of_year(int year, int month, int day)
 {
     static const int days[2][12] =
     {
-        {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334},
-        {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335}
+        { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 },
+        { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335 }
     };
 
     return days[is_leap(year)][month - 1] + day;
@@ -90,7 +90,7 @@ void date_now(int *year, int *month, int *day)
 
 void date_add(int *year, int *month, int *day, int days)
 {
-    struct tm tm = {0};
+    struct tm tm = { 0 };
 
     tm.tm_year = *year - 1900;
     tm.tm_mon = *month - 1;
@@ -106,7 +106,7 @@ void date_add(int *year, int *month, int *day, int days)
 
 int date_diff(int year1, int month1, int day1, int year2, int month2, int day2)
 {
-    static const int days[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+    static const int days[] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
     long days1 = (year1 * 365) + day1;
     long days2 = (year2 * 365) + day2;
 

@@ -213,8 +213,8 @@ enum
     TESTS, TEST(TEST_ENUM) NTESTS, SCHEMA_ABORT = ~SCHEMA_ERROR
 };
 
-#define TEST_KEY(a, b) {.key = b},
-static test_t tests[] = {TEST(TEST_KEY)};
+#define TEST_KEY(a, b) { .key = b },
+static test_t tests[] = { TEST(TEST_KEY) };
 
 enum { TABLE_SIZE = NTESTS - TESTS - 1 };
 static test_t *table[TABLE_SIZE];
@@ -1477,7 +1477,7 @@ static int validate(const schema_t *schema, const json_t *rule, const json_t *no
 int json_validate(const json_t *rule, const json_t *node, const map_t *map,
     json_validate_callback callback, void *data)
 {
-    struct tracker active = {0};
+    struct tracker active = { 0 };
     const schema_t schema =
     {
         .rule = rule, .node = node, .map = map,

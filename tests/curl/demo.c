@@ -182,7 +182,7 @@ static int request(size_t id, const json_t *users, struct data *data)
 
 int main(void)
 {
-    struct data data = {0};
+    struct data data = { 0 };
 
     srand((unsigned)time(NULL));
     setlocale(LC_NUMERIC, "C");
