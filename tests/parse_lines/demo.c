@@ -11,14 +11,14 @@
 #include <sys/types.h>
 #include <clux/json.h>
 
-static void parse_lines(const char *path)
+static json_t *parse_lines(const char *path)
 {
     FILE *file = fopen(path, "rb");
 
     if (file == NULL)
     {
         perror("fopen");
-        return;
+        return NULL;
     }
 
     // getline() buffer
@@ -30,7 +30,7 @@ static void parse_lines(const char *path)
     if (array == NULL)
     {
         perror("json_new_array");
-        goto clean;
+        goto error;
     }
 
     json_error_t error; // Error handle is optional
@@ -53,25 +53,32 @@ static void parse_lines(const char *path)
             error.line = line;
             fprintf(stderr, "%s\n", path);
             json_print_error(&error);
-            goto clean;
+            goto error;
         }
         if (json_array_push_back(array, node) == NULL)
         {
             perror("json_array_push_back");
-            goto clean;
+            goto error;
         }
     }
-    json_print(array);
+    goto clean;
+error:
+    json_delete(array);
+    array = NULL;
 clean:
     fclose(file);
-    json_delete(array);
     free(str);
+    return array;
 }
 
 int main(int argc, char *argv[])
 {
     setlocale(LC_NUMERIC, "C");
-    parse_lines(argc > 1 ? argv[1] : "test.jsonl");
+
+    json_t *node = parse_lines(argc > 1 ? argv[1] : "test.jsonl");
+
+    json_print(node);
+    json_free(node);
     return 0;
 }
 
