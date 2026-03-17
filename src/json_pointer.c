@@ -228,13 +228,6 @@ static char *write_index(buffer_t *buffer, unsigned index)
 /* Writes a json_pointer into the specified buffer */
 char *json_write_pointer(buffer_t *buffer, const json_pointer_t *pointer)
 {
-    return json_write_pointer_max(buffer, pointer, 0);
-}
-
-/* Writes a json_pointer into the specified buffer and limits length */
-char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
-    size_t max_length)
-{
     if ((buffer == NULL) || (pointer == NULL) || (pointer->root == NULL))
     {
         return NULL;
@@ -243,13 +236,8 @@ char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
     {
         return buffer_put(buffer, '/');
     }
-    if (max_length == 0)
-    {
-        max_length = (size_t) -1;
-    }
 
     const json_t *node = pointer->root;
-    size_t length = buffer->length;
 
     for (unsigned i = 0; i < pointer->size; i++)
     {
@@ -266,11 +254,6 @@ char *json_write_pointer_max(buffer_t *buffer, const json_pointer_t *pointer,
         else
         {
             CHECK(write_index(buffer, index));
-        }
-        if (buffer->length - length > max_length)
-        {
-            buffer_set_length(buffer, length + max_length);
-            return buffer_write(buffer, "...");
         }
         node = node->child[index];
     }

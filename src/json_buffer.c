@@ -218,24 +218,18 @@ static int encode_edge(buffer_t *buffer, const json_t *node,
 
 #define MAX_INDENT 8
 
-typedef struct
+static int encode_tree(buffer_t *buffer, const json_t *node,
+    unsigned short depth, unsigned char indent)
 {
-    buffer_t *base;
-    size_t max_length;
-    unsigned char indent;
-} json_buffer_t;
-
-static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned short depth)
-{
-    for (unsigned i = 0; (i < node->size) && (buffer->base->length <= buffer->max_length); i++)
+    for (unsigned i = 0; i < node->size; i++)
     {
         unsigned char more = node->size > i + 1;
 
-        CHECK(encode_node(buffer->base, node->child[i], depth, buffer->indent, more));
+        CHECK(encode_node(buffer, node->child[i], depth, indent, more));
         if (node->child[i]->size > 0)
         {
-            CHECK(encode_tree(buffer, node->child[i], depth + 1));
-            CHECK(encode_edge(buffer->base, node->child[i], depth, buffer->indent, more));
+            CHECK(encode_tree(buffer, node->child[i], depth + 1, indent));
+            CHECK(encode_edge(buffer, node->child[i], depth, indent, more));
         }
     }
     return 1;
@@ -247,8 +241,7 @@ static int encode_tree(const json_buffer_t *buffer, const json_t *node, unsigned
  * If the passed node IS a property, add parent and grandparent: [{key: value}]
  * If the passed node IS NOT a property, add parent: [value]
  */
-static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent,
-    size_t max_length)
+static char *buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 {
     if (node == NULL)
     {
@@ -267,20 +260,20 @@ static char *buffer_encode(buffer_t *base, const json_t *node, size_t indent,
          .size = 1,
          .type = JSON_ARRAY
     };
-    const json_buffer_t buffer =
-    {
-        .base = base,
-        .max_length = max_length ? base->length + max_length : (size_t)-1,
-        .indent = indent > MAX_INDENT ? MAX_INDENT : (unsigned char)indent
-    };
 
-    CHECK(encode_tree(&buffer, node->key ? &grandparent : &parent, 0));
-    if (base->length > buffer.max_length)
+    if (indent > MAX_INDENT)
     {
-        buffer_set_length(base, buffer.max_length);
-        buffer_write(base, indent ? "...\n" : "...");
+        indent = MAX_INDENT;
     }
-    return base->text;
+    if (node->key != NULL)
+    {
+        CHECK(encode_tree(buffer, &grandparent, 0, (unsigned char)indent));
+    }
+    else
+    {
+        CHECK(encode_tree(buffer, &parent, 0, (unsigned char)indent));
+    }
+    return buffer->text;
 }
 
 /* Serializes a JSON structure or a single node into a compact string */
@@ -288,32 +281,13 @@ char *json_encode(const json_t *node, size_t indent)
 {
     buffer_t buffer = { 0 };
 
-    return buffer_encode(&buffer, node, indent, 0);
-}
-
-/* Serializes and limits length */
-char *json_encode_max(const json_t *node, size_t indent, size_t max_length)
-{
-    buffer_t buffer = { 0 };
-
-    return buffer_encode(&buffer, node, indent, max_length);
+    return buffer_encode(&buffer, node, indent);
 }
 
 /* Serializes into a provided buffer */
 char *json_buffer_encode(buffer_t *buffer, const json_t *node, size_t indent)
 {
-    if (buffer && buffer_encode(buffer, node, indent, 0))
-    {
-        return buffer->text;
-    }
-    return NULL;
-}
-
-/* Serializes into a provided buffer and limits length */
-char *json_buffer_encode_max(buffer_t *buffer, const json_t *node, size_t indent,
-    size_t max_length)
-{
-    if (buffer && buffer_encode(buffer, node, indent, max_length))
+    if (buffer && buffer_encode(buffer, node, indent))
     {
         return buffer->text;
     }
@@ -325,7 +299,7 @@ char *json_stringify(const json_t *node)
 {
     buffer_t buffer = { 0 };
 
-    return buffer_encode(&buffer, node, 0, 0);
+    return buffer_encode(&buffer, node, 0);
 }
 
 #define write_file(buffer, file) \
@@ -340,7 +314,7 @@ int json_write(const json_t *node, FILE *file, size_t indent)
     {
         buffer_t buffer = { 0 };
 
-        if (buffer_encode(&buffer, node, indent, 0))
+        if (buffer_encode(&buffer, node, indent))
         {
             rc = write_file(buffer, file);
         }
@@ -358,7 +332,7 @@ int json_write_line(const json_t *node, FILE *file)
     {
         buffer_t buffer = { 0 };
 
-        if (buffer_encode(&buffer, node, 0, 0) && buffer_put(&buffer, '\n'))
+        if (buffer_encode(&buffer, node, 0) && buffer_put(&buffer, '\n'))
         {
             rc = write_file(buffer, file);
         }
@@ -377,7 +351,7 @@ int json_write_file(const json_t *node, const char *path, size_t indent)
     {
         buffer_t buffer = { 0 };
 
-        if (buffer_encode(&buffer, node, indent, 0))
+        if (buffer_encode(&buffer, node, indent))
         {
             rc = write_file(buffer, file);
         }
@@ -406,27 +380,6 @@ char *json_quote(const char *str)
     return write_string(&buffer, str);
 }
 
-/* Returns an encoded json string and limits length */
-char *json_quote_max(const char *str, size_t max_length)
-{
-    if (str == NULL)
-    {
-        return NULL;
-    }
-
-    buffer_t buffer = { 0 };
-
-    if (write_string(&buffer, str))
-    {
-        if ((max_length > 0) && (buffer.length - 2 > max_length))
-        {
-            buffer_set_length(&buffer, max_length + 1);
-            buffer_write(&buffer, "...\"");
-        }
-    }
-    return buffer.text;
-}
-
 /* Encodes a json string into a provided buffer */
 char *json_buffer_quote(buffer_t *buffer, const char *str)
 {
@@ -435,32 +388,6 @@ char *json_buffer_quote(buffer_t *buffer, const char *str)
         return NULL;
     }
     return write_string(buffer, str);
-}
-
-/* Encodes a json string into a provided buffer and limits length */
-char *json_buffer_quote_max(buffer_t *buffer, const char *str, size_t max_length)
-{
-    if ((buffer == NULL) || (str == NULL))
-    {
-        return NULL;
-    }
-    if (max_length > 0)
-    {
-        max_length += buffer->length;
-    }
-    else
-    {
-        max_length = (size_t)-1;
-    }
-    if (write_string(buffer, str))
-    {
-        if (buffer->length - 2 > max_length)
-        {
-            buffer_set_length(buffer, max_length + 1);
-            buffer_write(buffer, "...\"");
-        }
-    }
-    return buffer->text;
 }
 
 /* Returns an encoded json string from a number */

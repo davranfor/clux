@@ -36,7 +36,7 @@ typedef int (*json_validate_callback)(const json_event_t *, void *);
 
 void json_set_warning_mode(enum json_warning_mode);
 enum json_warning_mode json_get_warning_mode(void);
-char *json_write_event(buffer_t *, const json_event_t *, size_t);
+char *json_write_event(buffer_t *, const json_event_t *);
 int json_validate(const json_t *, const json_t *, const map_t *,
     json_validate_callback, void *);
 

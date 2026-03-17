@@ -110,22 +110,19 @@ static void raise_error(const schema_t *schema, const json_t *rule, const json_t
     notify(schema, rule, node, JSON_ERROR);
 }
 
-/**
- * Writes an event to a provided buffer from an user-defined callback
- * Limits the buffer to 'encode_max' bytes when encoding (0 = no limit)
- */
-char *json_write_event(buffer_t *buffer, const json_event_t *event, size_t encode_max)
+/* Writes an event to a provided buffer */
+char *json_write_event(buffer_t *buffer, const json_event_t *event)
 {
     if ((buffer == NULL) || (event == NULL))
     {
         return NULL;
     }
     buffer_write(buffer, "\nPath: ");
-    json_write_pointer_max(buffer, event->pointer, encode_max);
+    json_write_pointer(buffer, event->pointer);
     buffer_write(buffer, "\nNode: ");
-    json_buffer_encode_max(buffer, event->node, 0, encode_max);
+    json_buffer_encode(buffer, event->node, 0);
     buffer_write(buffer, "\nRule: ");
-    json_buffer_encode_max(buffer, event->rule, 0, encode_max);
+    json_buffer_encode(buffer, event->rule, 0);
     return buffer_put(buffer, '\n');
 }
 

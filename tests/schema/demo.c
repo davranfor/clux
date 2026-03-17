@@ -9,7 +9,6 @@
 #include <clux/json.h>
 
 #define BUFFER_LIMIT 4096   // Don't write to buffer after this limit
-#define ENCODE_MAX 128      // Max length of an event line
 
 enum { CONTINUE, STOP };
 
@@ -33,7 +32,7 @@ static int on_failure(const json_event_t *event, buffer_t *buffer)
         buffer_write(buffer, "...\n");
         return STOP;
     }
-    if (!json_write_event(buffer, event, ENCODE_MAX))
+    if (!json_write_event(buffer, event))
     {
         return STOP;
     }
