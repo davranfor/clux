@@ -119,8 +119,6 @@ char *json_write_event(buffer_t *buffer, const json_event_t *event)
     }
     buffer_write(buffer, "\nPath: ");
     json_write_pointer(buffer, event->pointer);
-    buffer_write(buffer, "\nNode: ");
-    json_buffer_encode(buffer, event->node, 0);
     buffer_write(buffer, "\nRule: ");
     json_buffer_encode(buffer, event->rule, 0);
     return buffer_put(buffer, '\n');
